@@ -12,20 +12,28 @@ import {
   MenuTarget,
   Drawer,
   Stack,
-  ScrollArea 
+  ScrollArea, 
+  Text,
+  NumberInput,
+  NumberFormatter
 } from "@mantine/core";
 import Logo from "../../assets/logo.png";
 import {
   IconArrowLeft,
   IconBasketHeart,
+  IconLayoutSidebarLeftCollapse,
   IconLogout,
+  IconMenu2,
+  IconMenuDeep,
   IconShoppingCart,
   IconTrash,
   IconUser,
   IconUserCog,
+  IconX,
 } from "@tabler/icons-react";
 import { NavLink } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
+import Search from "../search";
 
 const Header = () => {
   const [opened, { open, close }] = useDisclosure(false)
@@ -37,6 +45,7 @@ const Header = () => {
             <Container>
               <Flex w="100%" justify="space-between" align="center">
                 <Image src={Logo} h={80} w="auto" fit="contain" />
+                <Search />
                 <Flex align="center" gap="md">
                   <Indicator
                     offset={2}
@@ -97,16 +106,25 @@ const Header = () => {
           </div>
         </div>
       </div>
-      <Drawer.Root scrollAreaComponent={ScrollArea.Autosize}  opened={opened} onClose={close}>
+      <Drawer.Root styles={{inner:{right:0}}}  opened={opened} onClose={close}>
         <Drawer.Overlay />
 
         <Drawer.Content>
           <Drawer.Header>
             <Drawer.Title>سبد خرید</Drawer.Title>
-            <Drawer.CloseButton />
+            <ActionIcon variant="transparent" onClick={close}><IconMenu2 /></ActionIcon>
           </Drawer.Header>
           <Drawer.Body  pb="sm">
-            hello
+            <Flex justify="space-between" align="start">
+              <Flex gap="md">
+                <Image src="https://placehold.co/70" w={70} h={70} fit="contain" radius="sm" />
+                <Flex justify="space-between" direction="column">
+                  <Text>سلام</Text>
+                  <Text size="sm" dir="ltr" c="green"><NumberFormatter value={2000000} thousandSeparator /> x 2</Text>
+                </Flex>
+              </Flex>
+              <ActionIcon color="red" variant="white"><IconX size={16} /></ActionIcon>
+            </Flex>
           </Drawer.Body>
           <Flex w="100%" justify="space-between" px="sm" pb="sm">
             <Button w="auto" color="red" rightSection={<IconTrash size={20} />}>خالی کردن سبد</Button>
