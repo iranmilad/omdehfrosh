@@ -108,9 +108,9 @@ const Header = () => {
                       </MenuItem>
                     </MenuDropdown>
                   </Menu>) : (
-                      <ActionIcon variant="light" size="xl" component={NavLink} to="/login">
-                        <IconUser />
-                      </ActionIcon>)}
+                      <Button style={{height: 45}} variant="light" size="md" component={NavLink} to="/login">
+                        ورود یا ثبت نام
+                      </Button>)}
 
                 </Flex>
               </Flex>

@@ -1,5 +1,6 @@
 import {
   Alert,
+  Anchor,
   Box,
   Button,
   Center,
@@ -22,6 +23,8 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
 import * as yup from 'yup';
 import { yupResolver } from 'mantine-form-yup-resolver';
+import Logo from "../../../assets/logo.png"
+
 
 const validationSchema = yup.object().shape({
   name: yup
@@ -126,11 +129,6 @@ const Register = () => {
         />
         <Center className="relative z-10 lg:w-1/4">
           <div className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
-            <Image
-              className="w-48 mx-auto"
-              src="./assets/image/logo.png"
-              alt=""
-            />
             <Text c="dark" size="xl" fw="bold" ta="center">
               ثبت نام
             </Text>
@@ -191,13 +189,9 @@ const Register = () => {
                 </div>
                 <div className="mt-8 mb-4 text-xs text-zinc-500">
                   ورود شما به معنای پذیرش{" "}
-                  <a
-                    className="text-red-400 hover:text-red-500 transition"
-                    href=""
-                  >
-                    {" "}
-                    قوانین و مقررات
-                  </a>{" "}
+                  <Anchor size="xs">
+                  قوانین و مقررات
+                  </Anchor> {' '}
                   مدکالا میباشد.
                 </div>
               </>

@@ -1,5 +1,6 @@
 import {
   Alert,
+  Anchor,
   Box,
   Button,
   Center,
@@ -117,11 +118,6 @@ const Login = () => {
         />
         <Center className="relative z-10 lg:w-1/4">
           <div className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
-            <Image
-              className="w-48 mx-auto"
-              src="./assets/image/logo.png"
-              alt=""
-            />
             <Text c="dark" size="xl" fw="bold" ta="center">ورود</Text>
             {type === "enter" ? (
               <>
@@ -157,7 +153,16 @@ const Login = () => {
                       to="/register"
                     >
                       ثبت نام
-                    </Button>
+                    </Button>                    
+                    <Center><Anchor
+                      mt="sm"
+                      fw="500"
+                      size="sm"
+                      component={NavLink}
+                      to="/"
+                    >
+                      خانه
+                    </Anchor>  </Center>                  
                   </form>
                 </div>
                 <div className="mt-8 mb-4 text-xs text-zinc-500">

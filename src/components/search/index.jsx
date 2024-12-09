@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import {
   ActionIcon,
   Box,
+  Center,
   Divider,
   Flex,
   Input,
@@ -79,9 +80,6 @@ const Search = () => {
         size="md"
         variant="filled"
         leftSection={<IconSearch size={18} />}
-        rightSection={
-          <Loader display={isPending ? "block" : "none"} size="xs" />
-        }
         placeholder="جستجو کنید"
       />
       <Transition
@@ -96,66 +94,68 @@ const Search = () => {
             className="absolute top-full w-full"
             style={styles}
           >
-            <Box mt="lg">
-              <Divider
-                labelPosition="left"
-                label={
-                  <>
-                    <IconLayoutGridAdd />
-                    <Text mr="sm">دسته‌ها</Text>
-                  </>
-                }
-              />
-              <SimpleGrid cols={3} mt="md">
-                {data?.data[0]?.category?.map((item, index) => (
-                  <Paper
-                    key={index}
-                    shadow="none"
-                    withBorder
-                    style={{cursor:"pointer"}}
-                    component={NavLink}
-                    onClick={() => navgiateURL(`/category/${item.slug}`)}>
-                    <Flex align="center" justify="space-between">
-                      <Text>{item.title}</Text>
-                      <ActionIcon
-                        component={NavLink}
-                        
-                        variant="white"
-                      >
-                        <IconExternalLink />
-                      </ActionIcon>
-                    </Flex>
-                  </Paper>
-                ))}
-              </SimpleGrid>
-              <Divider
-                mt="xl"
-                labelPosition="left"
-                label={
-                  <>
-                    <IconLayoutGridAdd />
-                    <Text mr="sm">محصولات</Text>
-                  </>
-                }
-              />
-              <Stack mt="md">
-              {data?.data[0]?.products?.map((item, index) => (
-                  <Paper style={{cursor:"pointer"}} key={index} shadow="none" withBorder onClick={() => navgiateURL(`/product/${item.slug}`)}>
-                  <Flex align="start" gap="sm">
-                    <Flex justify="space-between" w="100%">
-                      <Text>
-                      {item.title}
-                      </Text>
-                      <ActionIcon variant="white">
-                        <IconExternalLink />
-                      </ActionIcon>
-                    </Flex>
-                  </Flex>
-                </Paper>
-                ))}
-
-              </Stack>
-            </Box>
+            {isPending ? <Center><Loader size="xs" /></Center> :  ( 
+                            <Box mt="lg">
+                            <Divider
+                              labelPosition="left"
+                              label={
+                                <>
+                                  <IconLayoutGridAdd />
+                                  <Text mr="sm">دسته‌ها</Text>
+                                </>
+                              }
+                            />
+                            <SimpleGrid cols={3} mt="md">
+                              {data?.data[0]?.category?.map((item, index) => (
+                                <Paper
+                                  key={index}
+                                  shadow="none"
+                                  withBorder
+                                  style={{cursor:"pointer"}}
+                                  component={NavLink}
+                                  onClick={() => navgiateURL(`/category/${item.slug}`)}>
+                                  <Flex align="center" justify="space-between">
+                                    <Text>{item.title}</Text>
+                                    <ActionIcon
+                                      component={NavLink}
+                                      
+                                      variant="white"
+                                    >
+                                      <IconExternalLink />
+                                    </ActionIcon>
+                                  </Flex>
+                                </Paper>
+                              ))}
+                            </SimpleGrid>
+                            <Divider
+                              mt="xl"
+                              labelPosition="left"
+                              label={
+                                <>
+                                  <IconLayoutGridAdd />
+                                  <Text mr="sm">محصولات</Text>
+                                </>
+                              }
+                            />
+                            <Stack mt="md">
+                            {data?.data[0]?.products?.map((item, index) => (
+                                <Paper style={{cursor:"pointer"}} key={index} shadow="none" withBorder onClick={() => navgiateURL(`/product/${item.slug}`)}>
+                                <Flex align="start" gap="sm">
+                                  <Flex justify="space-between" w="100%">
+                                    <Text>
+                                    {item.title}
+                                    </Text>
+                                    <ActionIcon variant="white">
+                                      <IconExternalLink />
+                                    </ActionIcon>
+                                  </Flex>
+                                </Flex>
+                              </Paper>
+                              ))}
+              
+                            </Stack>
+                          </Box>
+            )}
           </Paper>
         )}
       </Transition>
