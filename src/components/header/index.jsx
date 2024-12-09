@@ -15,7 +15,8 @@ import {
   ScrollArea, 
   Text,
   NumberInput,
-  NumberFormatter
+  NumberFormatter,
+  Anchor
 } from "@mantine/core";
 import Logo from "../../assets/logo.png";
 import {
@@ -34,17 +35,24 @@ import {
 import { NavLink } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
 import Search from "../search";
+import { useCookies } from "react-cookie";
 
 const Header = () => {
-  const [opened, { open, close }] = useDisclosure(false)
+  const [opened, { open, close }] = useDisclosure(false);
+  const [cookies, setCookie,removeCookie] = useCookies(["user"]);
+  const Logout = () => {
+    removeCookie('user',{path: '/'})
+  }
   return (
     <>
-      <div class=" z-50 bg-white">
+      <div className=" z-50 bg-white">
         <div>
-          <div class="relative px-5 z-30 gap-x-4 bg-white py-4 shadow-sm">
+          <div className="relative px-5 z-30 gap-x-4 bg-white py-4 shadow-sm">
             <Container>
               <Flex w="100%" justify="space-between" align="center">
-                <Image src={Logo} h={80} w="auto" fit="contain" />
+                <Anchor component={NavLink} to="/">
+                  <Image src={Logo} h={80} w="auto" fit="contain" />
+                </Anchor>
                 <Search />
                 <Flex align="center" gap="md">
                   <Indicator
@@ -62,7 +70,7 @@ const Header = () => {
                       <IconShoppingCart />
                     </ActionIcon>
                   </Indicator>
-                  <Menu shadow="md" width={200} position="bottom-end">
+                  {cookies.user ? (<Menu shadow="md" width={200} position="bottom-end">
                     <MenuTarget>
                       <ActionIcon variant="light" size="xl">
                         <IconUser />
@@ -94,12 +102,16 @@ const Header = () => {
                         color="red"
                         rightSection={<IconLogout size={18} />}
                         component={NavLink}
-                        to="/logout"
+                        onClick={() => Logout()}
                       >
                         خروج
                       </MenuItem>
                     </MenuDropdown>
-                  </Menu>
+                  </Menu>) : (
+                      <ActionIcon variant="light" size="xl" component={NavLink} to="/login">
+                        <IconUser />
+                      </ActionIcon>)}
+
                 </Flex>
               </Flex>
             </Container>

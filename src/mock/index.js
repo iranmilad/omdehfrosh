@@ -2,7 +2,8 @@ import appConfig from "../config/app.config";
 import { createServer } from "miragejs";
 
 import { signInUserData } from "./data/authData";
-import { authFakeSMS,authFakeLogin } from "./fakeApi";
+import { SearchData } from "./data/search";
+import { authFakeSMS,authFakeLogin,SearchApi } from "./fakeApi";
 const { apiPrefix } = appConfig;
 
 function mockRunner({ environment }) {
@@ -11,6 +12,7 @@ function mockRunner({ environment }) {
 		seeds(server) {
 			server.db.loadData({
 				signInUserData,
+				SearchData
 			});
 		},
 		routes() {
@@ -22,7 +24,8 @@ function mockRunner({ environment }) {
 			});
 			this.passthrough();
 			authFakeSMS(this, apiPrefix);
-			authFakeLogin(this,apiPrefix)
+			authFakeLogin(this,apiPrefix);
+			SearchApi(this,apiPrefix)
 		},
 	});
 }

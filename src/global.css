@@ -1,14 +1,17 @@
 @layer tailwind {
-	@tailwind base;
+  @tailwind base;
 }
 @tailwind components;
 @tailwind utilities;
 
-body{
-    font-family: var(--mantine-font-family);
+body {
+  font-family: var(--mantine-font-family);
+  -moz-font-feature-settings: "ss02" !important;
+  -webkit-font-feature-settings: "ss02" !important;
+  font-feature-settings: "ss02" !important;
 }
 
 /* Remove input password shower icon in edge */
-input:has(::-ms-reveal,::-ms-clear){
-    display: none;
+input:has(::-ms-reveal, ::-ms-clear) {
+  display: none;
 }

@@ -1,4 +1,4 @@
-import { rem,Container } from "@mantine/core";
+import { rem,Container, Paper, Title } from "@mantine/core";
 
 const CONTAINER_SIZES= {
   xxs: rem(300),
@@ -46,6 +46,17 @@ const Theme = {
         size: "xxl"
       }
     }),
+    Paper: Paper.extend({
+      defaultProps:{
+        shadow: "md",
+        p:"md"
+      }
+    }),
+    Title: Title.extend({
+      defaultProps: {
+        size: "md"
+      }
+    })
   },
 };
 

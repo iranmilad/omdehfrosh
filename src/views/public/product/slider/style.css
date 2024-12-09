@@ -1,0 +1,31 @@
+.imagesPreview .swiper-slide {
+  width: 25%;
+  height: 100%;
+  opacity: 1;
+  cursor: pointer;
+  border: 1px solid transparent;
+  padding: 4px;
+  border-radius: var(--mantine-radius-default);
+  object-fit: contain;
+}
+
+.imagesPreview .swiper-slide-thumb-active {
+  opacity: 1;
+  border-color: var(--mantine-primary-color-filled);
+}
+
+.prev-arrow{
+  position: absolute;
+  top: 50%;
+  right: auto;
+  left: 100%;
+  transform: translateY(-50%);
+}
+
+.next-arrow{
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  left: auto;
+  transform: translateY(-50%);
+}
