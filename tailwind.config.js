@@ -1,25 +1,27 @@
 /** @type {import('tailwindcss').Config} */
 
-module.exports = {
+const config = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       colors: {
         brand: {
-          50: "#fef2f2",
-          100: "#fee2e2",
-          200: "#fecaca",
-          300: "#fca5a5",
-          400: "#f87171",
-          500: "#ef4444",
-          600: "#dc2626",
-          700: "#b91c1c",
-          800: "#991b1b",
-          900: "#7f1d1d",
-          950: "#450a0a",
-        },
+          50: "#f0fde6",
+          100: "#e3f6d5",
+          200: "#c8ecad",
+          300: "#abe082",
+          400: "#93d75e",
+          500: "#83d146",
+          600: "#7ace39",
+          700: "#67b62a",
+          800: "#5aa221",
+          900: "#4a8c14",
+          950: "#3b780c",
+        },        
       },
     },
   },
   plugins: [],
 };
+
+export default config

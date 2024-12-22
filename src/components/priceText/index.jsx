@@ -2,10 +2,11 @@ import { Flex, NumberFormatter } from "@mantine/core";
 import "./style.css"
 
 const PriceText = (props) => {
+  const {children , others} = props;
   return (
     <Flex align="center" justify="end"
     >
-      <NumberFormatter className="price_text" style={{fontWeight:"normal",fontSize:"14px"}}  value={+props.children} thousandSeparator />
+      <NumberFormatter className="price_text" style={{fontWeight:"normal",fontSize:"14px"}}  value={+children} thousandSeparator {...others} />
       <svg style={{ width: "14px", height: "14px" }}>
         <symbol
           id="toman"

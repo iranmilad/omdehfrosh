@@ -4,10 +4,10 @@ import ApiCaller from "./axiosEndpoint";
 
 export function useData({ url, params, axiosOption, queryOptions }) {
 	return useQuery({
-		queryKey: [url],
+		queryKey: [`${url}_GET`],
 		queryFn: async () => {
 			let { data } = await ApiCaller.get(url, { params, ...axiosOption });
-			return data?.Data;
+			return data?.data;
 		},
 		staleTime: 1000 * 30,
 		refetchInterval: 0,
@@ -20,7 +20,7 @@ export function useData({ url, params, axiosOption, queryOptions }) {
 
 export function useSend({ url, params, method = "post", axiosOption }) {
 	return useMutation({
-		mutationKey: url,
+		mutationKey: `${url}_${method}`,
 		mutationFn: async (bodyData) => {
 			let { data } = await ApiCaller.request({
 				url,

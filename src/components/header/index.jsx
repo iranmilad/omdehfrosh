@@ -32,7 +32,7 @@ import {
   IconUserCog,
   IconX,
 } from "@tabler/icons-react";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
 import Search from "../search";
 import { useCookies } from "react-cookie";
@@ -40,20 +40,23 @@ import { useCookies } from "react-cookie";
 const Header = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [cookies, setCookie,removeCookie] = useCookies(["user"]);
+  const navigate = useNavigate();
   const Logout = () => {
     removeCookie('user',{path: '/'})
   }
   return (
     <>
-      <div className=" z-50 bg-white">
+      <div className=" z-50 bg-white" id="header">
         <div>
           <div className="relative px-5 z-30 gap-x-4 bg-white py-4 shadow-sm">
             <Container>
               <Flex w="100%" justify="space-between" align="center">
-                <Anchor component={NavLink} to="/">
-                  <Image src={Logo} h={80} w="auto" fit="contain" />
-                </Anchor>
-                <Search />
+                <Flex align="center" gap={60}>
+                  <Anchor component={NavLink} to="/">
+                    <Image src={Logo} h={80} w="auto" fit="contain" />
+                  </Anchor>
+                  <Search />
+                </Flex>
                 <Flex align="center" gap="md">
                   <Indicator
                     offset={2}
@@ -80,21 +83,21 @@ const Header = () => {
                       <MenuItem
                         rightSection={<IconUserCog size={18} />}
                         component={NavLink}
-                        to="/user/edit"
+                        to="/account/edit-account"
                       >
                         ویرایش
                       </MenuItem>
                       <MenuItem
                         rightSection={<IconShoppingCart size={18} />}
                         component={NavLink}
-                        to="/user/edit"
+                        to="/account/orders"
                       >
                         سفارش ها
                       </MenuItem>
                       <MenuItem
                         rightSection={<Badge variant="light">0</Badge>}
                         component={NavLink}
-                        to="/user/edit"
+                        to="/account/notifications"
                       >
                         پیام ها
                       </MenuItem>
@@ -108,7 +111,7 @@ const Header = () => {
                       </MenuItem>
                     </MenuDropdown>
                   </Menu>) : (
-                      <Button style={{height: 45}} variant="light" size="md" component={NavLink} to="/login">
+                      <Button style={{height: 45}} variant="light" size="md" fz="sm" component={NavLink} to="/login">
                         ورود یا ثبت نام
                       </Button>)}
 
@@ -140,7 +143,10 @@ const Header = () => {
           </Drawer.Body>
           <Flex w="100%" justify="space-between" px="sm" pb="sm">
             <Button w="auto" color="red" rightSection={<IconTrash size={20} />}>خالی کردن سبد</Button>
-            <Button w="auto" rightSection={<IconArrowLeft size={20} />}>ادامه</Button>
+            <Button onClick={() => {
+              close();
+              navigate('/basket')
+            }} w="auto" rightSection={<IconArrowLeft size={20} />}>ادامه</Button>
           </Flex>
         </Drawer.Content>
       </Drawer.Root>

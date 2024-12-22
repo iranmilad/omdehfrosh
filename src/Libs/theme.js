@@ -1,4 +1,4 @@
-import { rem,Container, Paper, Title } from "@mantine/core";
+import { rem,Container, Paper, Title,Loader,Checkbox } from "@mantine/core";
 
 const CONTAINER_SIZES= {
   xxs: rem(300),
@@ -11,25 +11,25 @@ const CONTAINER_SIZES= {
 };
 
 const Theme = {
-  fontFamily: "IRANSansX, sans-serif",
-  headings: { fontFamily: "IRANSansX, sans-serif" },
-  fontFamilyMonospace: "IRANSansX, sans-serif",
-  primaryColor: "indigo",
+  fontFamily: "IranYekan, sans-serif",
+  headings: { fontFamily: "IranYekan, sans-serif" },
+  fontFamilyMonospace: "IranYekan, sans-serif",
+  primaryColor: "brand",
   defaultRadius: "8px",
   primaryShade: 5,
   colors: {
     brand: [
-      "#fef2f2",
-      "#fee2e2",
-      "#fecaca",
-      "#fca5a5",
-      "#f87171",
-      "#ef4444",
-      "#dc2626",
-      "#b91c1c",
-      "#991b1b",
-      "#7f1d1d",
-    ],
+      "#f0fde6",
+      "#e3f6d5",
+      "#c8ecad",
+      "#abe082",
+      "#93d75e",
+      "#83d146",
+      "#7ace39",
+      "#67b62a",
+      "#5aa221",
+      "#4a8c14"
+    ]    
   },
   components: {
     Container: Container.extend({
@@ -55,6 +55,16 @@ const Theme = {
     Title: Title.extend({
       defaultProps: {
         size: "md"
+      }
+    }),
+    Loader: Loader.extend({
+      defaultProps: {
+        type:"dots"
+      }
+    }),
+    Checkbox: Checkbox.extend({
+      defaultProps: {
+        radius: "sm"
       }
     })
   },

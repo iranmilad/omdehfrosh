@@ -9,9 +9,14 @@ body {
   -moz-font-feature-settings: "ss02" !important;
   -webkit-font-feature-settings: "ss02" !important;
   font-feature-settings: "ss02" !important;
+  background: var(--mantine-color-gray-0);
 }
 
 /* Remove input password shower icon in edge */
 input:has(::-ms-reveal, ::-ms-clear) {
   display: none;
+}
+
+.mantine-InputWrapper-label{
+  margin-bottom: var(--mantine-spacing-xs);
 }

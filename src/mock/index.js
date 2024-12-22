@@ -3,7 +3,7 @@ import { createServer } from "miragejs";
 
 import { signInUserData } from "./data/authData";
 import { SearchData } from "./data/search";
-import { authFakeSMS,authFakeLogin,SearchApi } from "./fakeApi";
+import { authFakeSMS,authFakeLogin,SearchApi,SubmitCoupon,EditAccount,Account_Tickets,Account_Notifications,Favorites,Compare } from "./fakeApi";
 const { apiPrefix } = appConfig;
 
 function mockRunner({ environment }) {
@@ -25,7 +25,13 @@ function mockRunner({ environment }) {
 			this.passthrough();
 			authFakeSMS(this, apiPrefix);
 			authFakeLogin(this,apiPrefix);
-			SearchApi(this,apiPrefix)
+			SearchApi(this,apiPrefix);
+			SubmitCoupon(this,apiPrefix);
+			EditAccount(this,apiPrefix);
+			Account_Tickets(this,apiPrefix);
+			Account_Notifications(this,apiPrefix);
+			Favorites(this,apiPrefix);
+			Compare(this,apiPrefix);
 		},
 	});
 }

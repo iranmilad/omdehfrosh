@@ -66,7 +66,7 @@ const Search = () => {
 
   const navgiateURL = (url)=>{
     navigate(url);
-    setValue("");
+    setValue("")
     setOpened(false)
   }
 
@@ -78,7 +78,9 @@ const Search = () => {
         onClick={(e) => e.target.value.length > 2 && setOpened(true)}
         w="100%"
         size="md"
-        variant="filled"
+        variant="default"
+        radius="99999"
+        value={value}
         leftSection={<IconSearch size={18} />}
         placeholder="جستجو کنید"
       />
