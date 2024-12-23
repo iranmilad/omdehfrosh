@@ -1,9 +1,11 @@
 import {
+  ActionIcon,
   Alert,
   Anchor,
   Box,
   Button,
   Center,
+  Flex,
   Image,
   Input,
   PinInput,
@@ -19,7 +21,7 @@ import { useState } from "react";
 import { NavLink } from "react-router";
 import { useSend } from "../../../Libs/api";
 import { useCookies } from "react-cookie";
-import { IconInfoCircle } from "@tabler/icons-react";
+import { IconArrowLeft, IconInfoCircle } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
 import * as yup from 'yup';
 import { yupResolver } from 'mantine-form-yup-resolver';
@@ -129,9 +131,12 @@ const Register = () => {
         />
         <Center className="relative z-10 lg:w-1/4">
           <div className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
-            <Text c="dark" size="xl" fw="bold" ta="center">
-              ثبت نام
-            </Text>
+          <Flex justify="space-between" align="center">
+              <Text c="dark" size="xl" fw="bold">ثبت</Text>
+              <ActionIcon component={NavLink} to="/" variant="transparent">
+                <IconArrowLeft />
+              </ActionIcon>
+            </Flex>
             {type === "enter" ? (
               <>
                 <div className="flex flex-col gap-y-1 pt-5">
