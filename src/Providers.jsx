@@ -13,6 +13,7 @@ import store from "./redux";
 import '@mantine/notifications/styles.css';
 import { Notifications } from '@mantine/notifications';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import '@mantine/charts/styles.css';
 
 
 

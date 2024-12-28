@@ -1,4 +1,4 @@
-import { rem,Container, Paper, Title,Loader,Checkbox } from "@mantine/core";
+import { rem,Container, Paper, Title,Loader,Checkbox, Button, Modal } from "@mantine/core";
 
 const CONTAINER_SIZES= {
   xxs: rem(300),
@@ -8,6 +8,7 @@ const CONTAINER_SIZES= {
   lg: rem(700),
   xl: rem(800),
   xxl: "1520px",
+  xxxl: "1720px",
 };
 
 const Theme = {
@@ -43,7 +44,12 @@ const Theme = {
         },
       }),
       defaultProps:{
-        size: "xxl"
+        size: "xxxl"
+      }
+    }),
+    Button: Button.extend({
+      defaultProps: {
+        h: 40
       }
     }),
     Paper: Paper.extend({
@@ -66,7 +72,7 @@ const Theme = {
       defaultProps: {
         radius: "sm"
       }
-    })
+    }),
   },
 };
 

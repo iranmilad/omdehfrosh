@@ -1,8 +1,9 @@
-import { Collapse,Button, Grid, Textarea, Paper, Text, Flex, Rating, Stack, Title } from "@mantine/core"
+import { Collapse,Button, Grid, Textarea, Paper, Text, Flex, Rating, Stack, Title, Select } from "@mantine/core"
 import { useForm, yupResolver } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks"
 import * as Yup from 'yup';
 import {IconMessage2} from "@tabler/icons-react"
+import XTitle from "../../../../components/title";
 
 
 const commentValidationSchema = Yup.object().shape({
@@ -26,13 +27,17 @@ const AddComment = (props) => {
         <Paper>
             <Button h="60" fullWidth variant="light" leftSection={<IconMessage2 />} onClick={toggle}>ثبت دیدگاه</Button>
             <Collapse in={opened}>
-            <Title my="lg">دیدگاه خود را بنویسید</Title>
+            <XTitle my="lg">دیدگاه خود را بنویسید</XTitle>
                 <form onSubmit={form.onSubmit((value) => console.log(value))}>
                     <Stack>
                         <Flex>
                             <Text me="lg" size="sm" fw="500"> امتیاز شما</Text>
                             <Rating {...form.getInputProps('rating')}
                             />
+                        </Flex>
+                        <Flex align="center">
+                            <Text me="lg" size="sm" fw="500">فروشنده</Text>
+                            <Select data={[{label: 'دیجیکالا','value': "digikala"}]} defaultValue={'digikala'} allowDeselect={false} />
                         </Flex>
                         <Textarea label="دیدگاه شما" withAsterisk rows={5} placeholder="دیدگاه خود را وارد کنید" {...form.getInputProps('comment')}></Textarea>
                         <Button w="max-content" type="submit">ارسال</Button>

@@ -27,15 +27,14 @@ const Slider = (props) => {
     sliderRef.current.swiper.slideNext();
   }, []);
   return (
-    <div className="w-[450px]">
+    <div className="w-full">
       <div className="relative">
       <Swiper ref={sliderRef} spaceBetween={10} navigation={false} thumbs={{swiper: thumbsSwiper}} modules={[FreeMode, Thumbs]}>
-        <SwiperSlide >
-          <ReactImageZoom zoomPosition="original" width={450} height={365} zoomWidth={500} img="https://cfarhad.ir/wp-content/uploads/2024/07/1707890770-hXIGlhO91BjL9Y4p.webp" />
-        </SwiperSlide>
-        <SwiperSlide >
-          <ReactImageZoom zoomPosition="original" width={450} height={365} zoomWidth={500} img="https://cfarhad.ir/wp-content/uploads/2024/07/1707890770-hXIGlhO91BjL9Y4p.webp" />
-        </SwiperSlide>
+        {props.slides.map((item,index) => (
+          <SwiperSlide key={index} >
+            <ReactImageZoom zoomPosition="original" width={450} height={365} zoomWidth={500} img={item.src} />
+          </SwiperSlide>
+        ))}
       </Swiper>
 
       </div>
@@ -48,12 +47,12 @@ const Slider = (props) => {
         modules={[FreeMode, Navigation, Thumbs]}
         className="imagesPreview"
       >
-        <SwiperSlide>
-          <img src="https://cfarhad.ir/wp-content/uploads/2024/07/1707890770-hXIGlhO91BjL9Y4p.webp" />
-        </SwiperSlide>
-        <SwiperSlide>
-          <img src="https://cfarhad.ir/wp-content/uploads/2024/07/1707890770-hXIGlhO91BjL9Y4p.webp" />
-        </SwiperSlide>
+        {props.slides.map((item,index) => (
+          <SwiperSlide key={index}>
+            <img src={item.src} />
+          </SwiperSlide>
+        ))}
+
       </Swiper>
     </div>
   )

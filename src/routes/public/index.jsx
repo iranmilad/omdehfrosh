@@ -14,6 +14,7 @@ import Account_Message from "../../views/public/account-message"
 import Account_Notifications from "../../views/public/account-notifications"
 import Account_Favorite from "../../views/public/account-favorite"
 import Compare from "../../views/public/compare"
+import Page from "../../views/public/page"
 
 export const PublicRoutes = [
     {
@@ -44,6 +45,10 @@ export const PublicRoutes = [
             {
                 path: "/compare",
                 element: <Compare />
+            },
+            {
+                path: "/page/:slug",
+                element: <Page />
             },
             {
                 path: "/account",

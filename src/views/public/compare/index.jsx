@@ -1,5 +1,6 @@
 import {
   Button,
+  Center,
   Flex,
   Image,
   NumberFormatter,
@@ -10,91 +11,133 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import React from "react";
+import React, { useEffect } from "react";
+import { NavLink } from "react-router";
+import XTitle from "../../../components/title";
+import {
+  useIsFirstRender,
+  useLocalStorage,
+  useSessionStorage,
+} from "@mantine/hooks";
+import { useData, useSend } from "../../../Libs/api";
 
 function Compare() {
+  const [compare, setCompare] = useLocalStorage({
+    key: "compare",
+    defaultValue: [],
+  });
+  const { mutateAsync, data } = useSend({ url: "/compare" });
+  useEffect(() => {
+    if (compare.length > 0) {
+      mutateAsync({ id: compare });
+    }
+  }, [compare]);
   return (
     <>
-      <Title>مقایسه محصولات</Title>
-      <Paper mt="xl" px="xl">
-        <ScrollArea type="auto">
-          <Table striped withRowBorders={false} verticalSpacing="sm">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th miw={150}>ویژگی ها</Table.Th>
-                <Table.Th miw={200}>آیفون 13 پرو 256</Table.Th>
-                <Table.Th miw={200}>آیفون 16 پرومکس 256 ZAA</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              <Table.Tr>
-                <Table.Td>تصویر</Table.Td>
-                <Table.Td>
-                  <Image
-                    src="https://placehold.co/600x400"
-                    w="200"
-                    h={200}
-                    fit="contain"
-                  />
-                </Table.Td>
-                <Table.Td>
-                  <Image
-                    src="https://placehold.co/600x400"
-                    w="200"
-                    h={200}
-                    fit="contain"
-                  />
-                </Table.Td>
-              </Table.Tr>
-              <Table.Tr>
-                <Table.Td>امتیاز</Table.Td>
-                <Table.Td>
-                  <Rating value={5} />
-                </Table.Td>
-                <Table.Td>
-                  <Rating value={3} />
-                </Table.Td>
-              </Table.Tr>
-              <Table.Tr>
-                <Table.Td>قیمت</Table.Td>
-                <Table.Td>
-                  <Text size="sm">
-                    <NumberFormatter thousandSeparator value={25000000} /> تومان
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Flex gap="xs">
-                    <Text size="sm" c="gray">
-                      <NumberFormatter
-                        thousandSeparator
-                        value={30000000}
-                        style={{ textDecoration: "line-through" }}
-                      />
-                    </Text>
-                    <Text size="sm">
-                      <NumberFormatter thousandSeparator value={27000000} />
-                      تومان
-                    </Text>
-                  </Flex>
-                </Table.Td>
-              </Table.Tr>
-              <Table.Tr>
-                <Table.Td>افزودن به سبد</Table.Td>
-                <Table.Td>
-                  <Button size="sm" radius={999}>
-                    افزودن
-                  </Button>
-                </Table.Td>
-                <Table.Td>
-                  <Button size="sm" radius={999}>
-                    افزودن
-                  </Button>
-                </Table.Td>
-              </Table.Tr>
-            </Table.Tbody>
-          </Table>
-        </ScrollArea>
-      </Paper>
+      <XTitle>مقایسه محصولات</XTitle>
+      {compare && compare.length > 0 && data && data?.data ? (
+        <>
+          {Object.keys(data.data).length > 0 ? (
+            <Paper mt="xl" px="xl">
+              <ScrollArea type="auto">
+                <Table striped withRowBorders={false} verticalSpacing="sm">
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th miw={150}>ویژگی ها</Table.Th>
+                      {data?.data.title.map((title, index) => (
+                        <Table.Th key={index} miw={200} maw={200}>
+                          {title}
+                        </Table.Th>
+                      ))}
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    <Table.Tr>
+                      <Table.Td>تصویر</Table.Td>
+                      {data?.data.image.map((image, index) => (
+                        <Table.Td key={index}>
+                          <Image src={image} w="200" h={200} fit="contain" />
+                        </Table.Td>
+                      ))}
+                    </Table.Tr>
+                    <Table.Tr>
+                      <Table.Td>امتیاز</Table.Td>
+                      {data?.data.rating.map((product, index) => (
+                        <Table.Td key={index}>
+                          <Rating readOnly value={Number(product)} />
+                        </Table.Td>
+                      ))}
+                    </Table.Tr>
+                    <Table.Tr>
+                      <Table.Td>قیمت</Table.Td>
+                      {data?.data.price.map((product, index) => (
+                        <Table.Td key={index}>
+                          {product.discountedPrice ? (
+                            <Flex gap="xs">
+                              <Text size="sm" c="gray">
+                                <NumberFormatter
+                                  thousandSeparator
+                                  value={product.regularPrice}
+                                  style={{ textDecoration: "line-through" }}
+                                />
+                              </Text>
+                              <Text size="sm">
+                                <NumberFormatter
+                                  thousandSeparator
+                                  value={product.discountedPrice}
+                                />
+                                تومان
+                              </Text>
+                            </Flex>
+                          ) : (
+                            <Text size="sm">
+                              <NumberFormatter
+                                thousandSeparator
+                                value={product.regularPrice}
+                              />
+                              تومان
+                            </Text>
+                          )}
+                        </Table.Td>
+                      ))}
+                    </Table.Tr>
+                    {data?.data.attributes.map((item, index) => (
+                      <Table.Tr key={index}>
+                        <Table.Td>{item.label}</Table.Td>
+                        {item.value.map((item2, index2) => (
+                          <Table.Td key={index2}>{item2}</Table.Td>
+                        ))}
+                      </Table.Tr>
+                    ))}
+                    <Table.Tr>
+                      <Table.Td>مشاهده محصول</Table.Td>
+                      {data?.data.slug.map((item, index) => (
+                        <Table.Td key={index}>
+                          <Button
+                            radius={999}
+                            component={NavLink}
+                            to={`/product/${item}`}
+                          >
+                            مشاهده
+                          </Button>
+                        </Table.Td>
+                      ))}
+                    </Table.Tr>
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Paper>
+          ) : (
+            <Center>
+              <Text>محصولی برای مقایسه وجود ندارد</Text>
+            </Center>
+          )}
+        </>
+      ) : (
+        <Center>
+          <Text>محصولی برای مقایسه وجود ندارد</Text>
+        </Center>
+      )}
     </>
   );
 }

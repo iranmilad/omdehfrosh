@@ -7,3 +7,4 @@ export {default as Account_Tickets} from "./tickets";
 export {default as Account_Notifications} from "./notifications";
 export {default as Favorites} from "./favorites"
 export {default as Compare} from "./compare";
+export {default as Page} from "./page"
