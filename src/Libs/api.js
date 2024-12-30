@@ -9,7 +9,7 @@ export function useData({ url, params, axiosOption, queryOptions }) {
 			let { data } = await ApiCaller.get(url, { params, ...axiosOption });
 			return data?.data;
 		},
-		staleTime: 1000 * 30,
+		staleTime: false,
 		refetchInterval: 0,
 		retry: 2,
 		retryOnMount: false,

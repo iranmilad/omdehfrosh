@@ -1,8 +1,8 @@
 import { Badge, Box, Button, Flex, Image, LoadingOverlay, NumberFormatter, Paper, Skeleton, Text, useMantineTheme } from '@mantine/core'
-import { IconHeart, IconHeartOff, IconPercentage, IconSwitch3 } from '@tabler/icons-react'
+import { IconEye, IconHeart, IconHeartOff, IconPercentage, IconSwitch3 } from '@tabler/icons-react'
 import PriceText from "../../components/priceText";
 import { useEffect, useState } from 'react';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useElementSize } from '@mantine/hooks';
 import {useSend} from "../../Libs/api";
 import { notifications } from '@mantine/notifications';
 import { NavLink } from 'react-router';
@@ -10,9 +10,9 @@ import { NavLink } from 'react-router';
 function ProductBox({id,favoriteAdded,skeleton,title,slug,image,regularPrice,discountedPrice,discountPercent,refetchParent}) {
     const {colors} = useMantineTheme();
     
-
+    const {ref,width} = useElementSize();
   return (
-    <Paper shadow='sm' px="25" pb="lg" pt="40" pos="relative" display="flex" style={{flexDirection:"column"}}>
+    <Paper ref={ref} shadow='sm' px="25" pb="lg" pt="40" pos="relative" display="flex" style={{flexDirection:"column"}}>
         {!skeleton ?
             <>
                 <Box component={NavLink} to={`/product/${slug}`}>
@@ -22,7 +22,9 @@ function ProductBox({id,favoriteAdded,skeleton,title,slug,image,regularPrice,dis
                     <Text fw="600" size='sm'  component={NavLink} to={`/product/${slug}`}>{title}</Text>
                 </Box>
                 <Flex justify="space-between" align="end" mt="auto">
-                    <Button component={NavLink} to={`/product/${slug}`}>مشاهده محصول</Button>
+                    <Button component={NavLink} to={`/product/${slug}`}>
+                        {width < 240 ? <IconEye size={20} /> : "مشاهده محصول"}
+                    </Button>
                     <Flex direction="column" align="end" gap={6}>
                         <Flex gap="5">
                             <Text size='xs' td="line-through" c="gray.6"><NumberFormatter thousandSeparator value={regularPrice}/></Text>
