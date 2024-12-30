@@ -9,40 +9,20 @@ import { NavLink } from 'react-router';
 
 function ProductBox({id,favoriteAdded,skeleton,title,slug,image,regularPrice,discountedPrice,discountPercent,refetchParent}) {
     const {colors} = useMantineTheme();
-    const favoriteQuery = useSend({url: '/favorites',method:favoriteAdded ? "DELETE": "POST"});
-    const compareQuery = useSend({url: '/compare',method:favoriteAdded ? "DELETE": "POST"});
-    const removeFavorite = () => {
-        favoriteQuery.mutateAsync({id},{
-            onSuccess: () => {
-                notifications.show({
-                    color:"green",
-                    title: "پیام سیستم",
-                    message: "محصول با موفقیت از لیست علاقه مندی خارج شد"
-                });
-                refetchParent();
-            }
-        })
-    }
-
     
 
   return (
-    <Paper shadow='sm' px="25" pb="xl" pos="relative">
+    <Paper shadow='sm' px="25" pb="lg" pt="40" pos="relative" display="flex" style={{flexDirection:"column"}}>
         {!skeleton ?
             <>
-                <LoadingOverlay visible={favoriteQuery.isPending || compareQuery.isPending} />
-                <Flex justify="space-between" align="center" mb="lg">
-                    {favoriteAdded ? <IconHeartOff cursor="pointer" color={colors.red[5]} onClick={() => removeFavorite()} /> : <IconHeart />}
-                    <IconSwitch3 cursor="pointer" />
-                </Flex>
                 <Box component={NavLink} to={`/product/${slug}`}>
-                    <Image w="100%" h="150px" fit="contain" src={image}/>
+                    <Image className='hover:scale-105 transition-transform duration-300' w="100%" h="150px" fit="contain" src={image}/>
                 </Box>
                 <Box my="lg">
                     <Text fw="600" size='sm'  component={NavLink} to={`/product/${slug}`}>{title}</Text>
                 </Box>
-                <Flex justify="space-between" align="end">
-                    <Button h={50} component={NavLink} to={`/product/${slug}`}>مشاهده محصول</Button>
+                <Flex justify="space-between" align="end" mt="auto">
+                    <Button component={NavLink} to={`/product/${slug}`}>مشاهده محصول</Button>
                     <Flex direction="column" align="end" gap={6}>
                         <Flex gap="5">
                             <Text size='xs' td="line-through" c="gray.6"><NumberFormatter thousandSeparator value={regularPrice}/></Text>

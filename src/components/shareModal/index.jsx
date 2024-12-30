@@ -3,14 +3,14 @@ import { useClipboard } from "@mantine/hooks";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import React from "react";
 
-function ShareModal(props) {
+function ShareModal({close,opened,link}) {
   const clipboard = useClipboard({ timeout: 2000 });
   return (
     <Modal
       centered
       title="اشتراک گذاری"
-      onClose={props.close}
-      opened={props.opened}
+      onClose={close}
+      opened={opened}
     >
       <Stack>
         <Text size="sm">این کالا را با دوستان خود به اشتراک بگذارید!</Text>
@@ -20,7 +20,7 @@ function ShareModal(props) {
           fullWidth
           mt="md"
           color={clipboard.copied ? "" : "dark"}
-          onClick={() => clipboard.copy(props.link)}
+          onClick={() => clipboard.copy(link)}
         >
           {clipboard.copied ? (
             <IconCheck style={{ marginLeft: "10px" }} />

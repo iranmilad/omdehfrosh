@@ -40,8 +40,6 @@ import AddComment from "./comments/add";
 import Comments from "./comments";
 import Features from "../features";
 import { useDisclosure, useLocalStorage, useSessionStorage } from "@mantine/hooks";
-import PriceChart from "./priceChart";
-import ShareModal from "./shareModal";
 import { useSend } from "../../../Libs/api";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
@@ -52,6 +50,7 @@ import StockAlert from "./stockAlert";
 import XTitle from "../../../components/title";
 import CryptoJS,{AES}  from "crypto-js";
 import Counter from "../../../components/counter";
+import ShareModal from "../../../components/shareModal";
 
 const SLIDES = [
   {

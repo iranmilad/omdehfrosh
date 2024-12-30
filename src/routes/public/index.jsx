@@ -15,6 +15,8 @@ import Account_Notifications from "../../views/public/account-notifications"
 import Account_Favorite from "../../views/public/account-favorite"
 import Compare from "../../views/public/compare"
 import Page from "../../views/public/page"
+import Seller from "../../views/public/seller"
+import Seller_Home from "../../views/public/seller/home"
 
 export const PublicRoutes = [
     {
@@ -87,6 +89,10 @@ export const PublicRoutes = [
                         element: <Account_Favorite />,
                     },
                 ]
+            },
+            {
+                path: "/seller/:id",
+                element: <Seller />,
             }
         ]
     }
