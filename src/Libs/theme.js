@@ -7,7 +7,7 @@ export const CONTAINER_SIZES= {
   md: rem(600),
   lg: rem(700),
   xl: rem(800),
-  xxl: "1520px",
+  xxl: rem(1400),
   xxxl: "1720px",
 };
 
@@ -44,7 +44,7 @@ const Theme = {
         },
       }),
       defaultProps:{
-        size: "xxxl"
+        size: "xxl"
       }
     }),
     Button: Button.extend({

@@ -16,7 +16,9 @@ import {
   Text,
   NumberInput,
   NumberFormatter,
-  Anchor
+  Anchor,
+  Box,
+  Burger
 } from "@mantine/core";
 import Logo from "../../assets/logo.png";
 import {
@@ -43,6 +45,7 @@ const Header = () => {
   const bootstrap = useSelector((state) => state.global.bootstrap);
   const [opened, { open, close }] = useDisclosure(false);
   const [cookies, setCookie,removeCookie] = useCookies(["user"]);
+  const mobileMenuDrawer = useDisclosure();
   const navigate = useNavigate();
   const Logout = () => {
     removeCookie('user',{path: '/'})
@@ -56,10 +59,13 @@ const Header = () => {
             <Container>
               <Flex w="100%" justify="space-between" align="center">
                 <Flex align="center" gap={60}>
+                  <Flex align="center" gap="sm">
+                  <Burger onClick={mobileMenuDrawer[1].toggle} opened={mobileMenuDrawer[0]} />
                   <Anchor component={NavLink} to="/">
-                    <Image src={Logo} h={80} w="auto" fit="contain" />
+                    <Image src="https://www.digikala.com/brand/full-horizontal.svg" h="auto" w={{base: "146"}} fit="contain" />
                   </Anchor>
-                  <Search />
+                  </Flex>
+                  <Box visibleFrom="md"><Search /></Box>
                 </Flex>
                 <Flex align="center" gap="md">
                   <Indicator
@@ -73,13 +79,13 @@ const Header = () => {
                       indicator: { height: "15px", paddingTop: "2px" },
                     }}
                   >
-                    <ActionIcon color="red" variant="light" size="xl" onClick={open}>
+                    <ActionIcon color="red" variant="light" size="lg" onClick={open}>
                       <IconShoppingCart />
                     </ActionIcon>
                   </Indicator>
                   {cookies.user ? (<Menu shadow="md" width={200} position="bottom-end">
                     <MenuTarget>
-                      <ActionIcon variant="light" size="xl">
+                      <ActionIcon variant="light" size="lg">
                         <IconUser />
                       </ActionIcon>
                     </MenuTarget>
@@ -121,7 +127,8 @@ const Header = () => {
 
                 </Flex>
               </Flex>
-              <MegaMenu />
+              <Box visibleFrom="md"><MegaMenu /></Box>
+              <Drawer opened={mobileMenuDrawer[0]} size="85%" onClose={mobileMenuDrawer[1].close} title={<Image src="https://www.digikala.com/brand/full-horizontal.svg" h="auto" w={{base: "146"}} fit="contain" />}></Drawer>
             </Container>
           </div>
         </div>

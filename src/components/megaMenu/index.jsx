@@ -30,7 +30,7 @@ const MegaMenu = () => {
         closeDelay={200}
         onOpen={handleMenuOpen}
         onClose={handleMenuClose}
-        trigger="hover"
+        
         styles={{
           dropdown: {
             left: "50%",
