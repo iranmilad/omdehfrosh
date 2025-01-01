@@ -36,8 +36,11 @@ import { NavLink, useNavigate } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
 import Search from "../search";
 import { useCookies } from "react-cookie";
+import { useSelector } from "react-redux";
+import MegaMenu from "../megaMenu";
 
 const Header = () => {
+  const bootstrap = useSelector((state) => state.global.bootstrap);
   const [opened, { open, close }] = useDisclosure(false);
   const [cookies, setCookie,removeCookie] = useCookies(["user"]);
   const navigate = useNavigate();
@@ -46,9 +49,10 @@ const Header = () => {
   }
   return (
     <>
-      <div className=" z-50 bg-white" id="header">
+    {bootstrap.banner ? <a className="relative z-50" href={bootstrap.banner.link} target="_blank"><Image src={bootstrap.banner.src} /></a> : null}
+      <div className=" z-50 bg-white relative" id="header">
         <div>
-          <div className="relative px-5 z-30 gap-x-4 bg-white py-4 shadow-sm">
+          <div className="relative z-30 gap-x-4 bg-white py-4 pb-3 shadow-sm">
             <Container>
               <Flex w="100%" justify="space-between" align="center">
                 <Flex align="center" gap={60}>
@@ -117,6 +121,7 @@ const Header = () => {
 
                 </Flex>
               </Flex>
+              <MegaMenu />
             </Container>
           </div>
         </div>

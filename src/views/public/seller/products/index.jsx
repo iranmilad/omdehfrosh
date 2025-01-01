@@ -6,14 +6,14 @@ import { useData } from "../../../../Libs/api";
 import { IconBuildingStore } from "@tabler/icons-react";
 
 function Products({ children, id, activeTab }) {
-  const [mounted, setMounted] = useState(0);
+    const [mounted, setMounted] = useState(0);
   const url = `/seller/${id}/products`;
-  useEffect(() => {
-    if (activeTab === "products") setMounted((val) => val + 1);
-  }, [activeTab]);
 
+    useEffect(() => {
+      if (activeTab === "products") setMounted((val) => val + 1);
+    }, [activeTab]);
   return (
-    <Archive url={url} />
+    <Archive url={url} activeTab={activeTab} enabled={mounted >= 1} />
   );
 }
 

@@ -3,9 +3,13 @@ import { createSlice } from "@reduxjs/toolkit";
 const slice = createSlice({
   name: "global",
   initialState: {
-    loading: false
+    loading: false,
+    bootstrap: {}
   },
   reducers: {
+    setBootstrap: (state,action) => {
+      state.bootstrap = action.payload
+    },
     toggleLoading: (state,action) => {
         state.loading = !state.loading
         if(state.loading){
@@ -18,5 +22,5 @@ const slice = createSlice({
   },
 });
 
-export const { toggleLoading } = slice.actions;
+export const { toggleLoading,setBootstrap } = slice.actions;
 export default slice.reducer;

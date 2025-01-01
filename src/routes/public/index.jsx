@@ -17,6 +17,7 @@ import Compare from "../../views/public/compare"
 import Page from "../../views/public/page"
 import Seller from "../../views/public/seller"
 import Seller_Home from "../../views/public/seller/home"
+import Logout from "../../views/public/logout"
 
 export const PublicRoutes = [
     {
@@ -27,6 +28,10 @@ export const PublicRoutes = [
             {
                 path: "*",
                 element: <Page404 />
+            },
+            {
+                path: "/logout",
+                element: <Logout />
             },
             {
                 path: "/product/:slug",

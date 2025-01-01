@@ -11,7 +11,7 @@ import Logo from "../../assets/logo.png"
 
 const Footer = (props) => {
     return (
-          <div className="border-t pt-10 mt-32 bg-white">
+          <div className="border-t pt-10 mt-32 bg-white z-30">
               <Container>
               <div className="flex flex-wrap gap-y-4 justify-between items-center px-6">
           <div className="flex flex-col">

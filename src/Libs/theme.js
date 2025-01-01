@@ -1,6 +1,6 @@
 import { rem,Container, Paper, Title,Loader,Checkbox, Button, Modal } from "@mantine/core";
 
-const CONTAINER_SIZES= {
+export const CONTAINER_SIZES= {
   xxs: rem(300),
   xs: rem(400),
   sm: rem(500),

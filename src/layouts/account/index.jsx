@@ -9,49 +9,49 @@ const navigations = [
         label: "پیشخوان",
         url: '/account',
         icon: <IconLayout size={16} />,
-        links: ['/']
+        links: '/'
     },
     {
         label: "سفارش ها",
         url: '/account/orders',
         icon: <IconBasket size={16} />,
-        links: ['orders', 'orders/:id']
+        links: 'orders'
     },
     {
         label: "جزئیات حساب",
         url: '/account/edit-account',
         icon: <IconUser size={16} />,
-        links: ['edit-account']
+        links: 'edit-account'
     },
     {
         label: "پیام ها",
         url: '/account/notifications',
         icon: <IconBell size={16} />,
-        links: ['notifications']
+        links: 'notifications'
     },
     {
         label: "تیکت ها",
         url: '/account/tickets',
         icon: <IconMessage2 size={16} />,
-        links: ['tickets', 'tickets/:id']
+        links: 'tickets'    
     },
     {
         label: "علاقه‌مندی ها",
         url: '/account/favorites',
         icon: <IconHeart size={16} />,
-        links: ['/favorites']
+        links: '/favorites'
     },
     {
         label: "مقایسه ها",
         url: '/compare',
         icon: <IconSwitch3 size={16} />,
-        links: ['/compares']
+        links: '/compares'
     },
     {
         label: "خروج",
         url: '/logout',
         icon: <IconLogout size={16} />,
-        links: ['/logout']
+        links: 'logout'
     },
 ];
 
@@ -61,7 +61,7 @@ const Account = () => {
 
     useEffect(() => {
         // حذف /account از مسیر
-        const currentRoute = location.pathname.replace('/account', '');
+        let currentRoute = location.pathname.replace('/account', '').split('/')[1] || '/';
         setRoute(currentRoute);
     }, [location.pathname]);
 
@@ -84,8 +84,7 @@ const Account = () => {
                         <Stack gap="xs">
                             {navigations.map((item, index) => {
                                 // بررسی اینکه آیا مسیر فعلی در آرایه links وجود دارد
-                                const isActive = item.links.some(link => location.pathname.replace('/account','').includes(link));
-                                console.log(location.pathname.replace('/account',''))
+                                const isActive = item.links === route;
                                 return (
                                     <NavItem
                                         key={index}

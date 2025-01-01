@@ -3,6 +3,7 @@ import { createServer } from "miragejs";
 
 import { signInUserData } from "./data/authData";
 import { SearchData } from "./data/search";
+import { commentTexts } from "./data/comments";
 import {
   authFakeSMS,
   authFakeLogin,
@@ -14,7 +15,8 @@ import {
   Favorites,
   Compare,
   Page,
-  Seller
+  Seller,
+  Bootstrap
 } from "./fakeApi";
 const { apiPrefix } = appConfig;
 
@@ -25,6 +27,7 @@ function mockRunner({ environment }) {
       server.db.loadData({
         signInUserData,
         SearchData,
+        commentTexts
       });
     },
     routes() {
@@ -45,7 +48,8 @@ function mockRunner({ environment }) {
       Favorites(this, apiPrefix);
       Compare(this, apiPrefix);
       Page(this, apiPrefix);
-	  Seller(this,apiPrefix);
+      Seller(this,apiPrefix);
+      Bootstrap(this,apiPrefix)
     },
   });
 }

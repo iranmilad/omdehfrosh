@@ -9,3 +9,4 @@ export {default as Favorites} from "./favorites"
 export {default as Compare} from "./compare";
 export {default as Page} from "./page"
 export {default as Seller} from './seller'
+export {default as Bootstrap} from "./bootstrap";

@@ -51,6 +51,7 @@ import XTitle from "../../../components/title";
 import CryptoJS,{AES}  from "crypto-js";
 import Counter from "../../../components/counter";
 import ShareModal from "../../../components/shareModal";
+import PriceChart from "./priceChart"
 
 const SLIDES = [
   {
@@ -336,21 +337,18 @@ const Product = () => {
           variant="pills"
           defaultValue="desc"
           styles={{
-            list: {
-              background: theme.colors.gray[1],
-              padding: "0.8rem",
-              borderRadius: "0.5rem",
-            },
             panel: {
               paddingTop: 20,
             },
           }}
         >
+          <Paper>
           <Tabs.List>
             <Tabs.Tab value="desc">توضیحات</Tabs.Tab>
             <Tabs.Tab value="feat">مشخصات</Tabs.Tab>
             <Tabs.Tab value="comm">نظرات</Tabs.Tab>
           </Tabs.List>
+          </Paper>
           <Tabs.Panel value="desc">
             <Paper>توضیحات محصول</Paper>
           </Tabs.Panel>
@@ -370,7 +368,7 @@ const Product = () => {
         link="http://localhost:3000/product/123"
         opened={shareModal[0]}
         close={shareModal[1].close}
-      />
+      >این کالا را با دوستان خود به اشتراک بگذارید! </ShareModal>
       <StockAlert opened={stockAlert[0]} close={stockAlert[1].close} />
     </>
   );

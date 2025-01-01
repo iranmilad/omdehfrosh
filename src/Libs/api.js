@@ -1,19 +1,20 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery,keepPreviousData } from "@tanstack/react-query";
 import ApiCaller from "./axiosEndpoint";
 
-export function useData({ url, params, axiosOption, queryOptions }) {
+export function useData({ url, params,queryKey, axiosOption, queryOptions }) {
 	return useQuery({
-		queryKey: [`${url}_GET`],
+		queryKey,
 		queryFn: async () => {
 			let { data } = await ApiCaller.get(url, { params, ...axiosOption });
 			return data?.data;
 		},
 		staleTime: false,
-		refetchInterval: 0,
+		refetchInterval: false,
 		retry: 2,
 		retryOnMount: false,
 		refetchOnWindowFocus: false,
+		placeholderData: keepPreviousData,
 		...queryOptions,
 	});
 }
