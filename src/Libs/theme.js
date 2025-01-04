@@ -1,4 +1,4 @@
-import { rem,Container, Paper, Title,Loader,Checkbox, Button, Modal } from "@mantine/core";
+import { rem,Container, Paper, Title,Loader,Checkbox, Button, Modal, NavLink, Drawer } from "@mantine/core";
 
 export const CONTAINER_SIZES= {
   xxs: rem(300),
@@ -71,6 +71,13 @@ const Theme = {
     Checkbox: Checkbox.extend({
       defaultProps: {
         radius: "sm"
+      }
+    }),
+    NavLink: NavLink.extend({
+      styles:{
+        chevron: {
+          transform: "rotate(90deg)"
+        }
       }
     }),
   },

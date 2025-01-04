@@ -2,7 +2,6 @@ import appConfig from "../config/app.config";
 import { createServer } from "miragejs";
 
 import { signInUserData } from "./data/authData";
-import { SearchData } from "./data/search";
 import { commentTexts } from "./data/comments";
 import {
   authFakeSMS,
@@ -26,8 +25,7 @@ function mockRunner({ environment }) {
     seeds(server) {
       server.db.loadData({
         signInUserData,
-        SearchData,
-        commentTexts
+        commentTexts,
       });
     },
     routes() {
