@@ -19,7 +19,8 @@ import {
   Anchor,
   Box,
   Burger,
-  useMantineTheme
+  useMantineTheme,
+  Avatar
 } from "@mantine/core";
 import Logo from "../../assets/logo.png";
 import {
@@ -122,6 +123,7 @@ const Header = () => {
                       </MenuTarget>
                       <MenuDropdown >
                         <MenuItem
+                          leftSection={<Avatar size="sm" />}
                           rightSection={<IconChevronLeft size={18} />}
                           component={NavLink}
                           to="/account"

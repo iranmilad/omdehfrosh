@@ -27,7 +27,7 @@ function Compare() {
     key: "compare",
     defaultValue: [],
   });
-  const { mutateAsync, data } = useSend({ url: "/compare" });
+  const { mutateAsync, data } = useData({ url: "/compare" });
   useEffect(() => {
     if (compare.length > 0) {
       mutateAsync({ id: compare });

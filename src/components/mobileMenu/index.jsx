@@ -44,7 +44,7 @@ function MobileMenu({ toggle, menu }) {
             >
               {link.children && (
                 <Box
-                  bg="gray.3"
+                  bg="gray.1"
                   w="95%"
                   style={{ borderRadius: "10px" }}
                   p="5px"
@@ -56,6 +56,7 @@ function MobileMenu({ toggle, menu }) {
                       label={child.title}
                       c="gray.8"
                       onClick={(e) => click(e, child.path)}
+                      style={{borderRadius:"8px"}}
                     />
                   ))}
                 </Box>

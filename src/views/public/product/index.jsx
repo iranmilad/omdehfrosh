@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Anchor,
   Badge,
   Box,
   Button,
@@ -39,20 +40,25 @@ import {
 import AddComment from "./comments/add";
 import Comments from "./comments";
 import Features from "../features";
-import { useDisclosure, useLocalStorage, useSessionStorage } from "@mantine/hooks";
+import {
+  useDisclosure,
+  useLocalStorage,
+  useSessionStorage,
+} from "@mantine/hooks";
 import { useSend } from "../../../Libs/api";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { toggleLoading } from "../../../redux/global";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import Sellers from "./sellers";
 import StockAlert from "./stockAlert";
 import XTitle from "../../../components/title";
-import CryptoJS,{AES}  from "crypto-js";
+import CryptoJS, { AES } from "crypto-js";
 import Counter from "../../../components/counter";
 import ShareModal from "../../../components/shareModal";
-import PriceChart from "./priceChart"
+import PriceChart from "./priceChart";
 import RelatedProducts from "./relatedProducts";
+import { notifications } from "@mantine/notifications";
 
 const SLIDES = [
   {
@@ -74,13 +80,14 @@ const SLIDES = [
 
 const Product = () => {
   const theme = useMantineTheme();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [opened, { toggle, close }] = useDisclosure(false);
   const [favorite, setFavorite] = useState(true);
   const stockAlert = useDisclosure(false);
   const shareModal = useDisclosure(false);
-  const [compare,setCompare] = useLocalStorage({
-    key:"compare",
+  const [compare, setCompare] = useLocalStorage({
+    key: "compare",
     defaultValue: [],
   });
   const favoriteReq = useSend({
@@ -98,7 +105,7 @@ const Product = () => {
         rating: "4",
         comment: "محصول خوبی بود",
         status: "pending",
-        seller: "دیجیکالا"
+        seller: "دیجیکالا",
       },
       {
         name: "فرهاد باقری",
@@ -106,7 +113,7 @@ const Product = () => {
         rating: "4",
         comment: "محصول خوبی بود",
         status: "agreed",
-        seller: "دیجیکالا"
+        seller: "دیجیکالا",
       },
     ],
   };
@@ -138,17 +145,36 @@ const Product = () => {
 
   const addCompare = () => {
     setCompare((prev) => {
-      if (!prev.includes('123')) {
-        return [...prev, '123'];
+      if (!prev.includes("123")) {
+        return [...prev, "123"];
       }
       return prev; // در صورتی که وجود داشته باشد، بدون تغییر بازگردانده شود
     });
-  };
-  
-  const removeCompare = () => {
-    setCompare((prev) => prev.filter((item) => item !== '123'));
+    notifications.show({
+      message: (
+        <div>
+          <Text size="sm">محصول به مقایسه اضافه شد</Text>
+          <Text size="xs" >مشاهده</Text>
+        </div>
+      ),
+      style:{
+        cursor: "pointer"
+      },
+      position:"bottom-left",
+      onClick:()=> {
+        navigate('/compare')
+      }
+    });
   };
 
+  const removeCompare = () => {
+    setCompare((prev) => prev.filter((item) => item !== "123"));
+    notifications.show({
+      color:"red",
+      message: "محصول از مقایسه حذف شد",
+      position:"bottom-left"
+    })
+  };
 
   return (
     <>
@@ -181,16 +207,25 @@ const Product = () => {
                     </Tooltip>
                   )}
 
-                <Tooltip label={compare.includes('123') ? "حذف از مقایسه" : "افزودن به مقایسه"} position="right">
-                  <ActionIcon
-                    size="md"
-                    variant="transparent"
-                    onClick={compare.includes('123') ? removeCompare : addCompare}
-                    color={compare.includes('123') ? "red" : "default"}
+                  <Tooltip
+                    label={
+                      compare.includes("123")
+                        ? "حذف از مقایسه"
+                        : "افزودن به مقایسه"
+                    }
+                    position="right"
                   >
-                    <IconSwitch3 />
-                  </ActionIcon>
-                </Tooltip>
+                    <ActionIcon
+                      size="md"
+                      variant="transparent"
+                      onClick={
+                        compare.includes("123") ? removeCompare : addCompare
+                      }
+                      color={compare.includes("123") ? "red" : "default"}
+                    >
+                      <IconSwitch3 />
+                    </ActionIcon>
+                  </Tooltip>
 
                   <Tooltip label="اشتراک گذاری" position="right">
                     <ActionIcon
@@ -296,7 +331,12 @@ const Product = () => {
                     موجودی انبار 2 عدد میباشد
                   </div>
                 </div>
-                <Flex direction="column" align="start" gap="xs" className="py-4">
+                <Flex
+                  direction="column"
+                  align="start"
+                  gap="xs"
+                  className="py-4"
+                >
                   <Flex gap="sm">
                     <Text size="13px" c="gray">
                       حداقل سفارش
@@ -344,11 +384,11 @@ const Product = () => {
           }}
         >
           <Paper>
-          <Tabs.List>
-            <Tabs.Tab value="desc">توضیحات</Tabs.Tab>
-            <Tabs.Tab value="feat">مشخصات</Tabs.Tab>
-            <Tabs.Tab value="comm">نظرات</Tabs.Tab>
-          </Tabs.List>
+            <Tabs.List>
+              <Tabs.Tab value="desc">توضیحات</Tabs.Tab>
+              <Tabs.Tab value="feat">مشخصات</Tabs.Tab>
+              <Tabs.Tab value="comm">نظرات</Tabs.Tab>
+            </Tabs.List>
           </Paper>
           <Tabs.Panel value="desc">
             <Paper>توضیحات محصول</Paper>
@@ -370,7 +410,9 @@ const Product = () => {
         link="http://localhost:3000/product/123"
         opened={shareModal[0]}
         close={shareModal[1].close}
-      >این کالا را با دوستان خود به اشتراک بگذارید! </ShareModal>
+      >
+        این کالا را با دوستان خود به اشتراک بگذارید!{" "}
+      </ShareModal>
       <StockAlert opened={stockAlert[0]} close={stockAlert[1].close} />
     </>
   );

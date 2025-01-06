@@ -140,6 +140,7 @@ const Login = () => {
                       mask="0000 000 0000"
                       type="text"
                       dir="ltr"
+                      inputMode="numeric"
                       styles={{ input: { textAlign: "left" } }}
                       key={form.key("mobile")}
                       {...form.getInputProps("mobile")}

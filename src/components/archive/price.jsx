@@ -12,7 +12,7 @@ function Price({ priceRange, onPriceChange }) {
   const [price, setPrice] = useState([minPrice, maxPrice]);
 
   const submitPrice = () => {
-    console.log(price)
+    onPriceChange({min: price[0],max: price[1]});
   }
 
   return (

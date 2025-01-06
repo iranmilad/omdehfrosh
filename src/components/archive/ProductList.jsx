@@ -6,7 +6,7 @@ import ProductBox from "../productBox";
 const ProductList = React.memo(({ products }) => {
   
     return (
-      <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 3, lg: 4 }} my="xl">
+      <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 3, lg: 4 }} mb="xl" mt="15">
         {products.map((item, index) => (
           <ProductBox key={index} {...item} />
         ))}

@@ -17,7 +17,7 @@ import {
   Select,
 } from "@mantine/core";
 import { IconFilter } from "@tabler/icons-react";
-import { useDebouncedState, useDisclosure } from "@mantine/hooks";
+import { useDebouncedState, useDebouncedValue, useDisclosure } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import qs from "qs";
 import { useData } from "../../Libs/api";
@@ -37,7 +37,8 @@ const sortFilter = [
 function Archive({ enabled, url }) {
   const [page, setPage] = useState(1);
   const [sortValue, setSortValue] = useState("newest");
-  const [search, setSearch] = useDebouncedState("", 1000);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search,600);
   const filterDisclosure = useDisclosure(false);
 
   
@@ -57,13 +58,13 @@ function Archive({ enabled, url }) {
       limit: 20,
       page,
       sort: sortValue,
-      s: search,
+      s: debouncedSearch,
     };
     return qs.stringify(filters, {
       addQueryPrefix: true,
       arrayFormat: "comma",
     });
-  }, [form.values, page, sortValue, search, url]);
+  }, [form.values, page, sortValue, debouncedSearch, url]);
 
   const queryKey = changeFilters();
 
@@ -75,7 +76,7 @@ function Archive({ enabled, url }) {
 
   useEffect(() => {
     if(data){
-      form.setFieldValue('price',data?.price)
+      form.setDirty('price',data?.price);
     };
   },[isLoading])
 
@@ -94,16 +95,19 @@ function Archive({ enabled, url }) {
   if (isLoading) return <Center><Loader /></Center>;
   return (
     <Box pos="relative">
-      <LoadingOverlay visible={isFetching} zIndex={1000} />
+      <LoadingOverlay visible={isFetching} zIndex={50} />
       {data && (
         <Grid>
-          <GridCol span={{lg: 3}}>
+          <GridCol span={{md:3}}>
           <Stack visibleFrom="md">
               <Filters
                 data={data}
                 form={form}
                 setSearch={setSearch}
                 handleDynamicChange={handleDynamicChange}
+                setPage={setPage}
+                filterDisclosure={filterDisclosure}
+                isFetching={isFetching}
               />
             </Stack>
             <Button
@@ -114,9 +118,9 @@ function Archive({ enabled, url }) {
               فیلتر ها
             </Button>
           </GridCol>
-          <GridCol span={{ lg: 9 }}>
+          <GridCol span={{ md:9}}>
             <Paper py="md">
-              <Flex w="100%" gap="lg" align="center">
+              <Flex w="100%" gap="lg" align="center" justify={{base: "space-between",xs:"initial"}}>
                 <Flex align="center" gap="xs" c="gray.7">
                   <IconSortDescending size={16} />
                   <Text size="sm">مرتب سازی بر اساس:</Text>
@@ -142,7 +146,7 @@ function Archive({ enabled, url }) {
               </Flex>
             </Paper>
             <ProductList products={data.products}  />
-            <Pagination total={20} value={page} onChange={setPage} />
+            <Center><Pagination total={20} value={page} onChange={setPage} /></Center>
           </GridCol>
         </Grid>
       )}
