@@ -20,6 +20,7 @@ import {
   useSessionStorage,
 } from "@mantine/hooks";
 import { useData, useSend } from "../../../Libs/api";
+import InfoBox from "../../../components/InfoBox";
 
 function Compare() {
   const [compare, setCompare] = useLocalStorage({
@@ -128,15 +129,11 @@ function Compare() {
               </ScrollArea>
             </Paper>
           ) : (
-            <Center>
-              <Text>محصولی برای مقایسه وجود ندارد</Text>
-            </Center>
+            <InfoBox mt="lg" shadow="0" bg="transparent" back={false}>محصولی برای مقایسه وجود ندارد</InfoBox>
           )}
         </>
       ) : (
-        <Center>
-          <Text>محصولی برای مقایسه وجود ندارد</Text>
-        </Center>
+        <InfoBox mt="lg" shadow="0" bg="transparent" back={false}>محصولی برای مقایسه وجود ندارد</InfoBox>
       )}
     </>
   );

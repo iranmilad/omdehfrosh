@@ -1,9 +1,16 @@
+import { Response } from 'miragejs';
 import Banner from '../../assets/banner.webp'
 import {menuItems} from "../data/menu";
 import Logo from '../../assets/logo.png'
 
 export default function Bootstrap(server,apiPrefix){
-    server.get(`${apiPrefix}/bootstrap`, (schema, {requestBody }) => {
+    server.get(`${apiPrefix}/bootstrap`, (schema, {requestBody,requestHeaders }) => {
+        const token = requestHeaders["Authorization"] || requestHeaders["Authorization"];
+        if (!token) {
+          return new Response(401, {some: "header"}, { error: "Authorization token missing." });
+        }
+
+
         let data = {
           siteTitle: "فروشگاه اینترنتی مدکالا",
           logo: Logo,
@@ -29,6 +36,5 @@ export default function Bootstrap(server,apiPrefix){
             ]
         }
         return { message: "ok", data }
-
     })
 }

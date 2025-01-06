@@ -25,6 +25,7 @@ import Logo from "../../assets/logo.png";
 import {
   IconArrowLeft,
   IconBasketHeart,
+  IconChevronLeft,
   IconLayoutSidebarLeftCollapse,
   IconLogout,
   IconMenu2,
@@ -113,13 +114,21 @@ const Header = () => {
                     </ActionIcon>
                   </Indicator>
                   {cookies.user ? (
-                    <Menu shadow="md" width={200} position="bottom-end">
+                    <Menu shadow="md" position="bottom-end" styles={{dropdown:{minWidth: 250,padding:"10px"}}}>
                       <MenuTarget>
                         <ActionIcon variant="light" size="xl">
                           <IconUser />
                         </ActionIcon>
                       </MenuTarget>
-                      <MenuDropdown>
+                      <MenuDropdown >
+                        <MenuItem
+                          rightSection={<IconChevronLeft size={18} />}
+                          component={NavLink}
+                          to="/account"
+                        >
+                          فرهاد باقری
+                        </MenuItem>
+                        <Menu.Divider />
                         <MenuItem
                           rightSection={<IconUserCog size={18} />}
                           component={NavLink}

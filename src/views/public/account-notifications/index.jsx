@@ -6,12 +6,15 @@ import {
   Stack,
   ThemeIcon,
   Skeleton,
+  Center,
 } from "@mantine/core";
 import { useData } from "../../../Libs/api";
 import NotificationItem from "./notificationItem";
+import InfoBox from '../../../components/InfoBox';
 
 function Account_Notifications() {
-  const { data, isLoading } = useData({ url: "/notifications" });
+  const { data, isLoading } = useData({ url: "/notifications",queryKey:['notifications'] });
+  console.log(data)
   return (
     <>
       {!isLoading ? (
@@ -19,11 +22,15 @@ function Account_Notifications() {
           <Flex justify="space-between" align="center" mb="xl">
             <Title>پیام ها</Title>
           </Flex>
-          <Stack>
+          {data ? (
+            <Stack>
             {data.map((item, index) => (
               <NotificationItem key={index} {...item} />
             ))}
           </Stack>
+          ) : (
+            <Center><InfoBox>پیامی برای نمایش وجود ندارد</InfoBox></Center>
+          )}
         </>
       ) : (
           <>

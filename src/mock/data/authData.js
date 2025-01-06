@@ -7,6 +7,6 @@ export const signInUserData = [
         mobile: "09374039436",
 		birthday: "1403/12/12",
 		email: "coding.farhad@gmail.com",
-		active: false
+		status: 'active' // active,deactive,pending
 	},
 ];

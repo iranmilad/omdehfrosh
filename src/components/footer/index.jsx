@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Container,
   Group,
@@ -123,7 +124,7 @@ const Footer = (props) => {
           <Group>
             {"socialMedia" in bootstrap ? (
               <>
-                {bootstrap?.socialMedia?.map((item, index) => <SocialLink item={item} key={index} />)}
+                {bootstrap?.socialMedia?.map((item, index) => <React.Fragment key={index}><SocialLink item={item} key={index} /></React.Fragment>)}
               </>
             ) : (
               ""

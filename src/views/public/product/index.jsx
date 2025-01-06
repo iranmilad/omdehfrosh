@@ -52,6 +52,7 @@ import CryptoJS,{AES}  from "crypto-js";
 import Counter from "../../../components/counter";
 import ShareModal from "../../../components/shareModal";
 import PriceChart from "./priceChart"
+import RelatedProducts from "./relatedProducts";
 
 const SLIDES = [
   {
@@ -362,6 +363,7 @@ const Product = () => {
             <Comments {...comments} />
           </Tabs.Panel>
         </Tabs>
+        <RelatedProducts />
       </div>
       <PriceChart title={title} opened={opened} close={close} />
       <ShareModal

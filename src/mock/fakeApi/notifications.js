@@ -1,3 +1,5 @@
+import Product1 from "../../assets/products/1.webp";
+
 
 export default function Account_Notifications(server,apiPrefix){
     server.get(`${apiPrefix}/notifications`, (schema, {requestBody }) => {
@@ -6,7 +8,7 @@ export default function Account_Notifications(server,apiPrefix){
                 type: "product",
                 title: "محصول مورد نظر شما به فروشگاه اضافه گردید",
                 subtitle: "گوشی موبایل اپل مدل iPhone 13 Pro ZAA دو سیم‌ کارت ظرفیت 512 گیگابایت و رم 6 گیگابایت - نات اکتیو ریفربیش پارت",
-                image: "https://placehold.co/50",
+                image: Product1,
                 slug: "13pro_zaa_notactgive_512",
                 date: "(16:59) 1403/12/12",
             },

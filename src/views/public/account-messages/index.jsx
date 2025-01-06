@@ -8,7 +8,10 @@ import {
   Table,
   Text,
   Button,
-  LoadingOverlay
+  LoadingOverlay,
+  Center,
+  Loader,
+  Badge
 } from "@mantine/core";
 import React, { useState } from "react";
 import { NavLink } from "react-router";
@@ -17,17 +20,19 @@ import { useData } from "../../../Libs/api";
 function Account_Messages() {
   const { primaryColor } = useMantineTheme();
   const [sort, setSort] = useState("all");
-  const {data,isLoading} = useData({url:"/tickets"});
+  const {data,isLoading,isFetching} = useData({url:"/tickets" ,queryKey: ['tickets',sort],params: {sort},queryOptions:{staleTime: 60 * 1000}});
+  if(isLoading) return <Center><Loader /></Center>;
   return (
     <>
-      <LoadingOverlay visible={isLoading} zIndex={1000} />
+      <LoadingOverlay visible={isFetching} zIndex={1000} />
       <Flex justify="space-between" align="center" mb="xl">
         <Title>تیکت ها</Title>
-        <Button>ارسال تیکت جدید</Button>
+        <Button component={NavLink} to="/account/tickets/new">ارسال تیکت جدید</Button>
       </Flex>
       <Flex justify="end">
       <Select
           w={140}
+          allowDeselect={false}
           data={[
             { label: "همه", value: "all" },
             { label: "بسته شده", value: "closed" },
@@ -45,10 +50,10 @@ function Account_Messages() {
                 #
               </Table.Th>
               <Table.Th miw={100} c={primaryColor}>
-                بخش
+                موضوع
               </Table.Th>
               <Table.Th miw={100} c={primaryColor}>
-                موضوع
+                بخش
               </Table.Th>
               <Table.Th miw={100} c={primaryColor}>
                 وضعیت
@@ -74,35 +79,25 @@ function ItemRow(props) {
   return (
     <Table.Tr>
       <Table.Td>
-        <Text size="sm" c="blue" ta="right" component={NavLink} to={`/account/tickets/${props.id}`}>{props.id}</Text>
-      </Table.Td>
-      <Table.Td>
-        <Text size="sm" component={NavLink} to={`/account/tickets/${props.id}`}>
-          {returnMessageType(props.type)}
-        </Text>
+        <Text size="sm" c="blue" ta="right" component={NavLink} to={`/account/tickets/single/${props.id}`}>{props.id}</Text>
       </Table.Td>
       <Table.Td>
         <Text size="sm" lineClamp={2}>{props.title}</Text>
+      </Table.Td>
+      <Table.Td>
+        <Badge color="gray" size="sm" component={NavLink} to={`/account/tickets/single/${props.id}`}>
+          {props.type}
+        </Badge>
       </Table.Td>
       <Table.Td>
         {props.status === "closed" ? "بسته شده" : "پاسخ داده نشده"}
       </Table.Td>
       <Table.Td>{props.update}</Table.Td>
       <Table.Td>
-        <Button size="xs" component={NavLink} to={`/account/tickets/${props.id}`} radius={999}>مشاهده</Button>
+        <Button size="xs" component={NavLink} to={`/account/tickets/single/${props.id}`} radius={999}>مشاهده</Button>
       </Table.Td>
     </Table.Tr>
   );
-}
-
-function returnMessageType(type) {
-  switch (type) {
-    case 'admin':
-      return "مدیریت"
-      break;
-    default:
-      break;
-  }
 }
 
 export default Account_Messages;

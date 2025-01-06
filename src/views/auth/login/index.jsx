@@ -43,7 +43,7 @@ const Login = () => {
   const [type, setType] = useState("enter");
   const [cookies, setCookie] = useCookies(["user"]);
   const navigate = useNavigate();
-  const { mutateAsync, isPending } = useSend({ url: "auth/sms/" });
+  const { mutateAsync, isPending,data } = useSend({ url: "auth/sms/" });
   const sendCode = useSend({ url: "auth/login/" });
   const form = useForm({
     mode: "uncontrolled",
@@ -94,14 +94,19 @@ const Login = () => {
             formCode.setFieldError("code", data.error);
           }
           else{
-            setType("success")
-            setCookie("user",data.token,{
-              path:"/",
-              maxAge: data.maxAge
-            });
-            setTimeout(() => {
-              navigate("/")
-            },2000)
+            if(data.user.status === 'active'){
+              setType("success")
+              setCookie("user",data.token,{
+                path:"/",
+                maxAge: data.maxAge
+              });
+              setTimeout(() => {
+                navigate("/")
+              },2000)
+            }
+            else{
+              setType(data.user.status)
+            }
           }
         },
       }
@@ -122,9 +127,6 @@ const Login = () => {
           <div className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
             <Flex justify="space-between" align="center">
               <Text c="dark" size="xl" fw="bold">ورود</Text>
-              <ActionIcon component={NavLink} to="/" variant="transparent">
-                <IconArrowLeft />
-              </ActionIcon>
             </Flex>
             {type === "enter" ? (
               <>
@@ -222,6 +224,18 @@ const Login = () => {
               </>
             )}
             {type === "success" && <Alert mt="xl"  variant="light" color="teal" title="ورود موفقیت آمیز بود" >به طور خودکار هدایت  میشوید</Alert> }
+            {type === "pending" && (
+              <Alert mt="xl" variant="light" color="cyan" title="پیام سیستم">
+                <Text size="sm">این حساب کاربری در انتظار تایید میباشد</Text>
+                <Button size="xs" mt="md" color="cyan" component="a" href="tel:01234567890">تلفن پشیبانی 09123456789</Button>
+              </Alert>
+            )}
+            {type === "deactive" && (
+              <Alert mt="xl" variant="light" color="orange" title="حساب کاربری غیر فعال">
+                <Text size="sm">این حساب کاربری غیر فعال است. در صورت فعال نشدن با پشتیبانی تماس بگیرید</Text>
+                <Button size="xs" mt="md" color="orange" component="a" href="tel:01234567890">تلفن پشیبانی 09123456789</Button>
+              </Alert>
+            )}
           </div>
         </Center>
       </Box>

@@ -14,20 +14,22 @@ import {
   ScrollArea,
   Badge
 } from "@mantine/core";
-import { NavLink, useNavigate } from "react-router";
+import { NavLink, useLocation, useNavigate } from "react-router";
 import { TextInput } from "@mantine/core";
 import { IconSearch,IconClock,IconTrash ,IconChevronLeft } from "@tabler/icons-react";
 import { useData } from "../../Libs/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDebouncedValue, useLocalStorage } from "@mantine/hooks";
 import { IconExternalLink, IconLayoutGridAdd } from "@tabler/icons-react";
 import InfoBox from "../InfoBox";
+import queryString from "query-string";
 
 function MobileSearch({ opened, close }) {
   const navigate = useNavigate();
   const [value, setValue] = useState("");
   const [debounced] = useDebouncedValue(value, 500);
   const [searchPage,setSearchPage] = useState(false);
+  const location = useLocation();
   const [search, setSearch] = useLocalStorage({
     key: "search",
     defaultValue: [],
@@ -39,7 +41,7 @@ function MobileSearch({ opened, close }) {
       s: value,
     },
     queryOptions: {
-      enabled: debounced.length > 2 && value.length > 2 && !searchPage
+      enabled: debounced.length > 2 && value.length > 2
     },
   });
   const navgiateURL = (url) => {
@@ -47,6 +49,8 @@ function MobileSearch({ opened, close }) {
     setValue("");
     close();
   };
+
+
   return (
     <Drawer title="جستجو" opened={opened} onClose={close}>
       <TextInput
@@ -66,7 +70,7 @@ function MobileSearch({ opened, close }) {
             </Center>
           ) : (
             <>
-              {data.length > 0 ? (
+              {data ? (
                 <Box mt="lg">
                   <Divider
                     labelPosition="left"
@@ -158,8 +162,7 @@ function MobileSearch({ opened, close }) {
                 <Badge
                   style={{ cursor: "pointer" }}
                   key={index}
-                  component={NavLink}
-                  to={`/search?s=${item}`}
+                  onClick={() => navgiateURL(`/search?s=${item}`)}
                   size="lg"
                   variant="outline"
                   color="gray"

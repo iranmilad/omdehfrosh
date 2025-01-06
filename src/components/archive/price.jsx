@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import PaperCollpase from "../PaperCollapse";
-import { Stack, NumberInput, RangeSlider } from "@mantine/core";
+import { Stack, NumberInput, RangeSlider, Button } from "@mantine/core";
 import Tooman from "../tooman";
 
 function Price({ priceRange, onPriceChange }) {
@@ -11,22 +11,9 @@ function Price({ priceRange, onPriceChange }) {
   // Local state for price range
   const [price, setPrice] = useState([minPrice, maxPrice]);
 
-  // Debounced value for price range
-  const [debouncedPrice] = useDebouncedValue(price, 500); // 500ms debounce
-
-  // Sync price range when priceRange changes
-  useEffect(() => {
-    if (priceRange) {
-      setPrice([priceRange.min || minPrice, priceRange.max || maxPrice]);
-    }
-  }, [priceRange, minPrice, maxPrice]);
-
-  // Notify parent component about the debounced price change
-  useEffect(() => {
-    if (onPriceChange) {
-      onPriceChange({ min: debouncedPrice[0], max: debouncedPrice[1] });
-    }
-  }, [debouncedPrice, onPriceChange]);
+  const submitPrice = () => {
+    console.log(price)
+  }
 
   return (
     <PaperCollpase title="قیمت">
@@ -71,6 +58,7 @@ function Price({ priceRange, onPriceChange }) {
           label={(val) => `${val.toLocaleString()} تومان`}
           onChange={setPrice}
         />
+        <Button h={35} size="xs" radius={99999} w="max-content" onClick={submitPrice}>فیلتر</Button>
       </Stack>
     </PaperCollpase>
   );

@@ -26,6 +26,7 @@ import { useNavigate } from "react-router";
 import * as yup from 'yup';
 import { yupResolver } from 'mantine-form-yup-resolver';
 import Logo from "../../../assets/logo.png"
+import { useSelector } from "react-redux";
 
 
 const validationSchema = yup.object().shape({
@@ -106,12 +107,8 @@ const Register = () => {
             formCode.setFieldError("code", data.error);
           } else {
             setType("success");
-            setCookie("user", data.token, {
-              path: "/",
-              maxAge: data.maxAge,
-            });
             setTimeout(() => {
-              navigate("/");
+              navigate("/login");
             }, 2000);
           }
         },
@@ -133,9 +130,7 @@ const Register = () => {
           <div className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
           <Flex justify="space-between" align="center">
               <Text c="dark" size="xl" fw="bold">ثبت</Text>
-              <ActionIcon component={NavLink} to="/" variant="transparent">
-                <IconArrowLeft />
-              </ActionIcon>
+              <Image src={""} />
             </Flex>
             {type === "enter" ? (
               <>
@@ -252,7 +247,6 @@ const Register = () => {
                 color="teal"
                 title="ثبت نام موفقیت آمیز بود"
               >
-                به طور خودکار هدایت میشوید
               </Alert>
             )}
           </div>

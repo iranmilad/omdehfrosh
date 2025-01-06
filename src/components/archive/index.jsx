@@ -70,7 +70,7 @@ function Archive({ enabled, url }) {
   const { isLoading, isFetching, data } = useData({
     url,
     queryOptions: { staleTime: 30 * 10000,enabled },
-    queryKey: ["seller-products", queryKey],
+    queryKey: [url, queryKey],
   });
 
   useEffect(() => {
@@ -88,6 +88,7 @@ function Archive({ enabled, url }) {
 
   const handleDynamicChange = useCallback((key, value) => {
     form.setFieldValue(`dynamic.${key}`, value);
+    setPage(1)
   }, [form]);
 
   if (isLoading) return <Center><Loader /></Center>;

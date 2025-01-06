@@ -50,6 +50,7 @@ function ProductBox({
       pos="relative"
       display="flex"
       style={{ flexDirection: "column" }}
+      h="100%"
     >
       {!skeleton ? (
         <>

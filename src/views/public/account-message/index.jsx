@@ -1,16 +1,16 @@
 import {Title,Divider, Notification, Alert, Text, Box, Flex, useMantineTheme, Stack, ActionIcon, Modal, Grid, Badge, SimpleGrid, LoadingOverlay, Skeleton} from "@mantine/core"
 import {IconArrowRight, IconInfoCircle, IconUser} from "@tabler/icons-react"
-import { NavLink } from "react-router";
+import { NavLink, useParams } from "react-router";
 import { useData } from "../../../Libs/api";
 import LabelValue from "../../../components/labelValue";
 import { useDisclosure } from "@mantine/hooks";
 import MessageItem from "./messageItem";
 
 function Account_Message() {
+    const {id} = useParams();
     const {shadows} = useMantineTheme();
-    const {data,isLoading} = useData({url: `/tickets/123`});
+    const {data,isLoading} = useData({url: `/tickets/id`,queryKey: ['ticket',id]});
     const [opened,{open,close}] = useDisclosure(false);
-    console.log(isLoading)
   return (
     <>
     {!isLoading ? (

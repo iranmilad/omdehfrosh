@@ -11,10 +11,11 @@ export function useData({ url, params,queryKey, axiosOption, queryOptions }) {
 		},
 		staleTime: false,
 		refetchInterval: false,
-		retry: 2,
+		retry: false,
 		retryOnMount: false,
 		refetchOnWindowFocus: false,
 		placeholderData: keepPreviousData,
+		throwOnError: false,
 		...queryOptions,
 	});
 }

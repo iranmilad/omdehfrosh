@@ -18,6 +18,8 @@ import Page from "../../views/public/page"
 import Seller from "../../views/public/seller"
 import Seller_Home from "../../views/public/seller/home"
 import Logout from "../../views/public/logout"
+import Account_Newticket from "../../views/public/account-newticket"
+import Shop from "../../views/public/shop"
 
 export const PublicRoutes = [
     {
@@ -82,7 +84,11 @@ export const PublicRoutes = [
                         element: <Account_Messages />,
                     },
                     {
-                        path: 'tickets/:id',
+                        path: 'tickets/new',
+                        element: <Account_Newticket />,
+                    },
+                    {
+                        path: 'tickets/single/:id',
                         element: <Account_Message />,
                     },
                     {
@@ -98,6 +104,10 @@ export const PublicRoutes = [
             {
                 path: "/seller/:id",
                 element: <Seller />,
+            },
+            {
+                path: "/shop",
+                element: <Shop />,
             }
         ]
     }

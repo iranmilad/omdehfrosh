@@ -1,3 +1,5 @@
+import Product1 from "../../assets/products/1.webp";
+
 
 export default function Favorites(server,apiPrefix){
     server.get(`${apiPrefix}/favorites`, (schema, {requestBody }) => {
@@ -9,7 +11,7 @@ export default function Favorites(server,apiPrefix){
                 regularPrice: 21000000,
                 discountedPrice: 9120000,
                 discountPercent: "40",
-                image: `https://placehold.co/${Math.floor(Math.random() * (500 - 300) + 300)}`
+                image: Product1
             }
         ];
         

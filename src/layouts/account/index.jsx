@@ -1,4 +1,4 @@
-import { Anchor, Avatar, Center, Flex, Grid, GridCol, Paper, Stack, Text } from "@mantine/core";
+import { Anchor, Avatar, Badge, Center, Flex, Grid, GridCol, Paper, Stack, Text } from "@mantine/core";
 import { IconBasket, IconBell, IconHeart, IconInfoCircle, IconLayout, IconLogout, IconMessage2, IconPencil, IconSwitch3, IconUser } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useLocation, Outlet, NavLink } from "react-router";
@@ -39,13 +39,13 @@ const navigations = [
         label: "علاقه‌مندی ها",
         url: '/account/favorites',
         icon: <IconHeart size={16} />,
-        links: '/favorites'
+        links: 'favorites'
     },
     {
         label: "مقایسه ها",
         url: '/compare',
         icon: <IconSwitch3 size={16} />,
-        links: '/compares'
+        links: 'compares'
     },
     {
         label: "خروج",
@@ -73,11 +73,11 @@ const Account = () => {
                         <Center>
                             <Avatar size="lg" />
                         </Center>
-                        <Flex justify="space-between" align="center">
-                            <Anchor display="flex" style={{ alignItems: "center" }} underline="never" component={NavLink} to="/account/edit-account">
+                        <Flex justify="space-between" align="center" mt="xl" mb="sm">
+                            <Anchor size="sm" display="flex" style={{ alignItems: "center" }} underline="never" component={NavLink} to="/account/edit-account">
                                 <IconPencil style={{ marginLeft: 10 }} size={14} /> فرهاد باقری
                             </Anchor>
-                            <Text>خریدار</Text>
+                            <Badge>خریدار</Badge>
                         </Flex>
                     </Paper>
                     <Paper>

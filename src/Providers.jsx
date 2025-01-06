@@ -14,6 +14,7 @@ import '@mantine/notifications/styles.css';
 import { Notifications } from '@mantine/notifications';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import '@mantine/charts/styles.css';
+import NoInternet from "./components/noInternet";
 
 
 
@@ -26,6 +27,7 @@ function Providers({ children }) {
     <DirectionProvider initialDirection="rtl">
     <MantineProvider theme={theme}>
       <Notifications  position="top-right" />
+      <NoInternet />
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
         <ReactQueryDevtools initialIsOpen={false} />

@@ -1,9 +1,9 @@
 import axios from "axios";
-import { Cookies } from "react-cookie";
+import Cookies from "js-cookie";
+import { notifications } from "@mantine/notifications"; // Ensure mantine/notifications is installed: npm install @mantine/notifications
+
 
 const environment = import.meta.env.MODE;
-
-let cookies = new Cookies();
 
 const axiosInstance = axios.create({
   headers: {
@@ -17,7 +17,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (request) => {
-    const token = cookies.get("user");
+    const token = Cookies.get("user");
     request.headers["Authorization"] = token;
     return request;
   },
@@ -28,11 +28,44 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => {
+    // If the response is successful, simply return it
     return response;
   },
   (error) => {
+    // Check if there's an error response
+    if (error.response) {
+      const { status, data } = error.response;
+
+      // Handle 401 Unauthorized
+      if (status === 401) {
+        // Remove the 'user' cookie if it exists
+        if (Cookies.get("user")) {
+          Cookies.remove("user");
+        }
+
+        // Redirect the user to the /login page
+        window.location.href = "/login";
+      } else {
+        // Show notification for all other errors
+        notifications.show({
+          title: "پیام سیستم",
+          message: `${data?.message || "خطایی رخ داده است"}`,
+          color: "yellow", // Use yellow for all errors except 401
+        });
+      }
+    } else {
+      // Handle network errors or other issues without a response
+      notifications.show({
+        title: "پیام سیستم",
+        message: "ارتباط با سرور برقرار نشد.",
+        color: "red",
+      });
+    }
+
+    // Reject the promise with the error to propagate it
     return Promise.reject(error);
   }
 );
+
 
 export default axiosInstance;
