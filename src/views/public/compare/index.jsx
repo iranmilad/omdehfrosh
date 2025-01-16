@@ -1,8 +1,10 @@
 import {
+  Anchor,
   Button,
   Center,
   Flex,
   Image,
+  Loader,
   NumberFormatter,
   Paper,
   Rating,
@@ -27,113 +29,120 @@ function Compare() {
     key: "compare",
     defaultValue: [],
   });
-  const { mutateAsync, data } = useData({ url: "/compare" });
-  useEffect(() => {
-    if (compare.length > 0) {
-      mutateAsync({ id: compare });
+  const { data, isLoading } = useData({
+    url: "/compare",
+    queryKey: ["compare", compare],
+    bodyData: { id: compare },
+    method: "POST",
+    queryOptions: {
+      enabled: compare && compare?.length > 0 ? true : false
     }
-  }, [compare]);
+  });
+  if (isLoading)
+    return (
+      <Center>
+        <Loader />
+      </Center>
+    );
   return (
     <>
       <XTitle>مقایسه محصولات</XTitle>
-      {compare && compare.length > 0 && data && data?.data ? (
-        <>
-          {Object.keys(data.data).length > 0 ? (
-            <Paper mt="xl" px="xl">
-              <ScrollArea type="auto">
-                <Table striped withRowBorders={false} verticalSpacing="sm">
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th miw={150}>ویژگی ها</Table.Th>
-                      {data?.data.title.map((title, index) => (
-                        <Table.Th key={index} miw={200} maw={200}>
-                          {title}
-                        </Table.Th>
-                      ))}
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    <Table.Tr>
-                      <Table.Td>تصویر</Table.Td>
-                      {data?.data.image.map((image, index) => (
-                        <Table.Td key={index}>
-                          <Image src={image} w="200" h={200} fit="contain" />
-                        </Table.Td>
-                      ))}
-                    </Table.Tr>
-                    <Table.Tr>
-                      <Table.Td>امتیاز</Table.Td>
-                      {data?.data.rating.map((product, index) => (
-                        <Table.Td key={index}>
-                          <Rating readOnly value={Number(product)} />
-                        </Table.Td>
-                      ))}
-                    </Table.Tr>
-                    <Table.Tr>
-                      <Table.Td>قیمت</Table.Td>
-                      {data?.data.price.map((product, index) => (
-                        <Table.Td key={index}>
-                          {product.discountedPrice ? (
-                            <Flex gap="xs">
-                              <Text size="sm" c="gray">
-                                <NumberFormatter
-                                  thousandSeparator
-                                  value={product.regularPrice}
-                                  style={{ textDecoration: "line-through" }}
-                                />
-                              </Text>
-                              <Text size="sm">
-                                <NumberFormatter
-                                  thousandSeparator
-                                  value={product.discountedPrice}
-                                />
-                                تومان
-                              </Text>
-                            </Flex>
-                          ) : (
-                            <Text size="sm">
-                              <NumberFormatter
-                                thousandSeparator
-                                value={product.regularPrice}
-                              />
-                              تومان
-                            </Text>
-                          )}
-                        </Table.Td>
-                      ))}
-                    </Table.Tr>
-                    {data?.data.attributes.map((item, index) => (
-                      <Table.Tr key={index}>
-                        <Table.Td>{item.label}</Table.Td>
-                        {item.value.map((item2, index2) => (
-                          <Table.Td key={index2}>{item2}</Table.Td>
-                        ))}
-                      </Table.Tr>
+      {data ? (
+        <Paper mt="xl" px="xl">
+          <ScrollArea type="auto">
+            <Table striped withRowBorders={false} verticalSpacing="sm">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th miw={150}>ویژگی ها</Table.Th>
+                  {data.title.map((title, index) => (
+                    <Table.Th key={index} miw={200} maw={200}>
+                      <Text size="sm" component={NavLink} to={`/product/${data.slug[index]}`}>{title}</Text>
+                    </Table.Th>
+                  ))}
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                <Table.Tr>
+                  <Table.Td>تصویر</Table.Td>
+                  {data.image.map((image, index) => (
+                    <Table.Td key={index}>
+                      <Anchor underline="never" component={NavLink} to={`/product/${data.slug[index]}`}>
+                        <Image src={image} w="200" h={200} fit="contain" />
+                      </Anchor>
+                    </Table.Td>
+                  ))}
+                </Table.Tr>
+                <Table.Tr>
+                  <Table.Td>امتیاز</Table.Td>
+                  {data.rating.map((product, index) => (
+                    <Table.Td key={index}>
+                      <Rating readOnly value={Number(product)} />
+                    </Table.Td>
+                  ))}
+                </Table.Tr>
+                <Table.Tr>
+                  <Table.Td>قیمت</Table.Td>
+                  {data.price.map((product, index) => (
+                    <Table.Td key={index}>
+                      {product.discountedPrice ? (
+                        <Flex gap="xs">
+                          <Text size="sm" c="gray">
+                            <NumberFormatter
+                              thousandSeparator
+                              value={product.regularPrice}
+                              style={{ textDecoration: "line-through" }}
+                            />
+                          </Text>
+                          <Text size="sm">
+                            <NumberFormatter
+                              thousandSeparator
+                              value={product.discountedPrice}
+                            />
+                            تومان
+                          </Text>
+                        </Flex>
+                      ) : (
+                        <Text size="sm">
+                          <NumberFormatter
+                            thousandSeparator
+                            value={product.regularPrice}
+                          />
+                          تومان
+                        </Text>
+                      )}
+                    </Table.Td>
+                  ))}
+                </Table.Tr>
+                {data.attributes.map((item, index) => (
+                  <Table.Tr key={index}>
+                    <Table.Td>{item.label}</Table.Td>
+                    {item.value.map((item2, index2) => (
+                      <Table.Td key={index2}>{item2}</Table.Td>
                     ))}
-                    <Table.Tr>
-                      <Table.Td>مشاهده محصول</Table.Td>
-                      {data?.data.slug.map((item, index) => (
-                        <Table.Td key={index}>
-                          <Button
-                            radius={999}
-                            component={NavLink}
-                            to={`/product/${item}`}
-                          >
-                            مشاهده
-                          </Button>
-                        </Table.Td>
-                      ))}
-                    </Table.Tr>
-                  </Table.Tbody>
-                </Table>
-              </ScrollArea>
-            </Paper>
-          ) : (
-            <InfoBox mt="lg" shadow="0" bg="transparent" back={false}>محصولی برای مقایسه وجود ندارد</InfoBox>
-          )}
-        </>
+                  </Table.Tr>
+                ))}
+                <Table.Tr>
+                  <Table.Td>مشاهده محصول</Table.Td>
+                  {data.slug.map((item, index) => (
+                    <Table.Td key={index}>
+                      <Button
+                        radius={999}
+                        component={NavLink}
+                        to={`/product/${item}`}
+                      >
+                        مشاهده
+                      </Button>
+                    </Table.Td>
+                  ))}
+                </Table.Tr>
+              </Table.Tbody>
+            </Table>
+          </ScrollArea>
+        </Paper>
       ) : (
-        <InfoBox mt="lg" shadow="0" bg="transparent" back={false}>محصولی برای مقایسه وجود ندارد</InfoBox>
+        <InfoBox mt="lg" shadow="0" bg="transparent" back={false}>
+          محصولی برای مقایسه وجود ندارد
+        </InfoBox>
       )}
     </>
   );

@@ -50,6 +50,9 @@ const validationSchema = Yup.object().shape({
   province: Yup.string().required("استان الزامی است"),
   city: Yup.string().required("شهر الزامی است"),
   address: Yup.string().required("آدرس الزامی است"),
+  socialNumber: Yup.string()
+  .matches(/^[0-9]{4} [0-9]{3} [0-9]{4}$/, "فرمت شماره موبایل صحیح نیست")
+  .required("شماره موبایل الزامی است"),
 });
 
 let Provinces = [];
@@ -72,9 +75,10 @@ const BasketInfo = () => {
       city: "",
       phone: "",
       email: "",
-      note: "",
       nationalCode: "",
       address: "",
+      socialName: "whatsapp",
+      socialNumber: ""
     },
     onValuesChange: (values, prevValues) => {
       if (values.province !== prevValues.province) {
@@ -235,12 +239,42 @@ const BasketInfo = () => {
                   />
                 </GridCol>
                 <GridCol>
-                  <Textarea
-                    label="یادداشت سفارش ( اختیاری )"
-                    rows={5}
-                    placeholder="یادداشت ها درباره سفارش شما ، برای مثال نکات مهم برای تحویل بار "
-                    {...form.getInputProps("note")}
-                  />
+                  <Flex align="start" gap="3"><Text size="sm" mb="sm">شماره موبایل شبکه اجتماعی ( جهت هماهنگی )</Text><Text c="red" size="sm">*</Text></Flex>
+                  <Flex gap="md">
+                    <Select allowDeselect={false} data={[
+                      {
+                        label: "واتس‌اپ",
+                        value: "whatsapp"
+                      },
+                      {
+                        label: "تلگرام",
+                        value: "telegram"
+                      },
+                      {
+                        label: "روبیکا",
+                        value: "rubika"
+                      },
+                      {
+                        label: "بله",
+                        value: "bale"
+                      },
+                      {
+                        label: "ایتا",
+                        value: "eita"
+                      },
+                    ]} {...form.getInputProps('socialName')} />
+                    <TextInput w="100%" 
+                    placeholder="شماره تلفن"
+                    component={IMaskInput}
+                    mask="0000 000 0000"
+                    type="text"
+                    dir="ltr"
+                    styles={{ input: { textAlign: "left" } }}
+                    withAsterisk
+                    inputMode="numeric"
+                    {...form.getInputProps('socialNumber')}
+                    />
+                  </Flex>
                 </GridCol>
               </Grid>
               <button type="submit" hidden></button>

@@ -44,7 +44,7 @@ function BottomNavigation({category,search,basket}) {
                 <Text c="#4c5360" size="10px">جستجو</Text>
             </Flex>
         </Button>
-        <Button p="0" variant="transparent" size="xs" w="calc(100% / 5)" h="45" fw="500">
+        <Button p="0" variant="transparent" size="xs" w="calc(100% / 5)" h="45" fw="500" component={NavLink} to='/account'>
             <Flex direction="column" align="center" justify="center" gap="5">
                 <IconUser stroke={1.5} size={22} />
                 <Text c="#4c5360" size="10px">حساب کاربری</Text>

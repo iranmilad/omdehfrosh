@@ -20,6 +20,8 @@ import Seller_Home from "../../views/public/seller/home"
 import Logout from "../../views/public/logout"
 import Account_Newticket from "../../views/public/account-newticket"
 import Shop from "../../views/public/shop"
+import Home from "../../views/public/index"
+import Editor from "../../views/public/editor"
 
 export const PublicRoutes = [
     {
@@ -27,6 +29,10 @@ export const PublicRoutes = [
         path: "/",
         breadcrumb: "خانه",
         children: [
+            {
+                path: "",
+                element: <Home />
+            },
             {
                 path: "*",
                 element: <Page404 />
@@ -108,7 +114,7 @@ export const PublicRoutes = [
             {
                 path: "/shop",
                 element: <Shop />,
-            }
+            },
         ]
     }
 ]

@@ -20,6 +20,8 @@ import {
   IconTruckDelivery,
   IconShield,
   IconCashBanknote,
+  IconTruckLoading,
+  IconCash,
 } from "@tabler/icons-react";
 import PriceText from "../../../../components/priceText";
 import { useDisclosure } from "@mantine/hooks";
@@ -55,9 +57,9 @@ function Sellers() {
                 <GridCol span={{ lg: 3 }}>
                   <Flex direction="column" gap="xs">
                     <Flex gap="xs">
-                      <IconUserPin size={20} />
+                      <IconCash size={20} />
                       <Text size="sm" c="gray">
-                        ارسال توسط فروشنده
+                        پرداخت نقدی | اقساط
                       </Text>
                     </Flex>
                     <Flex gap="xs">
@@ -70,8 +72,8 @@ function Sellers() {
                 </GridCol>
                 <GridCol span={{ lg: 3 }}>
                   <Flex gap="sm" align="center">
-                    <IconShield size={20} />
-                    <Text size="sm"  c="gray">گارانتی ۶ ماهه شرکت ورنا</Text>
+                    <IconTruckDelivery size={20} />
+                    <Text size="sm"  c="gray">تحویل آنی | پیش فروش</Text>
                   </Flex>
                 </GridCol>
                 <GridCol span={{ lg: 3 }}>

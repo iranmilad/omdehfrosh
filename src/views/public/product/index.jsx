@@ -26,6 +26,7 @@ import {
   IconBasketCog,
   IconBell,
   IconBuildingStore,
+  IconCash,
   IconHeart,
   IconHeartOff,
   IconMessage2,
@@ -59,6 +60,7 @@ import ShareModal from "../../../components/shareModal";
 import PriceChart from "./priceChart";
 import RelatedProducts from "./relatedProducts";
 import { notifications } from "@mantine/notifications";
+import CompareBtn from "../../../components/compareBtn"
 
 const SLIDES = [
   {
@@ -207,25 +209,7 @@ const Product = () => {
                     </Tooltip>
                   )}
 
-                  <Tooltip
-                    label={
-                      compare.includes("123")
-                        ? "حذف از مقایسه"
-                        : "افزودن به مقایسه"
-                    }
-                    position="right"
-                  >
-                    <ActionIcon
-                      size="md"
-                      variant="transparent"
-                      onClick={
-                        compare.includes("123") ? removeCompare : addCompare
-                      }
-                      color={compare.includes("123") ? "red" : "default"}
-                    >
-                      <IconSwitch3 />
-                    </ActionIcon>
-                  </Tooltip>
+                  <CompareBtn id="123" variant="transparent" />
 
                   <Tooltip label="اشتراک گذاری" position="right">
                     <ActionIcon
@@ -280,30 +264,16 @@ const Product = () => {
               <div className="lg:mt-8 lg:mb-8"></div>
               <div className="p-3 border rounded-xl mx-auto divide-y lg:block">
                 <div className="flex gap-x-1 items-center text-zinc-600 text-sm pt-3 mb-4">
-                  <svg
-                    className="fill-zinc-700"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    fill=""
-                    viewBox="0 0 256 256"
-                  >
-                    <path d="M208,40H48A16,16,0,0,0,32,56v58.78c0,89.61,75.82,119.34,91,124.39a15.53,15.53,0,0,0,10,0c15.2-5.05,91-34.78,91-124.39V56A16,16,0,0,0,208,40Zm0,74.79c0,78.42-66.35,104.62-80,109.18-13.53-4.51-80-30.69-80-109.18V56H208ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.68l50.34-50.34a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"></path>
-                  </svg>
-                  <div>تظمین سلامت کالا</div>
+                  <IconCash size={20}
+                      stroke={1.3}
+                      className="text-zinc-700" />
+                  <div>پرداخت نقدی | اقساط</div>
                 </div>
                 <div className="flex gap-x-1 items-center text-zinc-600 text-sm py-4">
-                  <svg
-                    className="fill-zinc-700"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    fill=""
-                    viewBox="0 0 256 256"
-                  >
-                    <path d="M247.42,117l-14-35A15.93,15.93,0,0,0,218.58,72H184V64a8,8,0,0,0-8-8H24A16,16,0,0,0,8,72V184a16,16,0,0,0,16,16H41a32,32,0,0,0,62,0h50a32,32,0,0,0,62,0h17a16,16,0,0,0,16-16V120A7.94,7.94,0,0,0,247.42,117ZM184,88h34.58l9.6,24H184ZM24,72H168v64H24ZM72,208a16,16,0,1,1,16-16A16,16,0,0,1,72,208Zm81-24H103a32,32,0,0,0-62,0H24V152H168v12.31A32.11,32.11,0,0,0,153,184Zm31,24a16,16,0,1,1,16-16A16,16,0,0,1,184,208Zm48-24H215a32.06,32.06,0,0,0-31-24V128h48Z"></path>
-                  </svg>
-                  <div>ارسال سریع و مطمعن</div>
+                  <IconTruckDelivery size={20}
+                      stroke={1.3}
+                      className="text-zinc-700" />
+                  <div>تحویل آنی | پیشفروش</div>
                 </div>
                 <div className="flex flex-col justify-center py-4">
                   <Flex align="start" gap="4px">
@@ -354,6 +324,7 @@ const Product = () => {
                   افزودن به سبد خرید
                 </Button>
                 <Counter />
+                <Text c="red" size="xs">امکان ثبت سفارش وجود ندارد</Text>
               </div>
               <Paper shadow="0" withBorder p="xs" mt="lg">
                 <Button

@@ -8,6 +8,7 @@ import {
   Flex,
   Image,
   Input,
+  Paper,
   PinInput,
   Space,
   Stack,
@@ -25,7 +26,6 @@ import { IconArrowLeft, IconInfoCircle } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
 import * as yup from 'yup';
 import { yupResolver } from 'mantine-form-yup-resolver';
-import Logo from "../../../assets/logo.png"
 import { useSelector } from "react-redux";
 
 
@@ -55,6 +55,7 @@ const validationSchema = yup.object().shape({
 const Register = () => {
   const [type, setType] = useState("enter");
   const [cookies, setCookie] = useCookies(["user"]);
+  const bootstrap = useSelector((state) => state.global.bootstrap);
   const navigate = useNavigate();
   const { mutateAsync, isPending } = useSend({ url: "auth/sms/" });
   const sendCode = useSend({ url: "auth/login/" });
@@ -117,17 +118,13 @@ const Register = () => {
   }
   return (
     <>
-      <Box h="100vh" w="100%" className="flex items-center justify-center">
-        <Image
-          pos="absolute"
-          style={{ zIndex: 2 }}
-          w="100%"
-          h="100%"
-          fit="cover"
-          src={authBg}
-        />
-        <Center className="relative z-10 lg:w-1/4">
-          <div className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
+      <Box bg="gray.1" h="100vh" w="100%" className="flex items-center justify-center">
+        <Center w={{base: "85%",xs:"65%",sm:"50%",md:"40%",lg:"40%",xl:"25%"}} className="flex-col relative z-10">
+          <Image
+            w={160}
+            src={bootstrap?.logo}
+          />
+          <Paper className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
           <Flex justify="space-between" align="center">
               <Text c="dark" size="xl" fw="bold">ثبت</Text>
               <Image src={""} />
@@ -188,7 +185,7 @@ const Register = () => {
                   </form>
                 </div>
                 <div className="mt-8 mb-4 text-xs text-zinc-500">
-                  ورود شما به معنای پذیرش{" "}
+                  ثبت نام شما به معنای پذیرش{" "}
                   <Anchor size="xs">
                   قوانین و مقررات
                   </Anchor> {' '}
@@ -249,7 +246,7 @@ const Register = () => {
               >
               </Alert>
             )}
-          </div>
+          </Paper>
         </Center>
       </Box>
     </>

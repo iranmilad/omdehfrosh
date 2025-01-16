@@ -1,4 +1,4 @@
-import { Badge, Divider, Flex, Stack, Text, Title } from "@mantine/core";
+import { Alert, Badge, Button, Divider, Flex, Group, Stack, Text, Title } from "@mantine/core";
 import { IconArrowRight, IconChevronRight } from "@tabler/icons-react";
 import React from "react";
 import PriceText from "../../../components/priceText"
@@ -10,6 +10,12 @@ function Account_Order() {
       <Title display="flex" style={{ alignItems: "center" }}>
         <IconArrowRight style={{ marginLeft: "10px" }} /> جزئیات سفارش
       </Title>
+      <Alert mt="md" title="آیا سفارش به دستتان رسیده است ؟">
+        <Group>
+          <Button size="xs" h={35} color="red">خیر</Button>
+          <Button size="xs" h={35}>بله</Button>
+        </Group>
+      </Alert>
       <Divider my="xl" />
       <Flex columnGap={90} rowGap={30} wrap={"wrap"}>
         <Flex gap="xs">

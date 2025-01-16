@@ -12,6 +12,7 @@ import Logo from "../../assets/logo.png"
 import { useDispatch, useSelector } from "react-redux";
 import { useData } from "../../Libs/api";
 import { setBootstrap } from "../../redux/global";
+import EditorHeader from "../../views/editor/header";
 
 
 const Public = (props) => {
@@ -19,7 +20,7 @@ const Public = (props) => {
   const loading = useSelector((state) => state.global.loading);
   const {data,isLoading} = useData({url:"/bootstrap",queryKey:['bootstrap']});
   const dispatch = useDispatch();
-  const routes = PublicRoutes
+  const routes = PublicRoutes;
   useEffect(() => {
     // پیدا کردن مسیر فعلی از لیست مسیرها
     let currentRouteTitle = null;
@@ -57,8 +58,8 @@ const Public = (props) => {
             <Flex pos="fixed" top="0" left="0" justify="center" align="center" h="100%" w="100%" style={{zIndex: 99999999999999}}>
               <Paper w="400" style={{zIndex: 999999999999999}}>
                 <Flex direction="column" justify="center" align="center">
-                  <Image src={Logo} w={200} />
-                  <Loader size="lg" />
+                  <Loader size="xl" />
+                  <Text>منتظر باشید ...</Text>
                 </Flex>
               </Paper>
             <Overlay  color="#000" backgroundOpacity={0.55} />
@@ -66,15 +67,17 @@ const Public = (props) => {
           </>
         ) : null}
         <Header />
-        <Container className="px-3 md:px-5 my-10">
-          <Outlet />
-        </Container>
+        {curr.pathname === '/' ? <Outlet /> : (
+          <Container className="px-3 md:px-5 my-10">
+            <Outlet />
+          </Container>
+        )}
         <Footer />
       </>
       ) : (
         <Flex h="100vh" bg="white" justify="center" align="center" direction="column">
-            <Image src={Logo} w={200} />
-            <Loader />
+            <Loader size="xl" />
+            <Text>منتظر باشید ...</Text>
         </Flex>
       )}
     </>

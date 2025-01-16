@@ -91,3 +91,148 @@ export const archive = {
     },
   ],
 };
+
+export const trendProducts = [
+  [
+    {
+      image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      url: "123",
+      title: "گوشی موبایل اپل مدل پرومکس دو سیم‌ کارت نات اکتیو سیزده"
+    },
+    {
+      image: "https://dkstatics-public.digikala.com/digikala-products/ddeaf714d818733ba1d7077a3682aa8ffebde268_1727162245.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      url: "345",
+      title: "گوشی موبایل سامسونگ مدل گلکسی A54 دو سیم‌ کارت"
+    },
+    {
+      image: `https://dkstatics-public.digikala.com/digikala-products/b0af2ec78668c85506c1edc260b42ff447f019c8_1667201885.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90`,
+      url: "678",
+      title: 'ساعت هوشمند اپل سری 8 مدل GPS'
+    },
+  ],
+  [
+    {
+      image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      url: "123",
+      title: "گوشی موبایل اپل مدل پرومکس دو سیم‌ کارت نات اکتیو سیزده"
+    },
+    {
+      image: "https://dkstatics-public.digikala.com/digikala-products/ddeaf714d818733ba1d7077a3682aa8ffebde268_1727162245.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      url: "345",
+      title: "گوشی موبایل سامسونگ مدل گلکسی A54 دو سیم‌ کارت"
+    },
+    {
+      image: `https://dkstatics-public.digikala.com/digikala-products/b0af2ec78668c85506c1edc260b42ff447f019c8_1667201885.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90`,
+      url: "678",
+      title: 'ساعت هوشمند اپل سری 8 مدل GPS'
+    },
+  ],
+  [
+    {
+      image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      url: "123",
+      title: "گوشی موبایل اپل مدل پرومکس دو سیم‌ کارت نات اکتیو سیزده"
+    },
+    {
+      image: "https://dkstatics-public.digikala.com/digikala-products/ddeaf714d818733ba1d7077a3682aa8ffebde268_1727162245.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      url: "345",
+      title: "گوشی موبایل سامسونگ مدل گلکسی A54 دو سیم‌ کارت"
+    },
+    {
+      image: `https://dkstatics-public.digikala.com/digikala-products/b0af2ec78668c85506c1edc260b42ff447f019c8_1667201885.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90`,
+      url: "678",
+      title: 'ساعت هوشمند اپل سری 8 مدل GPS'
+    },
+  ],
+]
+
+export const productGrid = [
+  {
+    title: "گوشی موبایل",
+    url: "mobile",
+    children: [
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/ddeaf714d818733ba1d7077a3682aa8ffebde268_1727162245.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/b0af2ec78668c85506c1edc260b42ff447f019c8_1667201885.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+    ]
+  },
+  {
+    title: "گوشی موبایل",
+    url: "mobile",
+    children: [
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/ddeaf714d818733ba1d7077a3682aa8ffebde268_1727162245.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/b0af2ec78668c85506c1edc260b42ff447f019c8_1667201885.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+    ]
+  },
+  {
+    title: "گوشی موبایل",
+    url: "mobile",
+    children: [
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/ddeaf714d818733ba1d7077a3682aa8ffebde268_1727162245.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/b0af2ec78668c85506c1edc260b42ff447f019c8_1667201885.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+    ]
+  },
+  {
+    title: "گوشی موبایل",
+    url: "mobile",
+    children: [
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/ddeaf714d818733ba1d7077a3682aa8ffebde268_1727162245.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/b0af2ec78668c85506c1edc260b42ff447f019c8_1667201885.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+      {
+        image: "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        url: "123"
+      },
+    ]
+  },
+]

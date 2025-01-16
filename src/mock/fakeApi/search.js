@@ -1,21 +1,23 @@
+export default function SearchApi(server, apiPrefix) {
+  // ای‌پی‌آی برای جست‌وجو (GET)
+  server.get(`${apiPrefix}/search`, (schema, { requestBody }) => {
+    // ساخت داده‌های نمونه برای نتایج جست‌وجو
+    const data = {
+      category: [ // دسته‌بندی‌های مرتبط با جست‌وجو
+        {
+          title: "موبایل", // عنوان دسته‌بندی
+          slug: "mobile", // اسلاگ دسته‌بندی
+        },
+      ],
+      products: [ // محصولات مرتبط با جست‌وجو
+        {
+          title: "آیفون 16", // عنوان محصول
+          slug: "iphone-16", // اسلاگ محصول
+        },
+      ],
+    };
 
-export default function SearchApi(server,apiPrefix){
-    server.get(`${apiPrefix}/search`, (schema, {requestBody }) => {
-        const data = {
-            category: [
-              {
-                title: "موبایل",
-                slug: "mobile",
-              },
-            ],
-            products: [
-              {
-                title: "آیفون 16",
-                slug: "iphone-16",
-              },
-            ],
-          };
-    
-        return {message: "ok", data }
-    })
+    // برگرداندن نتایج جست‌وجو
+    return { message: "ok", data };
+  });
 }

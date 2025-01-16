@@ -1,32 +1,62 @@
-import Product1 from "../../assets/products/1.webp";
-import Product6 from "../../assets/products/6.webp";
-import Seller from "../../assets/seller.jpg"
-import { shuffleArray } from "../../Libs/helper";
-import { archive } from "../data/products";
+import Product1 from "../../assets/products/1.webp"; // ایمپورت تصویر محصول
+import Product6 from "../../assets/products/6.webp"; // ایمپورت تصویر محصول
+import Seller from "../../assets/seller.jpg"; // ایمپورت تصویر فروشنده
+import { shuffleArray } from "../../Libs/helper"; // ایمپورت تابع برای تصادفی‌سازی آرایه
+import { archive } from "../data/products"; // ایمپورت داده‌های محصولات
 
 export default function Compare(server, apiPrefix) {
 
 
-  server.get(`${apiPrefix}/seller/:id`, (schema, {requestBody }) => {
+  // ای‌پی‌آی برای دریافت اطلاعات فروشنده (GET)
+  server.get(`${apiPrefix}/seller/:id`, (schema, { requestBody }) => {
     const data = {
-      name: "دیجیکالا",
-      province: "تهران",
-      rating: 4.2,
-      userComments: 250,
-      image: Seller,
-    }
-    return {message: "ok", data}
-})
-
-  server.get(`${apiPrefix}/seller/:id/products`, (schema, { requestBody }) => {
-    let data = archive;
-
-    data.products = shuffleArray(data.products);
-    
-    return { message: "ok", data };
+      name: "دیجیکالا", // نام فروشنده
+      province: "تهران", // استان فروشنده
+      rating: 4.2, // امتیاز فروشنده
+      userComments: 250, // تعداد نظرات کاربران
+      image: Seller, // تصویر فروشنده
+      others: [ // سایر اطلاعات فروشنده
+        {
+          label: "محل ارسال",
+          value: "شیراز"
+        },
+        {
+          label: "زمان تحویل",
+          value: "۲ تا ۴ روز کاری"
+        },
+        {
+          label: "گارانتی",
+          value: "۱۸ ماهه"
+        },
+        {
+          label: "روش‌های پرداخت",
+          value: "نقدی"
+        },
+        {
+          label: "خدمات پس از فروش",
+          value: "دارد"
+        },
+        {
+          label: "امکان بازگشت کالا",
+          value: "تا ۷ روز"
+        }
+      ]
+    };
+    return { message: "ok", data }; // برگرداندن اطلاعات فروشنده
   });
+
+  // ای‌پی‌آی برای دریافت محصولات فروشنده (POST)
+  server.post(`${apiPrefix}/seller/:id/products`, (schema, { requestBody }) => {
+    let data = archive; // استفاده از لیست محصولات
+
+    data.products = shuffleArray(data.products); // تصادفی‌سازی لیست محصولات
+    
+    return { message: "ok", data }; // برگرداندن لیست محصولات
+  });
+
+// ای‌پی‌آی برای دریافت نظرات کاربران درباره فروشنده (GET)
   server.get(`${apiPrefix}/seller/:id/comments`, (schema, { requestBody }) => {
-    const commentTexts = [
+    const commentTexts = [ // لیست متن‌های نمونه برای نظرات
       "محصول عالی بود، کاملاً راضی هستم!",
       "کیفیت ساخت بسیار بالا، من خیلی خوشحالم که این رو خریدم.",
       "مورد پسند من نبود، متاسفانه برای من مناسب نبود.",
@@ -45,21 +75,22 @@ export default function Compare(server, apiPrefix) {
     ];
     
     let data = {
-      rating: "3",
-      count: 20,
-      total: 200,
+      rating: "3", // میانگین امتیاز نظرات
+      count: 20, // تعداد نظرات نمایش داده شده
+      total: 200, // کل نظرات
       comments: [
         {
-          name: "فرهاد باقری",
-          date: "15 آبان 1403",
-          rating: "4",
-          comment: commentTexts[Math.floor(Math.random() * commentTexts.length)],
-          status: "agreed",
-          product: {
+          name: "فرهاد باقری", // نام کاربر
+          date: "15 آبان 1403", // تاریخ نظر
+          rating: "4", // امتیاز کاربر
+          comment: commentTexts[Math.floor(Math.random() * commentTexts.length)], // متن نظر (تصادفی)
+          status: "agreed", // وضعیت نظر (موافق/مخالف)
+          product: { // اطلاعات محصول مرتبط با نظر
             image: Product1,
             title: "آیفون 16 نرمال"
           }
         },
+        // سایر نظرات به همین شکل اضافه می‌شوند
         {
           name: "فرهاد باقری",
           date: "15 آبان 1403",
@@ -205,7 +236,7 @@ export default function Compare(server, apiPrefix) {
         }
       ]
     };
-    return { message: "ok", data };
+    return { message: "ok", data }; // برگرداندن نظرات
   });
   
 }

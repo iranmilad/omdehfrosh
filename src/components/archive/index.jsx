@@ -38,9 +38,8 @@ function Archive({ enabled, url }) {
   const [page, setPage] = useState(1);
   const [sortValue, setSortValue] = useState("newest");
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search,600);
+  const [debouncedSearch] = useDebouncedValue(search,600);
   const filterDisclosure = useDisclosure(false);
-
   
   const form = useForm({
     initialValues: {
@@ -60,17 +59,22 @@ function Archive({ enabled, url }) {
       sort: sortValue,
       s: debouncedSearch,
     };
-    return qs.stringify(filters, {
-      addQueryPrefix: true,
-      arrayFormat: "comma",
-    });
+    return {
+      filters,
+      query: qs.stringify(filters, {
+        addQueryPrefix: true,
+        arrayFormat: "comma",
+      })
+    }
   }, [form.values, page, sortValue, debouncedSearch, url]);
 
-  const queryKey = changeFilters();
+  const queryKey = changeFilters().query;
 
   const { isLoading, isFetching, data } = useData({
     url,
     queryOptions: { staleTime: 30 * 10000,enabled },
+    bodyData: changeFilters().filters,
+    method: "POST",
     queryKey: [url, queryKey],
   });
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ActionIcon, Flex, Input, Loader, Text } from "@mantine/core";
-import { IconMinus, IconPlus, IconTrash } from "@tabler/icons-react";
+import { ActionIcon, Flex, Input, Loader, Text, Tooltip } from "@mantine/core";
+import { IconChartArrowsVertical, IconMinus, IconPlus, IconTrash } from "@tabler/icons-react";
 
 const Counter = (props) => {
   const { value, max, isPending } = props;
@@ -19,6 +19,16 @@ const Counter = (props) => {
   return (
     <>
       <Flex align="center" gap="sm">
+        <Tooltip label="انتخاب حداکثر موجودی">
+          <ActionIcon
+            size="md"
+            radius="999999"
+            variant="light"
+            color="blue"
+          >
+            <IconChartArrowsVertical size={15} />
+          </ActionIcon>
+        </Tooltip>
         <ActionIcon
           size="md"
           radius="999999"
@@ -57,7 +67,13 @@ const Counter = (props) => {
             <IconMinus size={15} />
           </ActionIcon>
         ) : (
-          <ActionIcon radius="999999" size="md" variant="light" color="red" onClick={() => props.removeProduct()}>
+          <ActionIcon
+            radius="999999"
+            size="md"
+            variant="light"
+            color="red"
+            onClick={() => props.removeProduct()}
+          >
             <IconTrash size={15} />
           </ActionIcon>
         )}

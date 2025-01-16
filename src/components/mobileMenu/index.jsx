@@ -68,7 +68,7 @@ function MobileMenu({ toggle, menu }) {
       {menu?.other.map((item, index) => (
         <NavLink label={item.label} key={index} mb="sm" styles={{ label: { fontSize: 16 } }} onClick={(e) => click(e, item.url)}>
           {item.children && (
-            <Box bg="gray.3" w="95%" style={{ borderRadius: "10px" }} p="5px">
+            <Box bg="gray.1" w="95%" style={{ borderRadius: "10px" }} p="5px">
               {item.children.map((child,index) => (
                 <NavLink
                   key={index}

@@ -1,4 +1,4 @@
-import { rem,Container, Paper, Title,Loader,Checkbox, Button, Modal, NavLink, Drawer } from "@mantine/core";
+import { rem,Container, Paper, Title,Loader,Checkbox, Button, Modal, NavLink, Drawer, Anchor } from "@mantine/core";
 
 export const CONTAINER_SIZES= {
   xxs: rem(300),
@@ -80,6 +80,11 @@ const Theme = {
         }
       }
     }),
+    Anchor: Anchor.extend({
+      defaultProps: {
+        underline: "never"
+      }
+    })
   },
 };
 

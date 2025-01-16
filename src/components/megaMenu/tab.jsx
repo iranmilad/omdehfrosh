@@ -31,7 +31,7 @@ const MegaMenuTabs = ({menuItems}) => {
 
   return (
 <Tabs value={activeTab} defaultValue="1" orientation="vertical" variant="pills">
-  <Tabs.List aria-label="Chats" style={{ height: "100%", width: "20%" }} bg={theme.colors.brand[0]} p="xl">
+  <Tabs.List aria-label="Chats" style={{ height: "100%", width: "20%" }} bg={theme.colors.gray[1]} p="xl">
     {menuItems.map((item) => (
       <Tabs.Tab key={item.id} value={item.id} onMouseEnter={() => activeOnHover(item.id)} onClick={() => navigate(item.url)} style={{height: 45}}>
         <Flex align="center" gap="sm">

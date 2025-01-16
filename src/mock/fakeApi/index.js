@@ -12,3 +12,5 @@ export {default as Seller} from './seller'
 export {default as Bootstrap} from "./bootstrap";
 export {default as Product} from "./product";
 export {default as Shop} from "./shop";
+export {default as Home} from "./home";
+export {default as Upload} from "./upload";

@@ -69,6 +69,14 @@ function ProductBox({
               size="sm"
               component={NavLink}
               to={`/product/${slug}`}
+              style={{
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 2,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "normal",
+              }}
             >
               {title}
             </Text>

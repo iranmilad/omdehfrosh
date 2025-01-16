@@ -17,7 +17,9 @@ import {
   Seller,
   Bootstrap,
   Product,
-  Shop
+  Shop,
+  Home,
+  Upload
 } from "./fakeApi";
 const { apiPrefix } = appConfig;
 
@@ -51,7 +53,9 @@ function mockRunner({ environment }) {
       Seller(this,apiPrefix);
       Bootstrap(this,apiPrefix);
       Product(this,apiPrefix)
-      Shop(this,apiPrefix)
+      Shop(this,apiPrefix);
+      Home(this,apiPrefix);
+      Upload(this,apiPrefix)
     },
   });
 }

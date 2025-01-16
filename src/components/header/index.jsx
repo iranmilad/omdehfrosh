@@ -106,6 +106,7 @@ const Header = () => {
                     }}
                   >
                     <ActionIcon
+                    h={45}
                       color="red"
                       variant="light"
                       size="xl"
@@ -117,7 +118,7 @@ const Header = () => {
                   {cookies.user ? (
                     <Menu shadow="md" position="bottom-end" styles={{dropdown:{minWidth: 250,padding:"10px"}}}>
                       <MenuTarget>
-                        <ActionIcon variant="light" size="xl">
+                        <ActionIcon h={45} variant="light" size="xl">
                           <IconUser />
                         </ActionIcon>
                       </MenuTarget>
@@ -163,14 +164,9 @@ const Header = () => {
                       </MenuDropdown>
                     </Menu>
                   ) : (
-                    <ActionIcon
-                      variant="light"
-                      size="xl"
-                      component={NavLink}
-                      to="/login"
-                    >
-                      <IconUser />
-                    </ActionIcon>
+                    <Button h="45" variant="light" component={NavLink} to="/login">
+                      ورود/ثبت‌ نام
+                    </Button>
                   )}
                 </Flex>
               </Flex>

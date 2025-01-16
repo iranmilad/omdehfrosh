@@ -6,7 +6,6 @@ import PaperCollpase from '../PaperCollapse';
 
 const Filters = React.memo(({ isFetching,data, form, handleDynamicChange, setSearch, setPage, filterDisclosure }) => {
   const dynamicFilters = data?.filters || [];
-  const [drawerOpened, setDrawerOpened] = useState(false); // State for Drawer visibility
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value);

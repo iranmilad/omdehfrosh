@@ -1,33 +1,36 @@
-import Product1 from "../../assets/products/1.webp";
-import Product6 from "../../assets/products/6.webp";
+import Product1 from "../../assets/products/1.webp"; // ایمپورت تصویر محصول اول
+import Product6 from "../../assets/products/6.webp"; // ایمپورت تصویر محصول دوم
 
 export default function Compare(server, apiPrefix) {
+  // ای‌پی‌آی برای مقایسه دو محصول
   server.post(`${apiPrefix}/compare`, (schema, { requestBody }) => {
+    // ساخت داده‌های مقایسه
     let data = {
-      title: [
+      title: [ // عنوان محصولات
         "گوشی موبایل اپل مدل پرومکس دو سیم‌ کارت نات اکتیو سیزده",
         "گوشی موبایل سامسونگ مدل Galaxy S24 Ultra دو سیم کارت ظرفیت 256 گیگابایت و رم 12 گیگابایت - ویتنام",
       ],
-      slug: ["123", "456"],
-      image: [Product1,Product6],
-      rating: ["3","5"],
-      price: [
+      slug: ["123", "456"], // اسلاگ محصولات
+      image: [Product1, Product6], // تصاویر محصولات
+      rating: ["3", "5"], // امتیاز محصولات
+      price: [ // قیمت‌های محصولات
         {
-          regularPrice: 21000000,
-          discountedPrice: 19000000
+          regularPrice: 21000000, // قیمت اصلی محصول اول
+          discountedPrice: 19000000 // قیمت تخفیف‌خورده محصول اول
         },
         {
-          regularPrice: 30000000,
+          regularPrice: 30000000, // قیمت اصلی محصول دوم
         },
       ],
-      attributes: [
+      attributes: [ // ویژگی‌های محصولات
         {
-          label: "رنگ ها",
-          value: ["آبی ، قرمز ، مشکی", "مشکی"],
+          label: "رنگ ها", // عنوان ویژگی
+          value: ["آبی ، قرمز ، مشکی", "مشکی"], // مقادیر ویژگی برای هر محصول
         },
       ],
     };
     
+    // برگرداندن داده‌های مقایسه
     return { message: "ok", data };
   });
 }

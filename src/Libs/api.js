@@ -2,11 +2,17 @@ import { useState } from "react";
 import { useMutation, useQuery,keepPreviousData } from "@tanstack/react-query";
 import ApiCaller from "./axiosEndpoint";
 
-export function useData({ url, params,queryKey, axiosOption, queryOptions }) {
+export function useData({ url, params,queryKey,method = "get",bodyData, axiosOption, queryOptions }) {
 	return useQuery({
 		queryKey,
 		queryFn: async () => {
-			let { data } = await ApiCaller.get(url, { params, ...axiosOption });
+			let { data } = await ApiCaller.request({
+				params,
+				method,
+				url,
+				data: bodyData,
+				...axiosOption
+			});
 			return data?.data;
 		},
 		staleTime: false,

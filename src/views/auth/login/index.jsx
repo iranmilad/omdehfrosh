@@ -8,7 +8,9 @@ import {
   Flex,
   Image,
   Input,
+  Paper,
   PinInput,
+  rem,
   Text,
   TextInput,
 } from "@mantine/core";
@@ -23,7 +25,7 @@ import { IconArrowLeft, IconInfoCircle } from '@tabler/icons-react';
 import { useNavigate } from "react-router";
 import * as yup from 'yup';
 import { yupResolver } from 'mantine-form-yup-resolver';
-import Logo from "../../../assets/logo.png"
+import { useSelector } from "react-redux";
 
 const validationSchema = yup.object().shape({
   mobile: yup
@@ -42,6 +44,7 @@ const codeValidationSchema = yup.object().shape({
 const Login = () => {
   const [type, setType] = useState("enter");
   const [cookies, setCookie] = useCookies(["user"]);
+  const bootstrap = useSelector((state) => state.global.bootstrap);
   const navigate = useNavigate();
   const { mutateAsync, isPending,data } = useSend({ url: "auth/sms/" });
   const sendCode = useSend({ url: "auth/login/" });
@@ -114,17 +117,13 @@ const Login = () => {
   }
   return (
     <>
-      <Box h="100vh" w="100%" className="flex items-center justify-center">
+      <Box bg="gray.1" h="100vh" w="100%" className="flex items-center justify-center">
+        <Center w={{base: "85%",xs:"65%",sm:"50%",md:"40%",lg:"40%",xl:"25%"}} className="flex-col relative z-10">
         <Image
-          pos="absolute"
-          style={{ zIndex: 2 }}
-          w="100%"
-          h="100%"
-          fit="cover"
-          src={authBg}
+          w={160}
+          src={bootstrap?.logo}
         />
-        <Center className="relative z-10 lg:w-1/4">
-          <div className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
+          <Paper className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
             <Flex justify="space-between" align="center">
               <Text c="dark" size="xl" fw="bold">ورود</Text>
             </Flex>
@@ -237,7 +236,7 @@ const Login = () => {
                 <Button size="xs" mt="md" color="orange" component="a" href="tel:01234567890">تلفن پشیبانی 09123456789</Button>
               </Alert>
             )}
-          </div>
+          </Paper>
         </Center>
       </Box>
     </>
