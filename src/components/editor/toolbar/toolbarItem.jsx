@@ -7,6 +7,7 @@ import ImageHandler from "./imageHandler";
 import UnitInput from "./unitInput";
 import EdgeSpacing from "./edgeSpacing";
 import { IconX } from "@tabler/icons-react"; // Import IconX for the clear button
+import Repeater from "../repeater";
 
 function ToolbarItem({
   full = false,
@@ -126,6 +127,8 @@ function ToolbarItem({
             onChange={(value) => handleChange(value)}
           />
         );
+      case 'repeater': 
+        return <Repeater label={label} onChange={(value) => handleChange(value)} {...props} />
       default:
         return null;
     }

@@ -7,6 +7,7 @@ import GridBanner from '../../components/gridBanner';
 import {EditorText} from "../../components/editor/text";
 import { EditorImage } from "../../components/editor/image";
 import HeroSection from "../../components/heroSection";
+import { EditorContainer } from "../../components/editor/container";
 
 
 
@@ -22,15 +23,10 @@ const elements = [
       element: <EditorImage />,
     },
     {
-      icon: "eicon-container",
-      label: "کانتینر",
-      element: <GridBanner />,
+      icon: "eicon-gallery-justified",
+      label: "دسته بندی ها",
+      element: <Categories />,
     },
-    // {
-    //   icon: "eicon-gallery-justified",
-    //   label: "دسته بندی ها",
-    //   element: <Categories />,
-    // },
     // {
     //   icon: "eicon-slider-3d",
     //   label: "اسلایدر عریض",

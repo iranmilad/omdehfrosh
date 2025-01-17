@@ -30,6 +30,8 @@ import { setComponents } from "../../redux/editor";
 import Save from "./save";
 import { EditorImage } from "../../components/editor/image";
 import { EditorContainer } from "../../components/editor/container";
+import HeroSection from "../../components/heroSection";
+import Categories from "../../components/categories";
 
 
 
@@ -45,7 +47,7 @@ function EditorLayout() {
 
   return (
     <>
-      <Editor enabled={true} resolver={{ WideSlider,EditorContainer,EditorText ,EditorImage}}>
+      <Editor enabled={true} resolver={{ WideSlider,EditorContainer,EditorText ,EditorImage,HeroSection,Categories}}>
         <AppShell
           header={{ height: 60 }}
           navbar={{
