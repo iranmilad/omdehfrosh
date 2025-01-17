@@ -1,13 +1,8 @@
 import { useNode } from "@craftjs/core";
-import { Box, ColorInput, NumberInput, Select, TextInput, ActionIcon } from "@mantine/core";
-import Editor from 'react-simple-wysiwyg';
+import FieldRenderer from "./fieldRenderer";
+import { Box } from "@mantine/core";
 import React from "react";
-import TextEditor from "../../textEditor";
-import ImageHandler from "./imageHandler";
-import UnitInput from "./unitInput";
-import EdgeSpacing from "./edgeSpacing";
-import { IconX } from "@tabler/icons-react"; // Import IconX for the clear button
-import Repeater from "../repeater";
+import { shallowEqual } from "@mantine/hooks";
 
 function ToolbarItem({
   full = false,
@@ -25,116 +20,27 @@ function ToolbarItem({
 
   const value = Array.isArray(propValue) ? propValue[index] : propValue;
 
-  // Unified handleChange function
   const handleChange = (newValue) => {
     setProp((props) => {
       props[propKey] = onChange ? onChange(newValue) : newValue;
     });
   };
 
-  const renderContent = (type) => {
-    switch (type) {
-      case "text":
-        return (
-          <TextInput
-            size="xs"
-            {...props}
-            variant="filled"
-            label={label}
-            type={type}
-            value={value}
-            onChange={(e) => handleChange(e.target.value)}
-          />
-        );
-      case "number":
-        return (
-          <NumberInput
-            {...props}
-            size="xs"
-            label={label}
-            variant="filled"
-            value={value}
-            onChange={(value) => handleChange(value)}
-          />
-        );
-      case "color":
-        return (
-          <ColorInput
-            {...props}
-            label={label}
-            size="xs"
-            variant="filled"
-            value={value}
-            onChange={(value) => handleChange(value)}
-            withEyeDropper={false} // Disable eye dropper
-            rightSection={
-              value && (
-                <ActionIcon
-                  variant="transparent"
-                  c="gray"
-                  size="xs"
-                  onClick={() => handleChange("")} // Clear the color
-                >
-                  <IconX />
-                </ActionIcon>
-              )
-            }
-          />
-        );
-      case "unit":
-        return (
-          <UnitInput
-            {...props}
-            label={label}
-            number={value}
-            onChange={(value) => handleChange(value)}
-          />
-        );
-      case "select":
-        return (
-          <Select
-            {...props}
-            label={label}
-            size="xs"
-            variant="filled"
-            value={value}
-            onChange={(value) => handleChange(value)}
-          />
-        );
-      case "wysiwyg":
-        return (
-          <TextEditor
-            value={value || ''}
-            onChange={(html) => handleChange(html)}
-          />
-        );
-      case "image":
-        return (
-          <ImageHandler
-            maxFiles={1}
-            items={[value]}
-            url="/upload"
-            maxSize={6 * 1024 * 1024}
-            {...props}
-            onChange={(value) => handleChange(value)}
-          />
-        );
-      case "edge":
-        return (
-          <EdgeSpacing
-            value={value}
-            label={label}
-            onChange={(value) => handleChange(value)}
-          />
-        );
-      case 'repeater': 
-        return <Repeater label={label} onChange={(value) => handleChange(value)} {...props} />
-      default:
-        return null;
-    }
-  };
-
-  return <Box mb="md">{renderContent(type)}</Box>;
+  return (
+    <Box mb="md">
+      <FieldRenderer
+        type={type}
+        value={value}
+        label={label}
+        onChange={handleChange}
+        {...props}
+      />
+    </Box>
+  );
 }
 
-export default ToolbarItem;
+const MemoizedToobarItem = React.memo(ToolbarItem,(prev,next) => {
+  return ! shallowEqual(prev,next);
+})
+
+export default MemoizedToobarItem;

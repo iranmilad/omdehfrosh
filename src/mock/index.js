@@ -19,7 +19,8 @@ import {
   Product,
   Shop,
   Home,
-  Upload
+  Upload,
+  AdvancedSearch
 } from "./fakeApi";
 const { apiPrefix } = appConfig;
 
@@ -55,7 +56,8 @@ function mockRunner({ environment }) {
       Product(this,apiPrefix)
       Shop(this,apiPrefix);
       Home(this,apiPrefix);
-      Upload(this,apiPrefix)
+      Upload(this,apiPrefix);
+      AdvancedSearch(this,apiPrefix)
     },
   });
 }

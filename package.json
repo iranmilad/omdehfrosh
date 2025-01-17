@@ -11,6 +11,7 @@
   "dependencies": {
     "@craftjs/core": "^0.2.11",
     "@fancyapps/ui": "^5.0.36",
+    "@hello-pangea/dnd": "^17.0.0",
     "@mantine/charts": "^7.15.2",
     "@mantine/core": "^7.15.2",
     "@mantine/dropzone": "^7.15.2",

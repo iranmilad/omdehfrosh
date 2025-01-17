@@ -14,3 +14,4 @@ export {default as Product} from "./product";
 export {default as Shop} from "./shop";
 export {default as Home} from "./home";
 export {default as Upload} from "./upload";
+export {default as AdvancedSearch} from "./advanced-search"

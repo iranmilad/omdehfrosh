@@ -38,7 +38,7 @@ HeroSection.craft = {
   props: {
     title: "عنوان",
     text: "متن پیشفرض",
-    image: placeholder,
+    image: '',
   },
   related: {
     settings: () => (

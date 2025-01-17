@@ -7,7 +7,6 @@ import GridBanner from '../../components/gridBanner';
 import {EditorText} from "../../components/editor/text";
 import { EditorImage } from "../../components/editor/image";
 import HeroSection from "../../components/heroSection";
-import { EditorContainer } from "../../components/editor/container";
 
 
 
@@ -37,11 +36,11 @@ const elements = [
     //   label: "اسلایدر پیشنهاد منتخب",
     //   element: <WideCarousel />,
     // },
-    // {
-    //   icon: "eicon-gallery-grid",
-    //   label: "بنر 4 ستونی",
-    //   element: <GridBanner />,
-    // },
+    {
+      icon: "eicon-gallery-grid",
+      label: "بنر ستونی",
+      element: <GridBanner />,
+    },
     // {
     //   icon: "eicon-posts-grid",
     //   label: "محصولات منتخب",

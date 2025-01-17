@@ -1,95 +1,34 @@
-import { useRef, useState } from 'react';
-import { Combobox, Loader, TextInput, useCombobox } from '@mantine/core';
+import { useRef, useState } from "react";
+import { Combobox, Loader, TextInput, useCombobox } from "@mantine/core";
+import { useData, useSend } from "../../Libs/api";
+import { useDebouncedValue } from "@mantine/hooks";
 
-// Mock data for demonstration
-const MOCKDATA = [
-  '🍎 Apples',
-  '🍌 Bananas',
-  '🥦 Broccoli',
-  '🥕 Carrots',
-  '🍫 Chocolate',
-  '🍇 Grapes',
-  '🍋 Lemon',
-  '🥬 Lettuce',
-  '🍄 Mushrooms',
-  '🍊 Oranges',
-  '🥔 Potatoes',
-  '🍅 Tomatoes',
-  '🥚 Eggs',
-  '🥛 Milk',
-  '🍞 Bread',
-  '🍗 Chicken',
-  '🍔 Hamburger',
-  '🧀 Cheese',
-  '🥩 Steak',
-  '🍟 French Fries',
-  '🍕 Pizza',
-  '🥦 Cauliflower',
-  '🥜 Peanuts',
-  '🍦 Ice Cream',
-  '🍯 Honey',
-  '🥖 Baguette',
-  '🍣 Sushi',
-  '🥝 Kiwi',
-  '🍓 Strawberries',
-];
-
-// Simulate an async data fetch
-function getAsyncData(searchQuery, signal) {
-  return new Promise((resolve, reject) => {
-    signal.addEventListener('abort', () => {
-      reject(new Error('Request aborted'));
-    });
-
-    setTimeout(() => {
-      resolve(
-        MOCKDATA.filter((item) => item.toLowerCase().includes(searchQuery.toLowerCase())).slice(
-          0,
-          5
-        )
-      );
-    }, Math.random() * 1000);
-  });
-}
-
-export function AdvancedSearch() {
+export function AdvancedSearch({ type,label,onChange }) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
 
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState(null);
-  const [value, setValue] = useState('');
-  const [empty, setEmpty] = useState(false);
-  const abortController = useRef();
+  const [value, setValue] = useState("");
+  const {isPending,mutateAsync,data} = useSend({
+    url: "/advanced-search",
+  });
 
-  const fetchOptions = (query) => {
-    if (abortController.current) {
-      abortController.current.abort();
-    }
-    abortController.current = new AbortController();
-    setLoading(true);
+  const changeInputValue = (value) => {
+    setValue(value);
+    mutateAsync({type,s:value})
+  }
 
-    getAsyncData(query, abortController.current.signal)
-      .then((result) => {
-        setData(result);
-        setLoading(false);
-        setEmpty(result.length === 0);
-        abortController.current = undefined;
-      })
-      .catch(() => {});
-  };
-
-  const options = (data || []).map((item) => (
-    <Combobox.Option value={item} key={item}>
-      {item}
+  const options = (data || []).map((item,index) => (
+    <Combobox.Option value={item.value} key={index}>
+      {item.label}
     </Combobox.Option>
   ));
 
   return (
     <Combobox
-      onOptionSubmit={(optionValue) => {
-        setValue(optionValue);
+      onOptionSubmit={(label,options) => {
+        setValue(options.children);
+        onChange({label: options.children,value: options.value})
         combobox.closeDropdown();
       }}
       withinPortal={false}
@@ -97,29 +36,29 @@ export function AdvancedSearch() {
     >
       <Combobox.Target>
         <TextInput
-          label="Pick value or type anything"
-          placeholder="Search groceries"
+         variant="filled"
+          size="xs"
+          label={label}
           value={value}
           onChange={(event) => {
-            setValue(event.currentTarget.value);
-            fetchOptions(event.currentTarget.value);
+            changeInputValue(event.currentTarget.value)
             combobox.resetSelectedOption();
             combobox.openDropdown();
           }}
           onClick={() => combobox.openDropdown()}
           onBlur={() => combobox.closeDropdown()}
-          rightSection={loading && <Loader size={18} />}
+          rightSection={isPending && <Loader size={18} />}
         />
       </Combobox.Target>
 
       <Combobox.Dropdown hidden={data === null}>
         <Combobox.Options>
           {options}
-          {empty && <Combobox.Empty>No results found</Combobox.Empty>}
+          {!data && value !== '' && <Combobox.Empty>چیزی یافت نشد</Combobox.Empty>}
         </Combobox.Options>
       </Combobox.Dropdown>
     </Combobox>
   );
 }
 
-export default AdvancedSearch
+export default AdvancedSearch;

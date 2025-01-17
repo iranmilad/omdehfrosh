@@ -32,6 +32,7 @@ import { EditorImage } from "../../components/editor/image";
 import { EditorContainer } from "../../components/editor/container";
 import HeroSection from "../../components/heroSection";
 import Categories from "../../components/categories";
+import GridBanner from "../../components/gridBanner";
 
 
 
@@ -47,7 +48,7 @@ function EditorLayout() {
 
   return (
     <>
-      <Editor enabled={true} resolver={{ WideSlider,EditorContainer,EditorText ,EditorImage,HeroSection,Categories}}>
+      <Editor enabled={true} resolver={{ WideSlider,EditorContainer,EditorText ,EditorImage,HeroSection,Categories,GridBanner}}>
         <AppShell
           header={{ height: 60 }}
           navbar={{

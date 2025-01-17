@@ -19,7 +19,7 @@ export const EditorImage = ({label, w, h, src, fit, radius, ...props }) => {
 
 EditorImage.craft = {
   props: {
-    src: "https://placehold.co/600x400.png",
+    src: "",
     fit: "contain",
     w: "100%",
     h: "100%",
