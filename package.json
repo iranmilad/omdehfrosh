@@ -63,6 +63,7 @@
     "@eslint/js": "^9.13.0",
     "@rsbuild/core": "^1.1.5",
     "@tailwindcss/typography": "^0.5.15",
+    "@types/node": "^22.10.7",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
@@ -73,6 +74,7 @@
     "globals": "^15.11.0",
     "postcss": "^8.4.49",
     "postcss-preset-mantine": "^1.17.0",
-    "postcss-simple-vars": "^7.0.1"
+    "postcss-simple-vars": "^7.0.1",
+    "typescript": "^5.7.3"
   }
 }

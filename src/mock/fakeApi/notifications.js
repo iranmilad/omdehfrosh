@@ -1,8 +1,13 @@
+/**
+ * تکمیل شده
+ * این آدرس ورودی ندارد 
+ */
+
 import Product1 from "../../assets/products/1.webp"; // ایمپورت تصویر محصول
 
 export default function Account_Notifications(server, apiPrefix) {
   // ای‌پی‌آی برای دریافت لیست اطلاعیه‌های کاربر (GET)
-  server.get(`${apiPrefix}/notifications`, (schema, { requestBody }) => {
+  server.get(`${apiPrefix}/notifications`, () => {
     // ساخت داده‌های نمونه برای اطلاعیه‌ها
     const data = [
       {

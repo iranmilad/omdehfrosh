@@ -1,6 +1,14 @@
-export default function SearchApi(server, apiPrefix) {
+/**
+ * تکمیل شده
+ */
+
+interface Search{
+  s: string
+}
+
+export default function SearchApi(server:any, apiPrefix: string) {
   // ای‌پی‌آی برای جست‌وجو (GET)
-  server.get(`${apiPrefix}/search`, (schema, { requestBody }) => {
+  server.get(`${apiPrefix}/search`, (schema:any, { requestBody }: { requestBody: Search }) => {
     // ساخت داده‌های نمونه برای نتایج جست‌وجو
     const data = {
       category: [ // دسته‌بندی‌های مرتبط با جست‌وجو

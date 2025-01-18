@@ -1,8 +1,18 @@
+/**
+ * تکمیل شده
+ */
+// @ts-ignore
 import { shuffleArray } from "../../Libs/helper"; // ایمپورت تابع برای تصادفی‌سازی آرایه
 
-export default function Account_Tickets(server, apiPrefix) {
+interface SendTicket {
+  title: string, // عنوان
+  department: string, // دپارتمان
+  description: string, // توضیحات
+}
+
+export default function Account_Tickets(server:any, apiPrefix:string) {
   // ای‌پی‌آی برای دریافت لیست تیکت‌های کاربر (GET)
-  server.get(`${apiPrefix}/tickets`, (schema, { requestBody }) => {
+  server.get(`${apiPrefix}/tickets`, () => {
     const data = [
       {
         id: "1234",
@@ -81,7 +91,7 @@ export default function Account_Tickets(server, apiPrefix) {
   });
 
   // ای‌پی‌آی برای دریافت جزئیات یک تیکت خاص (GET)
-  server.get(`${apiPrefix}/tickets/:id`, (schema, { requestBody }) => {
+  server.get(`${apiPrefix}/tickets/:id`, () => {
     const data = {
       id: "123",
       info: {
@@ -114,7 +124,7 @@ export default function Account_Tickets(server, apiPrefix) {
   });
 
   // ای‌پی‌آی برای ارسال پیام جدید به تیکت (POST)
-  server.post(`${apiPrefix}/tickets/send`, (schema, { requestBody }) => {
+  server.post(`${apiPrefix}/tickets/send`, (schema:any, { requestBody }: {requestBody: SendTicket}) => {
     // در اینجا می‌توانید پیام جدید را به تیکت اضافه کنید
     return { message: "ok" }; // برگرداندن پیام موفقیت
   });

@@ -1,14 +1,46 @@
+/**
+ * تکمیل شده
+ */
+// @ts-ignore
 import Product1 from "../../assets/products/1.webp"; // ایمپورت تصویر محصول
-import Product6 from "../../assets/products/6.webp"; // ایمپورت تصویر محصول
+// @ts-ignore
 import Seller from "../../assets/seller.jpg"; // ایمپورت تصویر فروشنده
+// @ts-ignore
 import { shuffleArray } from "../../Libs/helper"; // ایمپورت تابع برای تصادفی‌سازی آرایه
+// @ts-ignore
 import { archive } from "../data/products"; // ایمپورت داده‌های محصولات
 
-export default function Compare(server, apiPrefix) {
+interface FilterOption {
+  label: string;
+  value: string;
+}
 
+interface Filter {
+  title: string;
+  key: string;
+  options: Array<FilterOption>;
+}
+
+interface SellerProducts {
+  price_min: number;
+  price_max: number;
+  dynamic: Array<Filter>; // مقادیر فیلتر مثل رنگ ، سایز ، جنس
+  limit: number;
+  page: number;
+  sort: string;
+  s: string; // جستجو
+}
+
+interface SellerComments{
+  limit: number | string,
+  page: number | string
+}
+
+
+export default function Compare(server:any, apiPrefix: string) {
 
   // ای‌پی‌آی برای دریافت اطلاعات فروشنده (GET)
-  server.get(`${apiPrefix}/seller/:id`, (schema, { requestBody }) => {
+  server.get(`${apiPrefix}/seller/:id`, () => {
     const data = {
       name: "دیجیکالا", // نام فروشنده
       province: "تهران", // استان فروشنده
@@ -46,7 +78,7 @@ export default function Compare(server, apiPrefix) {
   });
 
   // ای‌پی‌آی برای دریافت محصولات فروشنده (POST)
-  server.post(`${apiPrefix}/seller/:id/products`, (schema, { requestBody }) => {
+  server.post(`${apiPrefix}/seller/:id/products`, (schema:any, { requestBody }: {requestBody: SellerProducts}) => {
     let data = archive; // استفاده از لیست محصولات
 
     data.products = shuffleArray(data.products); // تصادفی‌سازی لیست محصولات
@@ -55,7 +87,7 @@ export default function Compare(server, apiPrefix) {
   });
 
 // ای‌پی‌آی برای دریافت نظرات کاربران درباره فروشنده (GET)
-  server.get(`${apiPrefix}/seller/:id/comments`, (schema, { requestBody }) => {
+  server.get(`${apiPrefix}/seller/:id/comments`, (schema: any, { requestBody } : {requestBody: SellerComments}) => {
     const commentTexts = [ // لیست متن‌های نمونه برای نظرات
       "محصول عالی بود، کاملاً راضی هستم!",
       "کیفیت ساخت بسیار بالا، من خیلی خوشحالم که این رو خریدم.",

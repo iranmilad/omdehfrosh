@@ -47,7 +47,7 @@ const Search = () => {
   const { data, isLoading, isFetching } = useData({
     url: "/search",
     queryKey: ["search", debounced],
-    params: {
+    bodyData: {
       s: value,
     },
     queryOptions: {

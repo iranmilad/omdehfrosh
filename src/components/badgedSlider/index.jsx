@@ -7,6 +7,7 @@ import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import ProductBox from '../productBox';
 import { useRef, useState } from 'react';
 import "./style.css";
+import { NavLink } from 'react-router';
 
 function BadgedSlider({ items }) {
   const sliderRef = useRef(null);
@@ -81,8 +82,8 @@ function BadgedSlider({ items }) {
         ))}
         <SwiperSlide className='badged-slider-left-right'>
           <Flex justify="center" align="center" gap="md" w="100%" h="100%" direction="column">
-            <Text c="white">مشاهده همه</Text>
-            <ActionIcon size="lg" variant='white'>
+            <Text c="white" component={NavLink} to="/incredible-offers">مشاهده همه</Text>
+            <ActionIcon size="lg" variant='white' component={NavLink} to="/incredible-offers">
               <IconChevronLeft />
             </ActionIcon>
           </Flex>
@@ -90,6 +91,14 @@ function BadgedSlider({ items }) {
       </Swiper>
     </Box>
   );
+}
+
+BadgedSlider.craft = {
+  props: {
+    title: "دسته بندی ها",
+    title_align: "center",
+    items: [],
+  },
 }
 
 export default BadgedSlider;

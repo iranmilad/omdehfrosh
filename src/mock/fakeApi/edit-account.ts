@@ -1,8 +1,21 @@
-export default function EditAccount(server, apiPrefix) {
+/**
+ * تکمیل شده
+ */
+
+interface EditAccount_Save{
+  name: string,
+  familyName: string,
+  mobile: string,
+  email: string,
+  nationalCode: string,
+  birthday: string,
+}
+
+export default function EditAccount(server:any, apiPrefix: string) {
     // ای‌پی‌آی برای ویرایش اطلاعات حساب کاربری (POST)
-    server.post(`${apiPrefix}/edit-account`, (schema, { requestBody }) => {
+    server.post(`${apiPrefix}/edit-account`, (schema:any, { requestBody }: {requestBody: string}) => {
       // پارس کردن بدنه درخواست
-      let body = JSON.parse(requestBody);
+      let body = JSON.parse(requestBody) as EditAccount_Save;
       if (body) {
         // اگر بدنه درخواست وجود داشت، پیام موفقیت برگردانده می‌شود
         return { message: "ok" };
@@ -10,7 +23,7 @@ export default function EditAccount(server, apiPrefix) {
     });
   
     // ای‌پی‌آی برای دریافت اطلاعات حساب کاربری (GET)
-    server.get(`${apiPrefix}/edit-account`, (schema, { requestBody }) => {
+    server.get(`${apiPrefix}/edit-account`, (schema:any) => {
       // جست‌وجوی کاربر بر اساس شماره موبایل
       const user = schema.db.signInUserData.findBy({
         mobile: "09374039436", // شماره موبایل کاربر

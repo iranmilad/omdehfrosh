@@ -8,6 +8,7 @@ import {
   SegmentedControl,
   Text,
   Divider,
+  FileInput,
 } from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
 import TextEditor from "../../textEditor";

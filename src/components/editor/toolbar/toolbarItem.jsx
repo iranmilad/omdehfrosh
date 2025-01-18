@@ -21,6 +21,7 @@ function ToolbarItem({
   const value = Array.isArray(propValue) ? propValue[index] : propValue;
 
   const handleChange = (newValue) => {
+    console.log(newValue)
     setProp((props) => {
       props[propKey] = onChange ? onChange(newValue) : newValue;
     });

@@ -8,36 +8,55 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 function Repeater({ onChange, label, fields, ...props }) {
   const [items, setItems] = useState([]);
 
+  // Add a new item
   const handleAddItem = () => {
     const newItem = fields.reduce((acc, field) => {
-      acc[field.name] = ""; // Initialize each field by its name
+      acc[field.name] = ""; // Initialize fields with empty strings
       return acc;
     }, {});
-    const updatedItems = [...items, newItem];
+    const sequenceNumber = items.length + 1; // Assign a unique sequence number
+    const updatedItems = [
+      ...items,
+      { id: `${Date.now()}`, sequenceNumber, ...newItem },
+    ];
     setItems(updatedItems);
     if (onChange) onChange(updatedItems);
   };
 
+  // Remove an item
   const handleRemoveItem = (index) => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
     if (onChange) onChange(updatedItems);
   };
 
-  const handleFieldChange = (index, fieldName, value) => {
-    const updatedItems = items.map((item, i) =>
-      i === index ? { ...item, [fieldName]: value } : item
-    );
-    setItems(updatedItems);
-    if (onChange) onChange(updatedItems);
-  };
+// Handle field value changes
+const handleFieldChange = (index, fieldName, value) => {
+  // Create a deep copy of the items array to avoid mutation
+  const updatedItems = items.map((item, i) => {
+    if (i === index) {
+      // Update the specific field in the item
+      return {
+        ...item, // Copy all existing fields
+        [fieldName]: value, // Update the specific field
+      };
+    }
+    return item; // Return unchanged items
+  });
 
-  // Handle drag and drop reordering
+  // Update the state with the new items
+  setItems(updatedItems);
+
+  // Trigger the onChange callback if provided
+  if (onChange) onChange(updatedItems);
+};
+
+  // Handle drag and drop
   const handleDragEnd = (result) => {
     const { destination, source } = result;
-    if (!destination) return; // Dropped outside of a droppable area
+    if (!destination) return; // Dropped outside droppable area
 
-    const updatedItems = [...items];
+    const updatedItems = Array.from(items);
     const [removed] = updatedItems.splice(source.index, 1);
     updatedItems.splice(destination.index, 0, removed);
     setItems(updatedItems);
@@ -45,51 +64,76 @@ function Repeater({ onChange, label, fields, ...props }) {
   };
 
   return (
-    <div>
+    <div {...props}>
       <Text size="xs" mb="sm">
         {label}
       </Text>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="droppable" direction="vertical">
+        <Droppable droppableId="droppable">
           {(provided) => (
-            <Accordion
-              variant="separated"
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-            >
-              {items.map((item, index) => (
-                <Draggable key={index} draggableId={`item-${index}`} index={index}>
-                  {(provided) => (
-                    <Accordion.Item
-                      value={`item-${index}`}
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                    >
-                      <Accordion.Control>#{index + 1}</Accordion.Control>
-                      <Accordion.Panel>
-                        {fields.map((field, fieldIndex) => (
-                          <div key={fieldIndex} style={{ marginBottom: "10px" }}>
-                            <FieldRenderer
-                              {...field}
-                              value={item[field.name]}
-                              onChange={(value) =>
-                                handleFieldChange(index, field.name, value)
-                              }
-                            />
+            <div ref={provided.innerRef} {...provided.droppableProps}>
+              <Accordion variant="separated">
+                {items.map((item, index) => (
+                  <Draggable key={item.id} draggableId={item.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        style={{
+                          marginBottom: "10px",
+                          ...provided.draggableProps.style,
+                        }}
+                      >
+                        <Accordion.Item value={`item-${index}`}>
+                          {/* Drag Handle */}
+                          <div
+                            {...provided.dragHandleProps}
+                            style={{ display: "flex", alignItems: "center" }}
+                          >
+                            <span
+                              style={{
+                                cursor: "grab",
+                                paddingRight: "10px",
+                              }}
+                            >
+                              ::
+                            </span>
+                            <Accordion.Control>
+                              #{item.sequenceNumber} {/* Use sequenceNumber */}
+                            </Accordion.Control>
                           </div>
-                        ))}
-                        <Button size="xs" h={35} color="red" onClick={() => handleRemoveItem(index)}>
-                          <IconTrash size={16} />
-                        </Button>
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                  )}
-                </Draggable>
-              ))}
+                          <Accordion.Panel>
+                            {fields.map((field, fieldIndex) => (
+                              <div
+                                key={fieldIndex}
+                                style={{ marginBottom: "10px" }}
+                              >
+                                <FieldRenderer
+                                  {...field}
+                                  value={item[field.name]}
+                                  onChange={(value) => handleFieldChange(index, field.name, value)
+                                  }
+                                />
+                              </div>
+                            ))}
+                            <Button
+                              size="xs"
+                              h={35}
+                              color="red"
+                              onClick={() => handleRemoveItem(index)}
+                            >
+                              <IconTrash size={16} />
+                            </Button>
+                          </Accordion.Panel>
+                        </Accordion.Item>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+              </Accordion>
               {provided.placeholder}
-            </Accordion>
+            </div>
           )}
         </Droppable>
       </DragDropContext>
@@ -101,6 +145,9 @@ function Repeater({ onChange, label, fields, ...props }) {
   );
 }
 
-const MemoizedRepeater = React.memo(Repeater, (prev, next) => !shallowEqual(prev, next));
+const MemoizedRepeater = React.memo(
+  Repeater,
+  (prev, next) => !shallowEqual(prev, next)
+);
 
 export default MemoizedRepeater;

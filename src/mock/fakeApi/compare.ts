@@ -1,9 +1,19 @@
+// @ts-ignore
 import Product1 from "../../assets/products/1.webp"; // ایمپورت تصویر محصول اول
+// @ts-ignore
 import Product6 from "../../assets/products/6.webp"; // ایمپورت تصویر محصول دوم
 
-export default function Compare(server, apiPrefix) {
+/**
+ * تکمیل شده
+ */
+
+interface Compare {
+  compare: Array<string | number> // [ 1 , 2 , 3 ] or ['1' , '2' , '3']
+}
+
+export default function Compare(server:any, apiPrefix: string) {
   // ای‌پی‌آی برای مقایسه دو محصول
-  server.post(`${apiPrefix}/compare`, (schema, { requestBody }) => {
+  server.post(`${apiPrefix}/compare`, (schema:any, { requestBody }: {requestBody: Compare}) => {
     // ساخت داده‌های مقایسه
     let data = {
       title: [ // عنوان محصولات

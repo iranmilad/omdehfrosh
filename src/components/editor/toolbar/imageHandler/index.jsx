@@ -31,7 +31,7 @@ const ImageHandler = ({
         url={url}
         deleteUrl={deleteUrl}
         setItems={setFiles}
-        onChange={successUpload}
+        onChange={onChange}
       />
     );
   });
@@ -51,9 +51,9 @@ const ImageHandler = ({
   };
 
   function successUpload(val) {
-    setFiles([val]);
-    setDefaultPreview(true);
-    onChange(val);
+    // setFiles([val]);
+    // setDefaultPreview(true);
+    console.log(val)
   }
 
   const openRef = useRef(null);
