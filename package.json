@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "rsbuild dev --env-mode=dev",
+    "dev": "rsbuild dev --env-mode production",
     "build": "rsbuild build",
     "preview": "rsbuild preview"
   },

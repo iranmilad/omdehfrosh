@@ -4,7 +4,7 @@ import mockServer from "./mock";
 
 // Run mock server
 let environment = import.meta.env.MODE;
-if (environment !== "production" && appConfig.enableMock) {
+if (environment === "development" && process.env.VITE_MODE === "development") {
 	mockServer({ environment });
 }
 

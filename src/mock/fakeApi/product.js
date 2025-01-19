@@ -9,4 +9,8 @@ export default function Product(server, apiPrefix) {
     // برگرداندن لیست محصولات مرتبط به صورت تصادفی
     return { message: "ok", data: shuffleArray(data) };
   });
+
+  server.get(`${apiPrefix}/product/:id`,(schema,{requstBody}) => {
+    
+  })
 }

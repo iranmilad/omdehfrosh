@@ -17,7 +17,7 @@ if(environment === "development"){
 const axiosInstance = axios.create({
   headers,
   responseType: "json",
-  baseURL: environment === "production" ? "" : "/api",
+  baseURL: environment === "development" && process.env.VITE_MODE === "development" ? "/api" : process.env.API,
   // withCredentials: environment === "production",
 });
 
