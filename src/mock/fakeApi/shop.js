@@ -1,36 +1,9 @@
-/**
- * تکمیل شده
- */
-
-// @ts-ignore
 import { shuffleArray } from "../../Libs/helper"; // ایمپورت تابع برای تصادفی‌سازی آرایه
-// @ts-ignore
 import { archive } from "../data/products"; // ایمپورت داده‌های محصولات
 
-interface FilterOption {
-  label: string;
-  value: string;
-}
-
-interface Filter {
-  title: string;
-  key: string;
-  options: Array<FilterOption>;
-}
-
-interface Archive {
-  price_min: number;
-  price_max: number;
-  dynamic: Array<Filter>; // مقادیر فیلتر مثل رنگ ، سایز ، جنس
-  limit: number;
-  page: number;
-  sort: string;
-  s: string; // جستجو
-}
-
-export default function Shop(server: any, apiPrefix: string) {
+export default function Shop(server, apiPrefix) {
   // ای‌پی‌آی برای دریافت محصولات فروشگاه یا آرشیو محصولات (POST)
-  server.post(`${apiPrefix}/shop`, (schema:any, { requestBody } : {requestBody: Archive}) => {
+  server.post(`${apiPrefix}/shop`, (schema, { requestBody }) => {
     let data = archive; // استفاده از لیست محصولات آرشیو
 
     data.products = shuffleArray(data.products); // تصادفی‌سازی لیست محصولات

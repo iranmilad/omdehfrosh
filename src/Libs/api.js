@@ -37,7 +37,11 @@ export function useSend({ url, params, method = "post", axiosOption }) {
 				params,
 				...axiosOption,
 			});
-			return data?.data;
+			if(data?.data) return data?.data;
+			else {
+				return data
+			}
+
 		},
 		retry: false,
 	});

@@ -1,16 +1,8 @@
-/**
- * تکمیل شده
- */
-// @ts-ignore
 import Product1 from "../../assets/products/1.webp"; // ایمپورت تصویر محصول
 
-interface Product {
-  id: number | string
-}
-
-export default function Favorites(server:any, apiPrefix:string) {
+export default function Favorites(server, apiPrefix) {
   // ای‌پی‌آی برای دریافت لیست محصولات مورد علاقه (GET)
-  server.get(`${apiPrefix}/favorites`, () => {
+  server.get(`${apiPrefix}/favorites`, (schema, { requestBody }) => {
     // ساخت داده‌های نمونه برای محصولات مورد علاقه
     const data = [
       {
@@ -29,9 +21,9 @@ export default function Favorites(server:any, apiPrefix:string) {
   });
 
   // ای‌پی‌آی برای افزودن محصول به لیست مورد علاقه (POST)
-  server.post(`${apiPrefix}/favorites`, (schema:any, { requestBody }: {requestBody: string}) => {
+  server.post(`${apiPrefix}/favorites`, (schema, { requestBody }) => {
     // پارس کردن بدنه درخواست و دریافت شناسه محصول
-    let { id } = JSON.parse(requestBody) as Product;
+    let { id } = JSON.parse(requestBody);
     if (id) {
       // اگر شناسه محصول وجود داشت، پیام موفقیت برگردانده می‌شود
       return { message: "ok" };
@@ -39,9 +31,9 @@ export default function Favorites(server:any, apiPrefix:string) {
   });
 
   // ای‌پی‌آی برای حذف محصول از لیست مورد علاقه (DELETE)
-  server.delete(`${apiPrefix}/favorites`, (schema: any, { requestBody }: {requestBody: string}) => {
+  server.delete(`${apiPrefix}/favorites`, (schema, { requestBody }) => {
     // پارس کردن بدنه درخواست و دریافت شناسه محصول
-    let { id } = JSON.parse(requestBody) as Product;
+    let { id } = JSON.parse(requestBody);
     if (id) {
       // اگر شناسه محصول وجود داشت، پیام موفقیت برگردانده می‌شود
       return { message: "ok" };

@@ -1,28 +1,25 @@
-import { defineConfig, loadEnv } from "@rsbuild/core";
+import { defineConfig,loadEnv } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
 
-const { parsed, publicVars } = loadEnv();
+const { parsed, publicVars } = loadEnv(); 
 
 export default defineConfig({
-  plugins: [
-    pluginReact(), // React support
-  ],
+  plugins: [pluginReact()],
   html: {
-    template: "./index.html",
+    template: './index.html',
   },
-  compilerOptions: {
-    paths: {
+  "compilerOptions": {
+    "paths": {
       "@assets/*": ["./src/assets/*"],
-      "@libs/*": ["./src/libs/*"],
-    },
+      "@libs/*": ["./src/Libs/*"],
+    }
   },
   source: {
-    define: {
-      "process.env": JSON.stringify(process.env),
+    define : {
+      'process.env': JSON.stringify(process.env),
     },
     entry: {
-      index: "./src/main.jsx", // Update to the new TypeScript entry file
+      index: "./src/main.jsx",
     },
-    extensions: [".tsx", ".ts", ".jsx", ".js"], // Add TypeScript extensions
   },
 });
