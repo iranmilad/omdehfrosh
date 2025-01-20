@@ -58,7 +58,7 @@ const Register = () => {
   const bootstrap = useSelector((state) => state.global.bootstrap);
   const navigate = useNavigate();
   const { mutateAsync, isPending } = useSend({ url: "auth/sms/" });
-  const sendCode = useSend({ url: "auth/login/" });
+  const sendCode = useSend({ url: "auth/register/" });
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {

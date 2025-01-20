@@ -8,6 +8,7 @@ import {
   Flex,
   Grid,
   GridCol,
+  Loader,
   Paper,
   Select,
   SimpleGrid,
@@ -46,11 +47,11 @@ import {
   useLocalStorage,
   useSessionStorage,
 } from "@mantine/hooks";
-import { useSend } from "../../../Libs/api";
-import { useState } from "react";
+import { useData, useSend } from "../../../Libs/api";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { toggleLoading } from "../../../redux/global";
-import { NavLink, useNavigate } from "react-router";
+import { NavLink, useNavigate, useParams } from "react-router";
 import Sellers from "./sellers";
 import StockAlert from "./stockAlert";
 import XTitle from "../../../components/title";
@@ -61,29 +62,14 @@ import PriceChart from "./priceChart";
 import RelatedProducts from "./relatedProducts";
 import { notifications } from "@mantine/notifications";
 import CompareBtn from "../../../components/compareBtn"
-
-const SLIDES = [
-  {
-    src: "https://placehold.co/600x400?text=1",
-  },
-  {
-    src: "https://placehold.co/600x400?text=2",
-  },
-  {
-    src: "https://placehold.co/600x400?text=3",
-  },
-  {
-    src: "https://placehold.co/600x400?text=4",
-  },
-  {
-    src: "https://placehold.co/600x400?text=5",
-  },
-];
+import InfoBox from "../../../components/InfoBox"
 
 const Product = () => {
   const theme = useMantineTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const {slug} = useParams();
+  const {isLoading,data} = useData({url: `/product/${slug}`,queryKey:['product',''],method:"POST"});
   const [opened, { toggle, close }] = useDisclosure(false);
   const [favorite, setFavorite] = useState(true);
   const stockAlert = useDisclosure(false);
@@ -96,6 +82,8 @@ const Product = () => {
     url: "/favorites",
     method: favorite ? "DELETE" : "POST",
   });
+
+
   const title = "لپ تاپ 13.3 اینچی ایسوس مدل Zenbook S 13 OLED UX5304VA";
   const comments = {
     rating: "3",
@@ -178,14 +166,18 @@ const Product = () => {
     })
   };
 
+  if(isLoading) return <Center><Loader /></Center>
+
+  if(!isLoading && !data) return <InfoBox>چنین محصولی یافت نشد</InfoBox>
+
   return (
     <>
       <div className="my-8 lg:my-10">
         <Paper pt="xl" px="xl">
           <div className="flex flex-col lg:flex-row gap-24">
             <div className="lg:w-4/12">
-              <Flex gap="md">
-                <Flex direction="column" gap="lg">
+              <Flex gap="md" direction={{base:"column",lg:"row"}}>
+                <Flex direction={{base: "row",lg:"column"}} justify={{base:"space-between",lg:"normal"}} gap="lg">
                   {favorite ? (
                     <Tooltip label="حذف از علاقه‌مندی" position="right">
                       <ActionIcon
@@ -231,7 +223,7 @@ const Product = () => {
                   </Tooltip>
                 </Flex>
                 <Slider
-                  slides={SLIDES}
+                  slides={data.images}
                   options={{
                     Carousel: {
                       infinite: false,
@@ -242,10 +234,10 @@ const Product = () => {
             </div>
             <div className="lg:w-5/12">
               <div className="text-zinc-700 text-lg md:text-xl">
-                لپ تاپ 13.3 اینچی ایسوس مدل Zenbook S 13 OLED UX5304VA
+                {data.title}
               </div>
               <div className="text-zinc-400 text-xs mt-4">
-                Asus Zenbook S 13 OLED UX5304VA-NQ003 13.3 Inch Laptop
+                {data.english_title}
               </div>
               <SimpleGrid cols={{ md: 2 }} mt="lg">
                 <Select
@@ -374,7 +366,7 @@ const Product = () => {
             <Comments {...comments} />
           </Tabs.Panel>
         </Tabs>
-        <RelatedProducts />
+        <RelatedProducts slug={slug} />
       </div>
       <PriceChart title={title} opened={opened} close={close} />
       <ShareModal

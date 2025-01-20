@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActionIcon, Flex, Input, Loader, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Button, ButtonGroup, Flex, Input, Loader, Text, Tooltip } from "@mantine/core";
 import { IconChartArrowsVertical, IconMinus, IconPlus, IconTrash } from "@tabler/icons-react";
 
 const Counter = (props) => {
@@ -16,70 +16,94 @@ const Counter = (props) => {
     }
   };
 
+  // return (
+  //   <>
+  //     <Flex align="center" gap="sm">
+  //       <Tooltip label="انتخاب حداکثر موجودی">
+  //         <ActionIcon
+  //           size="md"
+  //           radius="999999"
+  //           variant="light"
+  //           color="blue"
+  //         >
+  //           <IconChartArrowsVertical size={15} />
+  //         </ActionIcon>
+  //       </Tooltip>
+  //       <ActionIcon
+  //         size="md"
+  //         radius="999999"
+  //         variant="light"
+  //         color="green"
+  //         onClick={increment}
+  //       >
+  //         <IconPlus size={15} />
+  //       </ActionIcon>
+  //       <Flex justify="center" align="center" direction="column" miw={30}>
+  //         {isPending && <Loader size="xs" />}
+  //         {!isPending ? (
+  //           <Input
+  //             type="number"
+  //             w={30}
+  //             styles={{ input: { textAlign: "center" } }}
+  //             variant="unstyled"
+  //             value={count}
+  //             onChange={handleChange}
+  //           />
+  //         ) : null}
+  //         {!isPending && max ? (
+  //           <Text size="xs" c="gray">
+  //             حداکثر
+  //           </Text>
+  //         ) : null}
+  //       </Flex>
+  //       {count > 1 ? (
+  //         <ActionIcon
+  //           size="md"
+  //           radius="999999"
+  //           variant="light"
+  //           color="red"
+  //           onClick={decrement}
+  //         >
+  //           <IconMinus size={15} />
+  //         </ActionIcon>
+  //       ) : (
+  //         <ActionIcon
+  //           radius="999999"
+  //           size="md"
+  //           variant="light"
+  //           color="red"
+  //           onClick={() => props.removeProduct()}
+  //         >
+  //           <IconTrash size={15} />
+  //         </ActionIcon>
+  //       )}
+  //     </Flex>
+  //   </>
+  // );
   return (
-    <>
-      <Flex align="center" gap="sm">
-        <Tooltip label="انتخاب حداکثر موجودی">
-          <ActionIcon
-            size="md"
-            radius="999999"
-            variant="light"
-            color="blue"
-          >
-            <IconChartArrowsVertical size={15} />
-          </ActionIcon>
-        </Tooltip>
-        <ActionIcon
-          size="md"
-          radius="999999"
-          variant="light"
-          color="green"
-          onClick={increment}
-        >
-          <IconPlus size={15} />
-        </ActionIcon>
-        <Flex justify="center" align="center" direction="column" miw={30}>
-          {isPending && <Loader size="xs" />}
-          {!isPending ? (
-            <Input
-              type="number"
-              w={30}
-              styles={{ input: { textAlign: "center" } }}
-              variant="unstyled"
-              value={count}
-              onChange={handleChange}
-            />
-          ) : null}
-          {!isPending && max ? (
-            <Text size="xs" c="gray">
-              حداکثر
-            </Text>
-          ) : null}
-        </Flex>
-        {count > 1 ? (
-          <ActionIcon
-            size="md"
-            radius="999999"
-            variant="light"
-            color="red"
-            onClick={decrement}
-          >
-            <IconMinus size={15} />
-          </ActionIcon>
-        ) : (
-          <ActionIcon
-            radius="999999"
-            size="md"
-            variant="light"
-            color="red"
-            onClick={() => props.removeProduct()}
-          >
-            <IconTrash size={15} />
-          </ActionIcon>
-        )}
-      </Flex>
-    </>
-  );
+    <ButtonGroup my="lg">
+      <Button size="xs" variant="light" radius="md" h={30}>
+        کل موجودی
+      </Button>
+      <Button size="xs" variant="light" radius="md" h={30} onClick={increment}>
+        <IconPlus size={15} />
+      </Button>
+      <Button.GroupSection h={30} variant="light" color="gray">
+        <Input 
+          type="number"
+          w={30}
+          styles={{ input: { textAlign: "center" } }}
+          variant="unstyled"
+          value={count}
+          onChange={handleChange}
+        />
+      </Button.GroupSection>
+      <Button variant="light" color="red" radius="md" h={30} size="xs" onClick={decrement}>
+        {count > 1 ? <IconMinus size={15} />  : <IconTrash size={15} />}
+        
+      </Button>
+    </ButtonGroup>
+  )
 };
 
 export default Counter;

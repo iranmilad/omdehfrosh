@@ -62,4 +62,33 @@ export default function authFake(server, apiPrefix) {
 			{ message: "NOTHING" }
 		);
 	});
+
+	server.post(`${apiPrefix}/auth/register`, (schema, { requestBody }) => {
+		const { mobile, code } = JSON.parse(requestBody);
+		if (mobile && code) {
+			if(code === "2020"){
+				const user = schema.db.signInUserData.findBy({
+					mobile
+				});
+				// اگر کد اس‌ام‌اس صحیح بود، اطلاعات کاربر و توکن برگردانده می‌شود
+				return {
+					"message": "ok"
+				}
+			}
+			else{
+				// اگر کد اس‌ام‌اس اشتباه بود، خطا برگردانده می‌شود
+				return new Response(
+					200,
+					{some: "header"},
+					{error: "کد وارد شده اشتباه است"}
+				)
+			}
+		}
+		// اگر شماره موبایل یا کد اس‌ام‌اس ارسال نشده باشد، خطای ۴۰۱ برگردانده می‌شود
+		return new Response(
+			401,
+			{ some: "header" },
+			{ message: "NOTHING" }
+		);
+	});
 }

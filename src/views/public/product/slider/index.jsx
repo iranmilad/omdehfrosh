@@ -15,6 +15,7 @@ import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 
 const Slider = (props) => {
+  console.log(props.slides)
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const sliderRef = useRef(null);
   const handlePrev = useCallback(() => {
@@ -32,7 +33,7 @@ const Slider = (props) => {
       <Swiper ref={sliderRef} spaceBetween={10} navigation={false} thumbs={{swiper: thumbsSwiper}} modules={[FreeMode, Thumbs]}>
         {props.slides.map((item,index) => (
           <SwiperSlide key={index} >
-            <ReactImageZoom zoomPosition="original" width={450} height={365} zoomWidth={500} img={item.src} />
+            <Image src={item} key={index} w="100%" h={{base: 350,lg:450}} fit="contain" />
           </SwiperSlide>
         ))}
       </Swiper>
@@ -49,7 +50,7 @@ const Slider = (props) => {
       >
         {props.slides.map((item,index) => (
           <SwiperSlide key={index}>
-            <img src={item.src} />
+            <img src={item} />
           </SwiperSlide>
         ))}
 

@@ -98,6 +98,7 @@ const Login = () => {
           }
           else{
             if(data.user.status === 'active'){
+              console.log(data.user)
               setType("success")
               setCookie("user",data.token,{
                 path:"/",

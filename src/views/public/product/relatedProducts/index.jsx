@@ -4,8 +4,7 @@ import { useParams } from "react-router";
 import { useData } from "../../../../Libs/api";
 import { shallowEqual } from "@mantine/hooks";
 
-function RelatedProducts() {
-  const { slug } = useParams();
+function RelatedProducts({slug}) {
   const { isLoading, data } = useData({
     url: "/product/related",
     queryKey: ["product-related", slug],
