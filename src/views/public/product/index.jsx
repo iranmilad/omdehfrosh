@@ -63,6 +63,8 @@ import RelatedProducts from "./relatedProducts";
 import { notifications } from "@mantine/notifications";
 import CompareBtn from "../../../components/compareBtn"
 import InfoBox from "../../../components/InfoBox"
+import PurchasePanel from "./purchasePanel";
+import IconBar from "./iconBar";
 
 const Product = () => {
   const theme = useMantineTheme();
@@ -177,51 +179,7 @@ const Product = () => {
           <div className="flex flex-col lg:flex-row gap-24">
             <div className="lg:w-4/12">
               <Flex gap="md" direction={{base:"column",lg:"row"}}>
-                <Flex direction={{base: "row",lg:"column"}} justify={{base:"space-between",lg:"normal"}} gap="lg">
-                  {favorite ? (
-                    <Tooltip label="حذف از علاقه‌مندی" position="right">
-                      <ActionIcon
-                        size="md"
-                        variant="transparent"
-                        color="red"
-                        onClick={() => removeFavorite()}
-                      >
-                        <IconHeartOff />
-                      </ActionIcon>
-                    </Tooltip>
-                  ) : (
-                    <Tooltip label="افزودن به علاقه‌مندی" position="right">
-                      <ActionIcon
-                        size="md"
-                        variant="transparent"
-                        onClick={() => addFavorite()}
-                      >
-                        <IconHeart />
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-
-                  <CompareBtn id="123" variant="transparent" />
-
-                  <Tooltip label="اشتراک گذاری" position="right">
-                    <ActionIcon
-                      size="md"
-                      variant="transparent"
-                      onClick={shareModal[1].toggle}
-                    >
-                      <IconShare />
-                    </ActionIcon>
-                  </Tooltip>
-                  <Tooltip label="نمودار قیمت" position="right">
-                    <ActionIcon
-                      size="md"
-                      variant="transparent"
-                      onClick={toggle}
-                    >
-                      <IconTimeline />
-                    </ActionIcon>
-                  </Tooltip>
-                </Flex>
+                <IconBar favorite={data.addedToFavorite} shareModal={shareModal} toggle={toggle} />
                 <Slider
                   slides={data.images}
                   options={{
@@ -240,83 +198,21 @@ const Product = () => {
                 {data.english_title}
               </div>
               <SimpleGrid cols={{ md: 2 }} mt="lg">
-                <Select
-                  label="رنگ"
-                  data={[{ value: "blue", label: "آبی" }]}
-                  defaultValue="blue"
-                />
-                <Select
-                  label="گارانتی"
-                  data={[{ value: "first", label: "گارانتی 3 ماهه" }]}
-                  defaultValue="first"
-                />
+                {data.options.map((item,index) => (
+                  <Select
+                    key={index}
+                    label={item.label}
+                    data={item.children}
+                    name={item.slug}
+                    defaultValue={item.children[0].value}
+                  />
+                ))}
               </SimpleGrid>
             </div>
             <div className="lg:w-3/12">
               <div className="lg:mt-8 lg:mb-8"></div>
               <div className="p-3 border rounded-xl mx-auto divide-y lg:block">
-                <div className="flex gap-x-1 items-center text-zinc-600 text-sm pt-3 mb-4">
-                  <IconCash size={20}
-                      stroke={1.3}
-                      className="text-zinc-700" />
-                  <div>پرداخت نقدی | اقساط</div>
-                </div>
-                <div className="flex gap-x-1 items-center text-zinc-600 text-sm py-4">
-                  <IconTruckDelivery size={20}
-                      stroke={1.3}
-                      className="text-zinc-700" />
-                  <div>تحویل آنی | پیشفروش</div>
-                </div>
-                <div className="flex flex-col justify-center py-4">
-                  <Flex align="start" gap="4px">
-                    <IconBuildingStore
-                      size={20}
-                      stroke={1.3}
-                      className="text-zinc-700"
-                    />
-                    <Flex direction="column">
-                      <Text
-                        size="sm"
-                        className="text-zinc-700"
-                        component={NavLink}
-                        to={`/seller/${123}`}
-                      >
-                        دیجیکالا
-                      </Text>
-                      <Text size="xs" c="gray">
-                        رضایت : <Badge color="green">عالی</Badge>
-                      </Text>
-                    </Flex>
-                  </Flex>
-                  <PriceText>1200000</PriceText>
-                  <div className="text-xs text-red-400">
-                    موجودی انبار 2 عدد میباشد
-                  </div>
-                </div>
-                <Flex
-                  direction="column"
-                  align="start"
-                  gap="xs"
-                  className="py-4"
-                >
-                  <Flex gap="sm">
-                    <Text size="13px" c="gray">
-                      حداقل سفارش
-                    </Text>
-                    <Text size="13px">1 عدد</Text>
-                  </Flex>
-                  <Flex gap="sm">
-                    <Text size="13px" c="gray">
-                      حداکثر سفارش
-                    </Text>
-                    <Text size="13px">100 عدد</Text>
-                  </Flex>
-                </Flex>
-                <Button fullWidth leftSection={<IconBasket />} h={45}>
-                  افزودن به سبد خرید
-                </Button>
-                <Counter />
-                <Text c="red" size="xs">امکان ثبت سفارش وجود ندارد</Text>
+                <PurchasePanel {...data.sellers[0]} />
               </div>
               <Paper shadow="0" withBorder p="xs" mt="lg">
                 <Button
@@ -336,7 +232,7 @@ const Product = () => {
             </div>
           </div>
         </Paper>
-        <Sellers />
+        <Sellers items={data.sellers} />
         <Tabs
           variant="pills"
           defaultValue="desc"
@@ -354,16 +250,18 @@ const Product = () => {
             </Tabs.List>
           </Paper>
           <Tabs.Panel value="desc">
-            <Paper>توضیحات محصول</Paper>
+            <Paper p="xl" >
+              <div className='prose-sm leading-8' dangerouslySetInnerHTML={{__html: data.description}} />
+            </Paper>
           </Tabs.Panel>
           <Tabs.Panel value="feat">
             <Features
-              items={[{ title: "رنگ بندی", value: " آبی ، قرمز ، سبز" }]}
+              items={data.specifications}
             />
           </Tabs.Panel>
           <Tabs.Panel value="comm">
             <AddComment />
-            <Comments {...comments} />
+            <Comments slug={slug} />
           </Tabs.Panel>
         </Tabs>
         <RelatedProducts slug={slug} />

@@ -14,6 +14,7 @@ function RelatedProducts({slug}) {
     method: "POST",
   });
 
+
   if (isLoading && !data) return;
   return (
     <div className="mt-10">
@@ -27,7 +28,7 @@ function RelatedProducts({slug}) {
 }
 
 const MemoizedProducts = React.memo(RelatedProducts, (prev, next) => {
-  return shallowEqual(prev, next);
+  return ! shallowEqual(prev, next);
 });
 
-export default RelatedProducts;
+export default MemoizedProducts;

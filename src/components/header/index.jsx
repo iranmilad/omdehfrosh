@@ -56,6 +56,7 @@ const Header = () => {
   const navigate = useNavigate();
   const Logout = () => {
     removeCookie("user", { path: "/" });
+    navigate('/login')
   };
   const theme = useMantineTheme();
 

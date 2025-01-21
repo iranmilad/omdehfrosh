@@ -42,7 +42,6 @@ function Home() {
   return (
     <>
           <WideSlider items={items} />
-          <HeroSection />
         <Container className="px-3 md:px-5 my-10">
           <Stack gap={70}>
             <BadgedSlider items={data.featured_promo} />

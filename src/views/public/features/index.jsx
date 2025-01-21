@@ -10,7 +10,7 @@ const Features = React.memo((props ) => {
             <Grid>
                 {items.map((item,index) => {
                     return <React.Fragment key={index}>
-                        <Grid.Col span={4}><Paper w="100%" p="md" className="rounded-lg lg:w-4/12 "><Text size="sm" fw={600}>{item.title}</Text></Paper></Grid.Col>
+                        <Grid.Col span={4}><Paper w="100%" p="md" className="rounded-lg lg:w-4/12 "><Text size="sm" fw={600}>{item.label}</Text></Paper></Grid.Col>
                         <GridCol span={8}><Paper w="100%" p="md" className="rounded-lg lg:w-4/6 "><Text size="sm">{item.value}</Text></Paper></GridCol> 
                     </React.Fragment>
                 })}

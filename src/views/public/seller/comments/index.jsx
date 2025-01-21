@@ -24,7 +24,7 @@ function Comments({ activeTab }) {
     url: `/seller/123/comments`,
     queryKey: ["seller-comments", activePage],
     queryOptions: { enabled: mounted >= 1,staleTime: 300000 },
-    params: {
+    bodyData: {
       limit: 15,
       page: activePage
     }

@@ -1,8 +1,7 @@
 import appConfig from "../config/app.config";
-import { createServer } from "miragejs";
+import { createServer, Model } from "miragejs";
 
-import { signInUserData } from "./data/authData";
-import { commentTexts } from "./data/comments";
+import { user } from "./data/authData";
 import {
   authFakeSMS,
   authFakeLogin,
@@ -27,11 +26,11 @@ const { apiPrefix } = appConfig;
 function mockRunner({ environment }) {
   return createServer({
     environment,
+    models:{
+      users: Model
+    },
     seeds(server) {
-      server.db.loadData({
-        signInUserData,
-        commentTexts,
-      });
+      server.create('user',user);
     },
     routes() {
       this.urlPrefix = "";

@@ -57,8 +57,9 @@ const Register = () => {
   const [cookies, setCookie] = useCookies(["user"]);
   const bootstrap = useSelector((state) => state.global.bootstrap);
   const navigate = useNavigate();
-  const { mutateAsync, isPending } = useSend({ url: "auth/sms/" });
-  const sendCode = useSend({ url: "auth/register/" });
+  const { mutateAsync, isPending } = useSend({ url: "auth/register/" });
+  const sendCode = useSend({ url: "auth/sms" });
+  const verify = useSend({url: "auth/verifyregister"});
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -83,29 +84,39 @@ const Register = () => {
     },
   });
   function submitForm(value) {
-    const sanitizedValue = value.mobile.replace(/\s+/g, "");
+    let data = value;
+    data.mobile = value.mobile.replace(/\s+/g, "");
+    const mobile = data.mobile;
     mutateAsync(
-      { mobile: sanitizedValue },
+      { ...data },
       {
         onSuccess: (data) => {
           if (data.error) {
-            form.setFieldError("mobile", data.error);
+            form.setErrors(data.error);
           } else {
-            formCode.setValues({ code: "" });
-            formCode.setFieldError("code", "");
-            setType("code");
+            sendCode.mutateAsync({mobile},{
+              onSuccess: (data2) => {
+                if(data2.error){
+                  form.setErrors(data.error);
+                }
+                formCode.setValues({ code: "" });
+                formCode.setFieldError("code", "");
+                setType("code");
+              }
+            })
+
           }
         },
       }
     );
   }
-  function submitLogin(value) {
-    sendCode.mutateAsync(
+  function verifyRegister(value) {
+    verify.mutateAsync(
       { mobile: form.getValues().mobile.replace(/\s+/g, ""), code: value.code },
       {
         onSuccess: (data) => {
           if (data.error) {
-            formCode.setFieldError("code", data.error);
+            formCode.setErrors(data.error);
           } else {
             setType("success");
             setTimeout(() => {
@@ -200,7 +211,7 @@ const Register = () => {
                 <div className="flex flex-col gap-y-1 pt-5">
                   <form
                     onSubmit={formCode.onSubmit((values) =>
-                      submitLogin(values)
+                      verifyRegister(values)
                     )}
                   >
                     <Text mb="sm" size="sm">

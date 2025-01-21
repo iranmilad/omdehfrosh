@@ -78,7 +78,7 @@ const Login = () => {
       {
         onSuccess: (data) => {
           if (data.error) {
-            form.setFieldError("mobile", data.error);
+            form.setErrors(data.error);
           } else {
             formCode.setValues({ code: "" });
             formCode.setFieldError("code", "");

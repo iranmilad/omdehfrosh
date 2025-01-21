@@ -12,9 +12,7 @@ export default function EditAccount(server, apiPrefix) {
   // ای‌پی‌آی برای دریافت اطلاعات حساب کاربری (GET)
   server.get(`${apiPrefix}/edit-account`, (schema, { requestBody }) => {
     // جست‌وجوی کاربر بر اساس شماره موبایل
-    const user = schema.db.signInUserData.findBy({
-      mobile: "09374039436", // شماره موبایل کاربر
-    });
+    const user = schema.users.where({ mobile: "09374039436" }).models[0];
     if (user) {
       // اگر کاربر پیدا شد، اطلاعات کاربر برگردانده می‌شود
       return { message: "ok", data: user };

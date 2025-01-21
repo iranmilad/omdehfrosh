@@ -5,6 +5,7 @@ import Image2 from "../../assets/products/2.webp"
 import Image3 from "../../assets/products/3.webp"
 import Image4 from "../../assets/products/4.webp"
 import Image5 from "../../assets/products/5.webp"
+import { comments } from "../data/comments";
 
 export default function Product(server, apiPrefix) {
   // ای‌پی‌آی برای دریافت محصولات مرتبط (GET)
@@ -39,8 +40,8 @@ export default function Product(server, apiPrefix) {
             },
             {
               id: "12",
-              label: "white",
-              value: "black" // slug
+              label: "سفید",
+              value: "white" // slug
             },
           ]
         },
@@ -76,7 +77,7 @@ export default function Product(server, apiPrefix) {
           name: "دیجیکالا",
           rating: 4,
           payment_type: ["نقدی","اقساط"], //نوع پرداخت 
-          delivery: ["تهران","کرج"], // مکان های ارسال
+          delivery: ["شیراز","کرج"], // مکان های ارسال
           buy_type: ["آنی", "پیش فروش"], // نوع تحویل
           price: {
             regularPrice: 15000000,
@@ -87,7 +88,22 @@ export default function Product(server, apiPrefix) {
           inventory: 3, //موجودی انبار,
           min_order: 1, // حداقل سفارش
           max_order: 5, // حداکثر سفارش
-        }
+        },
+        {
+          id: "456",
+          name: "ترب",
+          rating: 4,
+          payment_type: ["نقدی"], //نوع پرداخت 
+          delivery: ["تمام ایران"], // مکان های ارسال
+          buy_type: ["آنی"], // نوع تحویل
+          price: {
+            regularPrice: 16000000,
+          },
+          sku: "123", // کد محصول
+          inventory: 3, //موجودی انبار,
+          min_order: 1, // حداقل سفارش
+          max_order: 5, // حداکثر سفارش
+        },
       ],
       specifications: [
         {
@@ -135,5 +151,12 @@ export default function Product(server, apiPrefix) {
 
 
     return {message: "ok" , data}
+  })
+
+  server.post(`${apiPrefix}/product/:id/comments` , (schema,{requestBody}) => {
+    let data = comments;
+    data.comments = shuffleArray(comments.comments);
+
+    return {message: "ok",data}
   })
 }

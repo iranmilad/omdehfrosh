@@ -1,27 +1,52 @@
-import { Avatar, Flex, Pagination, Paper, Rating, ScrollArea, Stack, Text, Title } from "@mantine/core"
-import React from "react"
+import { Avatar, Center, Flex, Loader, LoadingOverlay, Overlay, Pagination, Paper, Rating, ScrollArea, Stack, Text, Title } from "@mantine/core"
+import React, { useState } from "react"
 import XTitle from "../../../../components/title"
 import SignleComment from "../../../../components/singleComment"
+import { useData } from "../../../../Libs/api"
+import { shallowEqual } from "@mantine/hooks"
+import InfoBox from "../../../../components/InfoBox"
+import React from "react"
 
 
-const Comments = (props) => {
-    const {rating,count,comments} = props
+const Comments = ({slug}) => {
+    const limit = 15
+    const [activePage, setPage] = useState(1);
+    const {isLoading,data,isFetching}  = useData({
+        method: "POST",
+        url:`product/${slug}/comments`,
+        queryKey: ['product-commnets',activePage],
+        queryOptions: {
+            staleTime: 300000
+        },
+        bodyData: {
+            limit,
+            page: activePage
+        }
+    });
+    if(isLoading) return <Center><Loader /></Center>
+    if(!isLoading && !data) return <InfoBox >نظری برای این محصولا ثبت نشده است</InfoBox>
+    
     return (
-        <Paper mt="lg" px="lg">
+        <Paper mt="lg" px="lg" pos="relative">
+            <LoadingOverlay visible={isFetching} zIndex={1000} />
             <Flex mt="lg" w="100%" justify="space-between" align="baseline" style={{borderBottom: "1px solid #cbd5e1"}} pb="30">
-                <XTitle size="md">نقد و بررسی کاربران</XTitle>
+                <XTitle size="md">نظرات کاربران</XTitle>
                 <Flex align="align">
                     <Flex direction="column" align="end">
-                        <Rating size="md" mb="xs" value={rating}  readOnly />
-                        <Text c="gray" size="sm">بر اساس نظرات {count} کاربر</Text>
+                        <Rating size="md" mb="xs" value={data?.rating}  readOnly />
+                        <Text c="gray" size="sm">بر اساس نظرات {data?.count} کاربر</Text>
                     </Flex>
-                    <Title size="35" c="gray.7" ms="sm">4.6</Title>
+                    <Title size="35" c="gray.7" ms="sm">{data?.rating}</Title>
                 </Flex>
             </Flex>
             <Stack gap="lg" mt="xl">
-                {comments.map((item,index) => <MemoizedComment key={index} {...item} />)}
+                {data?.comments.map((item,index) => <MemoizedComment key={index} {...item} />)}
             </Stack>
-            <Pagination total={10} mt="xl" boundaries={0} />
+            <Pagination                   
+                total={data.total / limit}
+                mt="xl"
+                value={activePage}
+                onChange={setPage} />
         </Paper>
     )
 }
@@ -29,7 +54,7 @@ const Comments = (props) => {
 
 
 const MemoizedComment = React.memo(SignleComment,(prev,next) => {
-    return prev.commet !== next.comment
+    return ! shallowEqual(prev,next)
 })
 
 export default Comments
