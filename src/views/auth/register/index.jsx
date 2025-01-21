@@ -159,8 +159,6 @@ const Register = () => {
                       <TextInput
                         label="کد ملی"
                         component={IMaskInput}
-                        type="number"
-                        mask="0000000000"
                         dir="ltr"
                         styles={{ input: { textAlign: "left" } }}
                         {...form.getInputProps("nationalCode")}
@@ -168,8 +166,6 @@ const Register = () => {
                       />
                       <TextInput
                         label="شماره موبایل"
-                        component={IMaskInput}
-                        mask="0000 000 0000"
                         type="text"
                         dir="ltr"
                         styles={{ input: { textAlign: "left" } }}

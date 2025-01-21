@@ -136,8 +136,6 @@ const Login = () => {
                   >
                     <TextInput
                       label="لطفا شماره موبایل خود را وارد کنید"
-                      component={IMaskInput}
-                      mask="0000 000 0000"
                       type="text"
                       dir="ltr"
                       inputMode="numeric"

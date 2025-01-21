@@ -80,13 +80,13 @@ const MegaMenu = ({ menuItems }) => {
                     </Anchor>
                   </MenuTarget>
                   <Menu.Dropdown>
-                    {item.children.map((child,index2) => <MenuItem key={index2} component={NavLink} to={child.path}>{child.title}</MenuItem>)}
+                    {item.children.map((child,index2) => <MenuItem key={index2} component={NavLink} to={child.url}>{child.label}</MenuItem>)}
                   </Menu.Dropdown>
                 </Menu>
                 )
             }
             else{
-              return <Anchor key={index} c="dark" size="sm" fw="600" underline="never" component={NavLink} to={item.path}>
+              return <Anchor key={index} c="dark" size="sm" fw="600" underline="never" component={NavLink} to={item.url}>
                 {item.label}
               </Anchor>
             }

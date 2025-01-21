@@ -36,7 +36,7 @@ const MegaMenuTabs = ({menuItems}) => {
       <Tabs.Tab key={item.id} value={item.id} onMouseEnter={() => activeOnHover(item.id)} onClick={() => navigate(item.url)} style={{height: 45}}>
         <Flex align="center" gap="sm">
           <IconPoint size={13} />
-          <Text size="sm" component={NavLink} to={`/category/${item.label}`}>{item.label}</Text>
+          <Text size="sm" component={NavLink} to={item.url}>{item.label}</Text>
         </Flex>
       </Tabs.Tab>
     ))}
@@ -44,13 +44,13 @@ const MegaMenuTabs = ({menuItems}) => {
   {menuItems.map((item) => (
     <Tabs.Panel key={item.id} style={{ padding: "30px" }} value={item.id}>
       <Grid>
-        {item.links.map((link, index) => (
+        {item.children.map((link, index) => (
           <GridCol key={index} span={2}>
             <Stack>
-              <Title size="sm" component={NavLink} to={link.path}>{link.title}</Title>
+              <Title size="sm" component={NavLink} to={link.url}>{link.label}</Title>
               {link.children.map((child, idx) => (
-                <Text key={idx} size="sm" c="gray.7" component={NavLink} to={child.path}>
-                  {child.title}
+                <Text key={idx} size="sm" c="gray.7" component={NavLink} to={child.url}>
+                  {child.label}
                 </Text>
               ))}
             </Stack>

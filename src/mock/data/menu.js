@@ -4,13 +4,13 @@ export const menuItems = {
       id: "1",
       label: "موبایل",
       url: "/category/mobile",
-      links: [
+      children: [
         {
-          title: "تجهیزات شبکه",
-          path: "/category/network",
+          label: "تجهیزات شبکه",
+          url: "/category/network",
           children: [
-            { title: "کابل", path: "/category/network/cable" },
-            { title: "مودم", path: "/category/network/modem" },
+            { label: "کابل", url: "/category/network/cable" },
+            { label: "مودم", url: "/category/network/modem" },
           ],
         },
       ],
@@ -19,21 +19,21 @@ export const menuItems = {
       id: "2",
       label: "لپ‌تاپ",
       url: "/category/laptop",
-      links: [
+      children: [
         {
-          title: "لوازم جانبی",
-          path: "/category/laptop/accessories",
+          label: "لوازم جانبی",
+          url: "/category/laptop/accessories",
           children: [
-            { title: "کیبورد", path: "/category/laptop/accessories/keyboard" },
-            { title: "ماوس", path: "/category/laptop/accessories/mouse" },
+            { label: "کیبورد", url: "/category/laptop/accessories/keyboard" },
+            { label: "ماوس", url: "/category/laptop/accessories/mouse" },
           ],
         },
         {
-          title: "برندها",
-          path: "/category/laptop/brands",
+          label: "برندها",
+          url: "/category/laptop/brands",
           children: [
-            { title: "ایسر", path: "/category/laptop/brands/acer" },
-            { title: "دل", path: "/category/laptop/brands/dell" },
+            { label: "ایسر", url: "/category/laptop/brands/acer" },
+            { label: "دل", url: "/category/laptop/brands/dell" },
           ],
         },
       ],
@@ -42,21 +42,21 @@ export const menuItems = {
       id: "3",
       label: "تلویزیون",
       url: "/category/tv",
-      links: [
+      children: [
         {
-          title: "تلویزیون‌های هوشمند",
-          path: "/category/tv/smart",
+          label: "تلویزیون‌های هوشمند",
+          url: "/category/tv/smart",
           children: [
-            { title: "سامسونگ", path: "/category/tv/smart/samsung" },
-            { title: "ال‌جی", path: "/category/tv/smart/lg" },
+            { label: "سامسونگ", url: "/category/tv/smart/samsung" },
+            { label: "ال‌جی", url: "/category/tv/smart/lg" },
           ],
         },
         {
-          title: "لوازم جانبی",
-          path: "/category/tv/accessories",
+          label: "لوازم جانبی",
+          url: "/category/tv/accessories",
           children: [
-            { title: "ریموت کنترل", path: "/category/tv/accessories/remote" },
-            { title: "براکت", path: "/category/tv/accessories/bracket" },
+            { label: "ریموت کنترل", url: "/category/tv/accessories/remote" },
+            { label: "براکت", url: "/category/tv/accessories/bracket" },
           ],
         },
       ],
@@ -65,23 +65,23 @@ export const menuItems = {
       id: "4",
       label: "لوازم خانگی",
       url: "/category/house",
-      links: [
+      children: [
         {
-          title: "یخچال",
-          path: "/category/home/fridge",
+          label: "یخچال",
+          url: "/category/home/fridge",
           children: [
-            { title: "دو قلو", path: "/category/home/fridge/twin" },
-            { title: "فریزر", path: "/category/home/fridge/freezer" },
+            { label: "دو قلو", url: "/category/home/fridge/twin" },
+            { label: "فریزر", url: "/category/home/fridge/freezer" },
           ],
         },
         {
-          title: "لباسشویی",
-          path: "/category/home/washer",
+          label: "لباسشویی",
+          url: "/category/home/washer",
           children: [
-            { title: "اتوماتیک", path: "/category/home/washer/automatic" },
+            { label: "اتوماتیک", url: "/category/home/washer/automatic" },
             {
-              title: "نیمه اتوماتیک",
-              path: "/category/home/washer/semi-automatic",
+              label: "نیمه اتوماتیک",
+              url: "/category/home/washer/semi-automatic",
             },
           ],
         },
@@ -91,21 +91,21 @@ export const menuItems = {
       id: "5",
       label: "دوربین",
       url: "/category/camera",
-      links: [
+      children: [
         {
-          title: "دوربین عکاسی",
-          path: "/category/camera/photo",
+          label: "دوربین عکاسی",
+          url: "/category/camera/photo",
           children: [
-            { title: "حرفه‌ای", path: "/category/camera/photo/professional" },
-            { title: "خانگی", path: "/category/camera/photo/home" },
+            { label: "حرفه‌ای", url: "/category/camera/photo/professional" },
+            { label: "خانگی", url: "/category/camera/photo/home" },
           ],
         },
         {
-          title: "دوربین مداربسته",
-          path: "/category/camera/security",
+          label: "دوربین مداربسته",
+          url: "/category/camera/security",
           children: [
-            { title: "آنالوگ", path: "/category/camera/security/analog" },
-            { title: "دیجیتال", path: "/category/camera/security/digital" },
+            { label: "آنالوگ", url: "/category/camera/security/analog" },
+            { label: "دیجیتال", url: "/category/camera/security/digital" },
           ],
         },
       ],
@@ -113,78 +113,102 @@ export const menuItems = {
   ],
   other: [
     {
-        id: "1",
-        label: "وبلاگ",
-        path: "/category/mobile",
+      id: "2",
+      label: "فروشگاه",
+      url: "/shop",
     },
     {
-        id: "2",
-        label: "تخفیفات ویژه",
-        path: "/page/123",
+      id: "1",
+      label: "وبلاگ",
+      url: "/category/mobile",
     },
     {
-        id: "2",
-        label: "سایر",
-        children: [
-            {
-                id: "3",
-                title: "خرید اقساطی",
-                path: "https://digikala.com",
-            },
-            {
-                id: "3",
-                title: "تماس باما",
-                path: "https://digikala.com",
-            },
-            {
-                id: "3",
-                title: "سوالات متداول",
-                path: "https://digikala.com",
-            },
-            {
-                id: "3",
-                title: "درباره ما",
-                path: "https://digikala.com",
-            },
-        ]
-    }
+      id: "2",
+      label: "تخفیفات ویژه",
+      url: "/page/123",
+    },
+    {
+      id: "2",
+      label: "سایر",
+      children: [
+        {
+          id: "3",
+          label: "خرید اقساطی",
+          url: "https://digikala.com",
+        },
+        {
+          id: "3",
+          label: "تماس باما",
+          url: "https://digikala.com",
+        },
+        {
+          id: "3",
+          label: "سوالات متداول",
+          url: "https://digikala.com",
+        },
+        {
+          id: "3",
+          label: "درباره ما",
+          url: "https://digikala.com",
+        },
+      ],
+    },
   ],
   footer: [
     {
       label: "درباره ما",
       children: [
-        { label: "درباره شرکت", path: "/about-us" },
-        { label: "تیم ما", path: "/our-team" },
-        { label: "مأموریت و ارزش‌ها", path: "/mission-values" },
-        { label: "افتخارات", path: "/awards" },
+        { label: "درباره شرکت", url: "/about-us" },
+        { label: "تیم ما", url: "/our-team" },
+        { label: "مأموریت و ارزش‌ها", url: "/mission-values" },
+        { label: "افتخارات", url: "/awards" },
       ],
     },
     {
       label: "خدمات مشتریان",
       children: [
-        { label: "پرسش‌های متداول", path: "/faq" },
-        { label: "تماس با ما", path: "/contact-us" },
-        { label: "شرایط و ضوابط", path: "/terms-conditions" },
-        { label: "حریم خصوصی", path: "/privacy-policy" },
+        { label: "پرسش‌های متداول", url: "/faq" },
+        { label: "تماس با ما", url: "/contact-us" },
+        { label: "شرایط و ضوابط", url: "/terms-conditions" },
+        { label: "حریم خصوصی", url: "/privacy-policy" },
       ],
     },
     {
       label: "منابع",
       children: [
-        { label: "وبلاگ", path: "/blog" },
-        { label: "راهنمای خرید", path: "/buying-guide" },
-        { label: "آموزش‌های آنلاین", path: "/online-tutorials" },
-        { label: "رویدادها", path: "/events" },
+        { label: "وبلاگ", url: "/blog" },
+        { label: "راهنمای خرید", url: "/buying-guide" },
+        { label: "آموزش‌های آنلاین", url: "/online-tutorials" },
+        { label: "رویدادها", url: "/events" },
       ],
     },
     {
       label: "شبکه‌های اجتماعی و ارتباطات",
       children: [
-        { label: "ما را دنبال کنید", path: "/social-media" },
-        { label: "خبرنامه ایمیلی", path: "/newsletter" },
-        { label: "اپلیکیشن ما", path: "/app" },
-        { label: "لینکدین شرکت", path: "/linkedin" },
+        { label: "ما را دنبال کنید", url: "/social-media" },
+        { label: "خبرنامه ایمیلی", url: "/newsletter" },
+        { label: "اپلیکیشن ما", url: "/app" },
+        { label: "لینکدین شرکت", url: "/linkedin" },
       ],
     },
-  ]  
+  ],
+  /**
+   * تایپ های مجاز
+   * instagram,telegram,x,facebook,linkedin,youtube,twitter,pinterest,snapchat,whatsapp
+   */
+  socialMedia: [
+    // لیست شبکه‌های اجتماعی
+    {
+      link: "https://ig.me/instagram",
+      type: "instagram",
+    },
+    {
+      link: "https://t.me/telegram",
+      type: "telegram",
+    },
+    {
+      link: "https://x.com/x",
+      type: "x",
+    },
+  ],
 };

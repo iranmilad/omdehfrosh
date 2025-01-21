@@ -28,16 +28,16 @@ function MobileMenu({ toggle, menu }) {
           label={item.label}
           onClick={(e) => click(e, item.url)}
         >
-          {item.links.map((link) => (
+          {item?.children.map((link) => (
             <NavLink
-              key={link.path}
-              onClick={(e) => click(e, link.path)}
+              key={link.url}
+              onClick={(e) => click(e, link.url)}
               mb="sm"
               label={
                 <Flex align="center" gap="xs">
                   <IconPointFilled size={12} color={theme.colors.brand[5]} />
                   <Text size="md" c="gray.7" component="span">
-                    {link.title}
+                    {link.label}
                   </Text>
                 </Flex>
               }
@@ -51,11 +51,11 @@ function MobileMenu({ toggle, menu }) {
                 >
                   {link.children.map((child) => (
                     <NavLink
-                      key={child.path}
+                      key={child.url}
                       fw="600"
-                      label={child.title}
+                      label={child.label}
                       c="gray.8"
-                      onClick={(e) => click(e, child.path)}
+                      onClick={(e) => click(e, child.url)}
                       style={{borderRadius:"8px"}}
                     />
                   ))}
@@ -73,9 +73,9 @@ function MobileMenu({ toggle, menu }) {
                 <NavLink
                   key={index}
                   fw="600"
-                  label={child.title}
+                  label={child.label}
                   c="gray.8"
-                  onClick={(e) => click(e, child.path)}
+                  onClick={(e) => click(e, child.url)}
                 />
               ))}
             </Box>

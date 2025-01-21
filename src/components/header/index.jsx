@@ -180,7 +180,7 @@ const Header = () => {
                 onClose={mobileMenuDrawer[1].close}
                 title={
                   <Image
-                    src="https://www.digikala.com/brand/full-horizontal.svg"
+                    src={bootstrap?.logo}
                     h="auto"
                     w={{ base: "146" }}
                     fit="contain"
