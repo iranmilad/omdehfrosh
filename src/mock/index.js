@@ -19,7 +19,8 @@ import {
   Shop,
   Home,
   Upload,
-  AdvancedSearch
+  AdvancedSearch,
+  Cart
 } from "./fakeApi";
 const { apiPrefix } = appConfig;
 
@@ -27,7 +28,8 @@ function mockRunner({ environment }) {
   return createServer({
     environment,
     models:{
-      users: Model
+      users: Model,
+      carts: Model
     },
     seeds(server) {
       server.create('user',user);
@@ -56,7 +58,8 @@ function mockRunner({ environment }) {
       Shop(this,apiPrefix);
       Home(this,apiPrefix);
       Upload(this,apiPrefix);
-      AdvancedSearch(this,apiPrefix)
+      AdvancedSearch(this,apiPrefix);
+      Cart(this,apiPrefix)
     },
   });
 }

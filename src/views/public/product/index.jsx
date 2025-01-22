@@ -76,6 +76,7 @@ const Product = () => {
   const [favorite, setFavorite] = useState(true);
   const stockAlert = useDisclosure(false);
   const shareModal = useDisclosure(false);
+  const updateCart = useSend({url: "/cart/update"});
   const [compare, setCompare] = useLocalStorage({
     key: "compare",
     defaultValue: [],
@@ -212,7 +213,7 @@ const Product = () => {
             <div className="lg:w-3/12">
               <div className="lg:mt-8 lg:mb-8"></div>
               <div className="p-3 border rounded-xl mx-auto divide-y lg:block">
-                <PurchasePanel {...data.sellers[0]} />
+                <PurchasePanel {...data.sellers[0]} updateCart={updateCart} />
               </div>
               <Paper shadow="0" withBorder p="xs" mt="lg">
                 <Button

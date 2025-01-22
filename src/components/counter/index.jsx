@@ -3,107 +3,66 @@ import { ActionIcon, Button, ButtonGroup, Flex, Input, Loader, Text, Tooltip } f
 import { IconChartArrowsVertical, IconMinus, IconPlus, IconTrash } from "@tabler/icons-react";
 
 const Counter = (props) => {
-  const { value, max, isPending } = props;
-  const [count, setCount] = useState(value || 1);
+  const { value, max, isPending,count,onChange,removeCart } = props;
 
-  const increment = () => setCount((prev) => prev + 1);
-  const decrement = () => setCount((prev) => (prev > 1 ? prev - 1 : 1));
+  const increment = () => handleChange(`${+count+1}`);
+  const decrement = () => handleChange(`${+count > 1 ? +count - 1 : 1}`);
 
-  const handleChange = (e) => {
-    const value = e.target.value;
+  const handleChange = (value,) => {
     if (!isNaN(value) && value.trim() !== "" && +value >= 1) {
-      setCount(+value);
+      onChange(value);
     }
   };
 
-  // return (
-  //   <>
-  //     <Flex align="center" gap="sm">
-  //       <Tooltip label="انتخاب حداکثر موجودی">
-  //         <ActionIcon
-  //           size="md"
-  //           radius="999999"
-  //           variant="light"
-  //           color="blue"
-  //         >
-  //           <IconChartArrowsVertical size={15} />
-  //         </ActionIcon>
-  //       </Tooltip>
-  //       <ActionIcon
-  //         size="md"
-  //         radius="999999"
-  //         variant="light"
-  //         color="green"
-  //         onClick={increment}
-  //       >
-  //         <IconPlus size={15} />
-  //       </ActionIcon>
-  //       <Flex justify="center" align="center" direction="column" miw={30}>
-  //         {isPending && <Loader size="xs" />}
-  //         {!isPending ? (
-  //           <Input
-  //             type="number"
-  //             w={30}
-  //             styles={{ input: { textAlign: "center" } }}
-  //             variant="unstyled"
-  //             value={count}
-  //             onChange={handleChange}
-  //           />
-  //         ) : null}
-  //         {!isPending && max ? (
-  //           <Text size="xs" c="gray">
-  //             حداکثر
-  //           </Text>
-  //         ) : null}
-  //       </Flex>
-  //       {count > 1 ? (
-  //         <ActionIcon
-  //           size="md"
-  //           radius="999999"
-  //           variant="light"
-  //           color="red"
-  //           onClick={decrement}
-  //         >
-  //           <IconMinus size={15} />
-  //         </ActionIcon>
-  //       ) : (
-  //         <ActionIcon
-  //           radius="999999"
-  //           size="md"
-  //           variant="light"
-  //           color="red"
-  //           onClick={() => props.removeProduct()}
-  //         >
-  //           <IconTrash size={15} />
-  //         </ActionIcon>
-  //       )}
-  //     </Flex>
-  //   </>
-  // );
   return (
-    <ButtonGroup my="lg">
-      <Button size="xs" variant="light" radius="md" h={30}>
-        کل موجودی
-      </Button>
-      <Button size="xs" variant="light" radius="md" h={30} onClick={increment}>
-        <IconPlus size={15} />
-      </Button>
-      <Button.GroupSection h={30} variant="light" color="gray">
-        <Input 
-          type="number"
-          w={30}
-          styles={{ input: { textAlign: "center" } }}
-          variant="unstyled"
-          value={count}
-          onChange={handleChange}
-        />
-      </Button.GroupSection>
-      <Button variant="light" color="red" radius="md" h={30} size="xs" onClick={decrement}>
-        {count > 1 ? <IconMinus size={15} />  : <IconTrash size={15} />}
-        
-      </Button>
-    </ButtonGroup>
-  )
+    <>
+      <Flex align="center" gap="4">
+        <Button p={0} px={4} h={15} variant="transparent" size="10px" onClick={() => onChange(`${count}`,true)}>حداکثر</Button>
+        <ActionIcon
+          size="md"
+          radius="999999"
+          variant="light"
+          color="green"
+          onClick={increment}
+        >
+          <IconPlus size={15} />
+        </ActionIcon>
+        {isPending && <Loader size="md" w={35} />}
+          {!isPending ? (
+            <Input
+              type="number"
+              w={35}
+              styles={{ input: { textAlign: "center" }, }}
+              variant="unstyled"
+              value={count}
+              readOnly
+              px={0}
+            />
+          ) : null}
+        {count > 1 ? (
+          <ActionIcon
+            size="md"
+            radius="999999"
+            variant="light"
+            color="red"
+            onClick={decrement}
+          >
+            <IconMinus size={15} />
+          </ActionIcon>
+        ) : (
+          <ActionIcon
+            radius="999999"
+            size="md"
+            variant="light"
+            color="red"
+            onClick={() => removeCart()}
+          >
+            <IconTrash size={15} />
+          </ActionIcon>
+        )}
+      </Flex>
+    </>
+  );
 };
 
 export default Counter;

@@ -5,7 +5,7 @@ import {
   IconCash,
   IconTruckDelivery,
 } from "@tabler/icons-react";
-import React from "react";
+import React, { useState } from "react";
 import PriceText from "../../../../components/priceText";
 import Counter from "../../../../components/counter";
 import { NavLink } from "react-router";
@@ -22,7 +22,36 @@ function PurchasePanel({
   inventory,
   min_order,
   max_order,
+  updateCart
 }) {
+  const [cart, setCart] = useState(0);
+  const addToCart = (value,max) => {
+    let val = value;
+    if(!value) val = cart+1
+    updateCart.mutateAsync({id,sku,count:val,max},{
+      onSuccess: (data) => {
+        if(data.error){
+
+        }
+        else{
+          if(data?.max)setCart(data.max);
+          else setCart(val);
+        }
+      }
+    })
+  }
+  const removeCart = () => {
+    updateCart.mutateAsync({id,sku,count:0},{
+      onSuccess: (data) =>{
+        if(data.error){
+
+        }
+        else{
+          setCart(0);
+        }
+      }
+    })
+  }
   return (
     <>
       {/* Payment Type */}
@@ -102,18 +131,28 @@ function PurchasePanel({
         </Flex>
       </Flex>
 
-      {/* Add to Cart Button */}
-      <Button
-        fullWidth
-        leftSection={<IconBasket />}
-        h={45}
-        disabled={inventory === 0}
-      >
-        افزودن به سبد خرید
-      </Button>
-
-      {/* Counter */}
-      <Counter min={min_order} max={max_order} />
+      {cart > 0 ? (
+        <Counter
+          min={min_order}
+          max={max_order}
+          value={cart}
+          onChange={addToCart}
+          removeCart={removeCart}
+          count={cart}
+          isPending={updateCart.isPending}
+        />
+      ) : (
+        <Button
+          fullWidth
+          leftSection={<IconBasket />}
+          h={45}
+          disabled={inventory === 0}
+          onClick={() => addToCart()}
+          loading={updateCart.isPending}
+        >
+          افزودن به سبد خرید
+        </Button>
+      )}
 
       {/* Order Error Message */}
       {inventory === 0 && (

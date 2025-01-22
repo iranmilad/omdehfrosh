@@ -15,7 +15,7 @@ import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 
 const Slider = (props) => {
-  console.log(props.slides)
+  
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const sliderRef = useRef(null);
   const handlePrev = useCallback(() => {
