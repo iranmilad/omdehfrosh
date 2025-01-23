@@ -119,7 +119,7 @@ const Login = () => {
   return (
     <>
       <Box bg="gray.1" h="100vh" w="100%" className="flex items-center justify-center">
-        <Center w={{base: "85%",xs:"65%",sm:"50%",md:"40%",lg:"40%",xl:"25%"}} className="flex-col relative z-10">
+        <Center w={{base: "85%",xs:"65%",sm:"50%",md:"40%",lg:"40%",xl:"450px"}} className="flex-col relative z-10">
         <Image
           w={160}
           src={bootstrap?.logo}

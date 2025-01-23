@@ -22,6 +22,7 @@ import Account_Newticket from "../../views/public/account-newticket"
 import Shop from "../../views/public/shop"
 import Home from "../../views/public/index"
 import Editor from "../../views/public/editor"
+import FastOrder from "../../views/public/fast-order"
 
 export const PublicRoutes = [
     {
@@ -114,6 +115,10 @@ export const PublicRoutes = [
             {
                 path: "/shop",
                 element: <Shop />,
+            },
+            {
+                path: "/fastorder",
+                element: <FastOrder />,
             },
         ]
     }
