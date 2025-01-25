@@ -6,3 +6,7 @@ table[data-table-library_table]{
     border-radius: var(--mantine-radius-default);
     box-shadow: var(--mantine-shadow-xs);
 }
+
+table[data-table-library_table] tr * {
+    user-select: none !important;
+}

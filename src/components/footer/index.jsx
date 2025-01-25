@@ -122,6 +122,7 @@ const Footer = (props) => {
             تمامی حقوق برای این فروشگاه محفوظ است
           </Text>
           <Group>
+          <i class="ti ti-brand-telegram"></i>
             {bootstrap?.menu?.socialMedia ? (
               <>
                 {bootstrap?.menu?.socialMedia?.map((item, index) => <React.Fragment key={index}><SocialLink item={item} key={index} /></React.Fragment>)}

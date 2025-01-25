@@ -20,7 +20,8 @@ import {
   Home,
   Upload,
   AdvancedSearch,
-  Cart
+  Cart,
+  Fastorder
 } from "./fakeApi";
 const { apiPrefix } = appConfig;
 
@@ -59,7 +60,8 @@ function mockRunner({ environment }) {
       Home(this,apiPrefix);
       Upload(this,apiPrefix);
       AdvancedSearch(this,apiPrefix);
-      Cart(this,apiPrefix)
+      Cart(this,apiPrefix);
+      Fastorder(this,apiPrefix)
     },
   });
 }

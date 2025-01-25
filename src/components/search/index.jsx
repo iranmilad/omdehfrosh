@@ -47,9 +47,10 @@ const Search = () => {
   const { data, isLoading, isFetching } = useData({
     url: "/search",
     queryKey: ["search", debounced],
-    bodyData: {
-      s: value,
+    params: {
+      query: value,
     },
+    method: "GET",
     queryOptions: {
       enabled: debounced.length > 2 && !searchPage && countOpened === 0 && opened && value.length > 2, // فقط اگر transition باز باشد جستجو فعال شود
     },
