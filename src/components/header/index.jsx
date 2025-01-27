@@ -65,7 +65,7 @@ const Header = () => {
 
   return (
     <>
-      {bootstrap.banner ? (
+      {bootstrap.banner && bootstrap.banner.src !== "" ? (
         <a
           className="relative z-50"
           href={bootstrap.banner.link}

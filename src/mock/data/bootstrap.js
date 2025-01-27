@@ -9,7 +9,7 @@ export const bootstrap = {
         "logo": Logo,
         "banner": {
             "link": "https://myshop.com",
-            "src": Banner
+            "src": ""
         },
         "menu": menuItems,
         "footerAbout": "متن درباره\u200cی سایت"

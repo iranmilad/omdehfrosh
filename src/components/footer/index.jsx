@@ -122,9 +122,9 @@ const Footer = (props) => {
             تمامی حقوق برای این فروشگاه محفوظ است
           </Text>
           <Group>
-            {bootstrap?.menu?.socialMedia ? (
+            {bootstrap?.menu?.social ? (
               <>
-                {bootstrap?.menu?.socialMedia?.map((item, index) => <React.Fragment key={index}><SocialLink item={item} key={index} /></React.Fragment>)}
+                {bootstrap?.menu?.social?.map((item, index) => <React.Fragment key={index}><SocialLink item={item} key={index} /></React.Fragment>)}
               </>
             ) : (
               ""
