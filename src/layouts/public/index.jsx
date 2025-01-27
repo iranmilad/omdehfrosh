@@ -44,7 +44,7 @@ const Public = (props) => {
   useEffect(() => {
     if(!isLoading){
       if(data){
-        dispatch(setBootstrap(data.data))
+        dispatch(setBootstrap(data))
       }
     }
   },[isLoading])
