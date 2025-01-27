@@ -29,102 +29,103 @@ const MegaMenu = ({ menuItems }) => {
 
   return (
     <Box mt="lg">
-      <Stack style={{ flexDirection: "row" }} align="center" gap="xl">
-        {menuItems?.map((item, index) => {
-          if (item.mega) {
-            // return (
-            //   <Menu
-            //     width="100%"
-            //     openDelay={100}
-            //     closeDelay={200}
-            //     onOpen={handleMenuOpen}
-            //     onClose={handleMenuClose}
-            //     trigger="hover"
-            //     styles={{
-            //       dropdown: {
-            //         left: "50%",
-            //         marginRight: "-50%",
-            //         transform: "translateX(-50%)",
-            //       },
-            //     }}
-            //   >
-            //     <Menu.Target>
-            //       <Button
-            //         variant="transparent"
-            //         c="dark"
-            //         leftSection={<IconMenu2 size={20} />}
-            //         px="0"
-            //       >
-            //         {item.label}
-            //       </Button>
-            //     </Menu.Target>
+<Stack style={{ flexDirection: "row" }} align="center" gap="xl">
+  {menuItems?.map((item) => {
+    if (item.mega) {
+      return (
+        <Menu
+          key={item.id} // Use item.id instead of index
+          width="100%"
+          openDelay={100}
+          closeDelay={200}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClose}
+          trigger="hover"
+          styles={{
+            dropdown: {
+              left: "50%",
+              marginRight: "-50%",
+              transform: "translateX(-50%)",
+            },
+          }}
+        >
+          <Menu.Target>
+            <Button
+              variant="transparent"
+              c="dark"
+              leftSection={<IconMenu2 size={20} />}
+              px="0"
+            >
+              {item.label}
+            </Button>
+          </Menu.Target>
 
-            //     <Menu.Dropdown
-            //       style={{
-            //         borderBottomRightRadius: "5px",
-            //         background: "transparent",
-            //         border: "none",
-            //       }}
-            //     >
-            //       <Container>
-            //         <Box py="0" bg="white">
-            //           <MegaMenuTabs menuItems={menuItems?.links} />
-            //         </Box>
-            //       </Container>
-            //     </Menu.Dropdown>
-            //   </Menu>
-            // );
-          } else {
-            return (
-              <>
-                {item.links.map((item2, index) => {
-                  if (item2.links.length > 0) {
-                    return (
-                      <Menu
-                        key={index}
-                        trigger="hover"
-                        styles={{ dropdown: { minWidth: 170, padding: "7px" } }}
-                        position="bottom-start"
-                      >
-                        <MenuTarget>
-                          <Anchor c="dark" size="sm" fw="600" underline="never">
-                            {item.label}
-                          </Anchor>
-                        </MenuTarget>
-                        <Menu.Dropdown>
-                          {item2.links.map((child, index2) => (
-                            <MenuItem
-                              key={index2}
-                              component={NavLink}
-                              to={child.url}
-                            >
-                              {child.label}
-                            </MenuItem>
-                          ))}
-                        </Menu.Dropdown>
-                      </Menu>
-                    );
-                  } else {
-                    return (
-                      <Anchor
-                        key={index}
-                        c="dark"
-                        size="sm"
-                        fw="600"
-                        underline="never"
+          <Menu.Dropdown
+            style={{
+              borderBottomRightRadius: "5px",
+              background: "transparent",
+              border: "none",
+            }}
+          >
+            <Container>
+              <Box py="0" bg="white">
+                <MegaMenuTabs menuItems={item?.links} />
+              </Box>
+            </Container>
+          </Menu.Dropdown>
+        </Menu>
+      );
+    } else {
+      return (
+        <React.Fragment key={item.id}> {/* Use React.Fragment with a key */}
+          {item.links.map((item2) => {
+            if (item2.links.length > 0) {
+              return (
+                <Menu
+                  key={item2.id} // Use item2.id instead of index
+                  trigger="hover"
+                  styles={{ dropdown: { minWidth: 170, padding: "7px" } }}
+                  position="bottom-start"
+                >
+                  <Menu.Target> {/* Fix typo: MenuTarget -> Menu.Target */}
+                    <Anchor c="dark" size="sm" fw="600" underline="never">
+                      {item.label}
+                    </Anchor>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    {item2.links.map((child) => (
+                      <Menu.Item
+                        key={child.id} // Use child.id instead of index
                         component={NavLink}
-                        to={item2.url}
+                        to={child.url}
                       >
-                        {item2.label}
-                      </Anchor>
-                    );
-                  }
-                })}
-              </>
-            );
-          }
-        })}
-      </Stack>
+                        {child.label}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Dropdown>
+                </Menu>
+              );
+            } else {
+              return (
+                <Anchor
+                  key={item2.id} // Use item2.id instead of index
+                  c="dark"
+                  size="sm"
+                  fw="600"
+                  underline="never"
+                  component={NavLink}
+                  to={item2.url}
+                >
+                  {item2.label}
+                </Anchor>
+              );
+            }
+          })}
+        </React.Fragment>
+      );
+    }
+  })}
+</Stack>
       {menuOpened && (
         <Portal target="body">
           <Overlay zIndex={40} onClick={handleMenuClose} />

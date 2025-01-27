@@ -13,7 +13,25 @@ export const menuItems = {
           icon: null,
           mega: false,
           url: null,
-          links: [],
+          links: [
+            {
+              id: 384,
+              label: "عنوان 1",
+              icon: null,
+              mega: false,
+              url: "/category/curtain_tools",
+              links: [
+                {
+                  id: 385,
+                  label: "عنوان 11",
+                  icon: null,
+                  mega: false,
+                  url: "/category/curtain_tools",
+                  links: [],
+                },
+              ],
+            },
+          ],
         },
         {
           id: 382,

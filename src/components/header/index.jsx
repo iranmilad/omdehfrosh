@@ -187,7 +187,7 @@ const Header = () => {
                   />
                 }
               >
-                <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={bootstrap?.menu.main} />
+                <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={bootstrap?.menu?.main} />
               </Drawer>
             </Container>
           </div>

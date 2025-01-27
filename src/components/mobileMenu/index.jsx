@@ -1,4 +1,5 @@
-import { NavLink as RRNavlink, useNavigate } from "react-router";
+import React from "react";
+import { NavLink as RRNavLink, useNavigate } from "react-router-dom";
 import { Box, Flex, NavLink, Text, useMantineTheme } from "@mantine/core";
 import "./style.css";
 import { useCallback } from "react";
@@ -8,9 +9,10 @@ function MobileMenu({ toggle, menu }) {
   const theme = useMantineTheme();
   const navigate = useNavigate();
 
-  const click = useCallback(
+  const handleClick = useCallback(
     (e, url) => {
-      if (e.target.nodeName === "SPAN") {
+      e.preventDefault();
+      if (url) {
         navigate(url);
         toggle();
       }
@@ -18,23 +20,51 @@ function MobileMenu({ toggle, menu }) {
     [navigate, toggle]
   );
 
+  // Recursive function to render nested links
+  const renderNestedLinks = (links, depth = 0) => {
+    if (!links || links.length === 0) return null;
+
+    return (
+      <Box
+        style={{
+          paddingLeft: "0px",
+          borderRadius: "10px",
+          padding: "5px",
+          marginRight: 3, // Add 3px marginRight for all levels
+        }}
+      >
+        {links.map((child) => (
+          <React.Fragment key={child.id}>
+            <NavLink
+            bg="gray.1"
+              fw="600"
+              label={child.label}
+              c="gray.8"
+              onClick={(e) => handleClick(e, child.url)}
+              style={{ borderRadius: "8px" }}
+            />
+            {/* Recursively render nested links with increased depth */}
+            {renderNestedLinks(child.links, depth + 1)}
+          </React.Fragment>
+        ))}
+      </Box>
+    );
+  };
+
   return (
     <>
-      {menu?.map((item,index) => {
-        
-      })}
-      {menu?.category.map((item) => (
+      {menu?.map((item) => (
         <NavLink
-          mb="sm"
           key={item.id}
+          mb="sm"
           styles={{ label: { fontSize: 16 } }}
           label={item.label}
-          onClick={(e) => click(e, item.url)}
+          onClick={(e) => handleClick(e, item.url)}
         >
-          {item?.children.map((link) => (
+          {item.links?.map((link) => (
             <NavLink
-              key={link.url}
-              onClick={(e) => click(e, link.url)}
+              key={link.id}
+              onClick={(e) => handleClick(e, link.url)}
               mb="sm"
               label={
                 <Flex align="center" gap="xs">
@@ -45,44 +75,10 @@ function MobileMenu({ toggle, menu }) {
                 </Flex>
               }
             >
-              {link.children && (
-                <Box
-                  bg="gray.1"
-                  w="95%"
-                  style={{ borderRadius: "10px" }}
-                  p="5px"
-                >
-                  {link.children.map((child) => (
-                    <NavLink
-                      key={child.url}
-                      fw="600"
-                      label={child.label}
-                      c="gray.8"
-                      onClick={(e) => click(e, child.url)}
-                      style={{borderRadius:"8px"}}
-                    />
-                  ))}
-                </Box>
-              )}
+              {/* Render nested links recursively */}
+              {renderNestedLinks(link.links)}
             </NavLink>
           ))}
-        </NavLink>
-      ))}
-      {menu?.other.map((item, index) => (
-        <NavLink label={item.label} key={index} mb="sm" styles={{ label: { fontSize: 16 } }} onClick={(e) => click(e, item.url)}>
-          {item.children && (
-            <Box bg="gray.1" w="95%" style={{ borderRadius: "10px" }} p="5px">
-              {item.children.map((child,index) => (
-                <NavLink
-                  key={index}
-                  fw="600"
-                  label={child.label}
-                  c="gray.8"
-                  onClick={(e) => click(e, child.url)}
-                />
-              ))}
-            </Box>
-          )}
         </NavLink>
       ))}
     </>
