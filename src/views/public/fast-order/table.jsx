@@ -11,12 +11,25 @@ import React from 'react';
 import { shallowEqual } from '@mantine/hooks';
 
 
-function Table({columns,data,tree}) {
+function Table({nodes,columns}) {
+
+  const dataNode = { nodes };
+  const tree = useTree(
+    dataNode,
+    {},
+    {
+      treeIcon: {
+        iconRight: <IconChevronLeft />,
+        iconDown: <IconChevronDown />,
+      },
+    }
+  );
+
     const mantineTheme = getTheme(DEFAULT_OPTIONS);
     const theme = useTheme(mantineTheme);
   
   return (
-    <CompactTable columns={columns} data={data} theme={theme} tree={tree} />
+    <CompactTable columns={columns} data={dataNode} theme={theme} tree={tree} />
   )
 }
 

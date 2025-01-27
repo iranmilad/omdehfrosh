@@ -3,8 +3,9 @@ import { Accordion, SimpleGrid, Select, Button } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconFilter } from '@tabler/icons-react';
 import iranStates from '../../../Libs/iranStates';
+import { shallowEqual } from '@mantine/hooks';
 
-function Filters() {
+function Filters({setFilters}) {
   const form = useForm({
     initialValues: {
       province: '',
@@ -17,7 +18,7 @@ function Filters() {
   });
 
   const handleSubmit = (values) => {
-    console.log(values); // Handle form submission here
+    setFilters(values)
   };
 
   return (

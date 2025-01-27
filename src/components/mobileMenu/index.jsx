@@ -20,6 +20,9 @@ function MobileMenu({ toggle, menu }) {
 
   return (
     <>
+      {menu?.map((item,index) => {
+        
+      })}
       {menu?.category.map((item) => (
         <NavLink
           mb="sm"

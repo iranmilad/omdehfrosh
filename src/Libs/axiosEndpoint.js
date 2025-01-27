@@ -24,7 +24,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (request) => {
     const token = Cookies.get("user");
-    request.headers["Authorization"] = token;
+    request.headers["Authorization"] = `Bearer ${token}`;
     return request;
   },
   (error) => {

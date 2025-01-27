@@ -1,0 +1,17 @@
+import Banner from '../../assets/banner.webp'; // ایمپورت بنر سایت
+import { menuItems } from "../data/menu"; // ایمپورت آیتم‌های منو
+import Logo from '../../assets/logo.png'; // ایمپورت لوگو سایت
+
+export const bootstrap = {
+    "message": "ok",
+    "data": {
+        "siteTitle": "فروشگاه ما",
+        "logo": Logo,
+        "banner": {
+            "link": "https://myshop.com",
+            "src": Banner
+        },
+        "menu": menuItems,
+        "footerAbout": "متن درباره\u200cی سایت"
+    }
+}

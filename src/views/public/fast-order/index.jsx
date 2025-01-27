@@ -37,75 +37,28 @@ import {
 import { useTree } from "@table-library/react-table-library/tree";
 import XTitle from "../../../components/title";
 import OrderRow from "./orderRow";
-import SlideCategory from "./slideCategory";
 import { useData } from "../../../Libs/api";
 import { useDisclosure } from "@mantine/hooks";
 import iranStates from "../../../Libs/iranStates";
 import Filters from "./filters";
 import Table from "./table";
-
-const nodes = [
-  {
-    id: "0",
-    image: "https://placehold.co/600x400",
-    name: "آیفون 13",
-    price: "25000000",
-    stock: "1",
-    minOrder: "2",
-    seller: "2",
-    deliveryTime: "3",
-    action: 3,
-    nodes: [
-      {
-        id: "0",
-        image: "https://placehold.co/600x400",
-        name: "256 گیگابایت",
-        price: "25000000",
-        stock: "1",
-        minOrder: "2",
-        seller: "2",
-        deliveryTime: "3",
-        action: 3,
-        nodes: null,
-      },
-    ],
-  },
-];
+import SearchComponent from "./searchComponent";
 
 function FastOrder() {
   const [visibleColumns, setVisibleColumns] = useState([]);
-  const [tab,setTab] = useState("brand");
-  const { data: parentCategories, isLoading: isLoadingParents } = useData({
-    url: "/fastorder/category",
-    method: "POST",
-    queryKey: ["fastorder-category", ""],
-  });
-
-  const [currentParentId, setCurrentParentId] = useState(null);
-  const [bodyData, setBodyData] = useState(null); // To send parent ID dynamically
-  const { data: childCategories, isLoading: isLoadingChildren } = useData({
-    url: "/fastorder/category",
-    method: "POST",
-    queryKey: ["fastorder-category", bodyData],
-    bodyData: bodyData, // Pass parent ID when needed
-  });
-
-  const handleCategoryClick = (parentId) => {
-    setBodyData({ parentId }); // Set body data with parent ID
-    setCurrentParentId(parentId); // Update the current active parent
-  };
-
-  const dataNode = { nodes };
-  const tree = useTree(
-    dataNode,
-    {},
+  const [nodes,setNodes] = useState(null);
+  const [filters,setFilters] = useState(
     {
-      treeIcon: {
-        iconRight: <IconChevronLeft />,
-        iconDown: <IconChevronDown />,
-      },
+      province: '',
+      stockStatus: '',
+      minStock: '',
+      deliveryTime: '',
+      paymentType: '',
+      supplier: '',
     }
   );
+
+  const [opened, setOpened] = useState(false);
 
   const COLUMNS = [
     {
@@ -180,8 +133,8 @@ function FastOrder() {
       hide: visibleColumns.includes("action"),
     },
   ];
-  const [opened, setOpened] = useState(false);
 
+  
   const handleSave = () => {
     setOpened(false);
   };
@@ -190,38 +143,10 @@ function FastOrder() {
     <>
       <XTitle>سفارش سریع</XTitle>
       <Paper my="xl">
-        <Tabs
-          defaultValue={tab}
-          onChange={setTab}
-          variant="pills"
-          styles={{ panel: { paddingTop: "30px" } }}
-        >
-          <Tabs.List>
-            <Tabs.Tab value="brand">جستجو بر اساس برند</Tabs.Tab>
-            <Tabs.Tab value="category">جستجو بر اساس دسته‌بندی</Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Panel value="brand">
-            {/* Parent Categories */}
-            {!isLoadingParents && (
-              <SlideCategory
-                items={parentCategories}
-                onCategoryClick={handleCategoryClick}
-              />
-            )}
-
-            {/* Child Categories */}
-            {currentParentId && !isLoadingChildren && (
-              <SlideCategory items={childCategories} />
-            )}
-
-            {/* Loading States */}
-            {(isLoadingParents || isLoadingChildren) && <p>Loading...</p>}
-          </Tabs.Panel>
-          <Tabs.Panel value="category">دسته</Tabs.Panel>
-        </Tabs>
+        <SearchComponent filters={filters} setNodes={setNodes} />
       </Paper>
       <Paper>
-        <Filters />
+        <Filters setFilters={setFilters} />
       </Paper>
       <Button
         mt="lg"
@@ -233,7 +158,7 @@ function FastOrder() {
         پنهان کردن ستون‌ها
       </Button>
 
-      <Table columns={COLUMNS} data={dataNode} tree={tree} />
+      {nodes ? <Table nodes={nodes.products} visibleColumns={visibleColumns} columns={COLUMNS} /> : null}
 
       <Modal
         opened={opened}

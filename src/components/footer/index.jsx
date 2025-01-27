@@ -93,10 +93,10 @@ const Footer = (props) => {
             <GridCol key={index} span={{ base: 6, lg: 3 }}>
               <Stack>
                 <Title c="gray.8">{item.label}</Title>
-                {item.children.map((child, index2) => (
+                {item.links.map((child, index2) => (
                   <Anchor
                   key={index2}
-                    href={child.path}
+                    href={child.url}
                     underline="never"
                     size="sm"
                     c="dark"
@@ -122,7 +122,6 @@ const Footer = (props) => {
             تمامی حقوق برای این فروشگاه محفوظ است
           </Text>
           <Group>
-          <i class="ti ti-brand-telegram"></i>
             {bootstrap?.menu?.socialMedia ? (
               <>
                 {bootstrap?.menu?.socialMedia?.map((item, index) => <React.Fragment key={index}><SocialLink item={item} key={index} /></React.Fragment>)}

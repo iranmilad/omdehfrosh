@@ -44,7 +44,7 @@ const Public = (props) => {
   useEffect(() => {
     if(!isLoading){
       if(data){
-        dispatch(setBootstrap(data))
+        dispatch(setBootstrap(data.data))
       }
     }
   },[isLoading])
@@ -67,11 +67,11 @@ const Public = (props) => {
           </>
         ) : null}
         <Header />
-        {curr.pathname === '/' ? <Outlet /> : (
+        {/* {curr.pathname === '/' ? <Outlet /> : (
           <Container className="px-3 md:px-5 my-10">
             <Outlet />
           </Container>
-        )}
+        )} */}
         <Footer />
       </>
       ) : (

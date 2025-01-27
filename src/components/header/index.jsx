@@ -172,7 +172,7 @@ const Header = () => {
                 </Flex>
               </Flex>
               <Box visibleFrom="md">
-                <MegaMenu menuItems={bootstrap?.menu} />
+                <MegaMenu menuItems={bootstrap?.menu?.main} />
               </Box>
               <Drawer
                 opened={mobileMenuDrawer[0]}
@@ -187,7 +187,7 @@ const Header = () => {
                   />
                 }
               >
-                <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={bootstrap?.menu} />
+                <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={bootstrap?.menu.main} />
               </Drawer>
             </Container>
           </div>

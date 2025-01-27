@@ -5,6 +5,7 @@ import DatePicker from '../../../components/datePicker';
 import * as yup from 'yup';
 import { IMaskInput } from 'react-imask';
 import {useSend,useData} from "../../../Libs/api"
+import Cookies from "js-cookie";
 
 const validationSchema = yup.object().shape({
     name: yup.string().required("نام الزامی است"),
@@ -31,6 +32,8 @@ const validationSchema = yup.object().shape({
 
 
 function Account_EditAccount() {
+    const token = Cookies.get("user");;
+    console.log(token)
     const {data,isLoading} = useData({url: '/edit-account'});
     const {isPending,mutateAsync} = useSend({url: '/edit-account'})
     const form = useForm({
