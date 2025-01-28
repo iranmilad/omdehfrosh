@@ -3,28 +3,28 @@ export const menuItems = {
     {
       id: "146",
       label: "منوی اصلی",
-      icon: null,
+      icon: '<i class="ti ti-menu-2"></i>',
       mega: true,
       url: null,
       links: [
         {
           id: 380,
           label: "پرده",
-          icon: null,
+          icon: '<i class="ti ti-currency-solana"></i>',
           mega: false,
           url: null,
           links: [
             {
               id: 384,
               label: "عنوان 1",
-              icon: null,
+              icon: '<i class="ti ti-headset"></i>',
               mega: false,
               url: "/category/curtain_tools",
               links: [
                 {
                   id: 385,
                   label: "عنوان 11",
-                  icon: null,
+                  icon: '<i class="ti ti-alpha"></i>',
                   mega: false,
                   url: "/category/curtain_tools",
                   links: [],
@@ -85,7 +85,7 @@ export const menuItems = {
         {
           id: 212,
           label: "تماس باما",
-          icon: null,
+          icon: '<i class="ti ti-address-book"></i>',
           mega: false,
           url: "/contact-us",
           links: [],
@@ -243,7 +243,7 @@ export const menuItems = {
         {
           id: 265,
           label: "Instagram",
-          icon: "/images/instagram.png",
+          icon: '<i class="ti ti-brand-instagram"></i>',
           mega: false,
           url: "https://www.instagram.com/",
           links: [],
@@ -251,7 +251,7 @@ export const menuItems = {
         {
           id: 267,
           label: "LinkedIn",
-          icon: "/images/linkedin.png",
+          icon: '<i class="ti ti-brand-linkedin"></i>',
           mega: false,
           url: "https://www.linkedin.com/",
           links: [],
@@ -259,7 +259,7 @@ export const menuItems = {
         {
           id: 269,
           label: "Telegram",
-          icon: "/images/telegram.png",
+          icon: '<i class="ti ti-brand-telegram"></i>',
           mega: false,
           url: "https://telegram.org/",
           links: [],
@@ -267,7 +267,7 @@ export const menuItems = {
         {
           id: 266,
           label: "Twitter",
-          icon: "/images/twitter.png",
+          icon: '<i class="ti ti-brand-twitter"></i>',
           mega: false,
           url: "https://twitter.com/",
           links: [],
@@ -275,7 +275,7 @@ export const menuItems = {
         {
           id: 268,
           label: "WhatsApp",
-          icon: "/images/whatsapp.png",
+          icon: '<i class="ti ti-brand-whatsapp"></i>',
           mega: false,
           url: "https://web.whatsapp.com/",
           links: [],

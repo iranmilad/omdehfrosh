@@ -5,11 +5,11 @@ import DatePicker from '../../../components/datePicker';
 import * as yup from 'yup';
 import { IMaskInput } from 'react-imask';
 import {useSend,useData} from "../../../Libs/api"
-import Cookies from "js-cookie";
+
 
 const validationSchema = yup.object().shape({
     name: yup.string().required("نام الزامی است"),
-    familyName: yup.string().required("نام خانوادگی الزامی است"),
+    family: yup.string().required("نام خانوادگی الزامی است"),
     mobile: yup
         .string()
         .matches(/^09[0-9]{9}$/, "فرمت شماره موبایل صحیح نیست")
@@ -32,14 +32,12 @@ const validationSchema = yup.object().shape({
 
 
 function Account_EditAccount() {
-    const token = Cookies.get("user");;
-    console.log(token)
-    const {data,isLoading} = useData({url: '/edit-account'});
+    const {data,isLoading} = useData({url: '/edit-account',queryKey:['edit-account']});
     const {isPending,mutateAsync} = useSend({url: '/edit-account'})
     const form = useForm({
         initialValues: {
             name: "",
-            familyName: "",
+            family: "",
             mobile: "",
             email: "",
             nationalCode: "",
@@ -66,16 +64,16 @@ function Account_EditAccount() {
                     <TextInput placeholder='نام خود را وارد کنید' label="نام" {...form.getInputProps("name")} />
                 </GridCol>
                 <GridCol span={{lg: 6}}>
-                    <TextInput placeholder='نام خانوادگی خود را کنید' label="نام خانوادگی" {...form.getInputProps("familyName")} />
+                    <TextInput placeholder='نام خانوادگی خود را کنید' label="نام خانوادگی" {...form.getInputProps("family")} />
                 </GridCol>
                 <GridCol span={{lg: 6}}>
-                    <TextInput component={IMaskInput} mask="00000000000"  placeholder='شماره تلفن خود را کنید' label="شماره تلفن" {...form.getInputProps("mobile")} />
+                    <TextInput  placeholder='شماره تلفن خود را کنید' label="شماره تلفن" {...form.getInputProps("mobile")} />
                 </GridCol>
                 <GridCol span={{lg: 6}}>
                     <TextInput placeholder='ایمیل خود را کنید'  label="ایمیل" {...form.getInputProps("email")} />
                 </GridCol>
                 <GridCol span={{lg: 6}}>
-                    <TextInput component={IMaskInput} mask="0000000000"  placeholder='کدملی خود را کنید' label="کدملی" {...form.getInputProps("nationalCode")} />
+                    <TextInput  placeholder='کدملی خود را کنید' label="کدملی" {...form.getInputProps("nationalCode")} />
                 </GridCol>
                 <GridCol span={{lg: 6}}>
                     <DatePicker placeholder='تاریخ تولد خود را کنید' label="تاریخ تولد" {...form.getInputProps('birthday')} styles={{ input: { textAlign: "left" } }} dir='ltr' />

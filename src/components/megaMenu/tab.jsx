@@ -47,7 +47,7 @@ const MegaMenuTabs = ({ menuItems }) => {
             style={{ height: 45 }}
           >
             <Flex align="center" gap="sm">
-              <IconPoint size={13} />
+              <Box fz="20px" dangerouslySetInnerHTML={{__html:item.icon}} />
               <Text size="sm" component={NavLink} to={item.url}>
                 {item.label}
               </Text>
@@ -62,11 +62,13 @@ const MegaMenuTabs = ({ menuItems }) => {
             {item.links.map((link, index) => (
               <Grid.Col key={link.id} span={4}> {/* Adjust the span as needed */}
                 <Stack>
-                  <Title size="sm" component={NavLink} to={link.url}>
+                  <Title size="sm" component={NavLink} to={link.url} display="flex" style={{gap:"5px",alignItems:"center"}}>
+                    <Box fz="20px" dangerouslySetInnerHTML={{__html:item.icon}} />
                     {link.label}
                   </Title>
                   {link.links.map((child) => (
-                    <Text key={child.id} size="sm" c="gray.7" component={NavLink} to={child.url}>
+                    <Text key={child.id} size="sm" c="gray.7" component={NavLink} to={child.url} display="flex" style={{gap:"5px",alignItems:"center"}}>
+                      <Box fz="20px" dangerouslySetInnerHTML={{__html:child.icon}} />
                       {child.label}
                     </Text>
                   ))}

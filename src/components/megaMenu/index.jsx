@@ -53,7 +53,7 @@ const MegaMenu = ({ menuItems }) => {
             <Button
               variant="transparent"
               c="dark"
-              leftSection={<IconMenu2 size={20} />}
+              leftSection={<Box fz="20px" dangerouslySetInnerHTML={{__html: item.icon}} />}
               px="0"
             >
               {item.label}
@@ -89,6 +89,7 @@ const MegaMenu = ({ menuItems }) => {
                 >
                   <Menu.Target> {/* Fix typo: MenuTarget -> Menu.Target */}
                     <Anchor c="dark" size="sm" fw="600" underline="never">
+                      <Box fz="20px" dangerouslySetInnerHTML={{__html:item.icon}} />
                       {item.label}
                     </Anchor>
                   </Menu.Target>
@@ -107,17 +108,18 @@ const MegaMenu = ({ menuItems }) => {
               );
             } else {
               return (
-                <Anchor
-                  key={item2.id} // Use item2.id instead of index
-                  c="dark"
-                  size="sm"
-                  fw="600"
-                  underline="never"
-                  component={NavLink}
-                  to={item2.url}
+                <Button
+                variant="transparent"
+                c="dark"
+                leftSection={<Box fz="20px" dangerouslySetInnerHTML={{__html: item2.icon}} />}
+                px="0"
+                fw="600"
+                underline="never"
+                component={NavLink}
+                to={item2.url}
                 >
                   {item2.label}
-                </Anchor>
+                </Button>
               );
             }
           })}

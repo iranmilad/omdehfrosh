@@ -118,13 +118,13 @@ const Footer = (props) => {
         </Paper>
 
         <Group justify="space-between" pb={{ base: 100, md: "xl" }}>
-          <Text size="xs" c="gray">
+          <Text size="xs" c="gray" >
             تمامی حقوق برای این فروشگاه محفوظ است
           </Text>
           <Group>
             {bootstrap?.menu?.social ? (
               <>
-                {bootstrap?.menu?.social?.map((item, index) => <React.Fragment key={index}><SocialLink item={item} key={index} /></React.Fragment>)}
+                {bootstrap?.menu?.social[0]?.links.map((item, index) => <Anchor component="a" href={item.url} target="_blank" c="dark.6" size="20px" variant="text" key={item.id} dangerouslySetInnerHTML={{__html:item.icon}}></Anchor>)}
               </>
             ) : (
               ""

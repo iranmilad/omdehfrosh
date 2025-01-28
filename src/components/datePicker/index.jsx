@@ -31,7 +31,7 @@ function DatePicker(props) {
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [yearRange, setYearRange] = useState([]);
-  const [view, setView] = useState("year"); // Default view is 'year'
+  const [view, setView] = useState("year");
 
   useEffect(() => {
     const currentJalaliDate = jalaali.toJalaali(new Date());
@@ -43,6 +43,12 @@ function DatePicker(props) {
     updateYearRange(defaultYear || currentJalaliDate.jy);
   }, [other.value]);
 
+  useEffect(() => {
+    if (selectedYear) {
+      updateYearRange(selectedYear);
+    }
+  }, [selectedYear]);
+
   const updateYearRange = (centerYear) => {
     const newYearRange = Array.from(
       { length: 9 },
@@ -50,6 +56,13 @@ function DatePicker(props) {
     );
     setYearRange(newYearRange);
   };
+
+  const handleMonthClick = (month) => {
+    setSelectedMonth(month);
+    setView("day"); // Navigate to the day picker view
+    changeDate(undefined, month, undefined); // Only update the month
+  };
+  
 
   const animationProps = {
     initial: { scale: 0.8, opacity: 0 },
@@ -87,20 +100,23 @@ function DatePicker(props) {
     return null;
   };
 
-  const changeDate = (number) => {
-    other.onChange(item => {
-        return `${selectedYear || "_"}/${selectedMonth || "_"}/${
-          number?.day || "_"
-        }`
-    })
-  }
+  const changeDate = (year, month, day) => {
+    const newYear = year !== undefined ? year : selectedYear;
+    const newMonth = month !== undefined ? month : selectedMonth;
+    const newDay = day !== undefined ? day : selectedDay;
+  
+    if (other.onChange) {
+      other.onChange(
+        `${newYear || "_"}/${newMonth || "_"}/${newDay || "_"}`
+      );
+    }
+  };
 
   return (
     <>
       <TextInput
         {...other}
         readOnly
-        pointer
         onClick={() => open()}
         value={`${selectedYear || "_"}/${selectedMonth || "_"}/${
           selectedDay || "_"
@@ -115,7 +131,7 @@ function DatePicker(props) {
               handleYearClick={(year) => {
                 setSelectedYear(year);
                 setView("month");
-                changeDate({year})
+                changeDate(year,undefined, undefined);
               }}
               handleYearRangeChange={(direction) => {
                 const centerYear = yearRange[4];
@@ -130,13 +146,9 @@ function DatePicker(props) {
           {view === "month" && (
             <MonthSelection
               animationProps={animationProps}
-              handleMonthClick={(month) => {
-                setSelectedMonth(month);
-                setView("day");
-                changeDate({month})
-              }}
-              selectedMonth={selectedMonth}
-              jalaliMonths={jalaliMonths}
+              handleMonthClick={handleMonthClick} // Correctly handle month selection
+              selectedMonth={selectedMonth} // Pass the currently selected month
+              jalaliMonths={jalaliMonths} // Pass the months array
             />
           )}
           {view === "day" && (
@@ -144,7 +156,7 @@ function DatePicker(props) {
               animationProps={animationProps}
               handleDayClick={(day) => {
                 setSelectedDay(day);
-                changeDate({day})
+                changeDate(undefined, undefined, day);
                 close();
               }}
               selectedDay={selectedDay}
@@ -206,7 +218,7 @@ const MonthSelection = ({
         {jalaliMonths.map((month) => (
           <Button
             key={month.value}
-            onClick={() => handleMonthClick(month.value)}
+            onClick={() => handleMonthClick(month.value)} // Pass the value of the month
             variant={selectedMonth === month.value ? "filled" : "light"}
           >
             {month.label}
@@ -216,6 +228,7 @@ const MonthSelection = ({
     </motion.div>
   );
 };
+
 
 const DaySelection = ({
   animationProps,

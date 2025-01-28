@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink as RRNavLink, useNavigate } from "react-router-dom";
-import { Box, Flex, NavLink, Text, useMantineTheme } from "@mantine/core";
+import { Box, Flex, NavLink, Text, ThemeIcon, useMantineTheme } from "@mantine/core";
 import "./style.css";
 import { useCallback } from "react";
 import { IconPointFilled } from "@tabler/icons-react";
@@ -42,6 +42,7 @@ function MobileMenu({ toggle, menu }) {
               c="gray.8"
               onClick={(e) => handleClick(e, child.url)}
               style={{ borderRadius: "8px" }}
+              leftSection={<ThemeIcon variant="transparent" p={0} c="inherit" dangerouslySetInnerHTML={{ __html: child.icon }} />}
             />
             {/* Recursively render nested links with increased depth */}
             {renderNestedLinks(child.links, depth + 1)}
@@ -59,6 +60,7 @@ function MobileMenu({ toggle, menu }) {
           mb="sm"
           styles={{ label: { fontSize: 16 } }}
           label={item.label}
+          leftSection={<ThemeIcon variant="transparent" p={0} c="inherit" dangerouslySetInnerHTML={{ __html: item.icon }} />}
           onClick={(e) => handleClick(e, item.url)}
         >
           {item.links?.map((link) => (
@@ -66,9 +68,10 @@ function MobileMenu({ toggle, menu }) {
               key={link.id}
               onClick={(e) => handleClick(e, link.url)}
               mb="sm"
+              c="gray.7"
+              leftSection={<ThemeIcon variant="transparent" p={0} c="inherit" dangerouslySetInnerHTML={{ __html: link.icon }} />}
               label={
                 <Flex align="center" gap="xs">
-                  <IconPointFilled size={12} color={theme.colors.brand[5]} />
                   <Text size="md" c="gray.7" component="span">
                     {link.label}
                   </Text>
