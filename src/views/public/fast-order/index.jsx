@@ -42,7 +42,7 @@ function FastOrder() {
   // Define visible columns based on screen size
   useEffect(() => {
     if (isMobile) {
-      setVisibleColumns(['image', 'stock', 'minOrder', 'deliveryTime','price']); // Hide these columns on mobile
+      setVisibleColumns(['image', 'stock', 'minOrder', 'deliveryTime','seller']); // Hide these columns on mobile
     } else if (isTablet) {
       setVisibleColumns(['image', 'stock', 'minOrder']); // Hide these columns on tablet
     } else {
