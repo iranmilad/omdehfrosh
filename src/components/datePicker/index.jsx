@@ -59,8 +59,8 @@ function DatePicker(props) {
 
   const handleMonthClick = (month) => {
     setSelectedMonth(month);
-    setView("day"); // Navigate to the day picker view
-    changeDate(undefined, month, undefined); // Only update the month
+    setView("day"); 
+    changeDate(undefined, month, undefined);
   };
   
 
@@ -146,9 +146,9 @@ function DatePicker(props) {
           {view === "month" && (
             <MonthSelection
               animationProps={animationProps}
-              handleMonthClick={handleMonthClick} // Correctly handle month selection
-              selectedMonth={selectedMonth} // Pass the currently selected month
-              jalaliMonths={jalaliMonths} // Pass the months array
+              handleMonthClick={handleMonthClick} 
+              selectedMonth={selectedMonth}
+              jalaliMonths={jalaliMonths}
             />
           )}
           {view === "day" && (

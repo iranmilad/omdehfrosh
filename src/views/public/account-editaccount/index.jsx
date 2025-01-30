@@ -1,4 +1,4 @@
-import { Button, Grid, GridCol, LoadingOverlay, TextInput, Title } from '@mantine/core'
+import { Button, Center, Grid, GridCol, Loader, LoadingOverlay, TextInput, Title } from '@mantine/core'
 import { useForm, yupResolver } from '@mantine/form'
 import React, { useEffect } from 'react'
 import DatePicker from '../../../components/datePicker';
@@ -53,10 +53,10 @@ function Account_EditAccount() {
     }
     useEffect(() => {
         form.setValues(data)
-    } , [data])
+    } , [data]);
+    if(isLoading) return <Center><Loader /></Center>
   return (
     <>
-    <LoadingOverlay visible={isLoading} zIndex={1000} />
         <Title mb="lg">جزئیات حساب</Title>
         <form onSubmit={form.onSubmit((values) => submitForm(values))}>
             <Grid>

@@ -1,12 +1,24 @@
-table[data-table-library_table] thead tr th{
+div[data-table-library_th]{
     text-align: right;
 }
-
-table[data-table-library_table]{
+/* 
+div[data-table-library_th]{
     border-radius: var(--mantine-radius-default);
     box-shadow: var(--mantine-shadow-xs);
+} */
+
+div[data-table-library_td] * {
+    user-select: none !important;
 }
 
-table[data-table-library_table] tr * {
-    user-select: none !important;
+div[data-table-library_td] > div {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+}
+
+.row-tree-leaf{
+    @apply bg-gray-100 !important;
 }

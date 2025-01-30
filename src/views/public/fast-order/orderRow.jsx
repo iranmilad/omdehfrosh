@@ -3,63 +3,34 @@ import Counter from "../../../components/counter";
 import { useSend } from "../../../Libs/api";
 import { Button } from "@mantine/core";
 
-function OrderRow({id=0,sku=0,inventory=2}) {
+function OrderRow({ id = 0, sku = 0, inventory = 2, onReplace }) {
   const updateCart = useSend({ url: "/cart/update" });
   const [cart, setCart] = useState(0);
+
   const addToCart = (value, max) => {
-    let val = value;
-    if (!value) val = cart + 1;
+    let val = value || cart + 1;
     updateCart.mutateAsync(
-      { id, sku, count: val, max },
+      { productId: "123",attributes:[1,2,3],seller:"123", count: val, max },
       {
         onSuccess: (data) => {
-          if (data.error) {
-          } else {
+          if (!data.error) {
             if (data?.max) setCart(data.max);
             else setCart(val);
+            onReplace(); // بعد از اضافه کردن، نود اصلی جایگزین شود
           }
         },
       }
     );
   };
-  const removeCart = () => {
-    updateCart.mutateAsync(
-      { id, sku, count: 0 },
-      {
-        onSuccess: (data) => {
-          if (data.error) {
-          } else {
-            setCart(0);
-          }
-        },
-      }
-    );
-  };
-  if (cart > 0) {
-    return (
-      <Counter
-        value={cart}
-        onChange={addToCart}
-        removeCart={removeCart}
-        count={cart}
-        isPending={updateCart.isPending}
-      />
-    );
-  } else {
-    return (
-      <Button
-        fullWidth
-        disabled={inventory === 0}
-        onClick={() => addToCart()}
-        loading={updateCart.isPending}
-        size="xs"
-        w="max-content"
-        h={30}
-      >
-        افزودن
-      </Button>
-    );
-  }
+
+  return cart > 0 ? (
+    <Counter value={cart} onChange={addToCart} count={cart} isPending={updateCart.isPending} />
+  ) : (
+    <Button disabled={inventory === 0} onClick={() => addToCart()} loading={updateCart.isPending} size="xs">
+      افزودن
+    </Button>
+  );
 }
+
 
 export default OrderRow;

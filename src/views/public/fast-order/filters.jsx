@@ -14,6 +14,7 @@ function Filters({setFilters}) {
       deliveryTime: '',
       paymentType: '',
       supplier: '',
+      sort: 'newest',
     },
   });
 
@@ -88,6 +89,16 @@ function Filters({setFilters}) {
                   { label: 'ایمالز', value: '1004' },
                 ]}
                 {...form.getInputProps('supplier')}
+              />
+              <Select
+              label="مرتب سازی بر اساس"
+              data={[
+                { label: "جدیدترین", value: "newest" },
+                { label: "ارزان‌ترین", value: "lowest_price" },
+                { label: "گران‌ترین", value: "highest_price" },
+                { label: "پرفروش‌ترین", value: "best_selling" },
+              ]}
+              {...form.getInputProps('sort')}
               />
             </SimpleGrid>
             <Button type="submit" mt="lg" size="sm" leftSection={<IconFilter size={18} />}>

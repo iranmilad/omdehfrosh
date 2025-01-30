@@ -1,8 +1,9 @@
-import { Anchor, Avatar, Badge, Center, Flex, Grid, GridCol, Paper, Stack, Text } from "@mantine/core";
+import { Anchor, Avatar, Badge, Center, Flex, Grid, GridCol, Paper, Skeleton, Stack, Text } from "@mantine/core";
 import { IconBasket, IconBell, IconHeart, IconInfoCircle, IconLayout, IconLogout, IconMessage2, IconPencil, IconSwitch3, IconUser } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useLocation, Outlet, NavLink } from "react-router";
 import NavItem from "./navitem";
+import { useData } from "../../Libs/api";
 
 const navigations = [
     {
@@ -58,6 +59,7 @@ const navigations = [
 const Account = () => {
     const [route, setRoute] = useState('/');
     const location = useLocation();
+    const {data,isLoading} = useData({url: '/edit-account',queryKey:['edit-account']});
 
     useEffect(() => {
         // حذف /account از مسیر
@@ -73,12 +75,20 @@ const Account = () => {
                         <Center>
                             <Avatar size="lg" />
                         </Center>
-                        <Flex justify="space-between" align="center" mt="xl" mb="sm">
-                            <Anchor size="sm" display="flex" style={{ alignItems: "center" }} underline="never" component={NavLink} to="/account/edit-account">
-                                <IconPencil style={{ marginLeft: 10 }} size={14} /> فرهاد باقری
-                            </Anchor>
-                            <Badge>خریدار</Badge>
-                        </Flex>
+                        {!isLoading ? (
+                            <Flex justify="space-between" align="center" mt="xl" mb="sm">
+                                <Anchor size="sm" display="flex" style={{ alignItems: "center" }} underline="never" component={NavLink} to="/account/edit-account">
+                                    <IconPencil style={{ marginLeft: 10 }} size={14} /> {data.name} {data.family}
+                                </Anchor>
+                                <Badge>{data.userType}</Badge>
+                            </Flex>
+                        ) : (
+                            <Flex align="center" justify="space-between" mt="xl" mb="sm">
+                                <Skeleton h={25} w={170} />
+                                <Skeleton h={25} w={100} />
+                            </Flex>
+                        )}
+
                     </Paper>
                     <Paper>
                         <Stack gap="xs">

@@ -20,13 +20,15 @@ import {
   Box,
   Burger,
   useMantineTheme,
-  Avatar
+  Avatar,
+  ThemeIcon
 } from "@mantine/core";
 import Logo from "../../assets/logo.png";
 import {
   IconArrowLeft,
   IconBasketHeart,
   IconChevronLeft,
+  IconComet,
   IconLayoutSidebarLeftCollapse,
   IconLogout,
   IconMenu2,
@@ -130,7 +132,7 @@ const Header = () => {
                           component={NavLink}
                           to="/account"
                         >
-                          فرهاد باقری
+                          مشاهده پروفایل
                         </MenuItem>
                         <Menu.Divider />
                         <MenuItem
@@ -153,6 +155,13 @@ const Header = () => {
                           to="/account/notifications"
                         >
                           پیام ها
+                        </MenuItem>
+                        <MenuItem
+                          rightSection={<ThemeIcon size="xs" color="yellow" variant="transparent"><IconComet /></ThemeIcon>}
+                          component={NavLink}
+                          to="/subscription"
+                        >
+                          تهیه اشتراک
                         </MenuItem>
                         <MenuItem
                           color="red"

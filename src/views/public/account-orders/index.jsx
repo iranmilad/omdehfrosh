@@ -1,54 +1,59 @@
-import React from 'react'
-import { Table,Title,ScrollArea,Button, useMantineTheme} from '@mantine/core'
+import React, { useState } from 'react'
+import { Table,Title,ScrollArea,Button, useMantineTheme, Center, Loader, LoadingOverlay, Pagination} from '@mantine/core'
 import { NavLink } from 'react-router';
+import {useData} from "../../../Libs/api"
+import InfoBox from "../../../components/InfoBox"
 
 function Account_Orders() {
     const {primaryColor} = useMantineTheme();
-    const rows = [
-        {
-          id: "1234",
-          date: "1403/12/12",
-          status: "درحال بررسی",
-          total: "12,000,000",
-        },
-        {
-          id: "1234",
-          date: "1403/12/12",
-          status: "درحال بررسی",
-          total: "12,000,000",
-        },
-      ];
+    const [activePage,setActivePage] = useState(1);
+    const {data,isLoading,isFetching} = useData(
+      {url: "/orders",
+        queryKey:['orders',activePage],
+        method:"POST",
+        bodyData:{
+          page:activePage
+        }
+      }
+    );
+  if(isLoading) return <Center><Loader /></Center>
   return (
     <>
-              <Title my="lg">آخرین سفارشات</Title>
-              <ScrollArea type="auto">
-                <Table highlightOnHover>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th miw={100} c={primaryColor}>
-                        سفارش#
-                      </Table.Th>
-                      <Table.Th miw={100} c={primaryColor}>
-                        تاریخ
-                      </Table.Th>
-                      <Table.Th miw={100} c={primaryColor}>
-                        وضعیت
-                      </Table.Th>
-                      <Table.Th miw={130} c={primaryColor}>
-                        مجموع سفارش
-                      </Table.Th>
-                      <Table.Th miw={100} c={primaryColor} ta="end">
-                        عملیات
-                      </Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {rows.map((item, index) => (
-                      <ItemRow key={index} {...item} />
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </ScrollArea>
+    {isFetching && <LoadingOverlay visible={isFetching} zIndex={9999} />}
+      <Title my="lg">آخرین سفارشات</Title>
+      {data && data?.items?.length > 0 ? (
+      <>
+        <ScrollArea type="auto">
+          <Table highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th miw={100} c={primaryColor}>
+                  سفارش#
+                </Table.Th>
+                <Table.Th miw={100} c={primaryColor}>
+                  تاریخ
+                </Table.Th>
+                <Table.Th miw={100} c={primaryColor}>
+                  وضعیت
+                </Table.Th>
+                <Table.Th miw={130} c={primaryColor}>
+                  مجموع سفارش
+                </Table.Th>
+                <Table.Th miw={100} c={primaryColor} ta="end">
+                  عملیات
+                </Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {data?.items.map((item, index) => (
+                <ItemRow key={index} {...item} />
+              ))}
+            </Table.Tbody>
+          </Table>
+        </ScrollArea>
+        <Center mt="xl"><Pagination total={data.totalPage} value={activePage} onChange={setActivePage} /></Center>
+      </>
+      ) : <InfoBox shadow='0'>سفارشی یافت نشد</InfoBox>}
     </>
   )
 }

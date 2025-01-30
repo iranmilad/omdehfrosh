@@ -23,6 +23,7 @@ import Shop from "../../views/public/shop"
 import Home from "../../views/public/index"
 import Editor from "../../views/public/editor"
 import FastOrder from "../../views/public/fast-order"
+import Subscription from "../../views/public/subscription"
 
 export const PublicRoutes = [
     {
@@ -119,6 +120,10 @@ export const PublicRoutes = [
             {
                 path: "/fastorder",
                 element: <FastOrder />,
+            },
+            {
+                path: "/subscription",
+                element: <Subscription />,
             },
         ]
     }

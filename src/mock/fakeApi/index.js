@@ -17,3 +17,4 @@ export {default as Upload} from "./upload";
 export {default as AdvancedSearch} from "./advanced-search"
 export {default as Cart} from "./cart"
 export {default as Fastorder} from './fastorder';
+export {default as Orders} from './orders';
