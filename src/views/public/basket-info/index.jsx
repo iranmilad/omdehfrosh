@@ -114,11 +114,7 @@ const BasketInfo = () => {
   const handleForm = (values) => {
     form.validate();
     if (form.isValid() !== false) {
-      dispatch(toggleLoading());
-      setTimeout(() => {
-        dispatch(updateBasketInfo({ ...form.getValues() }));
-        dispatch(toggleLoading());
-      },1000)
+      navigate('/payment')
     }
   };
   return (

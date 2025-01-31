@@ -1,9 +1,9 @@
 export const user = {
 	id: "21",
-	name: "فرهاد",
-	family: "باقری",
+	name: "محمد",
+	family: "محمدی",
 	nationalCode: "1234567890",
-	mobile: "09374039436",
+	mobile: "09193753006",
 	birthday: "1350/08/8",
 	email: "coding.farhad@gmail.com",
 	userType: "خریدار",

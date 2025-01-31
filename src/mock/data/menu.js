@@ -84,10 +84,10 @@ export const menuItems = {
       links: [
         {
           id: 209,
-          label: "راهنمای اندازه گیزی",
+          label: "سفارش سریع",
           icon: null,
           mega: false,
-          url: "/",
+          url: "/fastorder",
           links: [],
         },
         {
@@ -128,6 +128,14 @@ export const menuItems = {
           icon: null,
           mega: false,
           url: "/login",
+          links: [],
+        },
+        {
+          id: 208,
+          label: "سبد خرید",
+          icon: null,
+          mega: false,
+          url: "/basket",
           links: [],
         },
       ],
