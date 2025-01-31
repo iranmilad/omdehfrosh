@@ -65,13 +65,15 @@ import CompareBtn from "../../../components/compareBtn"
 import InfoBox from "../../../components/InfoBox"
 import PurchasePanel from "./purchasePanel";
 import IconBar from "./iconBar";
+import { useForm } from "@mantine/form";
 
 const Product = () => {
   const theme = useMantineTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const {slug} = useParams();
-  const {isLoading,data} = useData({url: `/product/${slug}`,queryKey:['product',''],method:"POST"});
+  const [options, setOptions] = useState({});
+  const {isLoading,data} = useData({url: `/product/${slug}`,queryKey:['product',options],method:"POST",bodyData:{attributes: options}});
   const [opened, { toggle, close }] = useDisclosure(false);
   const [favorite, setFavorite] = useState(true);
   const stockAlert = useDisclosure(false);
@@ -88,28 +90,7 @@ const Product = () => {
 
 
   const title = "لپ تاپ 13.3 اینچی ایسوس مدل Zenbook S 13 OLED UX5304VA";
-  const comments = {
-    rating: "3",
-    count: 20,
-    comments: [
-      {
-        name: "فرهاد باقری",
-        date: "15 آبان 1403",
-        rating: "4",
-        comment: "محصول خوبی بود",
-        status: "pending",
-        seller: "دیجیکالا",
-      },
-      {
-        name: "فرهاد باقری",
-        date: "15 آبان 1403",
-        rating: "4",
-        comment: "محصول خوبی بود",
-        status: "agreed",
-        seller: "دیجیکالا",
-      },
-    ],
-  };
+
   const addFavorite = () => {
     dispatch(toggleLoading());
     favoriteReq.mutateAsync(
@@ -169,6 +150,19 @@ const Product = () => {
     })
   };
 
+  useEffect(() => {
+    if(data){
+      data.options.map((item) => {
+        setOptions((prev) => {
+          return {
+            ...prev,
+            [item.slug]: item.children[0].value,
+          };
+        });
+      });
+    }
+  },[data]);
+
   if(isLoading) return <Center><Loader /></Center>
 
   if(!isLoading && !data) return <InfoBox>چنین محصولی یافت نشد</InfoBox>
@@ -206,6 +200,14 @@ const Product = () => {
                     data={item.children}
                     name={item.slug}
                     defaultValue={item.children[0].value}
+                    onChange={(val) => {
+                      setOptions((prev) => {
+                        return {
+                          ...prev,
+                          [item.slug]: val,
+                        };
+                      });
+                    }}
                   />
                 ))}
               </SimpleGrid>

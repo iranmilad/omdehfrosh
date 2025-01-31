@@ -67,36 +67,10 @@ function PriceChart(props) {
   return (
     <Modal
       opened={props.opened}
-      size="100%"
+      size="80%"
       title={`نمودار قیمت ${props.title}`}
       onClose={props.close}
     >
-        <Flex wrap="wrap" gap="md">
-          <Select
-            label="رنگ"
-            data={[{ value: "blue", label: "آبی" }]}
-            w="150"
-            allowDeselect={false}
-          />
-          <Select
-            label="حافظه"
-            data={[{ value: "256", label: "256" }]}
-            w="150"
-            allowDeselect={false}
-          />
-          <Select
-            label="حافظه"
-            data={[{ value: "256", label: "256" }]}
-            w="150"
-            allowDeselect={false}
-          />
-          <Select
-            label="حافظه"
-            data={[{ value: "256", label: "256" }]}
-            w="150"
-            allowDeselect={false}
-          />
-        </Flex>
       <LineChart
         h={300}
         data={data}

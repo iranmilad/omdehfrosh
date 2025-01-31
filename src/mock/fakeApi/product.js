@@ -149,6 +149,9 @@ export default function Product(server, apiPrefix) {
       ]
     };
 
+    let shuffledSellers = [...data.sellers].sort(() => Math.random() - 0.5);
+    data.sellers = shuffledSellers;
+
 
     return {message: "ok" , data}
   })

@@ -28,7 +28,7 @@ function PurchasePanel({
   const addToCart = (value,max) => {
     let val = value;
     if(!value) val = cart+1
-    updateCart.mutateAsync({id,sku,count:val,max},{
+    updateCart.mutateAsync({productId:id,attributes:[1,2],seller:sku,count:val,max},{
       onSuccess: (data) => {
         if(data.error){
 
@@ -41,7 +41,7 @@ function PurchasePanel({
     })
   }
   const removeCart = () => {
-    updateCart.mutateAsync({id,sku,count:0},{
+    updateCart.mutateAsync({productId:id,seller:sku,count:0},{
       onSuccess: (data) =>{
         if(data.error){
 

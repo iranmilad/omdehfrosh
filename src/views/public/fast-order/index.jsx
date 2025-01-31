@@ -255,7 +255,7 @@ const TableRow = ({ item, columns, visibleColumns, selectedNodes, handleReplaceN
             content = displayItem.deliveryTime;
             break;
           case "action":
-            content = <OrderRow sku={item.action} onReplace={() => handleReplaceNode(displayItem)} />;
+            content = <OrderRow productId={item.id} attributes={item.action} seller={item.seller.id} onReplace={() => handleReplaceNode(displayItem)} />;
             break;
           default:
             content = "";
