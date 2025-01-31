@@ -22,7 +22,6 @@ const PaymentCalc = (props) => {
         خلاصه فاکتور{" "}
       </Title>
       <Paper py="xl" pos="relative">
-        <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} /> 
         <Stack gap="lg">
           <Flex justify="space-between">
             <Text size="sm" c="gray">
