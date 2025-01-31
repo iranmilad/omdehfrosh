@@ -4,9 +4,7 @@ import mockServer from "./mock";
 
 // Run mock server
 let environment = import.meta.env.MODE;
-if (environment === "development" && process.env.VITE_MODE === "development") {
-	mockServer({ environment });
-}
+mockServer({ environment });
 
 function App (){
   return (
