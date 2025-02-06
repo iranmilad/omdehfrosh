@@ -57,13 +57,13 @@ function PurchasePanel({
       {/* Payment Type */}
       <div className="flex gap-x-1 items-center text-zinc-600 text-sm pt-3 mb-4">
         <IconCash size={20} stroke={1.3} className="text-zinc-700" />
-        <div>{payment_type.join(" | ")}</div>
+        <div>{payment_type}</div>
       </div>
 
       {/* Delivery Info */}
       <div className="flex gap-x-1 items-center text-zinc-600 text-sm py-4">
         <IconTruckDelivery size={20} stroke={1.3} className="text-zinc-700" />
-        <div>{buy_type.join(" | ")}</div>
+        <div>{buy_type}</div>
       </div>
 
       {/* Seller Info */}
@@ -83,24 +83,24 @@ function PurchasePanel({
               رضایت :{" "}
               <Badge
                 color={
-                  rating === 5
+                  Math.round(+rating) === 5
                     ? "green"
-                    : rating === 4
+                    : Math.round(+rating) === 4
                     ? "lime"
-                    : rating === 3
+                    : Math.round(+rating) === 3
                     ? "yellow"
-                    : rating === 2
+                    : Math.round(+rating) === 2
                     ? "orange"
                     : "red"
                 }
               >
-                {rating === 5
+                {Math.round(+rating) === 5
                   ? "عالی"
-                  : rating === 4
+                  : Math.round(+rating) === 4
                   ? "خوب"
-                  : rating === 3
+                  : Math.round(+rating) === 3
                   ? "متوسط"
-                  : rating === 2
+                  : Math.round(+rating) === 2
                   ? "ضعیف"
                   : "خیلی ضعیف"}
               </Badge>

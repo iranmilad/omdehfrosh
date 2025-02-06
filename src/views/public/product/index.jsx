@@ -66,6 +66,7 @@ import InfoBox from "../../../components/InfoBox"
 import PurchasePanel from "./purchasePanel";
 import IconBar from "./iconBar";
 import { useForm } from "@mantine/form";
+import Attributes from "./attributes";
 
 const Product = () => {
   const theme = useMantineTheme();
@@ -88,8 +89,6 @@ const Product = () => {
     method: favorite ? "DELETE" : "POST",
   });
 
-
-  const title = "لپ تاپ 13.3 اینچی ایسوس مدل Zenbook S 13 OLED UX5304VA";
 
   const addFavorite = () => {
     dispatch(toggleLoading());
@@ -174,9 +173,9 @@ const Product = () => {
           <div className="flex flex-col lg:flex-row gap-24">
             <div className="lg:w-4/12">
               <Flex gap="md" direction={{base:"column",lg:"row"}}>
-                <IconBar favorite={data.addedToFavorite} shareModal={shareModal} toggle={toggle} />
+                <IconBar favorite={data.general.addedToFavorite} shareModal={shareModal} toggle={toggle} />
                 <Slider
-                  slides={data.images}
+                  slides={data.general.images}
                   options={{
                     Carousel: {
                       infinite: false,
@@ -187,35 +186,17 @@ const Product = () => {
             </div>
             <div className="lg:w-5/12">
               <div className="text-zinc-700 text-lg md:text-xl">
-                {data.title}
+                {data.general.title}
               </div>
               <div className="text-zinc-400 text-xs mt-4">
-                {data.english_title}
+                {data.general.english_title}
               </div>
-              <SimpleGrid cols={{ md: 2 }} mt="lg">
-                {data.options.map((item,index) => (
-                  <Select
-                    key={index}
-                    label={item.label}
-                    data={item.children}
-                    name={item.slug}
-                    defaultValue={item.children[0].value}
-                    onChange={(val) => {
-                      setOptions((prev) => {
-                        return {
-                          ...prev,
-                          [item.slug]: val,
-                        };
-                      });
-                    }}
-                  />
-                ))}
-              </SimpleGrid>
+              <Attributes items={data?.options} />
             </div>
             <div className="lg:w-3/12">
               <div className="lg:mt-8 lg:mb-8"></div>
               <div className="p-3 border rounded-xl mx-auto divide-y lg:block">
-                <PurchasePanel {...data.sellers[0]} updateCart={updateCart} />
+                <PurchasePanel {...data.combinations[0].suppliers[0]} updateCart={updateCart} />
               </div>
               <Paper shadow="0" withBorder p="xs" mt="lg">
                 <Button
@@ -235,8 +216,9 @@ const Product = () => {
             </div>
           </div>
         </Paper>
-        <Sellers items={data.sellers} />
+        {/* <Sellers items={data.sellers} /> */}
         <Tabs
+          mt="xl"
           variant="pills"
           defaultValue="desc"
           styles={{
@@ -248,18 +230,18 @@ const Product = () => {
           <Paper>
             <Tabs.List>
               <Tabs.Tab value="desc">توضیحات</Tabs.Tab>
-              <Tabs.Tab value="feat">مشخصات</Tabs.Tab>
+              {data.general.specifications && <Tabs.Tab value="feat">مشخصات</Tabs.Tab>}
               <Tabs.Tab value="comm">نظرات</Tabs.Tab>
             </Tabs.List>
           </Paper>
           <Tabs.Panel value="desc">
             <Paper p="xl" >
-              <div className='prose-sm leading-8' dangerouslySetInnerHTML={{__html: data.description}} />
+              <div className='prose-sm leading-8' dangerouslySetInnerHTML={{__html: data.general.description}} />
             </Paper>
           </Tabs.Panel>
           <Tabs.Panel value="feat">
             <Features
-              items={data.specifications}
+              items={data.general.specifications || []}
             />
           </Tabs.Panel>
           <Tabs.Panel value="comm">
@@ -269,9 +251,9 @@ const Product = () => {
         </Tabs>
         <RelatedProducts slug={slug} />
       </div>
-      <PriceChart title={title} opened={opened} close={close} />
+      <PriceChart title={data.general.title} opened={opened} close={close} priceHistory={data.general.priceHistory} />
       <ShareModal
-        link="http://localhost:3000/product/123"
+        link={`${window.location.origin}/product/${data.id}`}
         opened={shareModal[0]}
         close={shareModal[1].close}
       >

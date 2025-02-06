@@ -6,6 +6,7 @@ import { NavLink } from "react-router";
 function BottomNavigation({category,search,basket}) {
   return (
     <Flex
+    id="bottom-navigation"
     hiddenFrom="md"
       bg="white"
       w="100%"

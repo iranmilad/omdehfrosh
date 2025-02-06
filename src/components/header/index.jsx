@@ -48,6 +48,7 @@ import MegaMenu from "../megaMenu";
 import MobileMenu from "../mobileMenu";
 import BottomNavigation from "../bottomNavigation";
 import MobileSearch from "../mobileSearch";
+import MiniCart from "../miniCart";
 
 const Header = () => {
   const bootstrap = useSelector((state) => state.global.bootstrap);
@@ -70,6 +71,7 @@ const Header = () => {
       {bootstrap.banner && bootstrap.banner.src !== "" ? (
         <a
           className="relative z-50"
+          id="header_banner"
           href={bootstrap.banner.link}
           target="_blank"
         >
@@ -97,27 +99,7 @@ const Header = () => {
                   </Box>
                 </Flex>
                 <Flex align="center" gap="md">
-                  <Indicator
-                    offset={2}
-                    withBorder
-                    size={12}
-                    label="2"
-                    color="red"
-                    inline
-                    styles={{
-                      indicator: { height: "15px", paddingTop: "2px" },
-                    }}
-                  >
-                    <ActionIcon
-                    h={45}
-                      color="red"
-                      variant="light"
-                      size="xl"
-                      onClick={open}
-                    >
-                      <IconShoppingCart />
-                    </ActionIcon>
-                  </Indicator>
+                  <MiniCart />
                   {cookies.user ? (
                     <Menu shadow="md" position="bottom-end" styles={{dropdown:{minWidth: 250,padding:"10px"}}}>
                       <MenuTarget>
@@ -204,59 +186,6 @@ const Header = () => {
       </div>
       <BottomNavigation category={mobileMenuDrawer[1].toggle} basket={open} search={mobileSearchDrawer[1].toggle} />
       <MobileSearch opened={mobileSearchDrawer[0]} close={mobileSearchDrawer[1].close} />
-      <Drawer.Root
-        styles={{ inner: { right: 0 } }}
-        opened={opened}
-        onClose={close}
-      >
-        <Drawer.Overlay />
-
-        <Drawer.Content>
-          <Drawer.Header>
-            <Drawer.Title>سبد خرید</Drawer.Title>
-            <ActionIcon variant="transparent" onClick={close}>
-              <IconX />
-            </ActionIcon>
-          </Drawer.Header>
-          <Drawer.Body pb="sm">
-            <Flex justify="space-between" align="start">
-              <Flex gap="md">
-                <Image
-                  src="https://placehold.co/70"
-                  w={70}
-                  h={70}
-                  fit="contain"
-                  radius="sm"
-                />
-                <Flex justify="space-between" direction="column">
-                  <Text>سلام</Text>
-                  <Text size="sm" dir="ltr" c="green">
-                    <NumberFormatter value={2000000} thousandSeparator /> x 2
-                  </Text>
-                </Flex>
-              </Flex>
-              <ActionIcon color="red" variant="light">
-                <IconTrash size={16} />
-              </ActionIcon>
-            </Flex>
-          </Drawer.Body>
-          <Flex w="100%" justify="space-between" px="sm" pb="sm">
-            <Button w="auto" color="red" rightSection={<IconTrash size={20} />}>
-              خالی کردن سبد
-            </Button>
-            <Button
-              onClick={() => {
-                close();
-                navigate("/basket");
-              }}
-              w="auto"
-              rightSection={<IconArrowLeft size={20} />}
-            >
-              ادامه
-            </Button>
-          </Flex>
-        </Drawer.Content>
-      </Drawer.Root>
     </>
   );
 };

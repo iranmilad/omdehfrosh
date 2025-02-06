@@ -31,7 +31,7 @@ import SocialLink from "../socialLink";
 const Footer = (props) => {
   const bootstrap = useSelector((state) => state.global.bootstrap);
   return (
-    <Box className="border-t pt-10 mt-32 bg-white z-30">
+    <Box className="border-t pt-10 mt-32 bg-white z-30" id="footer">
       <Container>
         <Group justify="space-between" w="100%">
           <Stack spacing="xs">

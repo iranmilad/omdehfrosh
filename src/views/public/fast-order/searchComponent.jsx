@@ -4,12 +4,14 @@ import SlideCategory from "./SlideCategory";
 import { Center, Loader, LoadingOverlay, Space, Stack, Tabs } from "@mantine/core";
 import { shallowEqual } from "@mantine/hooks";
 import qs from "qs";
+import { useParams } from "react-router";
 
 const SearchComponent = ({ filters, setNodes, setTotalItems, pageSize, currentPage }) => {
   const [searchType, setSearchType] = useState("brand"); // نوع جستجو: brand یا category
   const [brands, setBrands] = useState({ parent: [], categories: [] });
   const [category, setCategory] = useState({ parent: [], subCategory: [], brands: [] });
   const url = "/fastorder";
+  const {id} = useParams();
 
   const changeFilters = useCallback(() => {
     let thisFilter = {};
@@ -26,6 +28,7 @@ const SearchComponent = ({ filters, setNodes, setTotalItems, pageSize, currentPa
     thisFilter.filters = filters;
     thisFilter.pageSize = pageSize; // اضافه کردن اندازه صفحه
     thisFilter.page = currentPage; // اضافه کردن صفحه فعلی
+    if(id) thisFilter.userId = id;
     return {
       thisFilter,
       query: qs.stringify(thisFilter, {

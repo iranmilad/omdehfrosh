@@ -1,47 +1,7 @@
 import { LineChart } from "@mantine/charts";
-import {
-  Flex,
-  Modal,
-  ScrollArea,
-  Select,
-  Paper,
-  Text,
-  NumberFormatter,
-} from "@mantine/core";
+import { Flex, Modal, Paper, Text, NumberFormatter } from "@mantine/core";
 import React from "react";
-
-export const data = [
-  {
-    date: "22 مهر",
-    دیجیکالا: 2890,
-    ترب: 2338,
-    ایمالز: 2452,
-  },
-  {
-    date: "23 مهر",
-    دیجیکالا: 2756,
-    ترب: 2103,
-    ایمالز: 2402,
-  },
-  {
-    date: "24 آبان",
-    دیجیکالا: 3322,
-    ترب: 986,
-    ایمالز: 1821,
-  },
-  {
-    date: "30 آذر",
-    دیجیکالا: 3470,
-    ترب: 2108,
-    ایمالز: 2809,
-  },
-  {
-    date: "1 دی",
-    دیجیکالا: 3129,
-    ترب: 1726,
-    ایمالز: 2290,
-  },
-];
+import moment from "moment-jalaali";
 
 function ChartTooltip({ label, payload }) {
   if (!payload) return null;
@@ -53,7 +13,7 @@ function ChartTooltip({ label, payload }) {
       </Text>
       {payload.map((item) => (
         <Text dir="ltr" key={item.name} fz="sm" c={item.color}>
-          {item.name}:{" "}
+          {item.name}: {" "}
           <span style={{ marginRight: "5px" }}>
             <NumberFormatter value={item.value} thousandSeparator /> تومان
           </span>
@@ -63,17 +23,18 @@ function ChartTooltip({ label, payload }) {
   );
 }
 
-function PriceChart(props) {
+function PriceChart({ opened, close, title, priceHistory }) {
+  const formattedData = priceHistory.map((entry) => ({
+    date: moment(entry.date, "YYYY-MM-DD").format("jYYYY/jMM/jDD"),
+    "کمترین قیمت": entry.minPrice,
+    "بیشترین قیمت": entry.maxPrice,
+  }));
+
   return (
-    <Modal
-      opened={props.opened}
-      size="80%"
-      title={`نمودار قیمت ${props.title}`}
-      onClose={props.close}
-    >
+    <Modal opened={opened} size="80%" title={`نمودار قیمت ${title}`} onClose={close}>
       <LineChart
         h={300}
-        data={data}
+        data={formattedData}
         dataKey="date"
         tooltipProps={{
           content: ({ label, payload }) => (
@@ -82,9 +43,8 @@ function PriceChart(props) {
         }}
         curveType="linear"
         series={[
-          { name: "دیجیکالا", color: "indigo.6" },
-          { name: "ترب", color: "blue.6" },
-          { name: "ایمالز", color: "teal.6" },
+          { name: "کمترین قیمت", color: "green.6" },
+          { name: "بیشترین قیمت", color: "red.6" },
         ]}
       />
     </Modal>

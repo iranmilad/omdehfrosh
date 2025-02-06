@@ -2,12 +2,12 @@ import { useState, useEffect,useCallback } from "react";
 import { Table, Header, HeaderRow, Body, Row, HeaderCell, Cell } from "@table-library/react-table-library/table";
 import { useTheme } from "@table-library/react-table-library/theme";
 import { getTheme, DEFAULT_OPTIONS } from "@table-library/react-table-library/mantine";
-import { IconChevronDown, IconChevronLeft, IconOctahedronOff, IconSettings, IconUserCircle } from "@tabler/icons-react";
-import { Button, Image, Modal, Checkbox, Group, Paper, Stack, Select, Text, Pagination, Anchor, ThemeIcon } from "@mantine/core";
+import { IconChevronDown, IconChevronLeft, IconOctahedronOff, IconSettings, IconShare, IconUserCircle } from "@tabler/icons-react";
+import { Button, Image, Modal, Checkbox, Group, Paper, Stack, Select, Text, Pagination, Anchor, ThemeIcon, NumberFormatter } from "@mantine/core";
 import { CellTree, useTree } from "@table-library/react-table-library/tree";
 import { Virtualized } from "@table-library/react-table-library/virtualized";
 import XTitle from "../../../components/title";
-import OrderRow from "./orderRow";
+import OrderRow, { Attributes } from "./orderRow";
 import Filters from "./filters";
 import SearchComponent from "./searchComponent";
 import React from "react";
@@ -15,6 +15,8 @@ import "./style.css"
 import { shallowEqual, useForceUpdate } from "@mantine/hooks";
 import { NavLink } from "react-router";
 import { useMediaQuery } from '@mantine/hooks';
+import ShareModal from "./shareModal";
+import usePrint from "../../../hooks/usePrint"
 
 
 function FastOrder() {
@@ -35,6 +37,8 @@ function FastOrder() {
   });
   const [opened, setOpened] = useState(false);
 
+  const isPrinting = usePrint();
+
   // Responsive breakpoints
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isTablet = useMediaQuery('(max-width: 1024px)');
@@ -45,10 +49,15 @@ function FastOrder() {
       setVisibleColumns(['image', 'stock', 'minOrder', 'deliveryTime','seller']); // Hide these columns on mobile
     } else if (isTablet) {
       setVisibleColumns(['image', 'stock', 'minOrder']); // Hide these columns on tablet
-    } else {
+    } 
+    else {
       setVisibleColumns([]); // Show all columns on larger screens
     }
-  }, [isMobile, isTablet]);
+
+    if(isPrinting){
+      setVisibleColumns(['image','stock','minOrder','deliveryTime'])
+    }
+  }, [isMobile, isTablet,isPrinting]);
 
   // Handle replacing a node in the tree
   const handleReplaceNode = useCallback(
@@ -76,8 +85,8 @@ function FastOrder() {
     {},
     {
       treeIcon: {
-        iconRight: <IconChevronLeft />,
-        iconDown: <IconChevronDown />,
+        iconRight: isPrinting ? null : <IconChevronLeft />,
+        iconDown: isPrinting ? null : <IconChevronDown />,
       },
     }
   );
@@ -91,6 +100,7 @@ function FastOrder() {
     { key: "image", label: "تصویر" },
     { key: "name", label: "نام کالا" },
     { key: "price", label: "قیمت" },
+    { key: "attributes", label: "ویژگی ها" },
     { key: "stock", label: "موجودی" },
     { key: "minOrder", label: "حداقل سفارش" },
     { key: "seller", label: "تامین کننده" },
@@ -103,8 +113,11 @@ function FastOrder() {
 
   return (
     <>
-      <XTitle>سفارش سریع</XTitle>
-      <Paper my="xl">
+      <Group justify="space-between" align="center" id="fastorder-top">
+        <XTitle>سفارش سریع</XTitle>
+        <ShareModal />
+      </Group>
+      <Paper my="xl" id="fastorder-search">
         <SearchComponent
           filters={filters}
           setNodes={setNodes}
@@ -114,10 +127,10 @@ function FastOrder() {
           setTotalItems={setTotalItems}
         />
       </Paper>
-      <Paper>
+      <Paper id="fastorder-filters">
         <Filters setFilters={setFilters} />
       </Paper>
-      <Group mt="lg" mb="sm" justify="space-between" align="center">
+      <Group id="fastorder-tablesettings" mt="lg" mb="sm" justify="space-between" align="center">
         <Button
           leftSection={<IconSettings size={16} />}
           onClick={() => setOpened(true)}
@@ -140,6 +153,7 @@ function FastOrder() {
       </Group>
       {nodes ? (
         <Table
+          id="fastorder-table"
           data={{ nodes }}
           theme={theme}
           tree={tree}
@@ -178,6 +192,7 @@ function FastOrder() {
       {/* نمایش صفحه‌بندی در صورتی که pageSize مقدار "all" نباشد */}
       {pageSize !== "all" && (
         <Pagination
+        id="fastorder-pagination"
           total={Math.ceil(totalItems / pageSize)}
           value={currentPage}
           onChange={setCurrentPage}
@@ -230,8 +245,11 @@ const TableRow = ({ item, columns, visibleColumns, selectedNodes, handleReplaceN
           case "name":
             content = displayItem.name;
             break;
+          case "attributes":
+            content = <Attributes items={item.attributes} />;
+            break;
           case "price":
-            content = displayItem.price;
+            content = <NumberFormatter value={displayItem.price} thousandSeparator />;
             break;
           case "stock":
             content = `${displayItem.stock} عدد`;

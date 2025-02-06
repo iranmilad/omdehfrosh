@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import Counter from "../../../components/counter";
 import { useSend } from "../../../Libs/api";
-import { Button } from "@mantine/core";
+import { Badge, Button, ColorSwatch, Group, Stack, Text, Tooltip } from "@mantine/core";
+import { CONTAINER_SIZES } from "../../../Libs/theme";
+import { IconShield, IconShieldCheck } from "@tabler/icons-react";
 
 function OrderRow({ id = 0, attributes, inventory = 2,seller, onReplace }) {
   const updateCart = useSend({ url: "/cart/update" });
@@ -39,10 +41,40 @@ function OrderRow({ id = 0, attributes, inventory = 2,seller, onReplace }) {
     <Counter value={cart} onChange={addToCart} count={cart} isPending={updateCart.isPending} removeCart={removeCart} />
   ) : (
     <Button disabled={inventory === 0} onClick={() => addToCart()} loading={updateCart.isPending} size="xs">
-      افزودن
+      انتخاب
     </Button>
   );
 }
 
+export function Attributes({items}){
+  return (
+    <Stack gap="xs">
+      {items.map(it => <Attribute {...it} />)}
+    </Stack>
+  )
+}
+
+function Attribute (props){
+  let {type,label,value} = props;
+  switch (type) {
+    case 'color':
+      return (
+        <Group gap="xs" >
+          <ColorSwatch size="20" color={value} />
+          <Text component="span" size="xs">{label}</Text>
+        </Group>
+      )
+    case 'warranty':
+      return (
+        <Group gap="xs" >
+          <Tooltip label={label} visibleFrom="sm">
+            <IconShieldCheck size={18} />
+          </Tooltip>
+        </Group>
+      )
+    default:
+      break;
+  }
+}
 
 export default OrderRow;

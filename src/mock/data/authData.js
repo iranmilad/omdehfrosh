@@ -3,9 +3,10 @@ export const user = {
 	name: "محمد",
 	family: "محمدی",
 	nationalCode: "1234567890",
-	mobile: "09193753006",
+	mobile: "09374039436",
 	birthday: "1350/08/8",
 	email: "coding.farhad@gmail.com",
-	userType: "خریدار",
+	userType: "wholesale", //seller,
+	userTypeLabel: "کاربر عمده",
 	status: 'active' // active,deactive,pending
 };

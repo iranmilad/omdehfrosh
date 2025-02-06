@@ -55,13 +55,13 @@ function Sellers({ items }) {
               <Flex gap="xs">
                 <IconCash size={20} />
                 <Text size="sm" c="gray">
-                  پرداخت {item.payment_type.join(" | ")}
+                  پرداخت {item.payment_type}
                 </Text>
               </Flex>
               <Flex gap="xs">
                 <IconTruckDelivery size={20} />
                 <Text size="sm" c="gray">
-                  ارسال در ({item.delivery.join(" | ")})
+                  ارسال در {item.delivery}
                 </Text>
               </Flex>
             </Flex>
@@ -70,7 +70,7 @@ function Sellers({ items }) {
             <Flex gap="sm" align="center">
               <IconTruckDelivery size={20} />
               <Text size="sm" c="gray">
-                تحویل {item.buy_type.join(" | ")}
+                تحویل {item.buy_type}
               </Text>
             </Flex>
           </GridCol>

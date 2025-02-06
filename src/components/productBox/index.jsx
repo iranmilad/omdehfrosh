@@ -24,6 +24,7 @@ import { useDisclosure, useElementSize } from "@mantine/hooks";
 import { useSend } from "../../Libs/api";
 import { notifications } from "@mantine/notifications";
 import { NavLink } from "react-router";
+import ProductPrice from "../ProductPrice";
 
 function ProductBox({
   id,
@@ -85,31 +86,7 @@ function ProductBox({
             <Button component={NavLink} to={`/product/${slug}`}>
               {width < 240 ? <IconEye size={20} /> : "مشاهده محصول"}
             </Button>
-            <Flex direction="column" align="end" gap={6}>
-              {discountedPrice ? (
-                <>
-                  <Flex gap="5">
-                    <Text size="xs" td="line-through" c="gray.6">
-                      <NumberFormatter thousandSeparator value={regularPrice} />
-                    </Text>
-                    <Badge
-                      display="flex"
-                      style={{ flexDirection: "row" }}
-                      styles={{
-                        label: { display: "flex" },
-                        root: { paddingInline: 5, borderBottomLeftRadius: 0 },
-                      }}
-                    >
-                      {discountPercent}
-                      <IconPercentage size={16} style={{ marginRight: 5 }} />
-                    </Badge>
-                  </Flex>
-                  <PriceText>{discountedPrice}</PriceText>
-                </>
-              ) : (
-                <PriceText>{regularPrice}</PriceText>
-              )}
-            </Flex>
+            <ProductPrice regularPrice={regularPrice} discountPercent={discountPercent} discountedPrice={discountedPrice} />
           </Flex>
         </>
       ) : (

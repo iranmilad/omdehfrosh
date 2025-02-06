@@ -118,7 +118,7 @@ export const PublicRoutes = [
                 element: <Shop />,
             },
             {
-                path: "/fastorder",
+                path: "/fastorder/:id?",
                 element: <FastOrder />,
             },
             {

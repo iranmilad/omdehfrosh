@@ -80,7 +80,7 @@ const Account = () => {
                                 <Anchor size="sm" display="flex" style={{ alignItems: "center" }} underline="never" component={NavLink} to="/account/edit-account">
                                     <IconPencil style={{ marginLeft: 10 }} size={14} /> {data.name} {data.family}
                                 </Anchor>
-                                <Badge>{data.userType}</Badge>
+                                <Badge>{data.userTypeLabel}</Badge>
                             </Flex>
                         ) : (
                             <Flex align="center" justify="space-between" mt="xl" mb="sm">

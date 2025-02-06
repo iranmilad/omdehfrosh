@@ -22,3 +22,19 @@ div[data-table-library_td] > div {
 .row-tree-leaf{
     @apply bg-gray-100 !important;
 }
+
+@media print{
+    #header_banner ,
+    #header,
+    #footer,
+    #bottom-navigation,
+    #fastorder-pagination,
+    #fastorder-top,
+    #fastorder-search,
+    #fastorder-filters,
+    #fastorder-tablesettings,
+    #fastorder-table::-webkit-scrollbar
+    {
+        display: none;
+    }
+}

@@ -15,6 +15,19 @@ function gen(pageSize, currentPage) {
                 id : 1,
                 label: "دیجیکالا"
               },
+              attributes:[
+                {
+                    id: 1,
+                    label: "آبی",
+                    type: 'color',
+                    value: '#2b7fff'
+                },
+                {
+                    id: 2,
+                    label: "گارانتی 3 ماهه",
+                    type: "warranty"
+                }
+              ],
               deliveryTime: "3",
               action: 3,
               nodes: Array(3).fill().map((_, nodeIndex) => ({
@@ -28,6 +41,19 @@ function gen(pageSize, currentPage) {
                     id : 1,
                     label: "دیجیکالا"
                   },
+                  attributes:[
+                    {
+                        id: 1,
+                        label: "قرمز",
+                        type: 'color',
+                        value: '#fb2c36'
+                    },
+                    {
+                        id: 2,
+                        label: "گارانتی 3 ماهه",
+                        type: "warranty"
+                    }
+                  ],
                   deliveryTime: "3",
                   action: 3,
                   nodes: null,
@@ -58,6 +84,19 @@ function gen(pageSize, currentPage) {
         id : 1,
         label: "دیجیکالا"
       },
+      attributes:[
+        {
+            id: 1,
+            label: "آبی",
+            type: 'color',
+            value: '#2b7fff'
+        },
+        {
+            id: 2,
+            label: "گارانتی 3 ماهه",
+            type: "warranty"
+        }
+      ],
       deliveryTime: "3",
       action: 3,
       nodes: Array(3).fill().map((_, nodeIndex) => ({
@@ -71,6 +110,19 @@ function gen(pageSize, currentPage) {
             id : 1,
             label: "دیجیکالا"
           },
+          attributes:[
+            {
+                id: 1,
+                label: "قرمز",
+                type: 'color',
+                value: '#fb2c36'
+            },
+            {
+                id: 2,
+                label: "گارانتی 3 ماهه",
+                type: "warranty"
+            }
+          ],
           deliveryTime: "3",
           action: 3,
           nodes: null,

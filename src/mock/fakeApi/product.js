@@ -17,141 +17,234 @@ export default function Product(server, apiPrefix) {
   });
 
   server.post(`${apiPrefix}/product/:id`,(schema,{requstBody}) => {
-    let data = {
-      id: "123",
-      slug: "iphone_16_promax_zaa",
-      title: "گوشی موبایل اپل مدل iPhone 16 Pro Max ZAA",
-      english_title: "Apple iPhone 16 Pro Max ZAA Dual SIM Storage 1TB And RAM 8GB Mobile Phone",
-      options: [
-        {
-          id: "1",
-          label: "رنگ",
-          slug: "color",
-          children: [
-            {
-              id: "10",
-              label: "مشکی",
-              value: "black" // slug
-            },
-            {
-              id: "11",
-              label: "تیتانیوم",
-              value: "titanium" // slug
-            },
-            {
-              id: "12",
-              label: "سفید",
-              value: "white" // slug
-            },
+    let data ={
+      "id": 4,
+      "general": {
+          "slug": null,
+          "title": "گوشی موبایل اپل مدل iPhone 16 Pro Max ZAA",
+          "english_title": "Apple iPhone 16 Pro Max ZAA Dual SIM Storage 1TB And RAM 8GB Mobile Phone",
+          "addedToFavorite": true,
+          "images": [
+            Image1,
+            Image2,
+              Image3,
+              Image4,
+              Image5
+          ],
+          "description": "<p>توضیحات نمونه برای محصول 4</p>",
+          "specifications": null,
+          "priceHistory": [
+              {
+                  "date": "2024-02-01",
+                  "minPrice": 900000,
+                  "maxPrice": 1150000
+              },
+              {
+                  "date": "2024-03-01",
+                  "minPrice": 870000,
+                  "maxPrice": 1100000
+              },
+              {
+                  "date": "2024-04-01",
+                  "minPrice": 880000,
+                  "maxPrice": 1080000
+              },
+              {
+                  "date": "2024-05-01",
+                  "minPrice": 860000,
+                  "maxPrice": 1050000
+              },
+              {
+                  "date": "2024-01-01",
+                  "minPrice": 950000,
+                  "maxPrice": 1200000
+              }
           ]
-        },
-        {
-          id: "2",
-          label: "گارانتی",
-          slug: "color",
-          children: [
-            {
-              id: "20",
-              label: "3 ماهه",
-              value: "3month" // slug
-            },
-            {
-              id: "21",
-              label: "5 ماهه",
-              value: "5month" // slug
-            },
-            {
-              id: "22",
-              label: "8 ماهه",
-              value: "8month" // slug
-            },
-          ]
-        },
-      ],
-      addedToFavorite: true,
-      images: [Image1,Image2,Image3,Image4,Image5],
-      description: "<p>آیفون 16 پرو مکس، جدیدترین شاهکار اپل، با طراحی شیک، دوربین‌های بی‌نظیر و عملکردی فوق‌العاده، استانداردهای جدیدی را برای گوشی‌های هوشمند تعریف می‌کند. نمایشگر 6.9 اینچی Super Retina XDR OLED با وضوح بالا و نرخ نوسازی 120 هرتز، تجربه بصری کم‌نظیری را ارائه می‌دهد و بدنه‌ مقاوم از جنس شیشه و تیتانیوم، زیبایی و دوام را در کنار هم به ارمغان می‌آورد. چیپست قدرتمند A18 Bionic با فناوری 3 نانومتری، به کاربران امکان می‌دهد تا بازی‌ها و اپلیکیشن‌های سنگین را به راحتی اجرا کنند. دوربین‌های 48، 12 و 48 مگاپیکسلی این گوشی، به ویژه دوربین تله‌فوتو با زوم 5 برابری اپتیکال، تصاویری خیره‌کننده و ویدیوهایی با کیفیت سینمایی ثبت می‌کنند. باتری 4685 میلی‌آمپر ساعتی با پشتیبانی از شارژ سریع هم به صورت باسیم و هم به صورت بی‌سیم، طول عمر بالایی داشته و شارژدهی بسیار خوبی دارد. همچنین، با iOS 18، تجربه کاربری بهینه‌تر و امنیت بیشتری خواهید داشت. اگر به دنبال بهترین عملکرد و عکاسی حرفه‌ای در یک گوشی هوشمند هستید، آیفون 16 پرو مکس ترکیبی بی‌نظیر از تکنولوژی پیشرفته و طراحی لوکس است که تمام انتظارات شما را برآورده می‌کند. همانطور که می‌دانید گوشی‌های آیفون با پارت نامبرهای مختلفی از جمله CH، ZAA، LLA ،ZPAو ... در بازار وجود دارند. پارت نامبر ZAA مربوط به کشور سنگاپور است. این پارت نامبر هیچ محدودیت نرم افزاری‌ای ندارد و با پشتیبانی از دو سیم‌کارت فیزیکی به صورت همزمان، پارت نامبر بسیار مناسبی است. این گوشی، مانند تمامی گوشی‌های عرضه‌شده در دیجی‌کالا، به صورت قانونی و تجاری وارد کشور شده و با رجیستر رسمی، کارت گارانتی معتبر و کد فعال‌سازی به شما تحویل داده می‌شود.</p>", // html
-      sellers: [
-        {
-          id: "123",
-          name: "دیجیکالا",
-          rating: 4,
-          payment_type: ["نقدی","اقساط"], //نوع پرداخت 
-          delivery: ["شیراز","کرج"], // مکان های ارسال
-          buy_type: ["آنی", "پیش فروش"], // نوع تحویل
-          price: {
-            regularPrice: 15000000,
-            discountedPrice: 10500000,
-            discountPercent: "30",
+      },
+      "options": [
+          {
+              "id": 1,
+              "label": "رنگ",
+              "slug": "color",
+              "type": "color",
+              "children": [
+                  {
+                      "id": 16,
+                      "label": "صورتی",
+                      "value": "#ec4899"
+                  },
+                  {
+                      "id": 17,
+                      "label": "قرمز",
+                      "value": "#ef4444"
+                  },
+                  {
+                      "id": 33,
+                      "label": "آبي",
+                      "value": "#3b82f6"
+                  },
+                  {
+                      "id": 36,
+                      "label": "سبز",
+                      "value": "#10b981"
+                  },
+              ]
           },
-          sku: "123", // کد محصول
-          inventory: 3, //موجودی انبار,
-          min_order: 1, // حداقل سفارش
-          max_order: 5, // حداکثر سفارش
-        },
-        {
-          id: "456",
-          name: "ترب",
-          rating: 4,
-          payment_type: ["نقدی"], //نوع پرداخت 
-          delivery: ["تمام ایران"], // مکان های ارسال
-          buy_type: ["آنی"], // نوع تحویل
-          price: {
-            regularPrice: 16000000,
-          },
-          sku: "123", // کد محصول
-          inventory: 3, //موجودی انبار,
-          min_order: 1, // حداقل سفارش
-          max_order: 5, // حداکثر سفارش
-        },
+          {
+              "id": 81,
+              "label": "جنس",
+              "slug": "material",
+              "type": "select",
+              "children": [
+                  {
+                      "id": 18,
+                      "label": "نخی",
+                      "value": "نخی"
+                  },
+                  {
+                      "id": 19,
+                      "label": "پارچه ای",
+                      "value": "پارچه ای"
+                  }
+              ]
+          }
       ],
-      specifications: [
-        {
-          label: "سیستم عامل",
-          value: "iOS 18"
-        },
-        {
-          label: "صفحه نمایش",
-          value: "6.9 اینچ، Super Retina XDR"
-        },
-        {
-          label: "پردازنده",
-          value: "A18 Bionic"
-        },
-        {
-          label: "دوربین اصلی",
-          value: "48 مگاپیکسل، سه لنز"
-        },
-        {
-          label: "دوربین سلفی",
-          value: "12 مگاپیکسل"
-        },
-        {
-          label: "حافظه داخلی",
-          value: "1TB, 512GB, 256GB"
-        },
-        {
-          label: "RAM",
-          value: "8GB"
-        },
-        {
-          label: "باتری",
-          value: "5000 میلی‌آمپر ساعت"
-        },
-        {
-          label: "شارژ",
-          value: "شارژ سریع 45W، شارژ بی‌سیم"
-        },
-        {
-          label: "رنگ‌ها",
-          value: "مشکی، نقره‌ای، طلایی، آبی"
-        }
+      "combinations": [
+          {
+              "id": 19,
+              "options": [
+                  {
+                      "id": 16,
+                      "value": "pink",
+                      "attribute_name": "رنگ",
+                      "attribute_id": 1
+                  },
+                  {
+                      "id": 18,
+                      "value": "نخی",
+                      "attribute_name": "جنس",
+                      "attribute_id": 81
+                  }
+              ],
+              "suppliers": [
+                  {
+                      "id": 1,
+                      "name": "دیجی کالا",
+                      "payment_type": "Cash",
+                      "delivery": "Area 1, Area 2",
+                      "buy_type": "Retail",
+                      "price": {
+                          "regularPrice": "100.00",
+                          "discountedPrice": "120.00",
+                          "discountPercent": null
+                      },
+                      "sku": "SKU-001",
+                      "inventory": 10,
+                      "min_order": 1,
+                      "max_order": 100,
+                      "rating": "4.50",
+                      "reviews_count": 0,
+                      "reviews": []
+                  },
+                  {
+                      "id": 2,
+                      "name": "تک اسیا",
+                      "payment_type": "Credit",
+                      "delivery": "Area 3, Area 4",
+                      "buy_type": "Wholesale",
+                      "price": {
+                          "regularPrice": "110.00",
+                          "discountedPrice": "130.00",
+                          "discountPercent": null
+                      },
+                      "sku": "SKU-002",
+                      "inventory": 15,
+                      "min_order": 2,
+                      "max_order": 150,
+                      "rating": "4.80",
+                      "reviews_count": 0,
+                      "reviews": []
+                  }
+              ]
+          },
+          {
+              "id": 20,
+              "options": [
+                  {
+                      "id": 16,
+                      "value": "pink",
+                      "attribute_name": "رنگ",
+                      "attribute_id": 1
+                  },
+                  {
+                      "id": 19,
+                      "value": "پارچه ای",
+                      "attribute_name": "جنس",
+                      "attribute_id": 81
+                  }
+              ],
+              "suppliers": [
+                  {
+                      "id": 2,
+                      "name": "تک اسیا",
+                      "payment_type": "Credit",
+                      "delivery": "Area 3, Area 4",
+                      "buy_type": "Wholesale",
+                      "price": {
+                          "regularPrice": "110.00",
+                          "discountedPrice": "130.00",
+                          "discountPercent": null
+                      },
+                      "sku": "SKU-002",
+                      "inventory": 15,
+                      "min_order": 2,
+                      "max_order": 150,
+                      "rating": "4.80",
+                      "reviews_count": 0,
+                      "reviews": []
+                  }
+              ]
+          },
+          {
+              "id": 21,
+              "options": [
+                  {
+                      "id": 17,
+                      "value": "red",
+                      "attribute_name": "رنگ",
+                      "attribute_id": 1
+                  },
+                  {
+                      "id": 18,
+                      "value": "نخی",
+                      "attribute_name": "جنس",
+                      "attribute_id": 81
+                  }
+              ],
+              "suppliers": [
+                  {
+                      "id": 1,
+                      "name": "دیجی کالا",
+                      "payment_type": "Cash",
+                      "delivery": "Area 1, Area 2",
+                      "buy_type": "Retail",
+                      "price": {
+                          "regularPrice": "100.00",
+                          "discountedPrice": "120.00",
+                          "discountPercent": null
+                      },
+                      "sku": "SKU-001",
+                      "inventory": 10,
+                      "min_order": 1,
+                      "max_order": 100,
+                      "rating": "4.50",
+                      "reviews_count": 0,
+                      "reviews": []
+                  }
+              ]
+          }
       ]
-    };
-
-    let shuffledSellers = [...data.sellers].sort(() => Math.random() - 0.5);
-    data.sellers = shuffledSellers;
-
+  }
 
     return {message: "ok" , data}
   })
