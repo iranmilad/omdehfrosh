@@ -1,38 +1,40 @@
-import React from 'react'
-
-
-import { useState } from "react";
 import { ColorSwatch, Group, Select, Stack } from "@mantine/core";
-
-const colorMap = {
-  pink: "#FFC0CB",
-  red: "#FF0000",
-  آبي: "#0000FF",
-  سبز: "#008000",
-};
+import React from 'react';
+import { useProduct } from "..";
 
 // Component to display each attribute (color swatches or select)
 const Attribute = ({ id, label, slug, children }) => {
-    console.log(slug)
+  const { options, setOptions } = useProduct();
   const isColor = slug === "color";
-  const [selectedValue, setSelectedValue] = useState(children?.[0]?.value || "");
+  // const selectedValue = options[id] || children?.[0]?.value || "";
+
+  // const selectedValue = children.find((item) => {
+  //   console.log(item.id);
+  //   return options[item.id] ?? item.value
+  // });
+  let selectedValue = children.find((item) => {
+    return options[item.id] 
+  }) || ""
+
+  const handleChange = (value) => {
+    setOptions((prev) => ({ ...prev, [id]: value }));
+  };
 
   return (
     <div>
       <label style={{ fontWeight: "bold", marginBottom: "5px", display: "block" }}>
         {label}
       </label>
-
       {isColor ? (
         <Group>
-          {children.map((child) => (
+          {children.map((child, index) => (
             <ColorSwatch
-              key={child.id}
-              color={child.value || "#CCC"} // Default to gray if not in map
-              onClick={() => setSelectedValue(child.value)}
+              key={index}
+              color={child.value || "#CCC"}
+              onClick={() => handleChange(child.value)}
               style={{
                 cursor: "pointer",
-                border: selectedValue === child.value ? "3px solid #3d3d3d" : "none",
+                border: selectedValue.value === child.value ? "3px solid #3d3d3d" : "none",
               }}
             />
           ))}
@@ -40,10 +42,10 @@ const Attribute = ({ id, label, slug, children }) => {
       ) : (
         <Select
           data={children.map((child) => ({ value: child.value, label: child.label }))}
-          value={selectedValue}
-          onChange={setSelectedValue}
+          value={selectedValue.value}
+          onChange={handleChange}
           placeholder="یک گزینه انتخاب کنید"
-          w={{base: "100%",md:"50%"}}
+          w={{ base: "100%", md: "50%" }}
         />
       )}
     </div>
@@ -53,7 +55,7 @@ const Attribute = ({ id, label, slug, children }) => {
 function Attributes({items}) {
   return (
     <Stack>
-        {items.map((item,index) => <Attribute {...item} />)}
+        {items.map((item,index) => <Attribute key={index} {...item} />)}
     </Stack>
   )
 }

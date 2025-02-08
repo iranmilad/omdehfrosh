@@ -1,11 +1,11 @@
+import Image1 from "../../assets/products/1.webp";
+import Image2 from "../../assets/products/2.webp";
+import Image3 from "../../assets/products/3.webp";
+import Image4 from "../../assets/products/4.webp";
+import Image5 from "../../assets/products/5.webp";
 import { shuffleArray } from "../../Libs/helper"; // ایمپورت تابع برای تصادفی‌سازی آرایه
-import { products } from "../data/products"; // ایمپورت داده‌های محصولات
-import Image1 from "../../assets/products/1.webp"
-import Image2 from "../../assets/products/2.webp"
-import Image3 from "../../assets/products/3.webp"
-import Image4 from "../../assets/products/4.webp"
-import Image5 from "../../assets/products/5.webp"
 import { comments } from "../data/comments";
+import { products } from "../data/products"; // ایمپورت داده‌های محصولات
 
 export default function Product(server, apiPrefix) {
   // ای‌پی‌آی برای دریافت محصولات مرتبط (GET)
@@ -16,7 +16,7 @@ export default function Product(server, apiPrefix) {
     return { message: "ok", data: shuffleArray(data) };
   });
 
-  server.post(`${apiPrefix}/product/:id`,(schema,{requstBody}) => {
+  server.get(`${apiPrefix}/product/:id`,(schema,{requstBody}) => {
     let data ={
       "id": 4,
       "general": {

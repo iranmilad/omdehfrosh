@@ -1,25 +1,16 @@
-import React, { useState } from "react";
 import {
-  Menu,
+  Anchor,
+  Box,
   Button,
   Container,
-  GridCol,
-  Grid,
-  Text,
-  Box,
-  useMantineTheme,
-  Portal,
+  Menu,
   Overlay,
-  Tabs,
-  Anchor,
-  Stack,
-  MenuTarget,
-  MenuItem,
+  Portal,
+  Stack
 } from "@mantine/core";
-import { IconMenu2 } from "@tabler/icons-react";
-import { CONTAINER_SIZES } from "../../Libs/theme";
-import MegaMenuTabs from "./tab";
+import React, { useState } from "react";
 import { NavLink } from "react-router";
+import MegaMenuTabs from "./tab";
 
 const MegaMenu = ({ menuItems }) => {
   const [menuOpened, setMenuOpened] = useState(false);
@@ -30,11 +21,11 @@ const MegaMenu = ({ menuItems }) => {
   return (
     <Box mt="lg">
 <Stack style={{ flexDirection: "row" }} align="center" gap="xl">
-  {menuItems?.map((item) => {
+  {menuItems?.map((item,index) => {
     if (item.mega) {
       return (
         <Menu
-          key={item.id} // Use item.id instead of index
+          key={index} // Use item.id instead of index
           width="100%"
           openDelay={100}
           closeDelay={200}
@@ -77,12 +68,12 @@ const MegaMenu = ({ menuItems }) => {
       );
     } else {
       return (
-        <React.Fragment key={item.id}> {/* Use React.Fragment with a key */}
-          {item.links.map((item2) => {
+        <React.Fragment key={index}> {/* Use React.Fragment with a key */}
+          {item.links.map((item2,index2) => {
             if (item2.links.length > 0) {
               return (
                 <Menu
-                  key={item2.id} // Use item2.id instead of index
+                  key={index2} // Use item2.id instead of index
                   trigger="hover"
                   styles={{ dropdown: { minWidth: 170, padding: "7px" } }}
                   position="bottom-start"
@@ -94,9 +85,9 @@ const MegaMenu = ({ menuItems }) => {
                     </Anchor>
                   </Menu.Target>
                   <Menu.Dropdown>
-                    {item2.links.map((child) => (
+                    {item2.links.map((child,childIndex) => (
                       <Menu.Item
-                        key={child.id} // Use child.id instead of index
+                        key={childIndex} // Use child.id instead of index
                         component={NavLink}
                         to={child.url}
                       >
@@ -109,6 +100,7 @@ const MegaMenu = ({ menuItems }) => {
             } else {
               return (
                 <Button
+                key={index2}
                 variant="transparent"
                 c="dark"
                 leftSection={<Box fz="20px" dangerouslySetInnerHTML={{__html: item2.icon}} />}

@@ -1,20 +1,19 @@
-import { useState } from "react";
-import { DirectionProvider, MantineProvider, createTheme } from "@mantine/core";
-import { queryClientConfig } from "./Libs/api";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import "./assets/fonts/iranyekan/font.css";
-import Theme from "./Libs/theme";
-import "@mantine/core/styles.css";
-import "./global.css";
-import { createBrowserRouter, Route, RouterProvider } from "react-router";
-import routes from "./routes";
-import { Provider } from "react-redux";
-import store from "./redux";
-import '@mantine/notifications/styles.css';
-import { Notifications } from '@mantine/notifications';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import '@mantine/charts/styles.css';
+import { createTheme, DirectionProvider, MantineProvider } from "@mantine/core";
+import "@mantine/core/styles.css";
+import { Notifications } from '@mantine/notifications';
+import '@mantine/notifications/styles.css';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Provider } from "react-redux";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import "./assets/fonts/iranyekan/font.css";
 import NoInternet from "./components/noInternet";
+import "./global.css";
+import { queryClientConfig } from "./Libs/api";
+import Theme from "./Libs/theme";
+import store from "./redux";
+import routes from "./routes";
 
 
 

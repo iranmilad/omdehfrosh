@@ -1,7 +1,7 @@
-import { ActionIcon, Tooltip,Text } from "@mantine/core";
+import { ActionIcon, Text, Tooltip } from "@mantine/core";
 import { shallowEqual, useLocalStorage } from "@mantine/hooks";
-import { IconSwitch3 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
+import { IconSwitch3 } from "@tabler/icons-react";
 import React from "react";
 import { useNavigate } from "react-router";
 
@@ -21,7 +21,7 @@ function CompareButton(props) {
     });
     notifications.show({
       message: (
-        <div>
+        <div onClick={() => navigate('/compare')}>
           <Text size="sm">محصول به مقایسه اضافه شد</Text>
           <Text size="xs">مشاهده</Text>
         </div>
@@ -30,9 +30,6 @@ function CompareButton(props) {
         cursor: "pointer",
       },
       position: "bottom-left",
-      onClick: () => {
-        navigate("/compare");
-      },
     });
   };
 

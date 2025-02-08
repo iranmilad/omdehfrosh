@@ -1,6 +1,6 @@
-import React from "react"
-import { Text,Grid,Paper,GridCol } from "@mantine/core";
-import XTitle from "../../../components/title";
+import { Grid, GridCol, Paper, Text } from "@mantine/core";
+import React from "react";
+import XTitle from "../../../../components/title";
 
 const Features = React.memo((props ) => {
     const {items} = props;
