@@ -13,6 +13,7 @@ import {
   Stack,
   Rating,
   NumberFormatter,
+  useMantineTheme,
 } from "@mantine/core";
 import { NavLink } from "react-router";
 import {
@@ -24,6 +25,7 @@ import {
   IconTruckLoading,
   IconCash,
   IconPercentage,
+  IconClock12,
 } from "@tabler/icons-react";
 import PriceText from "../../../../components/priceText";
 import { useDisclosure } from "@mantine/hooks";
@@ -31,6 +33,7 @@ import Title from "../../../../components/title";
 
 function Sellers({ items }) {
   const RowSeller = ({ item, index }) => {
+    const mantine = useMantineTheme()
     return (
       <Box key={index}>
         <Grid align="center">
@@ -55,7 +58,7 @@ function Sellers({ items }) {
               <Flex gap="xs">
                 <IconCash size={20} />
                 <Text size="sm" c="gray">
-                  پرداخت {item.payment_type}
+                  {item.payment_type === "Cash" ? "نقدی" : "پیش فروش"}
                 </Text>
               </Flex>
               <Flex gap="xs">
@@ -70,12 +73,12 @@ function Sellers({ items }) {
             <Flex gap="sm" align="center">
               <IconTruckDelivery size={20} />
               <Text size="sm" c="gray">
-                تحویل {item.buy_type}
+                فروش {item.buy_type === "Wholesale" ? "عمده" : "تکی"}
               </Text>
             </Flex>
           </GridCol>
           <GridCol span={{ lg: 3 }}>
-            <Flex align="center" justify="end" gap="lg">
+            <Flex align="start" justify="end" gap="lg">
               {item.price.discountPercent && (
                 <Badge
                   display="flex"
@@ -101,7 +104,10 @@ function Sellers({ items }) {
                   </Box>
                 ) : null}
               </Flex>
-              <Button>افزودن به سبد</Button>
+              <Flex align="end" direction="column" gap="xs">
+                <Button>افزودن به سبد</Button>
+                <CountdownTimer shamsiDate="1403/11/22 12:00:00" />
+              </Flex>
             </Flex>
           </GridCol>
         </Grid>

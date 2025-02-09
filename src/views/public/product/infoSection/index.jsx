@@ -10,7 +10,7 @@ function InfoSection() {
   return (
     <>
       <div className="lg:mt-8 lg:mb-8"></div>
-      <div className="">
+      <div className="p-3 border rounded-xl mx-auto divide-y lg:block">
         <PurchasePanel />
       </div>
       <Paper shadow="0" withBorder p="xs" mt="lg">

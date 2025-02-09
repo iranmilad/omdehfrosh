@@ -10,12 +10,14 @@ import RelatedProducts from "./relatedProducts";
 import Slider from "./slider";
 import SummaryEntry from "./summaryEntry";
 import Tab from "./Tab";
+import Sellers from "./sellers"
 
 const ProductContext = createContext();
 
 const Product = () => {
   const { slug } = useParams();
-  const [options, setOptions] = useState({});
+  const [options, setOptions] = useState([]);
+  let supplier = null;
   const isFirstRender = useIsFirstRender();
   const { isLoading, data } = useData({
     url: `/product/${slug}`,
@@ -26,14 +28,27 @@ const Product = () => {
 
   useEffect(() => {
     if(data?.combinations.length > 0){
-      const firstCombination = combinations[0];
-      const initialOptions = firstCombination.options.reduce((acc, option) => {
-        acc[option.id] = option.value;
-        return acc;
-      }, {});
-      setOptions(initialOptions);
+      const selectedComb = data?.combinations.filter(item => item.selected)[0];
+      setOptions(selectedComb.options);
     }
   },[isLoading])
+
+
+  if(options.length > 0 || !data?.suppliers){
+    const selectedOptionIds = options.map((option) => option.id);
+    
+    if(selectedOptionIds.length > 0){
+      // Find matching combinations
+      const matchingCombinations = data?.combinations.filter((combination) => {
+        // Extract the IDs from the combination's options
+        const combinationOptionIds = combination.options.map((option) => option.id);
+    
+        // Check if every selected option ID exists in the combination's options
+        return selectedOptionIds.every((id) => combinationOptionIds.includes(id));
+      });
+      supplier = matchingCombinations[0] ? matchingCombinations[0].suppliers : [];
+    }
+  }
 
   if (isLoading)
     return (
@@ -46,7 +61,7 @@ const Product = () => {
 
   return (
     <ProductContext.Provider
-      value={{ options, setOptions, combinations, isLoading, data, slug }}
+      value={{ options, setOptions, combinations, isLoading, data, slug,supplier }}
     >
       <div className="my-8 lg:my-10">
         <Paper pt="xl" px="xl">
@@ -63,7 +78,7 @@ const Product = () => {
             <div className="lg:w-3/12"><InfoSection  /></div>
           </div>
         </Paper>
-        {/* <Sellers items={data.sellers} /> */}
+        {supplier && <Sellers items={supplier} />}
         <Tab data={data} slug={slug} />
         <RelatedProducts slug={slug} />
       </div>
