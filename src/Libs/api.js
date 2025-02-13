@@ -13,7 +13,10 @@ export function useData({ url, params,queryKey,method = "get",bodyData, axiosOpt
 				data: bodyData,
 				...axiosOption
 			});
-			return data?.data;
+			if(data?.data) return data?.data;
+			else {
+				return data
+			}
 		},
 		staleTime: false,
 		refetchInterval: false,

@@ -43,37 +43,88 @@ export default function Cart(server, apiPrefix) {
     });
   
     server.post(`${apiPrefix}/cart/remove`, (schema, { requestBody }) => {
-        let { id } = JSON.parse(requestBody);
-        let response = { message: "ok", cart: [] };
+        let req = JSON.parse(requestBody);
+        // let response = { message: "ok", cart: [] };
+
+        console.log(req);
+
+        return {}
   
-        if (!id) {
-            return { message: "Invalid ID", cart: schema.carts.all().models };
-        }
+        // if (!id) {
+        //     return { message: "Invalid ID", cart: schema.carts.all().models };
+        // }
   
-        // حذف آیتم از سبد خرید
-        let item = schema.carts.find(id);
-        if (item) {
-            item.destroy();
-        }
+        // // حذف آیتم از سبد خرید
+        // let item = schema.carts.find(id);
+        // if (item) {
+        //     item.destroy();
+        // }
   
-        // دریافت سبد خرید جدید بعد از حذف
-        response.cart = schema.carts.all().models;
+        // // دریافت سبد خرید جدید بعد از حذف
+        // response.cart = schema.carts.all().models;
   
+        // response = {
+        //     "message": "ok",
+        //     "cart": [
+        //         {
+        //             "name": "دیجی کالا",
+        //             "image": "",
+        //             "productId": 4,
+        //             "attributes": ["آبی" , "سه ماهه"],
+        //             "combinationsID": 20,
+        //             "seller": {
+        //                 "id": 1,
+        //                 "label": "دیجیکالا"
+        //             },
+        //             "count": 3,
+        //             "price": {
+        //                 "regularPrice": 1000000,
+        //                 "discountedPrice": 950000,
+        //                 "discountPercent": 5
+        //             }
+        //         }
+        //     ],
+        //     "total": 15000000
+        // }
         return response;
     });
   
-    server.get(`${apiPrefix}/minicart`, (schema) => {
-        let cartItems = schema.carts.all().models.map(item => ({
-            id: item.id,
-            title: `محصول شماره ${item.productId}`, // عنوان آزمایشی
-            image: Image1, // تصویر آزمایشی
-            price: 1_000_000, // قیمت آزمایشی
-            quantity: item.count,
-        }));
+    server.get(`${apiPrefix}/cart`, (schema) => {
+        // let cartItems = schema.carts.all().models.map(item => ({
+        //     id: item.id,
+        //     title: `محصول شماره ${item.productId}`, // عنوان آزمایشی
+        //     image: Image1, // تصویر آزمایشی
+        //     price: 1_000_000, // قیمت آزمایشی
+        //     quantity: item.count,
+        // }));
   
-        let total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        // let total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   
-        return { message: "ok", data: { total, items: cartItems } };
+        // return { message: "ok", data: { total, items: cartItems } };
+
+        return {
+            "message": "ok",
+            "cart": [
+                {
+                    "name": "دیجی کالا",
+                    "image": Image1,
+                    "productId": 4,
+                    "attributes": ["آبی" , "سه ماهه"],
+                    "combinationsID": 19,
+                    "seller": {
+                        "id": 1,
+                        "label": "دیجیکالا"
+                    },
+                    "count": 3,
+                    "price": {
+                        "regularPrice": 1000000,
+                        "discountedPrice": 950000,
+                        "discountPercent": 5
+                    }
+                }
+            ],
+            "total": 15000000
+        }
     });
   }
   

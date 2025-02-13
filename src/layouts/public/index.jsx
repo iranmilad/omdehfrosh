@@ -14,6 +14,7 @@ import Header from "../../components/header";
 import { useData } from "../../Libs/api";
 import { setBootstrap } from "../../redux/global";
 import { PublicRoutes } from "../../routes/public";
+import InstallPWA from "../../components/installPWA";
 
 const Public = (props) => {
   const curr = useLocation();
@@ -78,10 +79,11 @@ const Public = (props) => {
             </>
           ) : null}
           <Header />
+          <InstallPWA />
           {curr.pathname === "/" ? (
             <Outlet />
           ) : (
-            <Container className="px-3 md:px-5 my-10">
+            <Container className="px-3 md:px-5 my-3 lg:my-10">
               <Outlet />
             </Container>
           )}

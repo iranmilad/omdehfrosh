@@ -7,12 +7,12 @@ const slice = createSlice({
   },
   reducers: {
     updateItem: (state, action) => {
-      const { id, quantity } = action.payload;
+      const { id, count } = action.payload;
       const existingItem = state.items.find((item) => item.id === id);
       if (existingItem) {
-        existingItem.quantity = quantity;
+        existingItem.count = count;
       } else {
-        state.items.push({ id, quantity });
+        state.items.push({ id, count });
       }
     },
     removeItem: (state, action) => {

@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Anchor,
+  Badge,
   Button,
   Center,
   Drawer,
@@ -11,10 +12,11 @@ import {
   NumberFormatter,
   ScrollArea,
   Stack,
-  Text
+  Text,
+  useMantineTheme
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconShoppingCart, IconTrash } from "@tabler/icons-react";
+import { IconShoppingCart, IconTrash, IconUser } from "@tabler/icons-react";
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router";
@@ -22,11 +24,12 @@ import { useData, useSend } from "../../Libs/api";
 import { setInitial } from "../../redux/cart";
 import InfoBox from "../InfoBox";
 
-const MiniBox = ({ id, title, image, price, quantity }) => {
+const MiniBox = ({ productId, name, image, price, count,attributes,seller,combinationsID }) => {
   const dispatch = useDispatch();
   const {mutateAsync,isPending} = useSend({url:"/cart/remove"});
+  const {primaryColor} = useMantineTheme();
   const removeItem = () => {
-    mutateAsync({id},{
+    mutateAsync({productId,combinationsID,sellerId: seller.id},{
       onSuccess:(data) => {
         if (data?.total) {
           dispatch(setInitial(data.items));
@@ -38,21 +41,30 @@ const MiniBox = ({ id, title, image, price, quantity }) => {
   }
   return (
     <Flex gap="5" pt="sm">
-      <Anchor component={NavLink} to={`product/${id}`}>
+      <Anchor component={NavLink} to={`product/${productId}`}>
         <Image src={image} w={80} h={80} fit="contain" radius="sm" />
       </Anchor>
-      <Flex gap="0" direction="column" flex="1">
+      <Flex gap="8" direction="column" flex="1">
         <Flex align="baseline" justify="space-between">
           <Text
             component={NavLink}
-            to={`product/${id}`}
+            to={`product/${productId}`}
             className="line-clamp-2"
           >
-            {title}
+            {name}
           </Text>
           <ActionIcon color="red" variant="light" loading={isPending} onClick={() => removeItem()}>
             <IconTrash size={16} />
           </ActionIcon>
+        </Flex>
+        <Flex gap="xs">
+          {attributes.map((item,index) => (
+            <Badge key={index} variant="light" color="dark" size="sm" >{item}</Badge>
+          ))}
+        </Flex>
+        <Flex c={primaryColor} align="center" gap="xs">
+          <IconUser size={14} />
+          <Text size="xs" component="span">{seller.label}</Text>
         </Flex>
         <Flex
           dir="ltr"
@@ -62,8 +74,8 @@ const MiniBox = ({ id, title, image, price, quantity }) => {
           direction="row"
           w="max-content"
         >
-          <NumberFormatter thousandSeparator value={price} />
-          <Text c="var(--mantine-primary-color-filled)">x {quantity}</Text>
+          <NumberFormatter thousandSeparator value={price.discountedPrice ? price.discountedPrice : price.regularPrice} />
+          <Text c="var(--mantine-primary-color-filled)">x {count}</Text>
         </Flex>
       </Flex>
     </Flex>
@@ -76,11 +88,11 @@ const MiniCart = () => {
   const ref = useRef();
   const items = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
-  const { data, isLoading } = useData({ url: "/minicart" ,queryKey:['']});
+  const { data, isLoading } = useData({ url: "/cart" ,queryKey:['']});
 
   useEffect(() => {
     if (data?.total) {
-      dispatch(setInitial(data.items));
+      dispatch(setInitial(data.cart));
     } else {
       dispatch(setInitial([]));
     }

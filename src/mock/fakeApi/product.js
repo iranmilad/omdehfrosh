@@ -137,8 +137,8 @@ export default function Product(server, apiPrefix) {
                         "delivery": "Area 1, Area 2",
                         "buy_type": "Retail",
                         "price": {
-                            "regularPrice": "100.00",
-                            "discountedPrice": "120.00",
+                            "regularPrice": 1_000_000,
+                            "discountedPrice": 950_000,
                             "discountPercent": null
                         },
                         "sku": "SKU-001",
@@ -148,7 +148,8 @@ export default function Product(server, apiPrefix) {
                         "rating": "4.50",
                         "reviews_count": 0,
                         "reviews": [],
-                        "selected": true
+                        "selected": true,
+                        "special_offer": "1403-12-11",
                     },
                     {
                         "id": 2,

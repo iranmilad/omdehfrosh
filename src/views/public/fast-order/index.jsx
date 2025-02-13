@@ -1,9 +1,9 @@
-import { useState, useEffect,useCallback } from "react";
+import { useState, useEffect,useCallback, useId } from "react";
 import { Table, Header, HeaderRow, Body, Row, HeaderCell, Cell } from "@table-library/react-table-library/table";
 import { useTheme } from "@table-library/react-table-library/theme";
 import { getTheme, DEFAULT_OPTIONS } from "@table-library/react-table-library/mantine";
 import { IconChevronDown, IconChevronLeft, IconOctahedronOff, IconSettings, IconShare, IconUserCircle } from "@tabler/icons-react";
-import { Button, Image, Modal, Checkbox, Group, Paper, Stack, Select, Text, Pagination, Anchor, ThemeIcon, NumberFormatter } from "@mantine/core";
+import { Button, Image, Modal, Checkbox, Group, Paper, Stack, Select, Text, Pagination, Anchor, ThemeIcon, NumberFormatter, Divider, Box, useMantineTheme } from "@mantine/core";
 import { CellTree, useTree } from "@table-library/react-table-library/tree";
 import { Virtualized } from "@table-library/react-table-library/virtualized";
 import XTitle from "../../../components/title";
@@ -17,6 +17,7 @@ import { NavLink } from "react-router";
 import { useMediaQuery } from '@mantine/hooks';
 import ShareModal from "./shareModal";
 import usePrint from "../../../hooks/usePrint"
+import PriceText from "../../../components/priceText";
 
 
 function FastOrder() {
@@ -36,8 +37,8 @@ function FastOrder() {
     sort: 'newest',
   });
   const [opened, setOpened] = useState(false);
-
   const isPrinting = usePrint();
+  const {primaryColor} = useMantineTheme();
 
   // Responsive breakpoints
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -117,7 +118,7 @@ function FastOrder() {
         <XTitle>سفارش سریع</XTitle>
         <ShareModal />
       </Group>
-      <Paper my="xl" id="fastorder-search">
+      <Paper mt={{base: "xs",md:"xl"}} mb="xl" id="fastorder-search">
         <SearchComponent
           filters={filters}
           setNodes={setNodes}
@@ -143,7 +144,7 @@ function FastOrder() {
           value={pageSize}
           w="100"
           data={[
-            { label: "10", value: "10" },
+            { label: "4", value: "4" },
             { label: "25", value: "25" },
             { label: "50", value: "50" },
             { label: "همه", value: "all" },
@@ -151,6 +152,7 @@ function FastOrder() {
           onChange={setPageSize}
         />
       </Group>
+      <Box bg="white" id="tables">
       {nodes ? (
         <Table
           id="fastorder-table"
@@ -173,10 +175,40 @@ function FastOrder() {
                   ))}
                 </HeaderRow>
               </Header>
+
+            </>
+          )}
+        </Table>
+      ) : null}
+      <Divider mt="md" variant="dashed" labelPosition="center" label={<Text component="span" c={primaryColor}>آیفون</Text>} styles={{label:{fontSize: 16}}} />
+      {nodes ? (
+        <Table
+          id="fastorder-table"
+          data={{ nodes }}
+          theme={theme}
+          tree={tree}
+          layout={{ isDiv: true, fixedHeader: true }}
+        >
+          {(tableList) => (
+            <>
+              <Box className="hidden">
+                <Header>
+                  <HeaderRow>
+                    {COLUMNS.map((column) => (
+                      <HeaderCell
+                        hide={visibleColumns.includes(column.key)}
+                        key={column.key}
+                      >
+                        {column.label}
+                      </HeaderCell>
+                    ))}
+                  </HeaderRow>
+                </Header>
+              </Box>
               <Body>
-                {tableList.map((item) => (
+                {tableList.map((item,index) => (
                   <TableRow
-                    key={item.id}
+                    key={index}
                     item={item}
                     columns={COLUMNS}
                     visibleColumns={visibleColumns}
@@ -184,11 +216,53 @@ function FastOrder() {
                     handleReplaceNode={handleReplaceNode}
                   />
                 ))}
-              </Body>
+              </Body>                  
             </>
           )}
         </Table>
       ) : null}
+      <Divider mt="md" variant="dashed" labelPosition="center" label={<Text component="span" c={primaryColor}>سامسونگ</Text>} styles={{label:{fontSize: 16}}} />
+      {nodes ? (
+        <Table
+          id="fastorder-table"
+          data={{ nodes }}
+          theme={theme}
+          tree={tree}
+          layout={{ isDiv: true, fixedHeader: true }}
+        >
+          {(tableList) => (
+            <>
+              <Box className="hidden">
+                <Header>
+                  <HeaderRow>
+                    {COLUMNS.map((column) => (
+                      <HeaderCell
+                        hide={visibleColumns.includes(column.key)}
+                        key={column.key}
+                      >
+                        {column.label}
+                      </HeaderCell>
+                    ))}
+                  </HeaderRow>
+                </Header>
+              </Box>
+              <Body>
+                {tableList.map((item,index) => (
+                  <TableRow
+                    key={index}
+                    item={item}
+                    columns={COLUMNS}
+                    visibleColumns={visibleColumns}
+                    selectedNodes={selectedNodes}
+                    handleReplaceNode={handleReplaceNode}
+                  />
+                ))}
+              </Body>                  
+            </>
+          )}
+        </Table>
+      ) : null}
+      </Box>
       {/* نمایش صفحه‌بندی در صورتی که pageSize مقدار "all" نباشد */}
       {pageSize !== "all" && (
         <Pagination
@@ -232,7 +306,7 @@ const TableRow = ({ item, columns, visibleColumns, selectedNodes, handleReplaceN
   const firstVisibleColumn = visibleCols[0]?.key; // Determine the first visible column
 
   return (
-    <Row key={item.id} item={displayItem} className={item.parentId ? "bg-gray-200" : ""}>
+    <Row item={displayItem} className={item.parentId ? "bg-gray-200" : ""}>
       {columns.map((column, index) => {
         const isHidden = visibleColumns.includes(column.key);
         if (isHidden) return null;
@@ -249,7 +323,7 @@ const TableRow = ({ item, columns, visibleColumns, selectedNodes, handleReplaceN
             content = <Attributes items={item.attributes} />;
             break;
           case "price":
-            content = <NumberFormatter value={displayItem.price} thousandSeparator />;
+            content = <PriceText>{displayItem.price}</PriceText>
             break;
           case "stock":
             content = `${displayItem.stock} عدد`;
@@ -287,7 +361,7 @@ const TableRow = ({ item, columns, visibleColumns, selectedNodes, handleReplaceN
           );
         }
 
-        return <Cell key={column.key} hide={isHidden}>{content}</Cell>;
+        return <Cell hide={isHidden}>{content}</Cell>;
       })}
     </Row>
   );

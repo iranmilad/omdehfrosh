@@ -46,7 +46,7 @@ const Product = () => {
         // Check if every selected option ID exists in the combination's options
         return selectedOptionIds.every((id) => combinationOptionIds.includes(id));
       });
-      supplier = matchingCombinations[0] ? matchingCombinations[0].suppliers : [];
+      supplier = matchingCombinations[0] ? matchingCombinations[0] : [];
     }
   }
 
@@ -78,7 +78,7 @@ const Product = () => {
             <div className="lg:w-3/12"><InfoSection  /></div>
           </div>
         </Paper>
-        {supplier && <Sellers items={supplier} />}
+        {supplier && <Sellers items={supplier.suppliers} />}
         <Tab data={data} slug={slug} />
         <RelatedProducts slug={slug} />
       </div>

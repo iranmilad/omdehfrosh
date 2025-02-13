@@ -1,18 +1,21 @@
-import { Badge, Button, Flex, Text } from "@mantine/core";
+import { Badge, Box, Button, Flex, NumberFormatter, Text } from "@mantine/core";
 import {
   IconBasket,
   IconBuildingStore,
   IconCash,
   IconTruckDelivery,
 } from "@tabler/icons-react";
-import { default as React, default as React, useState } from "react";
+import { default as React, default as React, useEffect, useState } from "react";
 import { NavLink } from "react-router";
 import { useProduct } from "..";
 import Counter from "../../../../components/counter";
 import PriceText from "../../../../components/priceText";
+import CountdownTimer from "../../../../components/countDownTimer";
+import { useSelector } from "react-redux";
 
 function PurchasePanel() {
-  const {supplier} = useProduct();
+  const { supplier,data } = useProduct();
+  const items = useSelector((state) => state.cart.items);
   const [cart, setCart] = useState(0);
   const addToCart = (value, max) => {
     let val = value;
@@ -44,9 +47,20 @@ function PurchasePanel() {
     );
   };
 
-  if(supplier === null) return <></>
+  useEffect(() => {
+    if(supplier){
+      items.map(item => {
+        if(+item.productId === +data.id && +item.combinationsID === +supplier.id && +item.seller.id === supplier.suppliers[0].id){
+          setCart(item.count)
+        }
+      })
+    }
+  },[supplier])
 
-  const {  id,
+  if (supplier === null) return <></>;
+
+  const {
+    id,
     name,
     rating,
     payment_type,
@@ -56,8 +70,9 @@ function PurchasePanel() {
     sku,
     inventory,
     min_order,
-    max_order} = supplier[0];
-
+    max_order,
+    special_offer,
+  } = supplier.suppliers[0];
 
   return (
     <>
@@ -115,7 +130,18 @@ function PurchasePanel() {
           </Flex>
         </Flex>
         {/* Price */}
-        <PriceText>{price.regularPrice}</PriceText>
+        <Flex direction="column" align="end">
+          <PriceText fontSize="25px">{price.regularPrice}</PriceText>
+          {price.discountedPrice ? (
+            <Box component="del" c="gray" fz="sm">
+              <NumberFormatter
+                value={price.discountedPrice}
+                thousandSeparator
+                style={{fontSize:"18px"}}
+              />
+            </Box>
+          ) : null}
+        </Flex>
         {/* Inventory */}
         <div className="text-xs text-red-400">
           {inventory > 0 ? `موجودی انبار ${inventory} عدد میباشد` : "ناموجود"}
@@ -138,26 +164,23 @@ function PurchasePanel() {
         </Flex>
       </Flex>
 
-      {cart > 0 ? (
-        <Counter
+      <Counter
           min={min_order}
           max={max_order}
           value={cart}
-          onChange={addToCart}
-          removeCart={removeCart}
-          count={cart}
+          withButton
         />
-      ) : (
-        <Button
-          fullWidth
-          leftSection={<IconBasket />}
-          h={45}
-          disabled={inventory === 0}
-          onClick={() => addToCart()}
-        >
-          افزودن به سبد خرید
-        </Button>
-      )}
+
+        <Box mt="sm">
+          {special_offer ? (
+            <Flex align="center" justify="space-between" c="red">
+              <Text fw="bold" size="sm">
+                فروش ویژه
+              </Text>
+              <CountdownTimer shamsiDate={special_offer} />
+            </Flex>
+          ) : null}
+        </Box>
 
       {/* Order Error Message */}
       {inventory === 0 && (

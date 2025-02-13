@@ -117,7 +117,7 @@ const Search = () => {
   }, [location.href]); // افزودن `opened` به وابستگی‌ها
 
   return (
-    <div className="relative w-[500px]">
+    <div className="relative w-[500px] z-50">
       <form onSubmit={(e) => submitFormSearch(e)}>
         <Input
           ref={inputRef} // مرجع اینپوت

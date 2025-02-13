@@ -1,25 +1,28 @@
-import { Grid, Title, Paper, GridCol, Flex, Text, Stack, Space, useMantineTheme, Divider, Button, Collapse, Input, Stepper } from "@mantine/core"
+import { Grid, Title, Paper, GridCol, Flex, Text, Stack, Space, useMantineTheme, Divider, Button, Collapse, Input, Stepper, Center, Loader } from "@mantine/core"
 import PriceText from "../../../components/priceText";
 import { useDisclosure } from "@mantine/hooks";
 import Product from "./product";
 import { IconCircleCheck, IconShoppingCart, IconUserCheck, IconWallet } from "@tabler/icons-react";
 import { NavLink } from "react-router";
 import PaymentCalc from "../../../components/payment_calc";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useData } from "../../../Libs/api";
+import { setInitial } from "../../../redux/cart";
 
 const Basket = (props) => {
-  const [opened,{toggle}] = useDisclosure(false);
+  const { data, isLoading } = useData({ url: "/cart" ,queryKey:['']});
+  const dispatch = useDispatch();
 
-  const handleCoupon = (value) => {
-    // code
-  }
+  useEffect(() => {
+    if (data?.total) {
+      dispatch(setInitial(data.cart));
+    } else {
+      dispatch(setInitial([]));
+    }
+  }, [isLoading]);
 
-  const updateProductCount = (value) => {
-    // code
-  }
-
-  const removeProduct = (value) => {
-    
-  }
+  if(isLoading) return <Center><Loader /></Center>
 
 
   return (
@@ -34,7 +37,7 @@ const Basket = (props) => {
         <Grid.Col span={{ lg: 9 }}>
           <Title fw="600" c="gray.8" mb="lg">محتویات سبد خرید</Title>
           <Stack>
-            <Product />
+            {data?.cart.map((item,index) => <Product key={index} {...item} />)}
           </Stack>
         </Grid.Col>
         <GridCol span={{ lg: 3 }}>

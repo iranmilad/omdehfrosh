@@ -12,7 +12,7 @@ function BottomNavigation({category,search,basket}) {
       w="100%"
       h="70"
       style={{
-        zIndex: 40,
+        zIndex: 100,
         boxShadow: "0 -15px 20px -15px rgba(0, 0, 0, 0.07)",
       }}
       pos="fixed"

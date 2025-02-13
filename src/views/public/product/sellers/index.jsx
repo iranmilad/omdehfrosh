@@ -30,10 +30,10 @@ import {
 import PriceText from "../../../../components/priceText";
 import { useDisclosure } from "@mantine/hooks";
 import Title from "../../../../components/title";
+import CountdownTimer from "../../../../components/countDownTimer";
 
 function Sellers({ items }) {
   const RowSeller = ({ item, index }) => {
-    const mantine = useMantineTheme()
     return (
       <Box key={index}>
         <Grid align="center">
@@ -106,7 +106,7 @@ function Sellers({ items }) {
               </Flex>
               <Flex align="end" direction="column" gap="xs">
                 <Button>افزودن به سبد</Button>
-                <CountdownTimer shamsiDate="1403/11/22 12:00:00" />
+                {item.special_offer ? <CountdownTimer shamsiDate={item.special_offer} /> : null}
               </Flex>
             </Flex>
           </GridCol>
