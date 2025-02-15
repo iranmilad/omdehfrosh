@@ -42,8 +42,3 @@ div[data-table-library_td] > div {
 /* #tables div.tr-header {
     display: none !important;
 } */
-
-
-#tables [data-table-library_tr-header]:first {
-    display: none !important;
-}

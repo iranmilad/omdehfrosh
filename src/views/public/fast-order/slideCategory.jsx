@@ -26,7 +26,7 @@ function SlideCategory({ items, click,clickType,tab }) {
   return (
     <Swiper modules={[FreeMode]} slidesPerView="auto">
       {items.map((item, index) => (
-        <SwiperSlide key={index} style={{ width: "120px", textAlign: "right" }}>
+        <SwiperSlide key={index} style={{ width: "100px", textAlign: "right" }}>
           <SingleCategory {...item} onClick={() => onClick(item.id)} active={tab[clickType].includes(`${item?.id}`)}  />
         </SwiperSlide>
       ))}
@@ -42,8 +42,8 @@ function SingleCategory({ size = "md", image, title, badge, icon, onClick,active
         <Indicator size={15} offset={13} label={badge}>
           <Box
             className={`border-2 border-solid rounded-full ${active ? 'border-[var(--mantine-primary-color-5)]' : 'border-gray-300'}`}
-            h={size === "md" ? 90 : 80}
-            w={size === "md" ? 90 : 80}
+            h={size === "md" ? 70 : 50}
+            w={size === "md" ? 70 : 50}
             p="4"
           >
             <Image
@@ -59,8 +59,8 @@ function SingleCategory({ size = "md", image, title, badge, icon, onClick,active
       {!badge && (
         <Box
           className={`border-2 border-solid rounded-full ${active ? 'border-[var(--mantine-primary-color-5)]' : 'border-gray-300'}`}
-          h={size === "md" ? 90 : 80}
-          w={size === "md" ? 90 : 80}
+          h={size === "md" ? 70 : 50}
+          w={size === "md" ? 70 : 50}
           p="4"
         >
           <Image

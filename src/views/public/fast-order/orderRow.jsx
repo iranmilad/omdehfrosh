@@ -60,14 +60,15 @@ function Attribute (props){
     case 'color':
       return (
         <Group gap="xs" >
-          <ColorSwatch size="20" color={value} />
-          <Text component="span" size="xs">{label}</Text>
+          <Tooltip label={label} >
+            <ColorSwatch size="20" color={value} />
+          </Tooltip>
         </Group>
       )
     case 'warranty':
       return (
         <Group gap="xs" >
-          <Tooltip label={label} visibleFrom="sm">
+          <Tooltip label={label}>
             <IconShieldCheck size={18} />
           </Tooltip>
         </Group>

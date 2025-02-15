@@ -6,7 +6,7 @@ import { shallowEqual } from "@mantine/hooks";
 import qs from "qs";
 import { useParams } from "react-router";
 
-const SearchComponent = ({ filters, setNodes, setTotalItems, pageSize, currentPage }) => {
+const SearchComponent = ({ filters, setNodes, }) => {
   const [searchType, setSearchType] = useState("brand"); // نوع جستجو: brand یا category
   const [brands, setBrands] = useState({ parent: [], categories: [] });
   const [category, setCategory] = useState({ parent: [], subCategory: [], brands: [] });
@@ -26,8 +26,6 @@ const SearchComponent = ({ filters, setNodes, setTotalItems, pageSize, currentPa
       thisFilter.brands = category.brands;
     }
     thisFilter.filters = filters;
-    thisFilter.pageSize = pageSize; // اضافه کردن اندازه صفحه
-    thisFilter.page = currentPage; // اضافه کردن صفحه فعلی
     if(id) thisFilter.userId = id;
     return {
       thisFilter,
@@ -36,7 +34,7 @@ const SearchComponent = ({ filters, setNodes, setTotalItems, pageSize, currentPa
         arrayFormat: "comma",
       }),
     };
-  }, [brands, category, searchType, filters, pageSize, currentPage]);
+  }, [brands, category, searchType, filters]);
 
   const queryKey = changeFilters().query;
 
@@ -52,7 +50,6 @@ const SearchComponent = ({ filters, setNodes, setTotalItems, pageSize, currentPa
   useMemo(() => {
     if (data) {
       setNodes(data.products);
-      setTotalItems(data.totalItems || 0); // مقدار کل محصولات را ذخیره کن
     }
   }, [data]);
 

@@ -1,21 +1,32 @@
-function gen(pageSize, currentPage) {
-  const totalProducts = 100; // تعداد کل محصولات
-  
-  // اگر pageSize برابر 'all' باشد، کل 100 محصول را برگردان
-  if (pageSize === "all") {
-      return {
-          products: Array(totalProducts).fill().map((_, index) => ({
-              id: index.toString(),
-              image: "https://placehold.co/600x400",
-              name: `آیفون 13 - ${index}`,
-              price: "25000000",
-              stock: "1",
-              minOrder: "2",
-              seller: {
-                id : 1,
+function generatePassword() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    let password = "";
+    for (let i = 0; i < 12; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+}
+
+function gen() {
+    const brands = [
+        { label: "آیفون", key: "apple" },
+        { label: "سامسونگ", key: "samsung" }
+    ];
+
+    const allNodes = brands.map(brand => ({
+        label: brand.label,
+        items: Array(5).fill().map((_, index) => ({
+            id: generatePassword(),
+            image: "https://placehold.co/600x400",
+            name: `${brand.label} مدل ${index}<br/>شیراز`,
+            price: "25",
+            stock: "1",
+            minOrder: "2",
+            seller: {
+                id: 1,
                 label: "دیجیکالا"
-              },
-              attributes:[
+            },
+            attributes: [
                 {
                     id: 1,
                     label: "آبی",
@@ -27,21 +38,21 @@ function gen(pageSize, currentPage) {
                     label: "گارانتی 3 ماهه",
                     type: "warranty"
                 }
-              ],
-              deliveryTime: "3",
-              action: 3,
-              nodes: Array(3).fill().map((_, nodeIndex) => ({
-                  id: `${index}-${nodeIndex}`,
-                  image: "https://placehold.co/600x400",
-                  name: `256 گیگابایت - ${nodeIndex}`,
-                  price: "25000000",
-                  stock: "1",
-                  minOrder: "2",
-                  seller: {
-                    id : 1,
+            ],
+            deliveryTime: "3",
+            action: 3,
+            nodes: Array(3).fill().map((_, nodeIndex) => ({
+                id: generatePassword(),
+                image: "https://placehold.co/600x400",
+                name: `256 گیگابایت - ${nodeIndex}`,
+                price: "25",
+                stock: "1",
+                minOrder: "2",
+                seller: {
+                    id: 1,
                     label: "دیجیکالا"
-                  },
-                  attributes:[
+                },
+                attributes: [
                     {
                         id: 1,
                         label: "قرمز",
@@ -53,91 +64,18 @@ function gen(pageSize, currentPage) {
                         label: "گارانتی 3 ماهه",
                         type: "warranty"
                     }
-                  ],
-                  deliveryTime: "3",
-                  action: 3,
-                  nodes: null,
-              })),
-          })),
-          totalItems: totalProducts,
-      };
-  }
+                ],
+                deliveryTime: "3",
+                action: 3,
+                nodes: null,
+            }))
+        }))
+    }));
 
-  // مقدار pageSize را به عدد تبدیل کن
-  const pageSizeNum = parseInt(pageSize, 10);
-  if (isNaN(pageSizeNum) || pageSizeNum <= 0) {
-      return { products: [], totalItems: totalProducts };
-  }
-
-  const startIndex = (currentPage - 1) * pageSizeNum;
-  const endIndex = startIndex + pageSizeNum;
-
-  // ایجاد لیست کلی محصولات
-  const allNodes = Array(totalProducts).fill().map((_, index) => ({
-      id: index.toString(),
-      image: "https://placehold.co/600x400",
-      name: `آیفون 13 - ${index}`,
-      price: "25000000",
-      stock: "1",
-      minOrder: "2",
-      seller: {
-        id : 1,
-        label: "دیجیکالا"
-      },
-      attributes:[
-        {
-            id: 1,
-            label: "آبی",
-            type: 'color',
-            value: '#2b7fff'
-        },
-        {
-            id: 2,
-            label: "گارانتی 3 ماهه",
-            type: "warranty"
-        }
-      ],
-      deliveryTime: "3",
-      action: 3,
-      nodes: Array(3).fill().map((_, nodeIndex) => ({
-          id: `${index}-${nodeIndex}`,
-          image: "https://placehold.co/600x400",
-          name: `256 گیگابایت - ${nodeIndex}`,
-          price: "25000000",
-          stock: "1",
-          minOrder: "2",
-          seller: {
-            id : 1,
-            label: "دیجیکالا"
-          },
-          attributes:[
-            {
-                id: 1,
-                label: "قرمز",
-                type: 'color',
-                value: '#fb2c36'
-            },
-            {
-                id: 2,
-                label: "گارانتی 3 ماهه",
-                type: "warranty"
-            }
-          ],
-          deliveryTime: "3",
-          action: 3,
-          nodes: null,
-      })),
-  }));
-
-  // برش داده‌های صفحه‌بندی‌شده
-  const paginatedNodes = allNodes.slice(startIndex, endIndex);
-
-  return {
-      products: paginatedNodes,
-      totalItems: totalProducts,
-  };
+    return {
+        products: allNodes,
+    };
 }
-
 
 export default function Fastorder(server, apiPrefix) {
   const categories = [
