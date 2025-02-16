@@ -27,6 +27,7 @@ function BrandSlider({ items }) {
     setIsBeginning(swiper.isBeginning);
     setIsEnd(swiper.isEnd);
   };
+
   return (
     <Paper px={0} py="lg">
       <Center>
@@ -38,10 +39,11 @@ function BrandSlider({ items }) {
         ref={sliderRef}
         slidesPerView="auto"
         spaceBetween={30}
+        loop={true}
         modules={[Navigation]}
         onSliderMove={handleSlideChange}
         onSlideChange={handleSlideChange}
-        style={{ position: "relative",marginTop: "35px" }}
+        style={{ position: "relative", marginTop: "35px" }}
       >
         {!isBeginning && (
           <ActionIcon
@@ -71,10 +73,20 @@ function BrandSlider({ items }) {
           items.children.map((item, index) => (
             <SwiperSlide
               key={index}
-              style={{ padding: "25px", width: "142px", height: "142px" }}
-              className={index !== items.children.length -1 ? "border-l border-slate-200" : ""}
+              style={{
+                padding: "25px",
+                paddingRight:0,
+                width: "100px",
+                height: "100px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxSizing: "border-box",
+              }}
+              className="border-l"
+              // className={index !== items.children.length - 1 ? "border-l border-slate-200" : ""}
             >
-              <NavLink to={item.url}>
+              <NavLink to={item.url} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Image w="100%" h="100%" fit="contain" src={item.image} alt={`برند ${index}`} />
               </NavLink>
             </SwiperSlide>
@@ -83,5 +95,6 @@ function BrandSlider({ items }) {
     </Paper>
   );
 }
+
 
 export default BrandSlider;

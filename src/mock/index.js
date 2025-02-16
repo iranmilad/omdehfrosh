@@ -22,7 +22,8 @@ import {
   AdvancedSearch,
   Cart,
   Fastorder,
-  Orders
+  Orders,
+  MyAccount
 } from "./fakeApi";
 const { apiPrefix } = appConfig;
 
@@ -64,6 +65,7 @@ function mockRunner({ environment }) {
       Cart(this,apiPrefix);
       Fastorder(this,apiPrefix);
       Orders(this,apiPrefix);
+      MyAccount(this,apiPrefix)
     },
   });
 }

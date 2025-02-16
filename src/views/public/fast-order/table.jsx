@@ -47,6 +47,8 @@ import usePrint from "../../../hooks/usePrint";
 import PriceText from "../../../components/priceText";
 import React from "react";
 import OrderRow, { Attributes } from "./orderRow";
+import { useFastOrder } from ".";
+import Counter from "../../../components/counter";
 
 const TableRow = ({
   item,
@@ -112,14 +114,7 @@ const TableRow = ({
             content = displayItem.deliveryTime;
             break;
           case "action":
-            content = (
-              <OrderRow
-                productId={item.id}
-                attributes={item.action}
-                seller={item.seller.id}
-                onReplace={() => handleReplaceNode(displayItem)}
-              />
-            );
+            content = (<Counter text="انتخاب" />);
             break;
           default:
             content = "";

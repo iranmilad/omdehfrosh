@@ -49,9 +49,9 @@ axiosInstance.interceptors.response.use(
           Cookies.remove("user");
         }
         // Redirect the user to the /login page if they are not on /login or /register
-        if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
-          window.location.href = "/login";
-        }
+        // if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+        //   window.location.href = "/login";
+        // }
         
       } else {
         // Show notification for all other errors

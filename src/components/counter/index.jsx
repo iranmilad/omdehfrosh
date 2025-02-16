@@ -16,15 +16,22 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { useSend } from "../../Libs/api";
+import { useCookies } from "react-cookie";
+import { useNavigate } from "react-router";
 
 const Counter = (props) => {
-  const { value, max, isPending, onChange, onRemove, withButton } = props;
+  const { value, max, isPending, onChange, onRemove, withButton,text } = props;
   const [count, setCount] = useState(+value || 0); // مقدار پیش‌فرض ۰ در نظر گرفته شده
+  const [cookies, setCookie] = useCookies(["user"]);
+  const navigate = useNavigate();
 
   const increment = () => handleChange(count + 1);
   const decrement = () => handleChange(count > 0 ? count - 1 : 0);
 
   const handleChange = (value) => {
+    if (!cookies.user && cookies?.user !== "") {
+      return navigate(`/login?redirect=${window.location.pathname}`, { replace: true });
+    }
     if (!isNaN(value) && +value >= 0) {
       setCount(value); // به‌روزرسانی وضعیت داخلی
       if (onChange) {
@@ -92,7 +99,9 @@ const Counter = (props) => {
             >
               <IconPlus size={15} />
             </ActionIcon>
-            {isPending || updateQuery.isPending || removeQuery.isPending ? <Loader size="md" w={35} /> : null}
+            {isPending || updateQuery.isPending || removeQuery.isPending ? (
+              <Loader size="md" w={35} />
+            ) : null}
             {!isPending || !updateQuery.isPending || !removeQuery.isPending ? (
               <Input
                 type="number"
@@ -141,11 +150,10 @@ const Counter = (props) => {
         </Flex>
       ) : (
         <Button
-          fullWidth
           h={45}
           onClick={() => handleChange(1)} // با کلیک، مقدار count به ۱ افزایش می‌یابد
         >
-          افزودن به سبد خرید
+          {text}
         </Button>
       )}
     </>

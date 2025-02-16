@@ -13,15 +13,16 @@ import {
   Button,
 } from "@mantine/core";
 import CartStepper from "../../../components/cartStepper";
-import { data, NavLink } from "react-router";
+import { data, NavLink, useNavigate } from "react-router";
 import PaymentCalc from "../../../components/payment_calc";
 import { useForm } from "@mantine/form";
 import { IconBuildingCommunity, IconCreditCard } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import {useSend} from '../../../Libs/api'
 import { useDispatch, useSelector } from "react-redux";
 import { toggleLoading } from "../../../redux/global";
 import { notifications } from '@mantine/notifications';
+import { useCookies } from "react-cookie";
 
 const gateways = [
   {
@@ -43,6 +44,9 @@ const PaymentMethod = () => {
   const [paymentURL,setPaymentURL]  = useState("");
   const [buttonLink , setButtonLink] = useState({onClick : () => SubmitCart()});
   const {mutateAsync} = useSend({url:"https://jsonplaceholder.typicode.com/posts"})
+  const [cookies, setCookie] = useCookies(["user"]);
+  const [pageActive,setPageActive] = useState(false);
+  const navigate = useNavigate();
   const form = useForm({
     initialValues: {
       gateway: "online",
@@ -80,6 +84,17 @@ const PaymentMethod = () => {
         }
     })
   }
+
+    useLayoutEffect(() => {
+    if (!cookies.user && cookies?.user !== "") {
+      navigate("/login",{replace:true});
+    }
+    else{
+        setPageActive(true);
+    }
+  }, []);
+
+  if(!pageActive) return <></>;
 
   return (
     <>

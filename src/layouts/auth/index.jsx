@@ -1,17 +1,21 @@
 import { Box, Breadcrumbs, Center, Container, Flex, Image, Loader, LoadingOverlay, Overlay, Paper, Text } from "@mantine/core";
 import { Suspense,useEffect } from "react";
-import { Outlet, useLocation } from "react-router";
+import { Outlet, useLocation, useNavigate } from "react-router";
 import routes from "../../routes";
 import { Helmet } from "react-helmet";
 import { useDispatch, useSelector } from "react-redux";
 import { useData } from "../../Libs/api";
 import { setBootstrap } from "../../redux/global";
 import Logo from "../../assets/logo.png"
+import { useLayoutEffect } from "react";
+import {useCookies}  from "react-cookie";
 
 const Auth = (props) => {
   const curr = useLocation();
   const loading = useSelector((state) => state.global.loading);
+  const [cookies, setCookie] = useCookies(["user"]);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {data,isLoading} = useData({url:"/bootstrap",queryKey:['bootstrap']});
   useEffect(() => {
     // پیدا کردن مسیر فعلی از لیست مسیرها
@@ -39,6 +43,12 @@ const Auth = (props) => {
       }
     }
   },[isLoading])
+
+  useEffect(() => {
+    if(cookies.user && cookies.user !== ""){
+      navigate('/',{replace:true})
+    }
+  },[])
 
   
   return (

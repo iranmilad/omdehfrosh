@@ -30,13 +30,14 @@ import {
 import { IMaskInput } from "react-imask";
 import iranCity from "../../../iran_cities_with_coordinates.json";
 import { useForm, yupResolver } from "@mantine/form";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState,useLayoutEffect } from "react";
 import { useForceUpdate } from "@mantine/hooks";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
 import { updateBasketInfo } from "../../../redux/basket-info";
 import {toggleLoading} from "../../../redux/global"
 import PaymentCalc from "../../../components/payment_calc";
+import { useCookies } from "react-cookie";
 
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("نام الزامی است"),
@@ -65,7 +66,10 @@ const BasketInfo = () => {
   let [cities, setCities] = useState([]);
   const defaultValues = useSelector((state) => state.basketInfo.values);
   const dispatch = useDispatch();
+  const [cookies, setCookie] = useCookies(["user"]);
+  const [pageActive,setPageActive] = useState(false);
   const navigate = useNavigate();
+
   const form = useForm({
     initialValues: {
       name: "",
@@ -117,6 +121,19 @@ const BasketInfo = () => {
       navigate('/payment')
     }
   };
+
+  useLayoutEffect(() => {
+    if (!cookies.user && cookies?.user !== "") {
+      navigate("/login",{replace:true});
+    }
+    else{
+        setPageActive(true);
+    }
+  }, []);
+
+  if(!pageActive) return <></>;
+
+  
   return (
     <>
       <Stepper mb="xl" active={1}>

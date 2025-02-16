@@ -1,10 +1,13 @@
 import {
   Box,
   Button,
+  Center,
   Flex,
   Grid,
   GridCol,
   Image,
+  Loader,
+  NumberFormatter,
   Paper,
   ScrollArea,
   Table,
@@ -23,23 +26,22 @@ import "swiper/css/free-mode";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import { FreeMode, Navigation, Thumbs } from "swiper/modules";
+import { useData } from "../../../Libs/api";
+import ProductBox from "../../../components/productBox";
 
 function Account_Index() {
   const { primaryColor } = useMantineTheme();
-  const rows = [
-    {
-      id: "1234",
-      date: "1403/12/12",
-      status: "درحال بررسی",
-      total: "12,000,000",
-    },
-    {
-      id: "1234",
-      date: "1403/12/12",
-      status: "درحال بررسی",
-      total: "12,000,000",
-    },
-  ];
+  const { isLoading, data } = useData({
+    url: "/myaccount",
+    queryKey: ["myaccount", true],
+  });
+
+  if (isLoading)
+    return (
+      <Center>
+        <Loader />
+      </Center>
+    );
   return (
     <>
       <Grid grow>
@@ -50,7 +52,13 @@ function Account_Index() {
             </div>
             <div className="text-zinc-50 space-y-1">
               <div>موجودی حساب</div>
-              <div>75,000 تومان</div>
+              <div>
+                <NumberFormatter
+                  value={data.account_balance}
+                  thousandSeparator
+                />{" "}
+                تومان
+              </div>
             </div>
           </div>
         </GridCol>
@@ -61,7 +69,7 @@ function Account_Index() {
             </div>
             <div className="text-zinc-100 space-y-1">
               <div>سفارشات کل</div>
-              <div>16</div>
+              <div>{data.all_orders}</div>
             </div>
           </div>
         </GridCol>
@@ -72,7 +80,7 @@ function Account_Index() {
             </div>
             <div className="text-zinc-100 space-y-1">
               <div>پیام ها</div>
-              <div>16</div>
+              <div>{data.tickets}</div>
             </div>
           </div>
         </GridCol>
@@ -100,27 +108,24 @@ function Account_Index() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {rows.map((item, index) => (
+            {data.orders.map((item, index) => (
               <ItemRow key={index} {...item} />
             ))}
           </Table.Tbody>
         </Table>
       </ScrollArea>
       <Title my="lg">محصولات علاقه مندی شما</Title>
-      <Swiper spaceBetween={10} navigation={false} slidesPerView={"auto"} style={{paddingBottom: "40px",paddingInlineStart: "10px"}}>
-        <SwiperSlide style={{width: "280px"}}>
-          <Paper shadow="xs" component={NavLink} to="/product/123">
-            <Image
-              src="https://placehold.co/100"
-              w="100%"
-              fit="contain"
-              h={250}
-              radius="lg"
-            />
-            <Title size="sm" my="md">گوشی موبایل آیفون 16 پرومکس</Title>
-            <Button size="xs" variant="light" radius="9999">مشاهده محصول</Button>
-          </Paper>
-        </SwiperSlide>
+      <Swiper
+        spaceBetween={10}
+        navigation={false}
+        slidesPerView={"auto"}
+        style={{ paddingBottom: "40px", paddingInlineStart: "10px" }}
+      >
+        {data.favorites.map((item, index) => (
+          <SwiperSlide key={index} style={{ width: "280px" }}>
+            <ProductBox {...item} />
+          </SwiperSlide>
+        ))}
       </Swiper>
     </>
   );

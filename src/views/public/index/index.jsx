@@ -16,21 +16,6 @@ import BrandSlider from "../../../components/brandSlider";
 import ProductCarousel from "../../../components/productCarousel";
 import Banner from "../../../components/banner";
 
-const items = [
-  {
-    url: "/link1",
-    mobileImage: Mobile1,
-    tabletImage: Desktop1,
-    desktopImage: Desktop1,
-  },
-  {
-    url: "/link2",
-    mobileImage: Mobile2,
-    tabletImage: Desktop2,
-    desktopImage: Desktop2,
-  },
-];
-
 function Home() {
   const { isLoading, data } = useData({ url: "/home", queryKey: ["home"] });
   if (isLoading && !data)
@@ -41,21 +26,42 @@ function Home() {
     );
   return (
     <>
-          <WideSlider items={items} />
-        <Container className="px-3 md:px-5 my-10">
-          <Stack gap={70}>
-            <BadgedSlider items={data.featured_promo} />
-            <Categories items={data.categories} />
-            <GridBanner items={data.banners} />
-            <ProductHighlightCard items={data.trendProducts} />
-            <ProductGrid items={data.productGrid} />
-            <BrandSlider items={data.brands} />
-          </Stack>
-            <Box mt="70">
-              <ProductCarousel style={{marginTop: "30px"}} title="محصولات منتخب" items={data.featured_products} />
-            </Box>
-            <Banner image={items[0]} />
-        </Container>
+      <Container className="px-3 md:px-5 my-10">
+        <Stack gap={70}>
+          {data.map((section, index) => {
+            switch (section.type) {
+              case "wideslider":
+                return <WideSlider key={index} items={section.data} />
+              case "featured_promo":
+                return <BadgedSlider key={index} items={section.data} />;
+              case "categories":
+                return <Categories key={index} items={section.data} />;
+              case "banners":
+                return <GridBanner key={index} items={section.data} />;
+              case "trendProducts":
+                return (
+                  <ProductHighlightCard key={index} items={section.data} />
+                );
+              case "productGrid":
+                return <ProductGrid key={index} items={section.data} />;
+              case "brands":
+                return <BrandSlider key={index} items={section.data} />;
+              case "featured_products":
+                return (
+                  <Box key={index}>
+                    <ProductCarousel
+                      style={{ marginTop: "30px" }}
+                      title="محصولات منتخب"
+                      items={section.data}
+                    />
+                  </Box>
+                );
+              default:
+                return null;
+            }
+          })}
+        </Stack>
+      </Container>
     </>
   );
 }

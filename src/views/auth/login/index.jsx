@@ -26,6 +26,7 @@ import { useNavigate } from "react-router";
 import * as yup from 'yup';
 import { yupResolver } from 'mantine-form-yup-resolver';
 import { useSelector } from "react-redux";
+import QueryString from "qs";
 
 const validationSchema = yup.object().shape({
   mobile: yup
@@ -46,6 +47,7 @@ const Login = () => {
   const [cookies, setCookie] = useCookies(["user"]);
   const bootstrap = useSelector((state) => state.global.bootstrap);
   const navigate = useNavigate();
+  const redirectURL = QueryString.parse(location.search);
   const { mutateAsync, isPending,data } = useSend({ url: "auth/sms/" });
   const sendCode = useSend({ url: "auth/login/" });
   const form = useForm({
@@ -98,13 +100,15 @@ const Login = () => {
           }
           else{
             if(data.user.status === 'active'){
-              console.log(data.user)
               setType("success")
               setCookie("user",data.token,{
                 path:"/",
                 maxAge: data.maxAge
               });
               setTimeout(() => {
+                if(redirectURL['?redirect']){
+                  navigate(redirectURL['?redirect'],{replace:true})
+                }
                 navigate("/")
               },2000)
             }

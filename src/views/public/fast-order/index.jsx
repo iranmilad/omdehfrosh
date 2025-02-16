@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useId, createContext } from "react";
+import { useState, useEffect, useCallback, useId, createContext, useContext, useMemo } from "react";
 import XTitle from "../../../components/title";
 import OrderRow, { Attributes } from "./orderRow";
 import Filters from "./filters";
@@ -40,11 +40,16 @@ function FastOrder() {
   });
   const [opened, setOpened] = useState(false);
 
+  let priceFormatLabel = 'تومان';
+  if(filters.priceFormat === "tooman") priceFormatLabel = "تومان";
+  else if(filters.priceFormat === "hezar") priceFormatLabel = "هزار تومان";
+  else priceFormatLabel = "میلیون تومان";
+
   // Table columns
   const COLUMNS = [
     { key: "image", label: "تصویر" },
     { key: "name", label: "نام کالا" },
-    { key: "price", label: "قیمت" },
+    { key: "price", label: <Flex gap={2} align="start" justify="end" direction="column"><Text component="span">قیمت</Text> <Text size="xs">{priceFormatLabel}</Text></Flex> },
     { key: "attributes", label: "ویژگی ها" },
     { key: "stock", label: "موجودی" },
     { key: "minOrder", label: "حداقل سفارش" },
@@ -57,7 +62,7 @@ function FastOrder() {
   const handleSave = () => setOpened(false);
 
   return (
-    <FastOrderContext.Provider value={{visibleColumns,setVisibleColumns}}>
+    <FastOrderContext.Provider value={{visibleColumns,setVisibleColumns,filters}}>
       <Group justify="space-between" align="center" id="fastorder-top">
         <XTitle>سفارش سریع</XTitle>
         <ShareModal />
@@ -124,5 +129,7 @@ function FastOrder() {
     </FastOrderContext.Provider>
   );
 }
+
+export const useFastOrder = () => useContext(FastOrderContext)
 
 export default FastOrder;
