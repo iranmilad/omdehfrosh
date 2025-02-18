@@ -5,11 +5,13 @@ import { Center, Loader, LoadingOverlay, Space, Stack, Tabs } from "@mantine/cor
 import { shallowEqual } from "@mantine/hooks";
 import qs from "qs";
 import { useParams } from "react-router";
+import { useFastOrder } from ".";
 
 const SearchComponent = ({ filters, setNodes, }) => {
   const [searchType, setSearchType] = useState("brand"); // نوع جستجو: brand یا category
   const [brands, setBrands] = useState({ parent: [], categories: [] });
   const [category, setCategory] = useState({ parent: [], subCategory: [], brands: [] });
+  const {setFilterValues} = useFastOrder();
   const url = "/fastorder";
   const {id} = useParams();
 
@@ -50,6 +52,7 @@ const SearchComponent = ({ filters, setNodes, }) => {
   useMemo(() => {
     if (data) {
       setNodes(data.products);
+      setFilterValues(data.filters)
     }
   }, [data]);
 

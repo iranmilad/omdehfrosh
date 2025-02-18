@@ -23,7 +23,7 @@ export default function Product(server, apiPrefix) {
             "slug": null,
             "title": "پرده جدید 4",
             "english_title": "iphone 13 pro 256 zaa black",
-            "addedToFavorite": false,
+            "addedToFavorite": true,
             "images": [
                 Image1,
                 Image2,

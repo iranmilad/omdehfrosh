@@ -28,7 +28,10 @@ const Product = () => {
 
   useEffect(() => {
     if(data?.combinations.length > 0){
-      const selectedComb = data?.combinations.filter(item => item.selected)[0];
+      let selectedComb = data?.combinations.filter(item => item.selected);
+      if(selectedComb.length === 0){
+        selectedComb = data?.combinations[0]
+      }
       setOptions(selectedComb.options);
     }
   },[isLoading])
@@ -59,6 +62,8 @@ const Product = () => {
 
   if (!isLoading && !data) return <InfoBox>چنین محصولی یافت نشد</InfoBox>;
 
+  console.log(data.general.images)
+
   return (
     <ProductContext.Provider
       value={{ options, setOptions, combinations, isLoading, data, slug,supplier }}
@@ -80,7 +85,7 @@ const Product = () => {
         </Paper>
         {supplier && <Sellers items={supplier.suppliers} />}
         <Tab data={data} slug={slug} />
-        <RelatedProducts slug={slug} />
+        {/* <RelatedProducts slug={slug} /> */}
       </div>
     </ProductContext.Provider>
   );

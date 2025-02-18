@@ -20,6 +20,7 @@ import { useForm } from "@mantine/form";
 import { IconFilter } from "@tabler/icons-react";
 import iranStates from "../../../Libs/iranStates";
 import { shallowEqual } from "@mantine/hooks";
+import { useFastOrder } from ".";
 
 const colors = [
   { label: "قرمز", value: "#FF0000" },
@@ -107,6 +108,7 @@ const ColorCombobox = ({ colors, ...props }) => {
 };
 
 function Filters({ setFilters }) {
+  const {filterValues} = useFastOrder();
   const form = useForm({
     initialValues: {
       color: "all",
@@ -178,18 +180,12 @@ function Filters({ setFilters }) {
                 ]}
                 {...form.getInputProps("minStock")}
               />
-              <ColorCombobox colors={colors} {...form.getInputProps("color")} />
+              <ColorCombobox colors={filterValues.colors} {...form.getInputProps("color")} />
               <Select
                 label="تامین کننده"
                 searchable
                 clearable
-                data={[
-                  { label: "دیجیکالا", value: "1000" },
-                  { label: "خانومی", value: "1001" },
-                  { label: "رونیکس", value: "1002" },
-                  { label: "آروا", value: "1003" },
-                  { label: "ایمالز", value: "1004" },
-                ]}
+                data={filterValues.sellers}
                 {...form.getInputProps("supplier")}
               />
               <Select

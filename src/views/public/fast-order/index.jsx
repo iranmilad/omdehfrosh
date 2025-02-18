@@ -27,6 +27,7 @@ function FastOrder() {
   const [nodes, setNodes] = useState(null);
   const [pageSize, setPageSize] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterValues,setFilterValues] = useState({colors:[],sellers:[]});
   const [filters, setFilters] = useState({
     color: "all",
     province: "all",
@@ -62,7 +63,7 @@ function FastOrder() {
   const handleSave = () => setOpened(false);
 
   return (
-    <FastOrderContext.Provider value={{visibleColumns,setVisibleColumns,filters}}>
+    <FastOrderContext.Provider value={{visibleColumns,setVisibleColumns,filters,filterValues,setFilterValues}}>
       <Group justify="space-between" align="center" id="fastorder-top">
         <XTitle>سفارش سریع</XTitle>
         <ShareModal />
@@ -92,14 +93,14 @@ function FastOrder() {
         <Paper p={0} className="overflow-hidden" bg="white" id="tables">
           <FastTable type="head" COLUMNS={COLUMNS} nodes={nodes[0].items.slice(0,1)} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
           {nodes.map((item, index) => (
-            <>
+            <React.Fragment key={index}>
               <Flex h={40} align="center" justify="center" bg="#e5e7eb">
                 <Text size="18px" c="dark">
                   {item.label}
                 </Text>
               </Flex>
-              <FastTable type="data" COLUMNS={COLUMNS} nodes={item.items} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
-            </>
+              <FastTable keyIndex={index} setNodes={setNodes} type="data" COLUMNS={COLUMNS} nodes={item.items} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+            </React.Fragment>
           ))}
         </Paper>
       ) : null}

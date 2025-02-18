@@ -130,6 +130,45 @@ export default function Fastorder(server, apiPrefix) {
           }
       }
 
+      const sellers = [
+        { label: "دیجیکالا", value: "1" },
+        { label: "باسلام", value: "2" },
+        { label: "زنبیل", value: "3" },
+        { label: "ترب", value: "4" },
+        { label: "سورنا", value: "5" },
+        { label: "چاره", value: "6" },
+        { label: "ادبازار", value: "7" },
+        { label: "کالا 118", value: "8" },
+        { label: "مشهد کالا", value: "9" },
+        { label: "فروشگاه اینترنتی ایمالز", value: "10" },
+        { label: "شیکسون", value: "11" },
+        { label: "پخش کالای مرکزی", value: "12" },
+        { label: "ایران بازار", value: "13" },
+        { label: "دیجی استایل", value: "14" },
+        { label: "مدیسه", value: "15" }
+    ];
+
+    const colors = [
+        { label: "قرمز", value: "#EF4444" }, // Red-500
+        { label: "نارنجی", value: "#F97316" }, // Orange-500
+        { label: "کهربایی", value: "#F59E0B" }, // Amber-500
+        { label: "زرد", value: "#EAB308" }, // Yellow-500
+        { label: "سبز لیمویی", value: "#84CC16" }, // Lime-500
+        { label: "سبز", value: "#22C55E" }, // Green-500
+        { label: "فیروزه‌ای", value: "#14B8A6" }, // Teal-500
+        { label: "آبی روشن", value: "#0EA5E9" }, // Sky-500
+        { label: "آبی", value: "#3B82F6" }, // Blue-500
+        { label: "بنفش", value: "#8B5CF6" }, // Purple-500
+        { label: "صورتی", value: "#EC4899" }, // Pink-500
+        { label: "رز", value: "#F43F5E" } // Rose-500
+      ];
+
+      
+      data.filters = {
+        colors,
+        sellers
+      }
+
       return {
           message: "ok",
           data,

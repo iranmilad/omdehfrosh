@@ -64,6 +64,8 @@ const TableRow = ({
   );
   const firstVisibleColumn = visibleCols[0]?.key; // Determine the first visible column
 
+  console.log(item)
+
   return (
     <Row item={displayItem} className={`${item.parentId ? "bg-gray-200" : ""} max-w-16`}>
       {columns.map((column, index) => {
@@ -80,7 +82,7 @@ const TableRow = ({
             );
             break;
           case "name":
-            content = <Text component="span" size="sm" dangerouslySetInnerHTML={{__html:displayItem.name}} />;
+            content = <Text className="text-xs md:text-sm" component="span" dangerouslySetInnerHTML={{__html:displayItem.name}} />;
             break;
           case "attributes":
             content = <Attributes items={item.attributes} />;
@@ -114,7 +116,7 @@ const TableRow = ({
             content = displayItem.deliveryTime;
             break;
           case "action":
-            content = (<Counter text="انتخاب" />);
+            content = (<Counter text="انتخاب" withButton onChange={() => handleReplaceNode(displayItem)} />);
             break;
           default:
             content = "";
@@ -128,7 +130,7 @@ const TableRow = ({
           );
         }
 
-        return <Cell hide={isHidden}>{content}</Cell>;
+        return <Cell key={index} hide={isHidden}>{content}</Cell>;
       })}
     </Row>
   );
@@ -136,10 +138,12 @@ const TableRow = ({
 
 const FastTable = ({
   nodes,
+  setNodes,
   COLUMNS,
   type,
   setVisibleColumns,
   visibleColumns,
+  keyIndex
 }) => {
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -170,24 +174,26 @@ const FastTable = ({
   }, [isMobile, isTablet, isPrinting]);
 
   // Handle replacing a node in the tree
-  const handleReplaceNode = useCallback(
-    (subNode) => {
-      let originalSub = {};
-      const newNodes = nodes.map((node) => {
-        if (node.id === subNode.parentNode.id) {
-          const newParent = { ...node, nodes: null };
-          const index = node.nodes.findIndex((item) => item.id === subNode.id);
-          originalSub = node.nodes[index];
-          node.nodes[index] = newParent;
-          originalSub.nodes = node.nodes;
-          return originalSub;
-        }
-        return node;
-      });
-      setNodes(newNodes);
-    },
-    [nodes]
-  );
+  const handleReplaceNode = (subNode) => {
+    let originalSub = {};
+    const newNodes = nodes.map((node) => {
+      if (node.id === subNode.parentNode.id) {
+        const newParent = { ...node, nodes: null };
+        const index = node.nodes.findIndex((item) => item.id === subNode.id);
+        originalSub = node.nodes[index];
+        node.nodes[index] = newParent;
+        originalSub.nodes = node.nodes;
+        return originalSub;
+      }
+      return node;
+    });
+    setNodes(val => {
+      const newState = [...val]; // Create a shallow copy
+      newState[keyIndex] = { ...newState[keyIndex], items: newNodes }; // Copy and update the specific index
+      return newState;
+    });    
+  };
+    
 
   // Initialize tree
 
@@ -220,7 +226,7 @@ const FastTable = ({
               <HeaderRow>
                 {COLUMNS.map((column) => (
                   <HeaderCell
-                    className={`${column.key === "price" ? "max-w-max" : ""}`}
+                    className={`${column.key === "price" ? "max-w-max" : ""} text-xs md:text-sm`}
                     hide={visibleColumns.includes(column.key)}
                     key={column.key}
                   >

@@ -49,7 +49,7 @@ function OrderRow({ id = 0, attributes, inventory = 2,seller, onReplace }) {
 export function Attributes({items}){
   return (
     <Stack gap="xs">
-      {items.map(it => <Attribute {...it} />)}
+      {items.map((it,index) => <Attribute key={index} {...it} />)}
     </Stack>
   )
 }

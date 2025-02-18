@@ -1,88 +1,67 @@
-import { useState } from "react";
-import {
-  ActionIcon,
-  Button,
-  ButtonGroup,
-  Flex,
-  Input,
-  Loader,
-  Text,
-  Tooltip,
-} from "@mantine/core";
-import {
-  IconChartArrowsVertical,
-  IconMinus,
-  IconPlus,
-  IconTrash,
-} from "@tabler/icons-react";
+import { ActionIcon, Button, Flex, Input, Loader } from "@mantine/core";
+import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useSend } from "../../Libs/api";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router";
+import { setInitial, updateItem, removeItem } from "../../redux/cart";
+import { useDispatch, useSelector } from "react-redux";
 
 const Counter = (props) => {
-  const { value, max, isPending, onChange, onRemove, withButton,text } = props;
-  const [count, setCount] = useState(+value || 0); // مقدار پیش‌فرض ۰ در نظر گرفته شده
-  const [cookies, setCookie] = useCookies(["user"]);
+  const { productId, attributes, seller, withButton,onChange,removeFunc, text = "افزودن به سبد خرید", fullWidth = false } = props;
+  const [cookies] = useCookies(["user"]);
   const navigate = useNavigate();
-
-  const increment = () => handleChange(count + 1);
-  const decrement = () => handleChange(count > 0 ? count - 1 : 0);
-
-  const handleChange = (value) => {
-    if (!cookies.user && cookies?.user !== "") {
-      return navigate(`/login?redirect=${window.location.pathname}`, { replace: true });
-    }
-    if (!isNaN(value) && +value >= 0) {
-      setCount(value); // به‌روزرسانی وضعیت داخلی
-      if (onChange) {
-        onChange(value); // ارسال مقدار به بیرون
-      } else if (withButton) {
-        update(value); // ارسال درخواست به سرور
-      }
-    }
-  };
-
+  const dispatch = useDispatch();
   const updateQuery = useSend({ url: "/cart/update" });
   const removeQuery = useSend({ url: "/cart/remove" });
 
-  const update = (value) => {
+  // مقدار count از Redux گرفته می‌شود
+  const cartItem = useSelector((state) => 
+    state.cart.items?.find(item => 
+      +item.productId === +productId &&
+      +item.combinationsID === +attributes &&
+      +item.seller.id === +seller
+    )
+  );
+  const count = cartItem ? cartItem.count : 0;
+
+  const updateCart = (value) => {
     updateQuery.mutateAsync(
       {
-        productId: 1,
-        combinationsID: 1,
-        sellerId: 1,
+        productId,
+        attributes,
+        seller,
         count: value,
       },
       {
         onSuccess: (data) => {
           if (data?.max) {
-            setCount(data.max);
           } else if (!data?.error) {
-            setCount(value);
+            dispatch(setInitial(data.cart));
+          }
+          // Call onChange after successful update
+          if (onChange) {
+            onChange(value, data); // Pass the updated value and server response data
           }
         },
       }
     );
   };
 
-  const remove = () => {
-    removeQuery.mutateAsync(
-      {
-        productId: 1,
-        combinationsID: 1,
-        sellerId: 1,
-      },
-      {
-        onSuccess: (data) => {
-          if (!data?.error) {
-            setCount(0); // مقدار count را به ۰ تنظیم می‌کند
-            if (onRemove) {
-              onRemove(); // اطلاع به بیرون در صورت حذف
-            }
-          }
-        },
+  const removeFromCart = (query) => {
+    removeQuery.mutateAsync({
+      productId,
+      attributes,
+      seller,
+    },{onSuccess:(data) => {
+      if(!data.error){
+        if(removeFunc){
+          removeFunc()
+        }
+        else{
+          dispatch(setInitial(data.cart));
+        }
       }
-    );
+    }});
   };
 
   return (
@@ -90,69 +69,35 @@ const Counter = (props) => {
       {count > 0 ? (
         <Flex align="center" direction="column" gap="0">
           <Flex align="center" gap="4">
-            <ActionIcon
-              size="md"
-              radius="999999"
-              variant="light"
-              color="green"
-              onClick={increment}
-            >
+            <ActionIcon size="md" radius="999999" variant="light" color="green" onClick={() => updateCart(count + 1)}>
               <IconPlus size={15} />
             </ActionIcon>
-            {isPending || updateQuery.isPending || removeQuery.isPending ? (
+
+            {updateQuery.isPending || removeQuery.isPending ? (
               <Loader size="md" w={35} />
-            ) : null}
-            {!isPending || !updateQuery.isPending || !removeQuery.isPending ? (
-              <Input
-                type="number"
-                w={35}
-                styles={{ input: { textAlign: "center" } }}
-                variant="unstyled"
-                value={count}
-                readOnly
-                px={0}
-              />
-            ) : null}
+            ) : (
+              <Input type="number" w={35} styles={{ input: { textAlign: "center" } }} variant="unstyled" value={count} readOnly px={0} />
+            )}
+
             {count > 1 ? (
-              <ActionIcon
-                size="md"
-                radius="999999"
-                variant="light"
-                color="red"
-                onClick={decrement}
-              >
+              <ActionIcon size="md" radius="999999" variant="light" color="red" onClick={() => updateCart(count - 1)}>
                 <IconMinus size={15} />
               </ActionIcon>
             ) : (
-              <ActionIcon
-                radius="999999"
-                size="md"
-                variant="light"
-                color="red"
-                onClick={remove}
-              >
+              <ActionIcon radius="999999" size="md" variant="light" color="red" onClick={removeFromCart}>
                 <IconTrash size={15} />
               </ActionIcon>
             )}
           </Flex>
+
           {withButton && (
-            <Button
-              p={0}
-              px={4}
-              h={15}
-              variant="transparent"
-              size="10px"
-              onClick={() => handleChange(max)}
-            >
+            <Button p={0} px={4} h={15} variant="transparent" size="10px" onClick={() => updateCart(10)}>
               حداکثر
             </Button>
           )}
         </Flex>
       ) : (
-        <Button
-          h={45}
-          onClick={() => handleChange(1)} // با کلیک، مقدار count به ۱ افزایش می‌یابد
-        >
+        <Button fullWidth={fullWidth} size="xs" h={35} onClick={() => updateCart(1)}>
           {text}
         </Button>
       )}

@@ -15,47 +15,6 @@ import { useSelector } from "react-redux";
 
 function PurchasePanel() {
   const { supplier,data } = useProduct();
-  const items = useSelector((state) => state.cart.items);
-  const [cart, setCart] = useState(0);
-  const addToCart = (value, max) => {
-    let val = value;
-    if (!value) val = cart + 1;
-    updateCart.mutateAsync(
-      { productId: id, attributes: [1, 2], seller: sku, count: val, max },
-      {
-        onSuccess: (data) => {
-          if (data.error) {
-          } else {
-            if (data?.max) setCart(data.max);
-            else setCart(val);
-          }
-        },
-      }
-    );
-  };
-  const removeCart = () => {
-    updateCart.mutateAsync(
-      { productId: id, seller: sku, count: 0 },
-      {
-        onSuccess: (data) => {
-          if (data.error) {
-          } else {
-            setCart(0);
-          }
-        },
-      }
-    );
-  };
-
-  useEffect(() => {
-    if(supplier){
-      items.map(item => {
-        if(+item.productId === +data.id && +item.combinationsID === +supplier.id && +item.seller.id === supplier.suppliers[0].id){
-          setCart(item.count)
-        }
-      })
-    }
-  },[supplier])
 
   if (supplier === null) return <></>;
 
@@ -167,8 +126,11 @@ function PurchasePanel() {
       <Counter
           min={min_order}
           max={max_order}
-          value={cart}
+          fullWidth
           withButton
+          productId={data.id}
+          seller={id}
+          attributes={+supplier.id}
         />
 
         <Box mt="sm">
