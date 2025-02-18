@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "proxy": "https://panel.j2b.market/api",
   "scripts": {
     "dev": "rsbuild dev --env-mode production",
     "build": "rsbuild build",
