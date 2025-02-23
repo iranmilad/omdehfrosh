@@ -62,6 +62,17 @@ function FastOrder() {
   // Handle saving column visibility settings
   const handleSave = () => setOpened(false);
 
+  
+  const handleVisibleColumnsChange = (event, columnKey) => {
+    const isChecked = event.target.checked; // true = hiding, false = showing
+    setVisibleColumns((prev) =>
+      isChecked
+        ? prev.filter((key) => key !== columnKey) // Remove from visible (hide)
+        : [...prev, columnKey] // Add to visible (show)
+    );
+  };
+
+
   return (
     <FastOrderContext.Provider value={{visibleColumns,setVisibleColumns,filters,filterValues,setFilterValues}}>
       <Group justify="space-between" align="center" id="fastorder-top">
@@ -86,7 +97,7 @@ function FastOrder() {
           onClick={() => setOpened(true)}
           py={0}
         >
-          پنهان کردن ستون‌ها
+          نمایش ستون‌ها
         </Button>
       </Group>
       {nodes !== null ? (
@@ -108,25 +119,17 @@ function FastOrder() {
       <Modal
         opened={opened}
         onClose={() => setOpened(false)}
-        title="پنهان کردن ستون‌ها"
+        title="نمایش دادن ستون‌ها"
       >
-        {/* needs to be updated */}
         <Stack>
-          {COLUMNS.map((column) => (
-            <Checkbox
-              key={column.key}
-              label={column.label}
-              checked={visibleColumns.includes(column.key)}
-              onChange={(event) =>
-                setVisibleColumns((val) =>
-                  val.includes(column.key)
-                    ? val.filter((v) => v !== column.key)
-                    : [...val, column.key]
-                )
-              }
-            />
-
-          ))}
+        {COLUMNS.map((column) => (
+          <Checkbox
+            key={column.key}
+            label={column.label}
+            checked={!visibleColumns.includes(column.key)} // Shows checked when NOT visible
+            onChange={(event) => handleVisibleColumnsChange(event, column.key)} // Toggles correctly
+          />
+        ))}
         </Stack>
       </Modal>
     </FastOrderContext.Provider>
