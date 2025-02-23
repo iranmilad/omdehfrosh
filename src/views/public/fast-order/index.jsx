@@ -110,6 +110,7 @@ function FastOrder() {
         onClose={() => setOpened(false)}
         title="پنهان کردن ستون‌ها"
       >
+        {/* needs to be updated */}
         <Stack>
           {COLUMNS.map((column) => (
             <Checkbox
@@ -124,6 +125,7 @@ function FastOrder() {
                 )
               }
             />
+
           ))}
         </Stack>
       </Modal>
