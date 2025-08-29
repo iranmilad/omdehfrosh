@@ -1,0 +1,19 @@
+.wide-carousel-prev{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 20px;
+    z-index: 50;
+}
+
+.wide-carousel-next{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 20px;
+    z-index: 50;
+}
+
+.wide-slide-image{
+    contain-intrinsic-size: 3000px 1500px;
+}

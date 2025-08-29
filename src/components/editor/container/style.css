@@ -1,0 +1,33 @@
+/* Container styles */
+.editor-container {
+    padding: 16px;
+    border: 2px solid transparent; /* Default border (transparent) */
+    transition: border-color 0.2s ease; /* Smooth transition for border color */
+  }
+  
+  /* Hover state */
+  .editor-container:hover {
+    border-color: var(--mantine-primary-color-5); /* Change border color on hover (light blue) */
+  }
+  
+  /* Active state */
+  .editor-container.active {
+    border-color: var(--mantine-primary-color-5); /* Change border color when active (darker blue) */
+  }
+
+  .editor-container .editor-container-topbar{
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.2s ease;
+  }
+  
+  .editor-container:hover .editor-container-topbar{
+    visibility: visible;
+    opacity: 1;
+    transition: 0.2s ease;
+  }
+
+  .editor-container.active .editor-container-topbar{
+    visibility: visible;
+    opacity: 1;
+  }

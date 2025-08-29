@@ -1,0 +1,362 @@
+{
+  "_id": {
+    "$oid": "67dd503c7d32e97e07662d5b"
+  },
+  "id": "brand0-category0-subCategory0-item0i0000",
+  "general": {
+    "slug": null,
+    "title": "گوشی موبایل اپل مدل پرومکس دو سیم‌ کارت نات اکتیو سیزده",
+    
+    "brandId": "brand0",
+    "brandName": "apple",
+    "brandNamePer": "اپل",
+
+    "caterogyName": "phone",
+    "categoryNamePer": "موبایل",
+    "categoryId": "category0",
+
+    "subCategoryName": "smartphone",
+    "subCategoryNamePer": "گوشی هوشمند",
+    "subCategoryId": "subCategory0",
+
+    "english_title": "iphone 13 pro 256 zaa black",
+    "addedToFavorite": true,
+    "images": [
+      "/static/image/1.812d88ff.webp",
+      "/static/image/2.7f34a781.webp",
+      "/static/image/3.8f0e971a.webp",
+      "/static/image/4.df3f6e8e.webp",
+      "/static/image/5.894dec69.webp"
+    ],
+    "description": "<p>توضیحات نمونه برای محصول 4</p>",
+    "specifications": null,
+    "priceHistory": [
+      {
+        "date": {
+          "$date": "2024-02-01T00:00:00.000Z"
+        },
+        "minPrice": 900000,
+        "maxPrice": 1150000,
+        "_id": {
+          "$oid": "67dd503d7d32e97e07662d5c"
+        }
+      },
+      {
+        "date": {
+          "$date": "2024-03-01T00:00:00.000Z"
+        },
+        "minPrice": 870000,
+        "maxPrice": 1100000,
+        "_id": {
+          "$oid": "67dd503d7d32e97e07662d5d"
+        }
+      },
+      {
+        "date": {
+          "$date": "2024-04-01T00:00:00.000Z"
+        },
+        "minPrice": 880000,
+        "maxPrice": 1080000,
+        "_id": {
+          "$oid": "67dd503d7d32e97e07662d5e"
+        }
+      },
+      {
+        "date": {
+          "$date": "2024-05-01T00:00:00.000Z"
+        },
+        "minPrice": 860000,
+        "maxPrice": 1050000,
+        "_id": {
+          "$oid": "67dd503d7d32e97e07662d5f"
+        }
+      },
+      {
+        "date": {
+          "$date": "2024-01-01T00:00:00.000Z"
+        },
+        "minPrice": 950000,
+        "maxPrice": 1200000,
+        "_id": {
+          "$oid": "67dd503d7d32e97e07662d60"
+        }
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": 1,
+      "label": "رنگ",
+      "slug": "color",
+      "type": "color",
+      "children": [
+        {
+          "id": 16,
+          "label": "صورتی",
+          "value": "#ff00ff",
+          "selected": true,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d62"
+          }
+        },
+        {
+          "id": 17,
+          "label": "قرمز",
+          "value": "#ff0000",
+          "selected": false,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d63"
+          }
+        },
+        {
+          "id": 33,
+          "label": "آبي",
+          "value": "#0000ff",
+          "selected": false,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d64"
+          }
+        },
+        {
+          "id": 36,
+          "label": "سبز",
+          "value": "#00ff00",
+          "selected": false,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d65"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "67dd503d7d32e97e07662d61"
+      }
+    },
+    {
+      "id": 81,
+      "label": "جنس",
+      "slug": "material",
+      "type": "select",
+      "children": [
+        {
+          "id": 18,
+          "label": "فلزی",
+          "value": "فلزی",
+          "selected": true,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d67"
+          }
+        },
+        {
+          "id": 19,
+          "label": "پلاستیک",
+          "value": "پلاستیک",
+          "selected": false,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d68"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "67dd503d7d32e97e07662d66"
+      }
+    }
+  ],
+  "combinations": [
+    {
+      "id": 19,
+      "selected": true,
+      "options": [
+        {
+          "id": 16,
+          "value": "#ff00ff",
+          "attribute_name": "رنگ",
+          "attribute_id": 1,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d6a"
+          }
+        },
+        {
+          "id": 18,
+          "value": "فلزی",
+          "attribute_name": "جنس",
+          "attribute_id": 81,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d6b"
+          }
+        }
+      ],
+      "suppliers": [
+        {
+          "id": 1,
+          "name": "دیجی کالا",
+
+
+        "action": 3,
+        "deliveryTime": "3",
+
+
+          "images": [],
+          "psid": "brand0-category0-subCategory0-item0i0000-1",
+          "payment_type": "Cash",
+          "delivery": "Area 1, Area 2",
+          "buy_type": "Retail",
+          "price": {
+            "regularPrice": 1000000,
+            "discountedPrice": 950000,
+            "discountPercent": null
+          },
+          "sku": "SKU-001",
+          "inventory": 10,
+          "min_order": 10,
+          "max_order": 94,
+          "rating": "4.50",
+          "reviews_count": 0,
+          "reviews": [],
+          "selected": true,
+          "special_offer": {
+            "$date": {
+              "$numberLong": "-17861558400000"
+            }
+          },
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d6c"
+          }
+        },
+        {
+          "id": 2,
+          "name": "تک اسیا",
+          "payment_type": "Credit",
+          "delivery": "Area 3, Area 4",
+          "buy_type": "Wholesale",
+          "price": {
+            "regularPrice": 110,
+            "discountedPrice": 130,
+            "discountPercent": null
+          },
+          "sku": "SKU-002",
+          "inventory": 15,
+          "min_order": 2,
+          "max_order": 150,
+          "rating": "4.80",
+          "reviews_count": 0,
+          "reviews": [],
+          "selected": false,
+          "special_offer": null,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d6d"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "67dd503d7d32e97e07662d69"
+      }
+    },
+    {
+      "id": 20,
+      "selected": false,
+      "options": [
+        {
+          "id": 16,
+          "value": "#ff00ff",
+          "attribute_name": "رنگ",
+          "attribute_id": 1,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d6f"
+          }
+        },
+        {
+          "id": 19,
+          "value": "پلاستیک",
+          "attribute_name": "جنس",
+          "attribute_id": 81,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d70"
+          }
+        }
+      ],
+      "suppliers": [
+        {
+          "id": 4,
+          "name": "ترب",
+          "payment_type": "Credit",
+          "delivery": "Area 3, Area 4",
+          "buy_type": "Wholesale",
+          "price": {
+            "regularPrice": 110,
+            "discountedPrice": 130,
+            "discountPercent": null
+          },
+          "sku": "SKU-002",
+          "inventory": 15,
+          "min_order": 2,
+          "max_order": 150,
+          "rating": "4.80",
+          "reviews_count": 0,
+          "reviews": [],
+          "selected": false,
+          "special_offer": null,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d71"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "67dd503d7d32e97e07662d6e"
+      }
+    },
+    {
+      "id": 21,
+      "selected": false,
+      "options": [
+        {
+          "id": 17,
+          "value": "#ff0000",
+          "attribute_name": "رنگ",
+          "attribute_id": 1,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d73"
+          }
+        },
+        {
+          "id": 18,
+          "value": "فلزی",
+          "attribute_name": "جنس",
+          "attribute_id": 81,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d74"
+          }
+        }
+      ],
+      "suppliers": [
+        {
+          "id": 1,
+          "name": "دیجی کالا",
+          "payment_type": "Cash",
+          "delivery": "Area 1, Area 2",
+          "buy_type": "Retail",
+          "price": {
+            "regularPrice": 100,
+            "discountedPrice": 120,
+            "discountPercent": null
+          },
+          "sku": "SKU-001",
+          "inventory": 10,
+          "min_order": 1,
+          "max_order": 46,
+          "rating": "4.50",
+          "reviews_count": 0,
+          "reviews": [],
+          "selected": false,
+          "special_offer": null,
+          "_id": {
+            "$oid": "67dd503d7d32e97e07662d75"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "67dd503d7d32e97e07662d72"
+      }
+    }
+  ],
+  "__v": 0
+}

@@ -1,0 +1,162 @@
+import { FreeMode, Navigation } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react';
+
+const SliderComponentCategories = ({ 
+  items, 
+  clickType, 
+  searchType, 
+  tab, 
+  filterBrandStorage,
+  setFilterBrandStorage,
+  filterBrandsCategoryStorage,
+  setFilterBrandsCategoryStorage,
+}) => {
+  return (
+    <Swiper 
+      modules={[FreeMode, Navigation]}       
+      freeMode={true} 
+      slidesPerView="auto" 
+      spaceBetween={6}              // Added gap between slides for spacing
+      className="mt-2"              // Added margin-top for some spacing above
+      style={{ width: "100%" }}
+    >
+      {items?.map((item, index) => (
+        <SwiperSlide 
+          key={index} 
+          style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}
+        >
+          <SingleCategoryGroup 
+            parentItem={item} 
+            clickType={clickType}
+            searchType={searchType}
+            tab={tab}
+            filterBrandStorage={filterBrandStorage}
+            setFilterBrandStorage={setFilterBrandStorage}
+            filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+            setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+          />
+        </SwiperSlide>
+      ))}
+    </Swiper>
+  );
+};
+
+// SVG Icon Component for fallback
+const CategoryIcon = () => (
+  <svg 
+    width="25" 
+    height="25" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-[25px] h-[25px]"
+  >
+    <rect x="6" y="6" width="12" height="12" rx="2" fill="#9CA3AF" />
+  </svg>
+);
+
+export function SingleCategoryGroup({ 
+  parentItem, 
+  searchType,
+  clickType, 
+  tab,
+  filterBrandStorage, 
+  setFilterBrandStorage,
+  filterBrandsCategoryStorage,
+  setFilterBrandsCategoryStorage,
+}) {
+
+  if (!parentItem || !Array.isArray(parentItem.categories)) return null;
+
+  const onClick = (item, idBrand) => {
+    if (searchType === "brand" && clickType === "brandCategories") {
+      const brandExists = (filterBrandsCategoryStorage || []).some(
+        (member) => member.idBrand === idBrand
+      );
+
+      let newValIDCat;
+
+      if (brandExists) {
+        const existingBrand = filterBrandsCategoryStorage.find(
+          (member) => member.idBrand === idBrand
+        );
+
+        const categoryExists = existingBrand.idCategories.includes(item.idCategory);
+
+        if (categoryExists) {
+          newValIDCat = existingBrand.idCategories.filter(
+            (category) => category !== item.idCategory
+          );
+        } else {
+          newValIDCat = [...existingBrand.idCategories, item.idCategory];
+        }
+
+        setFilterBrandsCategoryStorage((prevState) =>
+          prevState
+            .map((member) =>
+              member.idBrand === idBrand
+                ? { ...member, idCategories: newValIDCat }
+                : member
+            )
+            .filter((member) => member.idCategories.length > 0)
+        );
+      } else {
+        newValIDCat = [item.idCategory];
+        setFilterBrandsCategoryStorage((prevState) => [
+          ...prevState,
+          { idBrand: idBrand, idCategories: newValIDCat }
+        ]);
+      }
+    }
+  };
+
+  const isActive = filterBrandStorage.includes(parentItem.idBrand);
+
+  return (
+    <>
+      {isActive && (
+        <div className="items-center border-gray-300 p-2 rounded-lg flex flex-col gap-4">
+          {/* Categories Row */}
+          <div className="flex flex-row gap-2 justify-center">
+            {parentItem.categories.map((category, index) => {
+              const isActiveBorder = filterBrandsCategoryStorage.some(
+                (member) => 
+                  member.idBrand === parentItem.idBrand && 
+                  member.idCategories.includes(category.idCategory)
+              );
+
+              return (
+                <div 
+                  key={index} 
+                  className="text-sm w-fit flex flex-col items-center cursor-pointer"
+                  onClick={() => onClick(category, parentItem.idBrand)}
+                >
+                  <div
+                    className={`flex w-fit px-2 flex-row gap-1 justify-center items-center h-[35px] overflow-hidden border-[1.5px] bg-gray-100
+                      ${isActiveBorder ? "border-red-600" : "border-none"}`}
+                    style={{ borderRadius: '18px' }}  // Rounded corners same as others
+                  >
+                    {category.image && category.image.trim() !== "" ? (
+                      <img 
+                        className="w-fit h-[25px] object-cover" 
+                        src={category.image} 
+                        alt={category.title} 
+                      />
+                    ) : (
+                      <CategoryIcon />
+                    )}
+                    <span className="cursor-pointer text-center text-[8px] whitespace-nowrap">
+                      {category.title}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default SliderComponentCategories;

@@ -1,0 +1,24 @@
+/**=====================
+    Fonts css start
+==========================**/
+@font-face {
+    font-family: IranYekan;
+    font-style: normal;
+    font-weight: bold;
+    src: url("./eot/iranyekanwebbold(fanum).eot");
+    src: url("./eot/iranyekanwebbold(fanum).eot?#iefix") format("embedded-opentype"), url("./woff2/iranyekanwebbold(fanum).woff2") format("woff2"), url("./woff/iranyekanwebbold(fanum).woff") format("woff"), url("./ttf/iranyekanwebbold(fanum).ttf") format("truetype");
+  }
+  @font-face {
+    font-family: IranYekan;
+    font-style: normal;
+    font-weight: 300;
+    src: url("./eot/iranyekanweblight(fanum).eot");
+    src: url("./eot/iranyekanweblight(fanum).eot?#iefix") format("embedded-opentype"), url("./woff2/iranyekanweblight(fanum).woff2") format("woff2"), url("./woff/iranyekanweblight(fanum).woff") format("woff"), url("./ttf/iranyekanweblight(fanum).ttf") format("truetype");
+  }
+  @font-face {
+    font-family: IranYekan;
+    font-style: normal;
+    font-weight: normal;
+    src: url("./eot/iranyekanwebregular(fanum).eot");
+    src: url("./eot/iranyekanwebregular(fanum).eot?#iefix") format("embedded-opentype"), url("./woff2/iranyekanwebregular(fanum).woff2") format("woff2"), url("./woff/iranyekanwebregular(fanum).woff") format("woff"), url("./ttf/iranyekanwebregular(fanum).ttf") format("truetype");
+  }

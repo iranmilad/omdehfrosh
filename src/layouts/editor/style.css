@@ -1,0 +1,7 @@
+.header-box.active{
+    width: calc(100%-300px);
+}
+
+.header-box{
+    width: 100%;
+}

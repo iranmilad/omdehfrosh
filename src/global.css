@@ -1,0 +1,37 @@
+@import "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css";
+
+
+@layer tailwind {
+  @tailwind base;
+}
+@tailwind components;
+@tailwind utilities;
+
+/* Add to your global CSS or a <style> tag */
+.swiper-wrapper {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+
+body {
+  font-family: var(--mantine-font-family);
+  -moz-font-feature-settings: "ss02" !important;
+  -webkit-font-feature-settings: "ss02" !important;
+  font-feature-settings: "ss02" !important;
+  background: var(--mantine-color-gray-0);
+    overflow-x: hidden;
+
+}
+
+/* Remove input password shower icon in edge */
+input:has(::-ms-reveal, ::-ms-clear) {
+  display: none;
+}
+
+.mantine-InputWrapper-label{
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.mantine-Drawer-content{
+  padding: 7px !important;
+}

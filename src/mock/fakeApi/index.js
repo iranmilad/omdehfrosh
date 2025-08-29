@@ -1,0 +1,21 @@
+export { default as authFakeSMS } from "./authFakeApi";
+export {default as authFakeLogin} from "./authFakeApi";
+export {default as SearchApi} from "./search"
+export {default as SubmitCoupon} from "./submitCoupon"
+export {default as EditAccount} from "./edit-account"
+export {default as Account_Tickets} from "./tickets";
+export {default as Account_Notifications} from "./notifications";
+export {default as Favorites} from "./favorites"
+export {default as Compare} from "./compare";
+export {default as Page} from "./page"
+export {default as Seller} from './seller'
+export {default as Bootstrap} from "./bootstrap";
+export {default as Product} from "./product";
+export {default as Shop} from "./shop";
+export {default as Home} from "./home";
+export {default as Upload} from "./upload";
+export {default as AdvancedSearch} from "./advanced-search"
+export {default as Cart} from "./cart"
+export {default as Fastorder} from './fastorder';
+export {default as Orders} from './orders';
+export {default as MyAccount} from "./myaccount";

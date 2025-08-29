@@ -1,0 +1,163 @@
+export const subscriptionData = [
+    {
+        title: "اکانت رایگان",
+        modelId: "basic",
+        subscription: "free",
+        duration: "نامحدود",
+        combinationsID: 9999999999990,
+        durationDays: -1,
+        sellerId: 999999,
+        sellerLabel: "جی2بی مارکت",
+        price: {
+            regularPrice: 0,
+            discountedPrice: 0,
+            discountNum: 0,
+            discountPer: 0
+        },
+        description: "برای شروع فعالیت در سایت با امکانات محدود مناسب است.",
+        features: [
+            "امکان ثبت حداکثر 10 محصول",
+            "دسترسی به لیست قیمت مصرف‌کننده",
+            "بدون دسترسی به قیمت‌های عمده",
+            "بدون امکان مدیریت انبار",
+            "پشتیبانی فقط از طریق تیکت"
+        ],
+        access: {
+            productManagement: true,
+            inventoryManagement: false,
+            bulkPricing: false,
+            analytics: false,
+            prioritySupport: false,
+            dashboardAccess: true,
+            advancedSearchFilters: true,
+            orderManagement: false,
+            categories: {
+                "mobile": true,
+                "digital": true,
+                "home-and-kitched": true,
+                "car-and-motor": true,
+                "home-appliance": true,
+                "apparel": true,
+                "gold-jwerly": true,
+                "personal-appliance": true,
+                "vehicles": true,
+                "book-and-media": true,
+                "medical-and-health-equipment": true,
+                "sport-and-travel": true,
+                "gifts": true,
+                "food-beverage": true,
+                "mother-and-child": true,
+                "rural-products": false // locked in free
+              }
+        },
+        isActive: true,
+    },
+    {
+        title: "اکانت حرفه‌ای",
+        modelId: "pro",
+        subscription: "pro",
+        duration: "1 ماهه",
+        combinationsID: 9999999999991,
+        durationDays: 30,
+        sellerId: 999999,
+        sellerLabel: "جی2بی مارکت",
+        price: {
+            regularPrice: 200000,
+            discountedPrice: 150000,
+            discountNum: 50000,
+            discountPer: 25
+        },
+        description: "مناسب برای فروشندگان نیمه‌حرفه‌ای با دسترسی به قیمت‌های عمده و امکانات بیشتر.",
+        features: [
+            "امکان ثبت تا 100 محصول",
+            "دسترسی به قیمت‌های عمده",
+            "مدیریت پایه انبار و موجودی",
+            "دسترسی به آمار فروش ماهانه",
+            "پشتیبانی از طریق تیکت و ایمیل"
+        ],
+        access: {
+            productManagement: true,
+            inventoryManagement: true,
+            bulkPricing: true,
+            analytics: true,
+            prioritySupport: false,
+            dashboardAccess: true,
+            advancedSearchFilters: true,
+            orderManagement: true,
+            categories: {
+                "mobile": true,
+                "digital": true,
+                "home-and-kitched": true,
+                "car-and-motor": true,
+                "home-appliance": true,
+                "apparel": true,
+                "gold-jwerly": true,
+                "personal-appliance": true,
+                "vehicles": true,
+                "book-and-media": true,
+                "medical-and-health-equipment": true,
+                "sport-and-travel": true,
+                "gifts": true,
+                "food-beverage": true,
+                "mother-and-child": true,
+                "rural-products": true // unlocked in pro
+              }
+        },
+        isActive: true,
+    },
+    {
+        title: "اکانت ویژه",
+        modelId: "gold",
+        subscription: "premium",
+        sellerId: 999999,
+        sellerLabel: "جی2بی مارکت",
+        duration: "3 ماهه",
+        combinationsID: 9999999999992,
+        durationDays: 100,
+        price: {
+            regularPrice: 500000,
+            discountedPrice: 400000,
+            discountNum: 100000,
+            discountPer: 20
+        },
+        description: "ویژه‌ی فروشندگان حرفه‌ای با بیشترین امکانات و پشتیبانی کامل.",
+        features: [
+            "ثبت نامحدود محصول",
+            "دسترسی کامل به قیمت‌های عمده و ویژه",
+            "مدیریت پیشرفته انبار و سفارشات",
+            "آمار فروش پیشرفته و گزارش‌گیری",
+            "پشتیبانی 24 ساعته (چت، تیکت، تماس)"
+        ],
+        access: {
+            productManagement: true,
+            inventoryManagement: true,
+            bulkPricing: true,
+            analytics: true,
+            prioritySupport: true,
+            dashboardAccess: true,
+            advancedSearchFilters: true,
+            orderManagement: true,
+            categories: {
+                "mobile": true,
+                "digital": true,
+                "home-and-kitched": true,
+                "car-and-motor": true,
+                "home-appliance": true,
+                "apparel": true,
+                "gold-jwerly": true,
+                "personal-appliance": true,
+                "vehicles": true,
+                "book-and-media": true,
+                "medical-and-health-equipment": true,
+                "sport-and-travel": true,
+                "gifts": true,
+                "food-beverage": true,
+                "mother-and-child": true,
+                "rural-products": true,
+                "exclusive-premium": true // possible future category
+              }
+              
+        },
+        isActive: true,
+    }
+];

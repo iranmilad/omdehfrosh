@@ -1,0 +1,27 @@
+.badged-carousel-prev{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 20px;
+    z-index: 50;
+}
+
+.badged-carousel-next{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 20px;
+    z-index: 50;
+}
+
+@media only screen and (max-width: 420px){
+    .badged-slider-left-right{
+        width: 100px !important;
+        height: auto;
+    }
+}
+
+.badged-slider-left-right{
+    width: 150px;
+    height: auto;
+}
