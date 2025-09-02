@@ -85,13 +85,13 @@ connectDB();
 
 // CORS options
 const corsOptions = {
-  origin: 'http://localhost:3000', // Allow frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Include OPTIONS
-  allowedHeaders: ['Content-Type', 'Authorization'], // Ensure 'Content-Type' is allowed
-  // credentials: true, // Allow cookies
-  optionSuccessStatus:200
-
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+allowedHeaders: '*',
+  credentials: true,
+  optionsSuccessStatus: 200
 };
+
 
 
 // Handle Preflight Requests (Important)

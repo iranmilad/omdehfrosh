@@ -81,7 +81,7 @@ const Register = () => {
   const [successMessage, setSuccessMessage] = useState({})
 
 
-  const { mutateAsync, isPending } = useSend({ url: "auth/register/" });
+  const { mutateAsync, isPending } = useSend({ url: "auth/register" });
 
   const sendCode = useSend({ url: "auth/sms" });
 
