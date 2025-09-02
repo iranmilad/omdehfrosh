@@ -34,14 +34,6 @@ import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleForbiddenError, handleKnownErrors } from '../../../Libs/errorstatushandle/httpErrorStatus'
 import { getUserFavoritesList } from "../../../redux/users/getuserfavouriteslist/listActions";
 
-
-
-
-
-
-
-
-
 const validationSchema = yup.object().shape({
   mobile: yup
     .string()
@@ -101,6 +93,7 @@ const Login = () => {
           });
         })
         .catch((error) => {
+          console.warn('Failed to load favorites:', error);
         });
     }
   }, [user, user_master, isVerified, isVerifiedMaster, dispatch, cookies.userFavorites, setCookie]);
@@ -189,6 +182,13 @@ const Login = () => {
       { mobile: sanitizedValue },
       {
         onSuccess: (data) => {
+          // Add null check for data
+          if (!data) {
+            console.error('No response data received');
+            setStateMessage("error");
+            return;
+          }
+
           if (data.state === "error") {
             setStateMessage("error");
             return;
@@ -205,8 +205,9 @@ const Login = () => {
           }
         },
         onError: (error) => {
+          console.error('SMS request failed:', error);
           // Only set errors for non-auth related errors
-          if (![401, 404, 500].includes(error?.status)) {
+          if (error && ![401, 404, 500].includes(error?.status)) {
             setErrors(error);
           }
         }
@@ -220,9 +221,17 @@ const Login = () => {
         { mobile: form.getValues().mobile.replace(/\s+/g, ""), code: value.code },
         {
           onSuccess: (data) => {
+            // Add comprehensive null checks
+            if (!data) {
+              console.error('No response data received for login');
+              formCode.setFieldError("code", "خطا در دریافت پاسخ سرور");
+              return;
+            }
+
             if (data.error) {
               formCode.setFieldError("code", data.error);
-            } else {
+            } else if (data.user) {
+              // Check if user object exists before accessing its properties
               if (data.user.status === true) {
                 setType("success");
 
@@ -242,6 +251,7 @@ const Login = () => {
                     });
                   })
                   .catch((error) => {
+                    console.warn('Failed to load favorites after login:', error);
                   });
 
                 setTimeout(() => {
@@ -253,13 +263,20 @@ const Login = () => {
               } else {
                 setType(data.user.status);
               }
+            } else {
+              console.error('Invalid response structure:', data);
+              formCode.setFieldError("code", "ساختار پاسخ سرور نامعتبر است");
             }
           },
           onError: (error) => {
+            console.error('Login request failed:', error);
             // Only set errors for non-auth related errors
-            if (![401, 404, 500].includes(error?.status)) {
+            if (error && ![401, 404, 500].includes(error?.status)) {
               setErrors(error);
             }
+            
+            // Show user-friendly error message
+            formCode.setFieldError("code", error?.message || "خطا در ورود به سیستم");
           }
         }
       );

@@ -88,7 +88,7 @@ const corsOptions = {
   origin: 'http://localhost:3000', // Allow frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Include OPTIONS
   allowedHeaders: ['Content-Type', 'Authorization'], // Ensure 'Content-Type' is allowed
-  credentials: true, // Allow cookies
+  // credentials: true, // Allow cookies
   optionSuccessStatus:200
 
 };

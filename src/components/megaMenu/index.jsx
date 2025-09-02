@@ -95,11 +95,25 @@ const MegaMenu = ({ menuItems }) => {
                       styles={{ dropdown: { minWidth: 170, padding: "7px" } }}
                       position="bottom-start"
                     >
-                      <Menu.Target> {/* Fix typo: MenuTarget -> Menu.Target */}
-                        <Anchor c="dark" size="sm" fw="600" underline="never">
-                          <Box fz="20px" dangerouslySetInnerHTML={{__html:item.icon}} />
+                      <Menu.Target>
+                        <Button
+                          variant="transparent"
+                          c="dark"
+                          size="sm"
+                          fw="600"
+                          leftSection={<Box fz="20px" dangerouslySetInnerHTML={{__html:item.icon}} />}
+                          px="0"
+                          styles={{
+                            root: {
+                              textDecoration: "none",
+                              '&:hover': {
+                                textDecoration: "none"
+                              }
+                            }
+                          }}
+                        >
                           {item.label}
-                        </Anchor>
+                        </Button>
                       </Menu.Target>
                       <Menu.Dropdown>
                         {item2.links.map((child, childIndex) => (

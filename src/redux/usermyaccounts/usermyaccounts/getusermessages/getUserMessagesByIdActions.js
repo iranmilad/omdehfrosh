@@ -16,7 +16,7 @@ export const getUserMessagesById = createAsyncThunk(
           'Authorization': `Bearer ${token}`, 
           "Content-Type": "application/json"      
         }),         
-        credentials: "include", // Optional, if you are using cookies for auth
+        // credentials: "include", // Optional, if you are using cookies for auth
       });
 
 

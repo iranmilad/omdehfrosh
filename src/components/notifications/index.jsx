@@ -52,6 +52,7 @@ const Notifications = () => {
       try {
         dispatch(getNotificationNumber()); // No force refresh for initial load
       } catch (error) {
+        // Handle error silently
       }
     }
   }, [dispatch, user, isVerified, loadingNotificationNumber]);
@@ -107,33 +108,6 @@ const Notifications = () => {
     }
   };
 
-  // Don't render if user is not authenticated
-  if (!user || !isVerified) {
-    return null;
-  }
-
-  // Don't render if there's an error loading notifications
-  if (errorNotificationNumber) {
-    console.error('Notification error:', errorNotificationNumber);
-    return null;
-  }
-
-  // Show loading state only when actively loading and no cached data
-  if (loadingNotificationNumber && !notificationNumber) {
-    return (
-      <ActionIcon
-        h={45}
-        color="blue"
-        variant="light"
-        size="xl"
-        onClick={handleClick}
-        loading
-      >
-        <IoIosNotificationsOutline size={25} />
-      </ActionIcon>
-    );
-  }
-
   // Get the actual count - handle both object and number formats
   const unreadCount = (() => {
     if (!notificationNumber) return 0;
@@ -152,8 +126,43 @@ const Notifications = () => {
     return 0;
   })();
 
-  // Don't render indicator if no notifications, but still show the bell icon
-  if (unreadCount === 0) {
+  // Always render something - never return null to avoid Menu.Target issues
+  // If user is not authenticated, show a simple notification icon that leads to login
+  if (!user || !isVerified) {
+    return (
+      <ActionIcon
+        h={45}
+        color="gray"
+        variant="light"
+        size="xl"
+        onClick={() => navigate('/login')}
+        title="وارد شوید تا اعلان‌ها را ببینید"
+      >
+        <IoIosNotificationsOutline size={25} />
+      </ActionIcon>
+    );
+  }
+
+  // If there's an error, show a disabled state but still render the component
+  if (errorNotificationNumber) {
+    console.error('Notification error:', errorNotificationNumber);
+    return (
+      <ActionIcon
+        h={45}
+        color="gray"
+        variant="light"
+        size="xl"
+        onClick={handleClick}
+        title="خطا در بارگیری اعلان‌ها"
+        disabled
+      >
+        <IoIosNotificationsOutline size={25} />
+      </ActionIcon>
+    );
+  }
+
+  // Show loading state only when actively loading and no cached data
+  if (loadingNotificationNumber && !notificationNumber) {
     return (
       <ActionIcon
         h={45}
@@ -161,34 +170,51 @@ const Notifications = () => {
         variant="light"
         size="xl"
         onClick={handleClick}
+        loading
       >
         <IoIosNotificationsOutline size={25} />
       </ActionIcon>
     );
   }
 
-  return (
-    <Indicator
-      offset={2}
-      withBorder
-      size={20}
-      label={unreadCount}
-      color="green"
-      inline
-      styles={{
-        indicator: { paddingTop: "1px" },
-      }}
-    >
-      <ActionIcon
-        h={45}
-        color="blue"
-        variant="light"
-        size="xl"
-        onClick={handleClick}
+  // Show with indicator if there are unread notifications
+  if (unreadCount > 0) {
+    return (
+      <Indicator
+        offset={2}
+        withBorder
+        size={20}
+        label={unreadCount}
+        color="green"
+        inline
+        styles={{
+          indicator: { paddingTop: "1px" },
+        }}
       >
-        <IoIosNotificationsOutline size={25} />
-      </ActionIcon>
-    </Indicator>
+        <ActionIcon
+          h={45}
+          color="blue"
+          variant="light"
+          size="xl"
+          onClick={handleClick}
+        >
+          <IoIosNotificationsOutline size={25} />
+        </ActionIcon>
+      </Indicator>
+    );
+  }
+
+  // Default: show without indicator
+  return (
+    <ActionIcon
+      h={45}
+      color="blue"
+      variant="light"
+      size="xl"
+      onClick={handleClick}
+    >
+      <IoIosNotificationsOutline size={25} />
+    </ActionIcon>
   );
 };
 
