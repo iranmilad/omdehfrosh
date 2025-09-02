@@ -56,7 +56,7 @@ const Login = () => {
   const redirectURL = QueryString.parse(location.search);
   const dispatch = useDispatch();
 
-  const { mutateAsync, isPending, data } = useSend({ url: "auth/sms/" });
+  const { mutateAsync, isPending, data } = useSend({ url: "auth/sms" });
   const { user, isVerified, error, loading } = useSelector((state) => state.auth);
   const [stateMessage, setStateMessage] = useState("ok");
   const [showAlert, setShowAlert] = useState(false);

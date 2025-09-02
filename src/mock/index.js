@@ -77,7 +77,7 @@ function mockRunner({ environment }) {
       Compare(this, apiPrefix);
       Page(this, apiPrefix);
       Seller(this,apiPrefix);
-      // Bootstrap(this,apiPrefix);
+      Bootstrap(this,apiPrefix);
       Product(this,apiPrefix)
       Shop(this,apiPrefix);
       Home(this,apiPrefix);
