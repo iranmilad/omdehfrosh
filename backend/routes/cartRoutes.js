@@ -29,7 +29,7 @@ router.post("/updatefinalreceipt", updateFinalReceipt);
 
 router.post("/removeDiscount", removeDiscountFinalReceipt);
 
-router.post("/requestfinalreceipt/:receipt_id", vatRequestFinalReceipt);
+router.post("/requestfinalreceipt", vatRequestFinalReceipt);
 
 
 

@@ -1,14 +1,13 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-import { fetchFinalReceipt } from "../../redux/cartfinalreceipt/cartfinalreceipt";
 import { Button, Divider, Flex, Grid, GridCol, Loader, Paper, Stack, Text, Title } from "@mantine/core";
 
 const PaymentInfoCod = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { cartfinalreceipt, loadingfinalreceipt, errorfinalreceipt } = useSelector(
+    const { orderfinalreceipt, loadingfinalreceipt, errorfinalreceipt } = useSelector(
         (state) => state.cartfinalreceipt
     );
 
@@ -16,15 +15,15 @@ const PaymentInfoCod = () => {
         dispatch(fetchFinalReceipt());
     }, [dispatch]);
 
-    if (!cartfinalreceipt) {
+    if (!orderfinalreceipt) {
         return <Loader />;
     }
 
-    if (cartfinalreceipt.paymentMethod.paymentMethod === "cod" && cartfinalreceipt?.isPaid == false) {
+    if (orderfinalreceipt.paymentMethod.paymentMethod === "cod" && orderfinalreceipt?.isPaid == false) {
         return (
             <Grid mt="md" gutter="lg">
-                {cartfinalreceipt?.sellers?.length > 0 ? (
-                    cartfinalreceipt.sellers.map((sellerGroup) => (
+                {orderfinalreceipt?.sellers?.length > 0 ? (
+                    orderfinalreceipt.sellers.map((sellerGroup) => (
                         <GridCol span={12} key={sellerGroup.seller.id}>
                             <Paper p="md" shadow="xs" fullWidth>
                                 <Divider my="sm" />

@@ -3,12 +3,19 @@ import { getApiUrl } from "../../../../Libs/utils/apiutils/apiutils";
 
 export const verifyPaymentWallet = createAsyncThunk(
   "wallet/verifyPaymentWallet",
-  async ({ order_id }, { rejectWithValue }) => {
+  async (paymentData, { rejectWithValue }) => {
     try {
+      console.log("Sending payment data to API:", paymentData);
+      
+          const token = localStorage.getItem("user");
+
       const response = await fetch(getApiUrl("/payment/wallet/checkpaymentstatus"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order_id }),
+        headers: new Headers({
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }),        
+        body: JSON.stringify(paymentData),
       });
 
       if (!response.ok) {

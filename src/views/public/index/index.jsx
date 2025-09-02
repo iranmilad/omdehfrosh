@@ -75,7 +75,6 @@ function Home() {
 
   
   
-  console.log("ss", homeData)
 
 
   return (

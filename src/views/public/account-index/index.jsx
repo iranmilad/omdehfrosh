@@ -14,10 +14,14 @@ import {
   Text,
   Title,
   useMantineTheme,
+  Badge,
+  Modal,
+  Stack,
+  Group,
 } from "@mantine/core";
-import { IconBasket, IconCreditCard, IconMessage2 } from "@tabler/icons-react";
-import React, { useEffect } from "react";
-import { NavLink } from "react-router";
+import { IconBasket, IconCreditCard, IconMessage2, IconLogin } from "@tabler/icons-react";
+import React, { useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 // Import Swiper styles
@@ -33,15 +37,23 @@ import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
 import MyAccountProductBox from "../../../components/myaccountproductbox";
 import { clearTicketCreationState } from "../../../redux/usermyaccounts/usermyaccounts/newuserticket/newUserTicketSlice";
+import {getAllOrdersByUserId} from '../../../redux/orders/orders/getallordersbyuserid/getAllOrdersByUserIdActions'
+
 
 function Account_Index() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  // State for login modal
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-
   const { userAccount, loading, error } = useSelector((state) => state.userMyAccounts);
+  const { ordersByUserId, loadingOrdersByUserId, errorOrdersByUserId } = useSelector((state) => state.getAllOrdersByUserId);
 
   const { primaryColor } = useMantineTheme();
+
+  console.log("ordersByUserId", ordersByUserId)
 
   const { isLoading, data } = useData({
     url: "/myaccount",
@@ -53,14 +65,61 @@ function Account_Index() {
     dispatch(clearTicketCreationState())
   }, [dispatch]);
 
+  // Check authentication status and show modal if needed
   useEffect(() => {
-    if (user) {
-      dispatch(getUserMyAccount());
+    // Only check after auth loading is complete
+    if (!authLoading) {
+      if (!isVerified || !user) {
+        setLoginModalOpen(true);
+      } else {
+        setLoginModalOpen(false);
+        // User is authenticated, fetch data
+        dispatch(getUserMyAccount());
+        dispatch(getAllOrdersByUserId());
+      }
     }
-  }, [dispatch]);
+  }, [dispatch, isVerified, user, authLoading]);
 
-  // Only show loading if data is being fetched
-  if (isLoading) {
+  // Format date function
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fa-IR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Get status badge color and text
+  const getStatusBadge = (status, isPaid) => {
+    if (isPaid === 'paid') {
+      return { color: 'green', text: 'پرداخت شده' };
+    }
+    
+    switch (status) {
+      case 'processing':
+        return { color: 'blue', text: 'در حال پردازش' };
+      case 'completed':
+        return { color: 'green', text: 'تکمیل شده' };
+      case 'cancelled':
+        return { color: 'red', text: 'لغو شده' };
+      case 'pending':
+        return { color: 'yellow', text: 'در انتظار' };
+      default:
+        return { color: 'gray', text: status };
+    }
+  };
+
+  // Handle redirect to login page
+  const handleGoToLogin = () => {
+    setLoginModalOpen(false);
+    navigate('/');
+  };
+
+  // Show loading while checking authentication
+  if (authLoading) {
     return (
       <Center>
         <Loader />
@@ -68,6 +127,63 @@ function Account_Index() {
     );
   }
 
+  // Show login modal if user is not authenticated
+  if (!isVerified || !user) {
+    return (
+      <>
+        <Modal
+          opened={loginModalOpen}
+          onClose={() => {}} // Prevent closing by clicking outside
+          closeOnClickOutside={false}
+          closeOnEscape={false}
+          withCloseButton={false}
+          title="ورود به حساب کاربری"
+          centered
+        >
+          <Stack gap="md">
+            <Center>
+              <IconLogin size={64} color="#fa5252" />
+            </Center>
+            <Text ta="center" size="lg" fw={500}>
+              برای مشاهده اطلاعات حساب کاربری نیاز است وارد شوید
+            </Text>
+            <Text ta="center" c="dimmed">
+              لطفاً ابتدا وارد حساب کاربری خود شوید تا بتوانید اطلاعات حساب، سفارشات و محصولات مورد علاقه خود را مشاهده کنید.
+            </Text>
+            <Group justify="center" mt="md">
+              <Button
+                leftSection={<IconLogin size={16} />}
+                onClick={handleGoToLogin}
+                size="md"
+                color="red"
+              >
+                ورود به حساب کاربری
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+        
+        {/* Show a placeholder content while modal is open */}
+        <Center h={400}>
+          <Stack align="center" gap="md">
+            <IconLogin size={80} color="#e9ecef" />
+            <Text size="xl" c="dimmed">در حال بررسی وضعیت ورود...</Text>
+          </Stack>
+        </Center>
+      </>
+    );
+  }
+
+  // Show loading if data is being fetched (only after authentication is confirmed)
+  if (isLoading || loadingOrdersByUserId) {
+    return (
+      <Center>
+        <Loader />
+      </Center>
+    );
+  }
+
+  // Main authenticated content
   return (
     <>
       {/* Only show stats grid if userAccount exists */}
@@ -103,7 +219,7 @@ function Account_Index() {
                 </div>
                 <div className="text-zinc-100 space-y-1">
                   <div>سفارشات کل</div>
-                  <div>{userAccount.all_orders}</div>
+                  <div>{ordersByUserId?.orders?.length || userAccount.all_orders || 0}</div>
                 </div>
               </div>
             </GridCol>
@@ -126,45 +242,124 @@ function Account_Index() {
         </Grid>
       )}
       
-      {/* Only show orders section if userAccount exists */}
-      {userAccount && (
-        <>
-          <Title my="lg">آخرین سفارشات</Title>
-          <ScrollArea type="auto">
-            <Table highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th miw={100} c={primaryColor}>
-                    سفارش#
-                  </Table.Th>
-                  <Table.Th miw={100} c={primaryColor}>
-                    تاریخ
-                  </Table.Th>
-                  <Table.Th miw={100} c={primaryColor}>
-                    وضعیت
-                  </Table.Th>
-                  <Table.Th miw={130} c={primaryColor}>
-                    مجموع سفارش
-                  </Table.Th>
-                  <Table.Th miw={100} c={primaryColor} ta="end">
-                    عملیات
-                  </Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-              {userAccount?.orders?.length > 0 ? (
-                userAccount.orders.map((item, index) => <ItemRow key={index} {...item} />)
-              ) : (
+      {/* Orders section using ordersByUserId data */}
+      <Title my="lg">آخرین سفارشات</Title>
+      <ScrollArea type="auto">
+        <Table highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th miw={150} c={primaryColor}>
+                شماره سفارش
+              </Table.Th>
+              <Table.Th miw={120} c={primaryColor}>
+                تاریخ
+              </Table.Th>
+              <Table.Th miw={100} c={primaryColor}>
+                وضعیت
+              </Table.Th>
+              <Table.Th miw={130} c={primaryColor}>
+                مبلغ کل
+              </Table.Th>
+              <Table.Th miw={100} c={primaryColor}>
+                تخفیف
+              </Table.Th>
+              <Table.Th miw={120} c={primaryColor}>
+                نحوه پرداخت
+              </Table.Th>
+              <Table.Th miw={100} c={primaryColor} ta="end">
+                عملیات
+              </Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {ordersByUserId?.orders?.length > 0 ? (
+              [...ordersByUserId.orders] // Create a copy to avoid mutating the original array
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by newest first
+                .slice(0, 10) // Show only latest 10 orders
+                .map((order) => (
+                  <Table.Tr key={order.orderId}>
+                    <Table.Td>
+                      <Text size="sm" truncate style={{ maxWidth: 150 }}>
+                        {String(order.orderId).replace('order_', '')}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">
+                        {formatDate(order.createdAt)}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      {(() => {
+                        const statusInfo = getStatusBadge(order.status, order.isPaid);
+                        return (
+                          <Badge color={statusInfo.color} variant="light" size="sm">
+                            {statusInfo.text}
+                          </Badge>
+                        );
+                      })()}
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" fw={500}>
+                        <NumberFormatter
+                          value={order.totalPrice}
+                          thousandSeparator
+                        />{" "}
+                        تومان
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" c="red">
+                        <NumberFormatter
+                          value={order.totalDiscount}
+                          thousandSeparator
+                        />{" "}
+                        تومان
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge variant="outline" size="sm">
+                        {order.paymentMethod === 'cash' ? 'نقدی' : 
+                         order.paymentMethod === 'card' ? 'کارتی' : 
+                         order.paymentMethod}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td ta="end">
+                      <Button
+                        radius="md"
+                        component={NavLink}
+                        to={`/account/orders/${order.orderId}`}
+                        size="sm"
+                        variant="light"
+                      >
+                        مشاهده
+                      </Button>
+                    </Table.Td>
+                  </Table.Tr>
+                ))
+            ) : (
               <Table.Tr>
-                <Table.Td colSpan={5} ta="center">
-                  هیچ سفارشی یافت نشد
+                <Table.Td colSpan={7} ta="center">
+                  <Text c="dimmed" py="xl">
+                    هیچ سفارشی یافت نشد
+                  </Text>
                 </Table.Td>
               </Table.Tr>
             )}
-              </Table.Tbody>
-            </Table>
-          </ScrollArea>
-        </>
+          </Table.Tbody>
+        </Table>
+      </ScrollArea>
+      
+      {/* Show "View All Orders" button if there are more than 10 orders */}
+      {ordersByUserId?.orders?.length > 10 && (
+        <Center mt="md">
+          <Button
+            component={NavLink}
+            to="/account/orders"
+            variant="outline"
+          >
+            مشاهده همه سفارشات ({ordersByUserId.orders.length})
+          </Button>
+        </Center>
       )}
       
       {/* Only show favorites section if userAccount exists */}
@@ -190,27 +385,6 @@ function Account_Index() {
         </>
       )}
     </>
-  );
-}
-
-function ItemRow(props) {
-  return (
-    <Table.Tr>
-      <Table.Td>{props.orderId}</Table.Td>
-      <Table.Td>{props.date}</Table.Td>
-      <Table.Td>{props.status ? "پرداخت شده" : "انتظار برای پرداخت"}</Table.Td>
-      <Table.Td>{props.totalPrice}</Table.Td>
-      <Table.Td ta="end">
-        <Button
-          radius="9999"
-          component={NavLink}
-          to={`/account/orders/${props.orderId}`}
-          size="sm"
-        >
-          مشاهده
-        </Button>
-      </Table.Td>
-    </Table.Tr>
   );
 }
 

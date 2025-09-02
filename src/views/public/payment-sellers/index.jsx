@@ -56,7 +56,7 @@ const PaymentSellers = () => {
   const [pageActive, setPageActive] = useState(false);
   const { isVerified, loading: authLoading, error: authError } = useSelector((state) => state.auth);
 
-  const { cartfinalreceipt } = useSelector((state) => state.cartfinalreceipt); // Access cartfinalreceipt from Redux
+  const { orderfinalreceipt } = useSelector((state) => state.cartfinalreceipt); // Access cartfinalreceipt from Redux
 
 
 

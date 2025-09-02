@@ -3,7 +3,7 @@ import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 
 export const getPaymentLink = createAsyncThunk(
   "payment/getPaymentLink",
-  async ({ cartfinalreceipt }, { rejectWithValue }) => {
+  async ({ paymentRequestData, orderTracking }, { rejectWithValue }) => {
 
     const token = localStorage.getItem("user");
 
@@ -15,11 +15,11 @@ export const getPaymentLink = createAsyncThunk(
           'Authorization': `Bearer ${token}`, 
           "Content-Type": "application/json"      
         }),         
-        body: JSON.stringify({
-          receipt_id: cartfinalreceipt.receipt_id, 
-          reference_cart_id: cartfinalreceipt.reference_cart_id
-
-        })
+        body: JSON.stringify(
+          {
+          orderId: paymentRequestData.paymentData.orderId, 
+        }
+      )
       });
 
       if (!response.ok) {

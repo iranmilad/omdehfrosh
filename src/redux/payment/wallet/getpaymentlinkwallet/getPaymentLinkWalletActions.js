@@ -3,7 +3,7 @@ import { getApiUrl } from "../../../../Libs/utils/apiutils/apiutils";
 
 export const getPaymentLinkWallet = createAsyncThunk(
   "wallet/getPaymentLinkWallet",
-  async ({ depositData }, { rejectWithValue }) => {
+  async ({ depositData, gateway }, { rejectWithValue }) => {
     const token = localStorage.getItem("user");
 
     try {
@@ -14,7 +14,7 @@ export const getPaymentLinkWallet = createAsyncThunk(
           "Content-Type": "application/json"
         }),
         body: JSON.stringify({
-          depositData
+          depositData, gateway
         })
       });
 

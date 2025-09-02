@@ -33,59 +33,138 @@ import { getAllGateWaysData } from "../../../redux/gatewaysdata/gatewaysdata/gat
 import { clearCartFinalReceiptUpdate } from "../../../redux/cartfinalreceipt/cartfinalreceiptupdate/cartFinalReceiptUpdateDiscountSlice";
 import ErrorMessageModal from '../../../components/errormessagemodal';
 import { handleForbiddenError, handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
-
 import { updateFinalReceiptDeleteDiscountCode } from "../../../redux/cartfinalreceipt/cartfinalreceiptdeletediscount/cartfinalreceiptdeletediscountActions";
 
+// Default SVG icon component
+const DefaultPaymentIcon = ({ size = 30, color = "var(--mantine-color-gray-6)" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect
+      x="2"
+      y="5"
+      width="20"
+      height="14"
+      rx="2"
+      stroke={color}
+      strokeWidth="2"
+    />
+    <line
+      x1="2"
+      y1="10"
+      x2="22"
+      y2="10"
+      stroke={color}
+      strokeWidth="2"
+    />
+    <circle
+      cx="7"
+      cy="15"
+      r="1"
+      fill={color}
+    />
+    <circle
+      cx="11"
+      cy="15"
+      r="1"
+      fill={color}
+    />
+  </svg>
+);
 
+// Utility function to validate icon paths
+const isValidIconPath = (icon) => {
+  if (!icon) return false;
+  if (typeof icon !== 'string') return false;
+  if (icon.trim() === '') return false;
+  if (icon === 'null' || icon === 'undefined') return false;
+  if (Array.isArray(icon)) {
+    if (icon.length === 0) return false;
+    if (icon.length === 1 && (icon[0] === '' || !icon[0])) return false;
+  }
+  return true;
+};
 
-// const gateways = [
-//   {
-//     name: "online",
-//     label: "پرداخت اینترنتی",
-//     description: "پرداخت آنلاین با تمامی کارت‌های بانکی",
-//     icon: <IconCreditCard size={30}  />,
-//   },
-//   {
-//     name: "cod" /* cash on delivery*/,
-//     label: "پرداخت در محل ( با کارت بانکی )",
-//     description: "هنگام تحویل از طریق کارت‌های بانکی",
-//     icon: <IconBuildingCommunity size={30}  />
-//   },
-// ];
+// Safe Icon component with error handling
+const SafeIcon = ({ src, alt, size = 30, style = {}, onError }) => {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  const handleImageError = (e) => {
+    setHasError(true);
+    setIsLoading(false);
+    if (onError) onError(e);
+  };
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+    setHasError(false);
+  };
+
+  if (!isValidIconPath(src) || hasError) {
+    return <DefaultPaymentIcon size={size} />;
+  }
+
+  return (
+    <>
+      <img
+        src={src}
+        alt={alt || 'Payment method'}
+        style={{ 
+          width: size, 
+          height: size, 
+          display: isLoading || hasError ? 'none' : 'block',
+          ...style 
+        }}
+        onLoad={handleImageLoad}
+        onError={handleImageError}
+      />
+      {isLoading && !hasError && (
+        <div
+          style={{
+            width: size,
+            height: size,
+            backgroundColor: '#f0f0f0',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div style={{ fontSize: '10px', color: '#999' }}>...</div>
+        </div>
+      )}
+    </>
+  );
+};
 
 const PaymentMethod = () => {
-
   const dispatch = useDispatch();
 
-  const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData); // Use the state from Redux
+  const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData);
+
+  console.log(fetchedGateways)
+
 
   const [ paymentURL , setPaymentURL ]  = useState("");
-
-  // const [buttonLink , setButtonLink] = useState({onClick : () => SubmitCart()});
-
   const { mutateAsync } = useSend({url:"https://jsonplaceholder.typicode.com/posts"})
-
   const [ cookies, setCookie ] = useCookies(["user"]);
-
   const [ pageActive, setPageActive ] = useState(false);
   const { isVerified, loading: authLoading, error: authError } = useSelector((state) => state.auth);
-
-  const { cartfinalreceipt } = useSelector((state) => state.cartfinalreceipt); 
-
+  const { orderfinalreceipt } = useSelector((state) => state.cartfinalreceipt); 
   const [ isDiscountApplied, setIsDiscountApplied ] = useState(false);
 
-
   useEffect(() => {
-    if (cartfinalreceipt?.cartDiscounts?.discountCode?.code) {
+    if (orderfinalreceipt?.cartDiscounts?.discountCode?.code) {
       setIsDiscountApplied(true);
     } else {
       setIsDiscountApplied(false);
     }
-  }, [cartfinalreceipt]);
-  
-
-
+  }, [orderfinalreceipt]);
 
   const navigate = useNavigate();
   const form = useForm({
@@ -94,13 +173,12 @@ const PaymentMethod = () => {
     },
   });
 
+  useEffect(() => {
+    dispatch(getAllGateWaysData({ state: "all" }));
+    dispatch(fetchFinalReceipt());
+  }, [dispatch]);
 
-useEffect(() => {
-  dispatch(getAllGateWaysData({ state: "all" }));
-  dispatch(fetchFinalReceipt());
-}, [dispatch]);
-
-
+  // Updated cards mapping with improved icon handling
   const cards = fetchedGateways?.map((item) => (
     <Radio.Card
       p="lg"
@@ -127,7 +205,14 @@ useEffect(() => {
                 : "var(--mantine-color-gray-6)",
           }}
         >
-          <img src={item.icon} alt={item.label} style={{ width: 30, height: 30 }} />
+          <SafeIcon 
+            src={item.icon} 
+            alt={item.label}
+            size={30}
+            onError={(e) => {
+              console.warn(`Failed to load icon for ${item.label}: ${item.icon}`);
+            }}
+          />
         </div>
         <div>
           <Text>{item.label}</Text>
@@ -139,30 +224,11 @@ useEffect(() => {
     </Radio.Card>
   ));
 
-  function SubmitCart () {
-
-    dispatch(toggleLoading())
-
-    mutateAsync({},{
-        onSuccess: () => {
-            dispatch(toggleLoading());
-            setButtonLink({component:"a", href:"https://google.com"})
-        },
-        onError: () => {
-        },
-        onSettled: (err) => {
-        }
-    })
-  }
-
   useEffect(() => {
     dispatch(verifyToken());
   }, [dispatch]);
 
-  // Check the verification state and decide what to render
-  
   useEffect(() => {
-  
     if (authLoading) {
       return;
     }
@@ -174,41 +240,26 @@ useEffect(() => {
     }
   }, [isVerified, authLoading, navigate]);
 
-  //   useLayoutEffect(() => {
-  //   if (!cookies.user && cookies?.user !== "") {
-  //     navigate("/login",{replace:true});
-  //   }
-  //   else{
-  //       setPageActive(true);
-  //   }
-  // }, []);
-
-
   useEffect(() => {
     if (fetchedGateways?.[0]?.info) {
       form.setValues({ gateway: fetchedGateways[0].info });
     }
-    
-  }, [fetchedGateways]); // Runs only when `fetchedGateways` is updated
+  }, [fetchedGateways]);
 
-  
   if(!pageActive) return <></>;
 
-
-    if (!fetchedGateways || loading) {
-      return (
-        <Center>
-          <Loader />
-        </Center>
-      );
-    }
-
+  if (!fetchedGateways || loading) {
+    return (
+      <Center>
+        <Loader />
+      </Center>
+    );
+  }
 
   return (
     <>
       <CartStepper active={3} />
       <Grid>
-
         <GridCol>
           <Title fw="600" c="gray.8" mb="sm">
             روش پرداخت
@@ -219,12 +270,9 @@ useEffect(() => {
                 name="انتخاب درگاه پرداخت"
                 value={form.values.gateway.name}
                 onChange={(value) => {
-
                   const selectedGateway = fetchedGateways.find(
                     (gateway) => gateway.info.name === value
                   );
-
-
                   form.setValues({ gateway: selectedGateway?.info });
                 }}
               >
@@ -252,8 +300,6 @@ useEffect(() => {
         }
         </GridCol>
 
-
-
         {/* Buttons */}
         {(
           <GridCol span={{ lg: 6 }}>
@@ -271,27 +317,15 @@ useEffect(() => {
             </Button>
           </GridCol>
         )}
-
       </Grid>
     </>
   );
 };
 
-
 const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
-
-
   const dispatch = useDispatch();
-  const { cartfinalreceipt } = useSelector((state) => state.cartfinalreceipt); // Access cartfinalreceipt from Redux
-  
-
-  
-
-
-  // const [isDiscountApplied, setIsDiscountApplied] = useState(false);
-
+  const { orderfinalreceipt } = useSelector((state) => state.cartfinalreceipt);
   const navigate = useNavigate();
-
 
   const {
     cartfinalreceiptDiscount=[], 
@@ -300,7 +334,6 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
     errorUpdateDiscount
   } = useSelector((state) => state.cartFinalReceiptUpdateDiscount);
 
-
   const {
     cartfinalreceiptDiscountDelete=[], 
     totalfinalreceiptDiscountDelete, 
@@ -308,148 +341,9 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
     errorUpdateDiscountDelete
   } = useSelector((state) => state.cartFinalReceiptUpdateDiscountDelete);
 
-
-
-      const [showAlert, setShowAlert] = useState(false);
-      const [modalOpen, setModalOpen] = useState(false);
-
-
-
-      useEffect(() => {
-        if (cartfinalreceiptDiscount && cartfinalreceiptDiscount.state) {
-          setShowAlert(true);
-    
-          // Hide alert after 2 seconds
-          const timer = setTimeout(() => {
-            setShowAlert(false);
-          }, 2000);
-    
-          // Cleanup timeout if component unmounts or the alert is hidden earlier
-          return () => clearTimeout(timer);
-        }
-      }, [cartfinalreceiptDiscount]);
-
-      useEffect(() => {
-        const nonNotifyStatuses = [
-          400, 401, 403, 404, 405, 406, 408, 409,
-          410, 411, 412, 413, 414, 415, 416, 417,
-          422, 429
-        ];
-      
-        const isEmpty = (obj) => obj && Object.keys(obj).length === 0; // Check if the object is defined
-      
-        const hasValidStatus = errorUpdateDiscount && typeof errorUpdateDiscount.status !== "undefined" && !isNaN(Number(errorUpdateDiscount.status));
-      
-        if (!isEmpty(errorUpdateDiscount) && hasValidStatus && !nonNotifyStatuses.includes(Number(errorUpdateDiscount.status))) {
-          // Clear errors first
-          setErrors({});
-          form.setErrors({});  // Clears any existing errors
-
-          // Then show notification
-          notifications.show({
-            title: errorUpdateDiscount?.message || "خطایی رخ داده است",
-            color: "red",
-            autoClose: true,
-          });
-        }
-      }, [cartfinalreceiptDiscount, errorUpdateDiscount]);
-      
-      
-
-      useEffect(() => {
-        if (errorUpdateDiscount?.status) {
-          handleKnownErrors(errorUpdateDiscount.status, setModalOpen, navigate);
-        }
-      }, [errorUpdateDiscount, data]);
-
-
-
-      //////
-
-      useEffect(() => {
-        if (cartfinalreceiptDiscountDelete && cartfinalreceiptDiscountDelete.state) {
-          setShowAlert(true);
-    
-          // Hide alert after 2 seconds
-          const timer = setTimeout(() => {
-            setShowAlert(false);
-          }, 2000);
-    
-          // Cleanup timeout if component unmounts or the alert is hidden earlier
-          return () => clearTimeout(timer);
-        }
-      }, [cartfinalreceiptDiscountDelete]);
-
-      useEffect(() => {
-        const nonNotifyStatuses = [
-          400, 401, 403, 404, 405, 406, 408, 409,
-          410, 411, 412, 413, 414, 415, 416, 417,
-          422, 429
-        ];
-      
-        const isEmpty = (obj) => obj && Object.keys(obj).length === 0; // Check if the object is defined
-      
-        const hasValidStatus = errorUpdateDiscountDelete && typeof errorUpdateDiscountDelete.status !== "undefined" && !isNaN(Number(errorUpdateDiscountDelete.status));
-      
-        if (!isEmpty(errorUpdateDiscountDelete) && hasValidStatus && !nonNotifyStatuses.includes(Number(errorUpdateDiscountDelete.status))) {
-          // Clear errors first
-          // setErrors({});
-          form.setErrors({});  // Clears any existing errors
-
-          // Then show notification
-          notifications.show({
-            title: errorUpdateDiscountDelete?.message || "خطایی رخ داده است",
-            color: "red",
-            autoClose: true,
-          });
-        }
-      }, [cartfinalreceiptDiscountDelete, errorUpdateDiscountDelete]);
-      
-      
-
-      useEffect(() => {
-        if (errorUpdateDiscountDelete?.status) {
-          handleKnownErrors(errorUpdateDiscountDelete.status, setModalOpen, navigate);
-        }
-      }, [errorUpdateDiscountDelete, data]);
-
-
-
-
-    // useEffect(() => {
-
-
-    //     if (errorUpdateDiscount?.status === 401) {
-    //         setModalOpen(true);
-
-    //       setTimeout(() => {
-    //         setModalOpen(false);
-    //         dispatch(clearCartFinalReceiptUpdate())
-
-    //         navigate("/"); 
-    //       }, 4000);
-    //     }
-
-
-
-    //     if (errorUpdateDiscount?.status === 403) {
-    //         setModalOpen(true);
-
-    //       setTimeout(() => {
-    //         dispatch(clearCartFinalReceiptUpdate())
-    //         setModalOpen(false);
-
-    //       }, 4000);
-
-
-    //     }
-
-    // }, [errorUpdateDiscount, dispatch, navigate]);
-    
-
-
-
-
+  const [showAlert, setShowAlert] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const form = useForm({
     initialValues: {
@@ -460,36 +354,103 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
     },
   });
 
+  useEffect(() => {
+    if (cartfinalreceiptDiscount && cartfinalreceiptDiscount.state) {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [cartfinalreceiptDiscount]);
+
+  useEffect(() => {
+    const nonNotifyStatuses = [
+      400, 401, 403, 404, 405, 406, 408, 409,
+      410, 411, 412, 413, 414, 415, 416, 417,
+      422, 429
+    ];
+  
+    const isEmpty = (obj) => obj && Object.keys(obj).length === 0;
+    const hasValidStatus = errorUpdateDiscount && typeof errorUpdateDiscount.status !== "undefined" && !isNaN(Number(errorUpdateDiscount.status));
+  
+    if (!isEmpty(errorUpdateDiscount) && hasValidStatus && !nonNotifyStatuses.includes(Number(errorUpdateDiscount.status))) {
+      setErrors({});
+      form.setErrors({});
+      notifications.show({
+        title: errorUpdateDiscount?.message || "خطایی رخ داده است",
+        color: "red",
+        autoClose: true,
+      });
+    }
+  }, [cartfinalreceiptDiscount, errorUpdateDiscount]);
+
+  useEffect(() => {
+    if (errorUpdateDiscount?.status) {
+      handleKnownErrors(errorUpdateDiscount.status, setModalOpen, navigate);
+    }
+  }, [errorUpdateDiscount]);
+
+  useEffect(() => {
+    if (cartfinalreceiptDiscountDelete && cartfinalreceiptDiscountDelete.state) {
+      setShowAlert(true);
+      const timer = setTimeout(() => {
+        setShowAlert(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [cartfinalreceiptDiscountDelete]);
+
+  useEffect(() => {
+    const nonNotifyStatuses = [
+      400, 401, 403, 404, 405, 406, 408, 409,
+      410, 411, 412, 413, 414, 415, 416, 417,
+      422, 429
+    ];
+  
+    const isEmpty = (obj) => obj && Object.keys(obj).length === 0;
+    const hasValidStatus = errorUpdateDiscountDelete && typeof errorUpdateDiscountDelete.status !== "undefined" && !isNaN(Number(errorUpdateDiscountDelete.status));
+  
+    if (!isEmpty(errorUpdateDiscountDelete) && hasValidStatus && !nonNotifyStatuses.includes(Number(errorUpdateDiscountDelete.status))) {
+      form.setErrors({});
+      notifications.show({
+        title: errorUpdateDiscountDelete?.message || "خطایی رخ داده است",
+        color: "red",
+        autoClose: true,
+      });
+    }
+  }, [cartfinalreceiptDiscountDelete, errorUpdateDiscountDelete]);
+
+  useEffect(() => {
+    if (errorUpdateDiscountDelete?.status) {
+      handleKnownErrors(errorUpdateDiscountDelete.status, setModalOpen, navigate);
+    }
+  }, [errorUpdateDiscountDelete]);
+
   const applyDiscount = async (values) => {
-    
     try {
-      // Dispatch the discount update action and wait for the response
-      const response = await dispatch(updateFinalReceiptWithDiscount({ discountCode: values.code, paymentMethod: gateway }));
-  
-      // Check if the response indicates success (you can adjust the condition depending on your backend response)
+      const response = await dispatch(updateFinalReceiptWithDiscount({ 
+        discountCode: values.code, 
+        paymentMethod: gateway 
+      }));
+
       if (response?.payload?.status === "OK") {
-        // If the status is OK, disable the input and button
         setIsDiscountApplied(true);
-  
-        // Show success notification
         notifications.show({
           title: "پیام سیستم",
           message: "کد تخفیف و روش پرداخت اعمال شد!",
           color: "green",
         });
       } else {
-        // Handle the case where the discount application failed
         notifications.show({
           title: "خطا",
           message: "مشکلی در اعمال کد تخفیف پیش آمد!",
           color: "red",
         });
       }
-  
-      // Fetch updated final receipt
+
       dispatch(fetchFinalReceipt());
     } catch (error) {
-      // Handle errors in case of failure
       notifications.show({
         title: "خطا",
         message: "مشکلی در اتصال به سرور پیش آمد!",
@@ -497,24 +458,20 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
       });
     }
   };
-  
+
   const removeDiscount = async () => {
     try {
-      // Dispatch an action to remove the discount (you can create a removeDiscount action as per your API)
-      const response = await dispatch(updateFinalReceiptDeleteDiscountCode({ discountCode: cartfinalreceipt.cartDiscounts.discountCode.code, paymentMethod: gateway }));
+      const response = await dispatch(updateFinalReceiptDeleteDiscountCode({ 
+        discountCode: orderfinalreceipt.cartDiscounts.discountCode.code, 
+      }));
 
-      // If successful, reset the state
       if (response?.payload?.status === "OK") {
-        // setIsDiscountApplied(false);
-
-        // Show success notification
         notifications.show({
           title: "پیام سیستم",
           message: "کد تخفیف حذف شد!",
           color: "green",
         });
       } else {
-        // Handle the failure case
         notifications.show({
           title: "خطا",
           message: "مشکلی در حذف کد تخفیف پیش آمد!",
@@ -522,10 +479,8 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
         });
       }
 
-      // Fetch updated final receipt
       dispatch(fetchFinalReceipt());
     } catch (error) {
-      // Handle errors in case of failure
       notifications.show({
         title: "خطا",
         message: "مشکلی در اتصال به سرور پیش آمد!",
@@ -534,13 +489,11 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
     }
   };
 
-
   return (
     <>
       <ErrorMessageModal
         opened={modalOpen}
         onClose={() => setModalOpen(false)}
-        // status={errorUpdateDiscount?.status || errorUpdateDiscountDelete?.status}
         message={errorUpdateDiscount?.message || errorUpdateDiscountDelete?.message}
       />
       <Title fw="600" c="gray.8" mt="xl" mb="sm">
@@ -554,9 +507,11 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
               label="وارد کردن کد تخفیف"
               placeholder="اینجا بنویسید"
               {...form.getInputProps("code")}
-              disabled={isDiscountApplied} // Disable input if discount is applied
+              disabled={isDiscountApplied}
               error={
-                (cartfinalreceiptDiscount?.state === "error" && cartfinalreceiptDiscount?.errors?.code) || (form.errors.code) || (cartfinalreceiptDiscountDelete?.state === "error" && cartfinalreceiptDiscountDelete?.errors?.code) ? (
+                (cartfinalreceiptDiscount?.state === "error" && cartfinalreceiptDiscount?.errors?.code) || 
+                (form.errors.code) || 
+                (cartfinalreceiptDiscountDelete?.state === "error" && cartfinalreceiptDiscountDelete?.errors?.code) ? (
                   <div>
                     {cartfinalreceiptDiscount?.state === "error" && cartfinalreceiptDiscount?.errors?.code && (
                       <div>{cartfinalreceiptDiscount?.errors?.code}</div>
@@ -569,24 +524,28 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
                 ) : null
               }
             />
-            <Button w="70" type="submit" disabled={isDiscountApplied}>
+            <Button 
+              w="70" 
+              type="submit" 
+              disabled={isDiscountApplied}
+              loading={loadingUpdateDiscount}
+            >
               ثبت
             </Button>
           </Flex>
-          {/* <Flex align="end" w={{ lg: "50%" }}>
-            <Text c="red" size="13px">
-              {form.getInputProps("code").error}
-            </Text>
-          </Flex> */}
         </form>
 
-        {/* Display the applied coupon code below */}
-        {cartfinalreceipt?.cartDiscounts?.discountCode?.code && (
+        {orderfinalreceipt?.cartDiscounts?.discountCode?.code && (
           <>
             <Text mt="sm" c="green">
-              کد تخفیف اعمال شده: {cartfinalreceipt.cartDiscounts.discountCode.code}
+              کد تخفیف اعمال شده: {orderfinalreceipt.cartDiscounts.discountCode.code}
             </Text>
-            <Button mt="sm" color="red" onClick={removeDiscount}>
+            <Button 
+              mt="sm" 
+              color="red" 
+              onClick={removeDiscount}
+              loading={loadingUpdateDiscountDelete}
+            >
               حذف کد
             </Button>
           </>
@@ -594,10 +553,6 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
       </Paper>
     </>
   );
-
-
 };
-
-
 
 export default PaymentMethod;

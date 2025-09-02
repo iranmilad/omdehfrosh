@@ -11,6 +11,11 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isPaid: {
+      type: String,
+      required: true,
+      default: "unpaid"
+    },
     customer_email: {
       type: String,
       default: null,

@@ -1,20 +1,21 @@
+// Fixed Redux Action
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
 
 export const requestFinalReceipt = createAsyncThunk(
   "cart/requestFinalReceipt",
-  async ({ receipt_id_seller, receipt_id, vatRequested }, { rejectWithValue }) => {
+  async ({ vatRequested, orderId }, { rejectWithValue }) => {
     const token = localStorage.getItem("user");
 
     try {
-      const response = await fetch(getApiUrl(`/cart/requestfinalreceipt/${receipt_id}`), {
+      const response = await fetch(getApiUrl(`/cart/requestfinalreceipt`), {  // <-- no slash
         method: "POST",
-        headers: new Headers({
+        headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-        }),
-        body: JSON.stringify({ vatRequested, receipt_id_seller }),
+        },
+        body: JSON.stringify({ vatRequested, orderId }),
       });
 
       if (!response.ok) {

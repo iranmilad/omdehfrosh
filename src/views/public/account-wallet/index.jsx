@@ -9,6 +9,7 @@ import {
   Group,
   Loader,
   Modal,
+  Radio,
   Stack,
   Table,
   Text,
@@ -156,58 +157,111 @@ function Account_Wallet() {
   const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData); // Use the state from Redux
   
  
+
+  console.log(depositData)
+
+
   useEffect(() => {
     dispatch(getAllGateWaysData({ state: "online" }));
   }, [dispatch]);
 
 
-  const handleSubmitModal = (e) => {
-    e.preventDefault();
+// Fix the navigate call in handleSubmitModal function
+const handleSubmitModal = (e) => {
+  e.preventDefault();
 
-    if (walletModalType === 'deposit') {
+  if (walletModalType === 'deposit') {
+    const isValid = depositForm.validate();
 
-
-      const isValid = depositForm.validate();
-
-
-      if (!isValid.hasErrors) {
-        setWalletModalOpen(false);
-      }
+    if (!isValid.hasErrors) {
+      setWalletModalOpen(false);
 
       const info = fetchedGateways.find(gateway => gateway._id === selectedGatewayId);
 
-
       navigate("/payment-info-online-wallet", {
         state: {
-          ...depositForm.values,
-          gatewayId: info.info,
+          depositData: {
+            ...depositForm.values,
+            user_id: userInfo?.user?.id || user?.id,
+            description: "شارژ کیف پول",
+          },
+          gateway: info?.info || 'fake',
+          gatewayId: info?.info,
         },
       });
+    }
+    return;
+  }
 
+  if (walletModalType === 'withdraw') {
+    const isValid = withdrawForm.validate();
+    
+    if (!isValid.hasErrors) {
+      setWalletModalOpen(false);
+      setConfirmWithdrawModal(true);
+    }
+          dispatch(getUserMyAccount());
 
-      return;
+    return;
+  }
 
-
-    } if (walletModalType === 'withdraw') {
-      const isValid = withdrawForm.validate();
-      if (!isValid.hasErrors) {
-        setConfirmWithdrawModal(true); // نمایش مودال تأیید
-      }
-      return;
+  if (walletModalType === 'transfer') {
+    const isValid = transferForm.validate();
+    
+    if (!isValid.hasErrors) {
+      setWalletModalOpen(false);
+      setConfirmTransferModal(true);
     }
 
-    else if (walletModalType === 'transfer') {
-      const isValid = transferForm.validate();
-      if (!isValid.hasErrors) {
-        setConfirmTransferModal(true); // نمایش مودال تأیید انتقال
-      }
-      return;
-    }
+    return;
+  }
+};
 
-    setWalletModalOpen(false);
-  };
+// Add this function at the top of your component (after imports, before the main function)
+const GatewayIcon = ({ src, alt, width = 20 }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  // Check if src is invalid
+  const isInvalid = !src || 
+                    src === "" || 
+                    src === null || 
+                    src === undefined || 
+                    (Array.isArray(src) && (src.length === 0 || src[0] === ""));
 
-  useEffect(() => {
+  // Default SVG icon
+  const DefaultIcon = () => (
+    <svg width={width} height={width} viewBox="0 0 24 24" fill="none">
+      <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <rect x="2" y="8" width="20" height="2" fill="currentColor"/>
+      <circle cx="6" cy="14" r="1" fill="currentColor"/>
+      <circle cx="10" cy="14" r="1" fill="currentColor"/>
+    </svg>
+  );
+
+  if (isInvalid || hasError) {
+    return <DefaultIcon />;
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      onError={() => setHasError(true)}
+      style={{ objectFit: 'contain' }}
+    />
+  );
+};
+
+// Then replace this line:
+// leftSection={<img src={gateway.icon} alt={gateway.label} width={20} />}
+
+// With this line:
+// leftSection={<GatewayIcon src={gateway.icon} alt={gateway.label} width={20} />}
+
+
+
+useEffect(() => {
   if (withdrawResult && withdrawResult.state === "error" && withdrawResult.errors) {
     withdrawResult.errors.forEach((err) => {
       withdrawForm.setFieldError(err.name, err.message);
@@ -319,6 +373,8 @@ const transferForm = useForm({
     const updatedValues = { ...values, phone: values.mobile };
     await dispatch(updateUserInfo(updatedValues));
     await dispatch(fetchUserInfo());
+              dispatch(getUserMyAccount());
+
   }, [dispatch]);
 
   const handleDeposit = () => {
@@ -349,6 +405,8 @@ const transferForm = useForm({
             autoClose: true
           });
         }
+            dispatch(getUserMyAccount());
+
         if (withdrawResult && withdrawResult?.state === "error" ) {
             notifications.show({
               title: withdrawResult.message,
@@ -419,6 +477,9 @@ const transferForm = useForm({
             autoClose: true
           });
         }
+
+            dispatch(getUserMyAccount());
+
         if (transferResult && transferResult?.state === "error" ) {
             notifications.show({
               title: transferResult.message,
@@ -429,7 +490,27 @@ const transferForm = useForm({
 
       }, [errorTransfer, transferResult]);
       
+useEffect(() => {
+  // This will refresh data when user returns from payment page
+  const handleVisibilityChange = () => {
+    if (!document.hidden && user) {
+      // Page became visible, refresh wallet data
+      dispatch(getUserMyAccount());
+    }
+  };
 
+  // Listen for when user returns to the tab/page
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  // Also refresh when component mounts if user exists
+  if (user) {
+    dispatch(getUserMyAccount());
+  }
+
+  return () => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+  };
+}, [user, dispatch]);
             useEffect(() => {
               if (
                   errorTransfer && 
@@ -551,23 +632,63 @@ const transferForm = useForm({
 
               <Divider my="sm" label="درگاه پرداخت را انتخاب کنید" />
 
-              {loading ? (
-                <Center><Loader size="sm" /></Center>
-              ) : (
-                <Stack gap="xs">
-                  {fetchedGateways.map(gateway => (
-                    <Button
-                      fullWidth
-                      variant={selectedGatewayId === gateway._id ? 'filled' : 'light'}
-                      color={selectedGatewayId === gateway._id ? 'red' : 'gray'}
-                      onClick={() => setSelectedGatewayId(gateway._id)}
-                      leftSection={<img src={gateway.icon} alt={gateway.label} width={20} />}
+    {loading ? (
+      <Center><Loader size="sm" /></Center>
+    ) : (
+      <Radio.Group
+        value={selectedGatewayId}
+        onChange={setSelectedGatewayId}
+        name="paymentGateway"
+        label="انتخاب درگاه پرداخت"
+        withAsterisk
+      >
+        <Stack gap="sm" mt="sm">
+          {fetchedGateways.map(gateway => (
+            <div
+              key={gateway._id}
+              style={{
+                border: `2px solid ${selectedGatewayId === gateway._id ? '#fa5252' : '#e9ecef'}`,
+                borderRadius: '8px',
+                padding: '12px',
+                backgroundColor: selectedGatewayId === gateway._id ? '#fff5f5' : 'white',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer'
+              }}
+              onClick={() => setSelectedGatewayId(gateway._id)}
+            >
+              <Radio
+                value={gateway._id}
+                label={
+                  <Group gap="sm" align="center">
+                    <GatewayIcon 
+                      src={gateway.icon} 
+                      alt={gateway.label} 
+                      width={24} 
+                    />
+                    <Text 
+                      fw={selectedGatewayId === gateway._id ? 600 : 400}
+                      c={selectedGatewayId === gateway._id ? 'red.7' : 'dark.7'}
                     >
                       {gateway.label}
-                    </Button>
-                  ))}
-                </Stack>
-              )}
+                    </Text>
+                  </Group>
+                }
+                styles={{
+                  radio: {
+                    cursor: 'pointer'
+                  },
+                  label: {
+                    cursor: 'pointer',
+                    paddingLeft: '8px'
+                  }
+                }}
+              />
+            </div>
+          ))}
+        </Stack>
+      </Radio.Group>
+    )}
+
             </>
           )}
 

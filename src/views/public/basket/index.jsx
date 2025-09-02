@@ -402,6 +402,8 @@ const Basket = () => {
     enabled: shouldFetchCart,
   });
 
+  console.log(data)
+
   // Handle remove action from Product components
   const handleRemoveStart = useCallback(async () => {
     setIsRemoving(true);
@@ -611,7 +613,7 @@ const Basket = () => {
                   <Stack gap="lg">
                     {displayItems.map((item, index) => (
                       <Box
-                        key={item.productId || item.id || index}
+                        key={item.productId || index}
                         style={{
                           animation: `slideUp 0.6s ease-out ${index * 0.1}s both`
                         }}

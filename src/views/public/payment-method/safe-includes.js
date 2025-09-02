@@ -70,7 +70,7 @@ const PaymentCalcReceipt = ({ items = [], searchValue = '' }) => {
         }
 
         return (
-          <div key={item.id || index} className="receipt-item">
+          <div key={index} className="receipt-item">
             <div>Product ID: {Array.isArray(productId) ? productId.join(', ') : productId}</div>
             <div>Has Search Value: {hasSearchValue ? '✅' : '❌'}</div>
             {/* Your existing component logic here */}

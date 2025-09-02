@@ -21,7 +21,7 @@ router.post("/wallet/withdraw", walletWithdraw);
 router.post("/wallet/transfer", walletTransfer);            
 
 router.post("/getpaymentlink", getPaymentLink);            
-router.post("/checkpaymentstatus", checkPaymentStatus);            
+router.post("/checkpaymentstatus/:order_id", checkPaymentStatus);            
 router.post("/paymentwebhook", paymentWebhook);   
         
 router.post("/wallet/getpaymentlink", getPaymentLinkWallet);            

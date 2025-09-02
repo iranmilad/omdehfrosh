@@ -1,73 +1,210 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Button, TextInput, Loader, Text, Paper, Stack } from "@mantine/core";
-import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import { useLocation, useSearchParams } from "react-router-dom";
+import { Button, Loader, Text, Paper, Stack } from "@mantine/core";
 
 const FakeGateway = () => {
-
   const location = useLocation();
-
-  const [receiptId, setReceiptId] = useState(location.state?.receiptId || ""); // Get receiptId from navigation state
-  const [receipt_id_seller, setReceipt_id_seller] = useState(location.state?.receipt_id_seller || ""); // Get receiptId from navigation state
-
-  const [loading, setLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
+  const [searchParams] = useSearchParams();
 
   const [countdown, setCountdown] = useState(5);
+  const [paymentData, setPaymentData] = useState({});
+  const [processing, setProcessing] = useState(false);
 
+  // Extract payment data from URL parameters or location state
+  useEffect(() => {
+    const extractedData = {};
+    
+    // Get data from URL search params (if sent via GET)
+    for (const [key, value] of searchParams.entries()) {
+      extractedData[key] = value;
+    }
+    
+    // Get data from location state (if sent via POST form)
+    if (location.state) {
+      Object.assign(extractedData, location.state);
+    }
 
-  const checkPaymentStatus = async () => {
+    // Handle the specific data structure from your API
+    const userId = extractedData.user_id || searchParams.get('user_id');
+    const orderId = extractedData.order_id || searchParams.get('order_id');
+    const amountToPay = extractedData.amount_to_pay || searchParams.get('amount_to_pay');
+    
+    // Also support alternative naming from location state
+    const receiptId = orderId || extractedData.orderId || searchParams.get('orderId');
+    const amount = amountToPay || extractedData.amount || searchParams.get('amount');
+    const sellerId = extractedData.sellerId || searchParams.get('sellerId');
+
+    setPaymentData({
+      ...extractedData,
+      user_id: userId,
+      order_id: orderId,
+      amount_to_pay: amountToPay,
+      // Also keep alternative names for compatibility
+      receiptId,
+      amountToPay: amount,
+      sellerId
+    });
+
+  }, [location, searchParams]);
+
+  // Simulate HTTP POST to the website's payment status check endpoint
+  const sendPaymentResult = async (paymentStatus) => {
+    setProcessing(true);
+    
     try {
-      const response = await fetch(getApiUrl("/payment/paymentwebhook"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ receiptId: receiptId, receipt_id_seller: receipt_id_seller, status: "OK" }),
-      });
+      const orderIdToUse = paymentData.order_id || paymentData.receiptId || searchParams.get('order_id');
+      
+      // Prepare the payment data in the format expected by API: {status, body}
+      const completePaymentData = {
+        status: paymentStatus === 'success' ? "OK" : "FAILED",
+        body: {
+          order_id: orderIdToUse,
+          transaction_id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          amount: paymentData.amount_to_pay || paymentData.amountToPay || '0',
+          user_id: paymentData.user_id || '',
+          sellerId: paymentData.sellerId || '',
+          timestamp: new Date().toISOString(),
+          gateway: 'fake_gateway',
+          payment_method: 'online',
+          ...(paymentStatus === 'failed' && { 
+            error_message: 'Payment was cancelled by user',
+            error_code: 'USER_CANCELLED'
+          })
+        }
+      };
 
-      const data = await response.json();
+      // Create URL with the complete payment data as a single parameter
+      const queryString = new URLSearchParams({
+        paymentData: JSON.stringify(completePaymentData)
+      }).toString();
+      
+      // Navigate to payment status check with complete payment data
+      const targetUrl = `${window.location.origin}/payment-statuscheck?${queryString}`;
+      
+      window.location.href = targetUrl;
+      
+    } catch (error) {
+      console.error('Error sending payment result:', error);
+      setProcessing(false);
+    }
+  };
 
-      if (data.redirectUrl) {
+  // Auto-send success result after countdown
+  useEffect(() => {
+    if (paymentData.order_id || paymentData.receiptId || searchParams.get('order_id')) {
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev === 1) {
-            window.location.href = data.redirectUrl; 
+            sendPaymentResult('success');
             clearInterval(timer);
           }
           return prev - 1;
         });
       }, 1000);
-  
+
       return () => clearInterval(timer);
-      }
-    } catch (error) {
     }
+  }, [paymentData, searchParams]);
+
+  // Handle manual payment confirmation (for testing)
+  const handleManualConfirm = () => {
+    sendPaymentResult('success');
   };
 
-
-  useEffect(() => {
-    if (receiptId) {
-      checkPaymentStatus();
-    }
-  }, [receiptId]);
+  // Handle payment failure simulation
+  const handleFailPayment = () => {
+    sendPaymentResult('failed');
+  };
 
   return (
     <Paper padding="md" shadow="xs" radius="md" style={{ backgroundColor: "#f8f9fa" }}>
       <Stack spacing="lg">
-        <Text>
-            درگاه پرداخت
+        <Text size="xl" fw="600" ta="center" c="blue.8">
+          درگاه پرداخت شبیه‌ساز
         </Text>
-        <br />
-        <br />
-        <Text style={{ color: "green" }}>
-          تایید پرداخت
+        
+        <Text size="sm" ta="center" c="gray.6">
+          🌐 این یک درگاه خارجی است (خارج از وب‌سایت شما)
         </Text>
-        <br />  
-        <br />
-        <Text>
-          پس از {countdown} ثانیه به صفحه فروشگاه منتقل می شوید.
-        </Text>
+        
+        {/* Payment Details */}
+        {(paymentData.order_id || paymentData.receiptId || searchParams.get('order_id')) && (
+          <Paper p="md" bg="blue.0" radius="sm">
+            <Stack spacing="sm">
+              <Text size="sm" c="gray.7" fw="500">جزئیات پرداخت:</Text>
+              {paymentData.user_id && (
+                <Text size="xs">شناسه کاربر: {paymentData.user_id}</Text>
+              )}
+              {(paymentData.order_id || paymentData.receiptId) && (
+                <Text size="xs">شماره سفارش: {paymentData.order_id || paymentData.receiptId}</Text>
+              )}
+
+              {paymentData.sellerId && (
+                <Text size="xs">شناسه فروشنده: {paymentData.sellerId}</Text>
+              )}
+              {(paymentData.amount_to_pay || paymentData.amountToPay) && (
+                <Text size="sm" fw="500" c="green.8">
+                  مبلغ قابل پرداخت: {parseInt(paymentData.amount_to_pay || paymentData.amountToPay)?.toLocaleString()} تومان
+                </Text>
+              )}
+            </Stack>
+          </Paper>
+        )}
+
+        {/* Debug info for development */}
+        {process.env.NODE_ENV === 'development' && (
+          <Paper p="sm" bg="yellow.0" radius="sm">
+            <Text size="xs" c="gray.6">Debug - Payment Data:</Text>
+            <Text size="xs" c="gray.6" style={{ wordBreak: 'break-all' }}>
+              {JSON.stringify(paymentData, null, 2)}
+            </Text>
+          </Paper>
+        )}
+
+        {!processing ? (
+          <>
+            <Stack align="center" spacing="sm">
+              <Loader size="md" color="blue" />
+              <Text size="sm" c="gray">در حال پردازش پرداخت...</Text>
+              <Text ta="center" size="sm" c="blue.6">
+                پس از {countdown} ثانیه نتیجه پرداخت به وب‌سایت ارسال می‌شود.
+              </Text>
+            </Stack>
+
+            {/* Manual confirmation buttons for testing */}
+            <Stack spacing="sm">
+              <Button 
+                onClick={handleManualConfirm} 
+                variant="filled"
+                color="green"
+                size="md"
+              >
+                ✓ تایید پرداخت (موفق)
+              </Button>
+
+              <Button 
+                onClick={handleFailPayment} 
+                variant="filled"
+                color="red"
+                size="md"
+              >
+                ✗ لغو پرداخت (ناموفق)
+              </Button>
+            </Stack>
+          </>
+        ) : (
+          <Stack align="center" spacing="sm">
+            <Loader size="md" color="green" />
+            <Text size="sm" c="green">در حال ارسال نتیجه به وب‌سایت...</Text>
+          </Stack>
+        )}
+
+        {/* Instructions for testing */}
+        <Paper p="sm" bg="gray.0" radius="sm">
+          <Text size="xs" c="gray.6" ta="center">
+            این شبیه‌ساز درگاه خارجی است که نتیجه پرداخت را به وب‌سایت شما ارسال می‌کند.
+          </Text>
+        </Paper>
       </Stack>
     </Paper>
   );

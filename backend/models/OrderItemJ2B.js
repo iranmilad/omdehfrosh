@@ -7,6 +7,27 @@ const orderItemSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    isPaid: {
+      type: String,
+      required: true,
+      default: "unpaid"
+    },
+    vatRequested: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    priceWithVat: {
+      type: Number,
+      required: true,
+    },
+    paymentMethod: {
+      type: {name: String, paymentMethod: String},
+    },
+    vatLink: {
+      type: String,
+      default: ""
+    },
     order_id: {
       type: String, // FK as string
       required: true,

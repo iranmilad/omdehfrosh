@@ -3,6 +3,8 @@ import { toShamsiDate } from "../libs/convertShamsi.js";
 import getUserFromToken from "../libs/verifyToken.js";
 import Order from "../models/Order.js"; // Import Order model
 import jwt from "jsonwebtoken";
+import OrderJ2B from "../models/Orders_J2B.js";
+import OrderItemJ2B from "../models/OrderItemJ2B.js";
 
 
 
@@ -33,38 +35,36 @@ export const createOrder = async (req, res) => {
 // Get order details by ID
 
 export const getOrder = async (req, res) => {
-    try {
-
-
-
-      const { user_id } = getUserFromToken(req, res);  // This will handle token extraction and verification
-
-      const userId = user_id;
-  
-      if (!userId) {
-        return res.status(400).json({ message: "User Not Found" });
-      }
-  
-      // Extract Order ID
-      const { id } = req.params; 
-  
-      if (!id) {
-        return res.status(400).json({ message: "Order ID is required" });
-      }
-  
-      // Find Order
-      const order = await Order.findOne({ order_id: id });
-  
-      if (!order) {
-        return res.status(404).json({ message: "Order not found" });
-      }
-  
-      res.status(200).json(order);
-    } catch (error) {
-      console.error("Error fetching order:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    if (!user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
-  };
+
+    const orderId = req.params.id;
+
+    // Find the order by ID and user
+    const order = await OrderJ2B.findOne({ id: orderId, user_id }).lean();
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Find all items for this order
+    const items = await OrderItemJ2B.find({ order_id: order.id }).lean();
+
+    // Return combined order + items
+    return res.status(200).json({
+      success: true,
+      order: {
+        ...order,
+        items,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
   
   export const getOrderByReceiptID = async (req, res) => {
     try {
@@ -103,36 +103,44 @@ export const getOrder = async (req, res) => {
 
 // Get all orders
 export const getAllOrdersByUserId = async (req, res) => {
-
-
-
-  const { user_id } = getUserFromToken(req, res);  // This will handle token extraction and verification
-
-
-  const userId = user_id
-
-  if (!userId) {
-    return res.status(400).json({ message: "User Not Found" });
-  }
-
   try {
+    // Extract user_id from token
+    const { user_id } = getUserFromToken(req, res);
 
+    if (!user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
 
-    const orders = await Order.find({ user_id: userId });
+    // Fetch all orders for this user
+    const orders = await OrderJ2B.find({ user_id: user_id })
+      .sort({ createdAt: -1 }) // latest orders first
+      .lean();
 
-    const formattedOrders = orders.map(order => ({
-      ...order.toObject(), // Convert Mongoose document to a plain object
-      date: toShamsiDate(order.createdAt), // Add the new field
+    // Map orders to a clean structure for frontend
+    const response = orders.map((order) => ({
+      orderId: order.id, // your custom order ID
+      customerName: order.customer_name,
+      customerEmail: order.customer_email,
+      customerPhone: order.customer_phone_number,
+      supplierId: order.supplier_id,
+      userId: order.user_id,
+      totalPrice: order.total_price,
+      totalDiscount: order.total_discount,
+      discountCodeId: order.discount_code_id,
+      status: order.status,
+      deliveryType: order.delivery_type,
+      paymentMethod: order.payment_method,
+      isPaid: order.isPaid,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
     }));
 
-    res.status(200).json(formattedOrders);
-
+    return res.status(200).json({ success: true, orders: response });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 // Update order status
 export const updateOrderStatus = async (req, res) => {
   const { orderId } = req.params; // Get the custom order_id from the request params
