@@ -4,6 +4,10 @@ import Archive from "../models/Archive.js"; // Mongo model
 // POST /brandproducts
 export const getBrandProducts = async (req, res) => {
 
+  
+  
+
+
   try {
     const { brand, page } = req.body;
 

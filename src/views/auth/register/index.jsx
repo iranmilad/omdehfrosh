@@ -20,7 +20,6 @@ import { IMaskInput } from "react-imask";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router";
-import { useSend } from "../../../Libs/api";
 import { useCookies } from "react-cookie";
 import { IconArrowLeft, IconInfoCircle } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
@@ -30,7 +29,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { notifications } from "@mantine/notifications";
 import ErrorMessageModal from "../../../components/errormessagemodal";
-
+import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
 
 const validationSchema = yup.object().shape({
   name: yup
@@ -52,44 +52,197 @@ const validationSchema = yup.object().shape({
     .transform((value) => value.replace(/\s+/g, '')) // حذف فاصله‌ها
     .required('شماره موبایل الزامی است')
     .matches(/^09\d{9}$/, 'شماره موبایل باید با 09 شروع شود و ۱۱ رقم باشد'),
-  
 });
 
 const Register = () => {
-
   const [type, setType] = useState("enter");
-
   const [cookies, setCookie] = useCookies(["user"]);
-
   const bootstrap = useSelector((state) => state.global.bootstrap);
-
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
 
+  // Replace useSend with local state
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerData, setRegisterData] = useState(null);
+  const [smsLoading, setSmsLoading] = useState(false);
+  const [smsData, setSmsData] = useState(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyData, setVerifyData] = useState(null);
 
-  const [stateMessage, setStateMessage] = useState("ok")
-  
+  const [stateMessage, setStateMessage] = useState("ok");
   const [showAlert, setShowAlert] = useState(false);
-  
   const [modalOpen, setModalOpen] = useState(false);
-  
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState({});
+  const [errs, setErrs] = useState({});
+  const [successMessage, setSuccessMessage] = useState({});
 
-  const [errs, setErrs] = useState({})
+  // Custom register function with direct fetch
+  const registerUser = async (userData) => {
+    setRegisterLoading(true);
+    setRegisterData(null);
+    
+    try {
+      const response = await fetch(getApiUrl("/auth/signup"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
 
-  const [successMessage, setSuccessMessage] = useState({})
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
 
+      if (!response.ok) {
+        const error = {
+          status: response.status,
+          message: data?.message || getHttpCodeMessage(response.status),
+        };
 
-  const { mutateAsync, isPending } = useSend({ url: "auth/register" });
+        setRegisterData({
+          state: "error",
+          message: "خطایی در ثبت نام کاربر رخ داده است",
+          error,
+          errors: data?.errors || {}
+        });
+        return {
+          state: "error",
+          message: "خطایی در ثبت نام کاربر رخ داده است",
+          error,
+          errors: data?.errors || {}
+        };
+      }
 
-  const sendCode = useSend({ url: "auth/sms" });
+      const successData = {
+        state: "ok",
+        message: "موفقیت در ثبت نام",
+        data,
+      };
+      
+      setRegisterData(successData);
+      return successData;
 
-  const { data } = useSend({ url: "auth/sms" });
+    } catch (error) {
+      const errorData = {
+        state: "error",
+        message: "Internal Server Error",
+        error: error.message || error,
+      };
+      
+      setRegisterData(errorData);
+      return errorData;
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
 
-  const verify = useSend({url: "auth/verifyregister"});
+  // Custom SMS sending function with direct fetch
+  const sendSMSCode = async (mobile) => {
+    setSmsLoading(true);
+    setSmsData(null);
+    
+    try {
+      const response = await fetch(getApiUrl("/sms/newsmscode"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile }),
+      });
 
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
 
+      if (!response.ok) {
+        const error = {
+          status: response.status,
+          message: data?.message || getHttpCodeMessage(response.status),
+        };
+
+        setSmsData({
+          state: "error",
+          message: "Failed to send SMS",
+          error,
+        });
+        return {
+          state: "error",
+          message: "Failed to send SMS",
+          error,
+        };
+      }
+
+      const successData = {
+        state: "ok",
+        message: "SMS sent successfully",
+        data,
+      };
+      
+      setSmsData(successData);
+      return successData;
+
+    } catch (error) {
+      const errorData = {
+        state: "error",
+        message: "Internal Server Error",
+        error: error.message || error,
+      };
+      
+      setSmsData(errorData);
+      return errorData;
+    } finally {
+      setSmsLoading(false);
+    }
+  };
+
+  // Custom verify function with direct fetch
+  const verifyRegisterCode = async (mobile, code) => {
+    setVerifyLoading(true);
+    setVerifyData(null);
+    
+    try {
+      const token = localStorage.getItem("user");
+      
+      const response = await fetch(getApiUrl("/sms/verifysms"), {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ mobile, code }),
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
+
+      if (!response.ok) {
+        const errorData = {
+          state: "error",
+          message: "Verification failed",
+          error: data?.error || { code: "کد وارد شده اشتباه است" },
+        };
+        
+        setVerifyData(errorData);
+        return errorData;
+      }
+
+      const successData = {
+        state: "ok",
+        message: "Verification successful",
+        data,
+      };
+      
+      setVerifyData(successData);
+      return successData;
+
+    } catch (error) {
+      const errorData = {
+        state: "error",
+        message: "Internal Server Error",
+        error: { code: "Internal Server Error" },
+      };
+      
+      setVerifyData(errorData);
+      return errorData;
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
 
   useEffect(() => {
     const nonNotifyStatuses = [
@@ -99,51 +252,40 @@ const Register = () => {
     ];
   
     const isEmpty = (obj) => Object.keys(obj).length === 0;
-  
     const hasValidStatus = errors && typeof errors.status !== "undefined" && !isNaN(Number(errors.status));
   
     if (!isEmpty(errors) && hasValidStatus && !nonNotifyStatuses.includes(Number(errors.status))) {
-      // Clear errors first
       setErrors({});
-  
-      // Then show notification
       notifications.show({
         title: errors.message || "خطایی رخ داده است",
         color: "red",
         autoClose: true,
       });
     }
-  }, [errors, data]);
+  }, [errors]);
   
-
   useEffect(() => {
     if (errors?.status) {
       handleKnownErrors(errors.status, setModalOpen, navigate);
     }
-  }, [errors, data]);
+  }, [errors]);
 
-
-        useEffect(() => {
-          if (successMessage && successMessage.state === "ok" ) {
-            notifications.show({
-              title: successMessage.message,
-              color: "green",
-              autoClose: true
-            });
-          }
-          if (errs && errs?.state === "error" ) {
-              notifications.show({
-                title: errs.message,
-                color: "red",
-                autoClose: true
-              });
-            }
-  
-        }, [ successMessage, data, errs]);
-  
-
-
-
+  useEffect(() => {
+    if (successMessage && successMessage.state === "ok") {
+      notifications.show({
+        title: successMessage.message,
+        color: "green",
+        autoClose: true
+      });
+    }
+    if (errs && errs?.state === "error") {
+      notifications.show({
+        title: errs.message,
+        color: "red",
+        autoClose: true
+      });
+    }
+  }, [successMessage, errs]);
 
   const form = useForm({
     mode: "uncontrolled",
@@ -153,7 +295,6 @@ const Register = () => {
       nationalCode: "",
       mobile: ""
     },
-
     validate: yupResolver(validationSchema)
   });
 
@@ -162,7 +303,6 @@ const Register = () => {
     initialValues: {
       code: "",
     },
-
     validate: {
       code: (value) => {
         return /^\d{4}$/.test(value) ? null : "کد باید دقیقاً شامل ۴ رقم باشد";
@@ -170,87 +310,90 @@ const Register = () => {
     },
   });
 
-  function submitForm(value) {
-
-    
-    let data = value;
+  async function submitForm(value) {
+    let data = { ...value };
     data.mobile = value.mobile.replace(/\s+/g, "");
     const mobile = data.mobile;
 
-
-    mutateAsync(
-      { ...data },
-      {
-        onSuccess: (data) => {
-
-
-          if(data.state === "error") {
-            setStateMessage("error")
-            setErrs(data)
-            return
-          }
-
-          if (data.error) {
-
-            form.setErrors(data.error);
-            setErrors(data.error);
-
-
-
-          } else {
-            setSuccessMessage(data)
-            sendCode.mutateAsync({mobile}, {
-
-
-              onSuccess: (data2) => {
-
-                if(data2.error) {
-                  form.setErrors(data.error);
-                }
-
-                formCode.setValues({ code: "" });
-                formCode.setFieldError("code", "");
-                setType("code");
-                setErrors({});
-
-              }
-            })
-
-          }
-        },
+    try {
+      const registerResult = await registerUser(data);
+      
+      if (!registerResult) {
+        console.error('No response data received');
+        setStateMessage("error");
+        return;
       }
-    );
+
+      if (registerResult.state === "error") {
+        setStateMessage("error");
+        setErrs(registerResult);
+        
+        if (registerResult.error || registerResult.errors) {
+          form.setErrors(registerResult.errors || registerResult.error);
+          setErrors(registerResult.error || {});
+        }
+        return;
+      }
+
+      // Registration successful, now send SMS
+      setSuccessMessage(registerResult);
+      
+      const smsResult = await sendSMSCode(mobile);
+      
+      if (smsResult && smsResult.state === "ok") {
+        formCode.setValues({ code: "" });
+        formCode.setFieldError("code", "");
+        setType("code");
+        setErrors({});
+      } else if (smsResult && smsResult.error) {
+        form.setErrors(smsResult.error);
+      }
+
+    } catch (error) {
+      console.error('Registration request failed:', error);
+      if (error && ![401, 404, 500].includes(error?.status)) {
+        setErrors(error);
+      }
+    }
   }
 
-
-  function verifyRegister(value) {
-
-    if (stateMessage !== "error") {
-      verify.mutateAsync(
-        { mobile: form.getValues().mobile.replace(/\s+/g, ""), code: value.code },
-        {
-          onSuccess: (data) => {
-            if (data.error) {
-              formCode.setErrors(data.error);
-            } else {
-              setType("success");
-              setTimeout(() => {
-                navigate("/login");
-              }, 2000);
-            }
-          },
-        }
-      );
+  async function verifyRegister(value) {
+    if (stateMessage === "error") {
+      return;
     }
 
+    try {
+      const mobile = form.getValues().mobile.replace(/\s+/g, "");
+      const result = await verifyRegisterCode(mobile, value.code);
+      
+      if (!result) {
+        console.error('No response data received for verification');
+        formCode.setFieldError("code", "خطا در دریافت پاسخ سرور");
+        return;
+      }
 
+      if (result.state === "error") {
+        formCode.setErrors(result.error);
+        return;
+      }
+
+      // Verification successful
+      setType("success");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+
+    } catch (error) {
+      console.error('Verification request failed:', error);
+      formCode.setFieldError("code", error?.message || "خطا در تایید کد");
+    }
   }
+
   return (
     <>
       <ErrorMessageModal
         opened={modalOpen}
         onClose={() => setModalOpen(false)}
-        // status={errors?.status}
         message={errors?.message}
       />
       <Box bg="gray.1" h="100vh" w="100%" className="flex items-center justify-center">
@@ -260,7 +403,7 @@ const Register = () => {
             src={bootstrap?.logo}
           />
           <Paper className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
-          <Flex justify="space-between" align="center">
+            <Flex justify="space-between" align="center">
               <Text c="dark" size="xl" fw="bold">ثبت</Text>
               <Image src={""} />
             </Flex>
@@ -271,7 +414,8 @@ const Register = () => {
                     onSubmit={form.onSubmit((values) => submitForm(values))}
                   >
                     <Stack>
-                      <TextInput label="نام"
+                      <TextInput 
+                        label="نام"
                         {...form.getInputProps("name")}
                         withAsterisk
                         error={
@@ -286,19 +430,19 @@ const Register = () => {
                         }
                       />
                       <TextInput 
-                      label="نام خانوادگی"
-                      {...form.getInputProps("family")}
-                      withAsterisk
-                      error={
-                        (errs?.state === "error" && errs?.errors?.family) || form.errors.family ? (
-                          <div>
-                            {errs?.state === "error" && errs?.errors?.family && (
-                              <div>{errs?.errors?.family}</div>
-                            )}
-                            {form.errors.family && <div>{form.errors.family}</div>}
-                          </div>
-                        ) : null
-                      }
+                        label="نام خانوادگی"
+                        {...form.getInputProps("family")}
+                        withAsterisk
+                        error={
+                          (errs?.state === "error" && errs?.errors?.family) || form.errors.family ? (
+                            <div>
+                              {errs?.state === "error" && errs?.errors?.family && (
+                                <div>{errs?.errors?.family}</div>
+                              )}
+                              {form.errors.family && <div>{form.errors.family}</div>}
+                            </div>
+                          ) : null
+                        }
                       />
                       <TextInput
                         label="کد ملی"
@@ -340,9 +484,8 @@ const Register = () => {
                         type="submit"
                         variant="filled"
                         fullWidth
-                        loading={isPending}
-                        disabled={isPending || sendCode.isPending}  // Disable button to prevent multiple submissions
-
+                        loading={registerLoading || smsLoading}
+                        disabled={registerLoading || smsLoading}
                       >
                         ثبت نام
                       </Button>
@@ -360,7 +503,7 @@ const Register = () => {
                 <div className="mt-8 mb-4 text-xs text-zinc-500">
                   ثبت نام شما به معنای پذیرش{" "}
                   <Anchor size="xs">
-                  قوانین و مقررات
+                    قوانین و مقررات
                   </Anchor> {' '}
                   مدکالا میباشد.
                 </div>
@@ -402,7 +545,7 @@ const Register = () => {
                       mt="md"
                       variant="filled"
                       fullWidth
-                      loading={sendCode.isPending}
+                      loading={verifyLoading}
                     >
                       ثبت نام
                     </Button>

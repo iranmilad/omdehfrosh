@@ -489,6 +489,23 @@ const MasterDashboard = () => {
                 />
               </Group>
 
+              <Group position="center" spacing="xl">
+                <MantineNavLink 
+                  component={NavLink} 
+                  to="/master-dashboard/bootstrap" 
+                  label="📦 bootstrap " 
+                  variant="filled"
+                  sx={(theme) => ({
+                    borderRadius: theme.radius.md,
+                    padding: "10px 20px",
+                    fontSize: theme.fontSizes.md,
+                    color: theme.white,
+                    backgroundColor: theme.colors.blue[6],
+                    "&:hover": { backgroundColor: theme.colors.blue[7] },
+                  })}
+                />
+              </Group>
+
             </Stack>
           </Card>
     

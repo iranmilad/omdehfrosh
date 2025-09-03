@@ -9,6 +9,7 @@ import { setBootstrap } from "../../redux/global";
 import Logo from "../../assets/logo.png"
 import { useLayoutEffect } from "react";
 import {useCookies}  from "react-cookie";
+import { bootstrap } from "../../mock/data/bootstrap";
 
 const Auth = (props) => {
   const curr = useLocation();
@@ -16,7 +17,16 @@ const Auth = (props) => {
   const [cookies, setCookie] = useCookies(["user"]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const {data,isLoading} = useData({url:"/bootstrap",queryKey:['bootstrap']});
+
+
+  // const {data,isLoading} = useData({url:"/bootstrap", queryKey:['bootstrap']});
+
+  const data = bootstrap
+
+
+
+
+
   useEffect(() => {
     // پیدا کردن مسیر فعلی از لیست مسیرها
     let currentRouteTitle = null;
@@ -37,12 +47,11 @@ const Auth = (props) => {
   }, [curr]);
 
     useEffect(() => {
-    if(!isLoading){
       if(data){
         dispatch(setBootstrap(data))
-      }
+      
     }
-  },[isLoading])
+  },[])
 
   useEffect(() => {
     if(cookies.user && cookies.user !== ""){
@@ -53,7 +62,7 @@ const Auth = (props) => {
   
   return (
     <>
-      {data && !isLoading ? (
+      {data ? (
         <>
         {loading ? ( 
           <>

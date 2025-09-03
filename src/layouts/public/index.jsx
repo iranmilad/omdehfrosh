@@ -15,14 +15,20 @@ import { useData } from "../../Libs/api";
 import { setBootstrap } from "../../redux/global";
 import { PublicRoutes } from "../../routes/public";
 import InstallPWA from "../../components/installPWA";
+import { bootstrap } from "../../mock/data/bootstrap";
 
 const Public = (props) => {
   const curr = useLocation();
   const loading = useSelector((state) => state.global.loading);
-  const { data, isLoading } = useData({
-    url: "/bootstrap",
-    queryKey: ["bootstrap"],
-  });
+
+
+  // const { data, isLoading } = useData({
+  //   url: "/bootstrap",
+  //   queryKey: ["bootstrap"],
+  // });
+
+    const data = bootstrap
+  
   const dispatch = useDispatch();
   const routes = PublicRoutes;
   useEffect(() => {
@@ -47,18 +53,17 @@ const Public = (props) => {
 
 
   useEffect(() => {
-    if (!isLoading) {
       if (data) {
         dispatch(setBootstrap(data));
-      }
+      
     }
-  }, [isLoading]);
+  }, []);
 
   
 
   return (
     <>
-      {data && !isLoading ? (
+      {data ? (
         <>
           {loading ? (
             <>

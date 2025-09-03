@@ -19,7 +19,6 @@ import { IMaskInput } from "react-imask";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router";
-import { useSend } from "../../../Libs/api";
 import { useCookies } from "react-cookie";
 import { IconArrowLeft, IconInfoCircle } from '@tabler/icons-react';
 import { useNavigate } from "react-router";
@@ -33,6 +32,8 @@ import { notifications } from "@mantine/notifications";
 import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleForbiddenError, handleKnownErrors } from '../../../Libs/errorstatushandle/httpErrorStatus'
 import { getUserFavoritesList } from "../../../redux/users/getuserfavouriteslist/listActions";
+import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
 
 const validationSchema = yup.object().shape({
   mobile: yup
@@ -56,7 +57,12 @@ const Login = () => {
   const redirectURL = QueryString.parse(location.search);
   const dispatch = useDispatch();
 
-  const { mutateAsync, isPending, data } = useSend({ url: "auth/sms" });
+  // Replace useSend with local state for both SMS and Login
+  const [smsLoading, setSmsLoading] = useState(false);
+  const [smsData, setSmsData] = useState(null);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginData, setLoginData] = useState(null);
+  
   const { user, isVerified, error, loading } = useSelector((state) => state.auth);
   const [stateMessage, setStateMessage] = useState("ok");
   const [showAlert, setShowAlert] = useState(false);
@@ -108,8 +114,6 @@ const Login = () => {
       navigate(redirectPath, { replace: true });
     }
   }, [user, user_master, isVerified, isVerifiedMaster, navigate, redirectURL]);
-
-  const sendCode = useSend({ url: "auth/login" });
   
   const form = useForm({
     mode: "uncontrolled",
@@ -134,23 +138,153 @@ const Login = () => {
     validate: yupResolver(codeValidationSchema)
   });
 
+  // Custom SMS sending function with direct fetch
+  const sendSMSCode = async (mobile) => {
+    setSmsLoading(true);
+    setSmsData(null);
+    
+    try {
+      const response = await fetch(getApiUrl("/sms/newsmscode"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile }),
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
+
+      if (!response.ok) {
+        const error = {
+          status: response.status,
+          message: data?.message || getHttpCodeMessage(response.status),
+        };
+
+        setSmsData({
+          state: "error",
+          message: "Failed to send SMS",
+          error,
+        });
+        return {
+          state: "error",
+          message: "Failed to send SMS",
+          error,
+        };
+      }
+
+      const successData = {
+        state: "ok",
+        message: "SMS sent successfully",
+        data,
+      };
+      
+      setSmsData(successData);
+      return successData;
+
+    } catch (error) {
+      const errorData = {
+        state: "error",
+        message: "Internal Server Error",
+        error: error.message || error,
+      };
+      
+      setSmsData(errorData);
+      return errorData;
+    } finally {
+      setSmsLoading(false);
+    }
+  };
+
+  // Custom login function with direct fetch
+  const loginUser = async (mobile, code) => {
+    setLoginLoading(true);
+    setLoginData(null);
+    
+    try {
+      const response = await fetch(getApiUrl("/auth/login"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, code }),
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
+
+      if (!response.ok) {
+        const error = {
+          status: response.status,
+          message: data?.message || getHttpCodeMessage(response.status),
+          error: data?.error || "کد وارد شده اشتباه است"
+        };
+
+        setLoginData({
+          state: "error",
+          message: "Login failed",
+          error,
+        });
+        return {
+          state: "error",
+          message: "Login failed",
+          error,
+        };
+      }
+
+      // Handle token storage based on API response
+      if ("token" in data) {
+        if (data.token) {
+          localStorage.setItem("user", data.token);
+        } else {
+          localStorage.removeItem("user");
+        }
+      }
+
+      if ("token_master" in data) {
+        if (data.token_master) {
+          localStorage.setItem("user_master", data.token_master);
+        } else {
+          localStorage.removeItem("user_master");
+        }
+      }
+
+      const successData = {
+        state: "ok",
+        message: "Login successful",
+        data,
+      };
+      
+      setLoginData(successData);
+      return successData;
+
+    } catch (error) {
+      const errorData = {
+        state: "error",
+        message: "Internal Server Error",
+        error: error.message || error,
+      };
+      
+      setLoginData(errorData);
+      return errorData;
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
   // Handle SMS response notifications
   useEffect(() => {
-    if (data && data?.state === "ok") {
+    if (smsData && smsData?.state === "ok") {
       notifications.show({
-        title: data.message,
+        title: smsData.message,
         color: "green",
         autoClose: true
       });
     }
-    if (data && data?.state === "error") {
+    if (smsData && smsData?.state === "error") {
       notifications.show({
-        title: data.message,
+        title: smsData.message,
         color: "red",
         autoClose: true
       });
     }
-  }, [data]);
+  }, [smsData]);
 
   // Handle error notifications (only for non-auth errors)
   useEffect(() => {
@@ -175,111 +309,114 @@ const Login = () => {
     }
   }, [errors, navigate]);
 
-  function submitForm(value) {
+  async function submitForm(value) {
     const sanitizedValue = value.mobile.replace(/\s+/g, "");
 
-    mutateAsync(
-      { mobile: sanitizedValue },
-      {
-        onSuccess: (data) => {
-          // Add null check for data
-          if (!data) {
-            console.error('No response data received');
-            setStateMessage("error");
-            return;
-          }
-
-          if (data.state === "error") {
-            setStateMessage("error");
-            return;
-          }
-
-          if (data.error) {
-            form.setErrors(data.error);
-            setErrors(data.error);
-          } else {
-            formCode.setValues({ code: "" });
-            formCode.setFieldError("code", "");
-            setType("code");
-            setErrors({});
-          }
-        },
-        onError: (error) => {
-          console.error('SMS request failed:', error);
-          // Only set errors for non-auth related errors
-          if (error && ![401, 404, 500].includes(error?.status)) {
-            setErrors(error);
-          }
-        }
+    try {
+      const result = await sendSMSCode(sanitizedValue);
+      
+      if (!result) {
+        console.error('No response data received');
+        setStateMessage("error");
+        return;
       }
-    );
+
+      if (result.state === "error") {
+        setStateMessage("error");
+        if (result.error) {
+          form.setErrors(result.error);
+          setErrors(result.error);
+        }
+        return;
+      }
+
+      // Success - move to code input and reset state message
+      formCode.setValues({ code: "" });
+      formCode.setFieldError("code", "");
+      setType("code");
+      setErrors({});
+      setStateMessage("ok"); // Reset state message on success
+      
+    } catch (error) {
+      console.error('SMS request failed:', error);
+      // Only set errors for non-auth related errors
+      if (error && ![401, 404, 500].includes(error?.status)) {
+        setErrors(error);
+      }
+    }
   }
 
-  function submitLogin(value) {
-    if (stateMessage !== "error") {
-      sendCode.mutateAsync(
-        { mobile: form.getValues().mobile.replace(/\s+/g, ""), code: value.code },
-        {
-          onSuccess: (data) => {
-            // Add comprehensive null checks
-            if (!data) {
-              console.error('No response data received for login');
-              formCode.setFieldError("code", "خطا در دریافت پاسخ سرور");
-              return;
-            }
+  async function submitLogin(value) {
+    const sanitizedMobile = form.getValues().mobile.replace(/\s+/g, "");
+    
+    try {
+      const result = await loginUser(sanitizedMobile, value.code);
+      
+      if (!result) {
+        console.error('No response data received for login');
+        formCode.setFieldError("code", "خطا در دریافت پاسخ سرور");
+        return;
+      }
 
-            if (data.error) {
-              formCode.setFieldError("code", data.error);
-            } else if (data.user) {
-              // Check if user object exists before accessing its properties
-              if (data.user.status === true) {
-                setType("success");
-
-                // Load favorites after successful login
-                dispatch(getUserFavoritesList())
-                  .unwrap()
-                  .then((favoritesData) => {
-                    // Cache favorites in cookies for 7 days
-                    const expirationDate = new Date();
-                    expirationDate.setDate(expirationDate.getDate() + 7);
-                    
-                    setCookie("userFavorites", JSON.stringify(favoritesData), {
-                      expires: expirationDate,
-                      path: "/",
-                      secure: true,
-                      sameSite: "strict"
-                    });
-                  })
-                  .catch((error) => {
-                    console.warn('Failed to load favorites after login:', error);
-                  });
-
-                setTimeout(() => {
-                  const redirectPath = redirectURL['?redirect'] || "/";
-                  navigate(redirectPath, { replace: true });
-                }, 2000);
-              } else if (data.user.status === false) {
-                setType("unverified");
-              } else {
-                setType(data.user.status);
-              }
-            } else {
-              console.error('Invalid response structure:', data);
-              formCode.setFieldError("code", "ساختار پاسخ سرور نامعتبر است");
-            }
-          },
-          onError: (error) => {
-            console.error('Login request failed:', error);
-            // Only set errors for non-auth related errors
-            if (error && ![401, 404, 500].includes(error?.status)) {
-              setErrors(error);
-            }
-            
-            // Show user-friendly error message
-            formCode.setFieldError("code", error?.message || "خطا در ورود به سیستم");
-          }
+      if (result.state === "error") {
+        formCode.setFieldError("code", result.error?.error || result.error?.message || "خطا در ورود به سیستم");
+        
+        // Only set errors for non-auth related errors
+        if (result.error && ![401, 404, 500].includes(result.error?.status)) {
+          setErrors(result.error);
         }
-      );
+        return;
+      }
+
+      // Success - handle the response
+      const data = result.data;
+      
+      if (data?.user) {
+        if (data.user.status === true) {
+          setType("success");
+
+          // Load favorites after successful login
+          dispatch(getUserFavoritesList())
+            .unwrap()
+            .then((favoritesData) => {
+              // Cache favorites in cookies for 7 days
+              const expirationDate = new Date();
+              expirationDate.setDate(expirationDate.getDate() + 7);
+              
+              setCookie("userFavorites", JSON.stringify(favoritesData), {
+                expires: expirationDate,
+                path: "/",
+                secure: true,
+                sameSite: "strict"
+              });
+            })
+            .catch((error) => {
+              console.warn('Failed to load favorites after login:', error);
+            });
+
+          setTimeout(() => {
+            const redirectPath = redirectURL['?redirect'] || "/";
+            navigate(redirectPath, { replace: true });
+          }, 2000);
+        } else if (data.user.status === false) {
+          setType("unverified");
+        } else {
+          setType(data.user.status);
+        }
+      } else {
+        console.error('Invalid response structure:', data);
+        formCode.setFieldError("code", "ساختار پاسخ سرور نامعتبر است");
+      }
+      
+    } catch (error) {
+      console.error('Login request failed:', error);
+      // Only set errors for non-auth related errors
+      if (error && ![401, 404, 500].includes(error?.status)) {
+        setErrors(error);
+      }
+      
+      // Show user-friendly error message
+      formCode.setFieldError("code", error?.message || "خطا در ورود به سیستم");
     }
   }
 
@@ -315,10 +452,10 @@ const Login = () => {
                       {...form.getInputProps("mobile")}
                       withAsterisk
                       error={
-                        (data?.state === "error" && data?.errors?.mobile) || form.errors.mobile ? (
+                        (smsData?.state === "error" && smsData?.errors?.mobile) || form.errors.mobile ? (
                           <div>
-                            {data?.state === "error" && data?.errors?.mobile && (
-                              <div>{data?.errors?.mobile}</div>
+                            {smsData?.state === "error" && smsData?.errors?.mobile && (
+                              <div>{smsData?.errors?.mobile}</div>
                             )}
                             {form.errors.mobile && <div>{form.errors.mobile}</div>}
                           </div>
@@ -330,7 +467,7 @@ const Login = () => {
                       mt="md"
                       variant="filled"
                       fullWidth
-                      loading={isPending}
+                      loading={smsLoading}
                     >
                       ادامه
                     </Button>
@@ -390,7 +527,7 @@ const Login = () => {
                       mt="md"
                       variant="filled"
                       fullWidth
-                      loading={sendCode.isPending || loadingGetUserFavoritesList}
+                      loading={loginLoading || loadingGetUserFavoritesList}
                     >
                       ورود
                     </Button>

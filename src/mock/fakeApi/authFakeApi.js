@@ -52,7 +52,75 @@ export default function authFake(server, apiPrefix) {
 		  };
 		}
 	  });
+
+	  	server.post(`${apiPrefix}/auth/register`, async (schema, { requestBody }) => {
+		const req = JSON.parse(requestBody);
+		
+		try {
+			const response = await fetch((getApiUrl("/auth/signup")), {
+			  method: "POST",
+			  headers: { "Content-Type": "application/json" },
+			  body: JSON.stringify(req)
+			});
+		  
 	  
+			const text = await response.text(); // get raw response first
+			const data = text ? JSON.parse(text) : null; // parse only if not empty
+		
+			if (!response.ok) {
+			  const error = {
+				status: response.status,
+				message: data?.message || getHttpCodeMessage(response.status),
+			  };
+		
+			  return {
+				message: "خطایی در ثبت نام کاربر رخ داده است",
+				error,
+			  };
+			}
+
+			return { message: "موفقیت در ثبت نام", data};
+
+	  
+			} catch (error) {
+			  return { message: "error", error };
+			}
+	});
+
+	server.post(`${apiPrefix}/auth/verifyregister`, async (schema, { requestBody }) => {
+		let body = JSON.parse(requestBody);
+		const token = localStorage.getItem("user");
+
+		try {
+		  // Call the existing verifySMS API to validate the code
+		  const response = await fetch(getApiUrl("/sms/verifysms"), {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(body),
+			headers: new Headers({
+				'Authorization': `Bearer ${token}`, 
+				"Content-Type": "application/json"      
+			  }),		  
+			});
+	  
+		  const result = await response.json();
+	  
+		  if (response.ok) {
+			// If the response from the verifySMS API is successful
+			return { message: "ok" }; // Same response format as the original API
+		  } else {
+			// If there's an error from the verifySMS API (invalid code)
+			return {
+			  status: 400,
+			  error: result.error, // Error returned from verifySMS
+			};
+		  }
+		} catch (error) {
+		  // Handle any errors from the fetch request
+		  console.error("Error forwarding request to verifySMS:", error);
+		  return { status: 500, error: { code: "Internal Server Error" } };
+		}
+	  });
 
 	// ای‌پی‌آی برای لاگین با استفاده از شماره موبایل و کد اس‌ام‌اس
 	server.post(`${apiPrefix}/auth/login`, async (schema, { requestBody }) => {
@@ -103,124 +171,7 @@ export default function authFake(server, apiPrefix) {
 	  
 	  
 
-	server.post(`${apiPrefix}/auth/register`, async (schema, { requestBody }) => {
-		const req = JSON.parse(requestBody);
-		
-		try {
-			const response = await fetch((getApiUrl("/auth/signup")), {
-			  method: "POST",
-			  headers: { "Content-Type": "application/json" },
-			  body: JSON.stringify(req)
-			});
-		  
-	  
-			const text = await response.text(); // get raw response first
-			const data = text ? JSON.parse(text) : null; // parse only if not empty
-		
-			if (!response.ok) {
-			  const error = {
-				status: response.status,
-				message: data?.message || getHttpCodeMessage(response.status),
-			  };
-		
-			  return {
-				message: "خطایی در ثبت نام کاربر رخ داده است",
-				error,
-			  };
-			}
 
-			return { message: "موفقیت در ثبت نام", data};
-
-	  
-			} catch (error) {
-			  return { message: "error", error };
-			}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		// if (req.mobile) {
-		// 	const user = schema.users.where({mobile: req.mobile});
-		// 	if(!user.models.length  > 0){
-		// 		// اگر کد اس‌ام‌اس صحیح بود، اطلاعات کاربر و توکن برگردانده می‌شود
-		// 	    schema.users.create({
-		// 			id: "",
-		// 			name: req.name,
-		// 			family: req.family,
-		// 			nationalCode: req.nationalCode,
-		// 			mobile: req.mobile,
-		// 			birthday: "",
-		// 			email: "",
-		// 			status: 'pending' // active,deactive,pending
-		// 		});
-		// 		return {
-		// 			"message": "ok"
-		// 		}
-		// 	}
-		// 	else{
-		// 		// اگر کد اس‌ام‌اس اشتباه بود، خطا برگردانده می‌شود
-		// 		return new Response(
-		// 			200,
-		// 			{some: "header"},
-		// 			{error: {
-		// 				mobile: "شماره موبایل تکراری است",
-		// 			}}
-		// 		)
-		// 	}
-		// }
-		// // اگر شماره موبایل یا کد اس‌ام‌اس ارسال نشده باشد، خطای ۴۰۱ برگردانده می‌شود
-		// return new Response(
-		// 	401,
-		// 	{ some: "header" },
-		// 	{ message: "NOTHING" }
-		// );
-
-
-
-
-	});
-
-	server.post(`${apiPrefix}/auth/verifyregister`, async (schema, { requestBody }) => {
-		let body = JSON.parse(requestBody);
-		const token = localStorage.getItem("user");
-
-		try {
-		  // Call the existing verifySMS API to validate the code
-		  const response = await fetch(getApiUrl("/sms/verifysms"), {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(body),
-			headers: new Headers({
-				'Authorization': `Bearer ${token}`, 
-				"Content-Type": "application/json"      
-			  }),		  
-			});
-	  
-		  const result = await response.json();
-	  
-		  if (response.ok) {
-			// If the response from the verifySMS API is successful
-			return { message: "ok" }; // Same response format as the original API
-		  } else {
-			// If there's an error from the verifySMS API (invalid code)
-			return {
-			  status: 400,
-			  error: result.error, // Error returned from verifySMS
-			};
-		  }
-		} catch (error) {
-		  // Handle any errors from the fetch request
-		  console.error("Error forwarding request to verifySMS:", error);
-		  return { status: 500, error: { code: "Internal Server Error" } };
-		}
-	  });
 	  
 
 
