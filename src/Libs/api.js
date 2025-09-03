@@ -11,7 +11,7 @@ export function useData({ url, params, queryKey, method = "get", bodyData, axios
 				params,
 				method,
 				url,
-				withCredentials: false,
+				withCredentials: true,
 				data: bodyData,
 				...axiosOption
 			});
@@ -43,7 +43,7 @@ export function useSend({ url, params, method = "post", axiosOption }) {
 				data: bodyData,
 				method: method,
 				params,
-				withCredentials: false,
+				withCredentials: true,
 				...axiosOption,
 			});
 			if(data?.data) return data?.data;

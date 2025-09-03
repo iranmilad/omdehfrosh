@@ -43,8 +43,6 @@ function mockRunner({ environment }) {
       server.create('user', user);
     },
     routes() {
-      this.passthrough("https://panel.j2b.market/**");
-
       this.passthrough('http://localhost:5000/api/***');
       this.passthrough('http://localhost:5000/api/cart/update');
       this.passthrough('http://localhost:5000/api/cart');
@@ -52,10 +50,6 @@ function mockRunner({ environment }) {
       this.passthrough('http://localhost:5000/api/auth/login');
       this.passthrough('http://localhost:5000/api/users/***');
       this.passthrough('http://localhost:5000/api/products/***');
-
-
-      this.passthrough("/api/auth/sms/");
-      this.passthrough("/api/auth/sms");
 
       // this.passthrough('http://localhost:5000/api/users');
       // this.passthrough('http://localhost:5000/api/users/add');
@@ -66,7 +60,7 @@ function mockRunner({ environment }) {
         return isExternal;
       });
       this.passthrough();
-      // authFakeSMS(this, apiPrefix);
+      authFakeSMS(this, apiPrefix);
       authFakeLogin(this, apiPrefix);
       SearchApi(this, apiPrefix);
       SubmitCoupon(this, apiPrefix);
