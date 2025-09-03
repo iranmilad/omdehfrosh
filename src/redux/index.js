@@ -106,6 +106,10 @@ import submitCommentReducer from './products/productcomments/addcomments/submitC
 
 import priceListReducer from './master-dash/pricelists/pricelists/priceListSlice.js'
 import purchasedProductsReducer from './master-dash/purchasedproducts/purchasedproducts/purchasedProductsSlice.js'
+
+import bootstrapReducer from './master-dash/bootstrap/homepagebootstrap/homePageBootstrapSlice.js'
+
+
 import getSubscriptionByUserIdReducer from './usermyaccounts/usermyaccounts/getsubscriptionbyuserid/getSubscriptionByUserIdSlice.js'
 import compareReducer from './compare/compare.js'
 
@@ -214,6 +218,7 @@ export default configureStore({
       productComments: productCommentsReducer,
       mdSubscriptions: mdSubscriptionsReducer,
       menu: menuReducer,
+      bootstrap: bootstrapReducer,
       archives: archivesReducer,
       homePageTrendProducts: homePageTrendProductsReducer,
       homePageProductGrids: homePageProductGridsReducer,

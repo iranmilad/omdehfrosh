@@ -93,6 +93,8 @@ import FeaturedProducts from "../../views/public/master-dashboard/featuredproduc
 import Brands from "../../views/public/brands"
 import BrandsData from "../../views/public/master-dashboard/brandsdata/homepagebanners"
 import AddBatchBrandsData from "../../views/public/master-dashboard/brandsdata/homepagebanners/addbatchbrandsdata"
+import Bootstrap from "../../views/public/master-dashboard/bootstrap/bootstrap"
+import AddBatchBootstrap from "../../views/public/master-dashboard/bootstrap/bootstrap/addbatchbootstrap"
 
 export const PublicRoutes = [
     {
@@ -116,6 +118,13 @@ export const PublicRoutes = [
                         element: <Products />,
                         children: [
                             {path: "add-batch-products", element: <AddBatchProducts />},
+                        ]
+                    },
+                {
+                        path: 'bootstrap', 
+                        element: <Bootstrap />,
+                        children: [
+                            {path: "add-batch-bootstrap", element: <AddBatchBootstrap />},
                         ]
                     },
                     {
