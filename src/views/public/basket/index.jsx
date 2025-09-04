@@ -36,12 +36,12 @@ import { setInitial } from "../../../redux/cart";
 import { useCookies } from "react-cookie";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import CartStepper from "../../../components/cartStepper";
+import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 
 /* ---------------------- API Configuration ---------------------- */
 // You'll need to replace this with your actual API base URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
-const getApiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
 
 /* ---------------------- Pretty SVG placeholder as DATA URI ---------------------- */
 const buildPlaceholderDataUri = (label = "تصویر در دسترس نیست") => {

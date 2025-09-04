@@ -44,13 +44,11 @@ function Account_EditAccount() {
     const dispatch = useDispatch();
 
     const [showAlert, setShowAlert] = useState(false);
-
-
+    const [hasShownNotification, setHasShownNotification] = useState(false);
 
     const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
     
     const { userInfo, errorUserInfo, loadingUserInfo } = useSelector((state) => state.user)
-
 
     const navigate = useNavigate();
 
@@ -58,6 +56,17 @@ function Account_EditAccount() {
     
     const [modalOpen, setModalOpen] = useState(false);
 
+    // Clear update state on component mount
+    useEffect(() => {
+        dispatch(clearUserInfo());
+    }, [dispatch]);
+
+    // Clean up on component unmount
+    useEffect(() => {
+        return () => {
+            dispatch(clearUserInfo());
+        };
+    }, [dispatch]);
     
     useEffect(() => {
         if (updateuser && updateuser.state) {
@@ -106,22 +115,38 @@ function Account_EditAccount() {
 
 
       useEffect(() => {
-        if (updateuser && updateuser?.state === "ok" ) {
+        // Only show notification if it hasn't been shown yet for this update
+        if (updateuser && updateuser?.state === "ok" && !hasShownNotification) {
           notifications.show({
             title: updateuser.message,
             color: "green",
             autoClose: true
           });
+          setHasShownNotification(true);
+          
+          // Clear the state after showing notification
+          setTimeout(() => {
+            dispatch(clearUserInfo());
+            setHasShownNotification(false);
+          }, 3000);
         }
-        if (updateuser && updateuser?.state === "error" ) {
+        
+        if (updateuser && updateuser?.state === "error" && !hasShownNotification) {
             notifications.show({
               title: updateuser.message,
               color: "red",
               autoClose: true
             });
-          }
+            setHasShownNotification(true);
+            
+            // Clear the state after showing notification
+            setTimeout(() => {
+              dispatch(clearUserInfo());
+              setHasShownNotification(false);
+            }, 3000);
+        }
 
-      }, [errorUpdateUser, updateuser]);
+      }, [updateuser, hasShownNotification, dispatch]);
       
 
 
@@ -202,6 +227,9 @@ function Account_EditAccount() {
     
 
     const submitForm = async (values) => {
+        // Reset notification flag before submitting
+        setHasShownNotification(false);
+        
         const updatedValues = {
             ...values,
             mobile: values.mobile, // Rename 'mobile' to 'phone'

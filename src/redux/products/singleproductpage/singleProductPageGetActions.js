@@ -34,23 +34,9 @@ export const getRemainingThrottleTime = (slug) => {
 export const getSingleProductDetails = createAsyncThunk(
   "singleProduct/getSingleProductDetails",
   async (options = {}, { rejectWithValue }) => {
-    const { slug, forceRefresh = false } = options;
+    const { slug } = options;
     
-    if (!slug) {
-      return rejectWithValue("Product slug is required");
-    }
 
-    const now = Date.now();
-
-    if (!forceRefresh && !canFetchProduct(slug)) {
-      const remainingTime = getRemainingThrottleTime(slug);
-      return rejectWithValue(`Please wait ${Math.ceil(remainingTime / 1000)} seconds before fetching again`);
-    }
-
-    if (forceRefresh) {
-    }
-
-    lastFetchTimes.set(slug, now);
 
     try {
       const response = await fetch(getApiUrl(`/singleproduct/${slug}`), {

@@ -73,7 +73,7 @@ function Account_Newticket() {
 
 
 
-  const { mutateAsync, isPending } = useSend({ url: "/tickets/send" });
+  // const { mutateAsync, isPending } = useSend({ url: "/tickets/send" });
 
   const shortDescDefaults = {
     technical_support: [
@@ -111,6 +111,8 @@ function Account_Newticket() {
 
 
   const handleSubmit = (values) => {
+
+    console.log(values)
     dispatch(createNewUserTicket({ ...values }));
   };
 
