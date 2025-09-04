@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react'
 import DatePicker from '../../../components/datePicker';
 import * as yup from 'yup';
 import { IMaskInput } from 'react-imask';
-import {useSend,useData} from "../../../Libs/api"
 import { useDispatch, useSelector } from "react-redux";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { fetchUserInfo } from '../../../redux/users/userinfo/userInfo';
@@ -44,11 +43,9 @@ function Account_EditAccount() {
 
     const dispatch = useDispatch();
 
-    // const {data, isLoading} = useData({url: '/edit-account', queryKey:['edit-account']});
     const [showAlert, setShowAlert] = useState(false);
 
 
-    const {isPending, mutateAsync} = useSend({url: '/edit-account'})
 
     const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
     
@@ -334,7 +331,7 @@ function Account_EditAccount() {
                         />
                 </GridCol>
             </Grid>
-            <Button mt="40" type='submit' loading={isPending}>ذخیره</Button>
+            <Button mt="40" type='submit' loading={loadingUpdateUser}>ذخیره</Button>
 
         </form>
 

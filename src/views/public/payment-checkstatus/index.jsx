@@ -43,8 +43,6 @@ const PaymentStatusCheck = () => {
 
   const { paymentStatus, loading, error } = useSelector((state) => state.verifypayment);
 
-  console.log('PaymentStatus from Redux:', paymentStatus);
-
   // Local state for processed order data
   const [orderItems, setOrderItems] = useState([]);
   const [mainOrder, setMainOrder] = useState(null);
@@ -102,7 +100,6 @@ const PaymentStatusCheck = () => {
         setWebhookProcessing(true);
         
         try {
-          console.log('Processing payment webhook with complete data:', completePaymentData);
 
           const response = await fetch(getApiUrl("/payment/paymentwebhook"), {
             method: "POST",
@@ -184,8 +181,6 @@ const PaymentStatusCheck = () => {
       }
     }
   }, [paymentStatus]);
-
-  console.log("paymentStatus", paymentStatus);
 
   // Navigation functions - memoized to prevent re-creation
   const navigateToRelatedOrder = useCallback((relatedOrderId) => {
@@ -337,15 +332,7 @@ const PaymentStatusCheck = () => {
           </Alert>
         )}
 
-        {/* Debug info for development */}
-        {process.env.NODE_ENV === 'development' && completePaymentData && (
-          <Paper p="sm" bg="yellow.0" radius="sm">
-            <Text size="xs" c="gray.6">Debug - Complete Payment Data:</Text>
-            <Text size="xs" c="gray.6" style={{ wordBreak: 'break-all' }}>
-              {JSON.stringify(completePaymentData, null, 2)}
-            </Text>
-          </Paper>
-        )}
+
 
         {/* Main Order Header */}
         <Paper p="xl" radius="md" shadow="md" withBorder bg="gray.0">

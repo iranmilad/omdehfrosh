@@ -1,6 +1,5 @@
 import { ActionIcon, Button, Center, Flex, Input, Loader, LoadingOverlay } from "@mantine/core";
 import { IconPlus, IconMinus, IconTrash, IconBasket } from "@tabler/icons-react";
-import { useData, useSend } from '../../../../Libs/api'
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { setInitial } from "../../../../redux/cart";

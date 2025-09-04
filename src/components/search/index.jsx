@@ -48,9 +48,6 @@ const Search = () => {
   const inputRef = useRef(null); // مرجع برای اینپوت
 
 
-
-
-
   const { data, isLoading, isFetching } = useData({
     
     url: "/search",

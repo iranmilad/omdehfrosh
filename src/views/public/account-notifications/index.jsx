@@ -326,7 +326,7 @@ function Account_Notifications() {
         </Box>
 
         {/* Debug info (remove in production) */}
-        {process.env.NODE_ENV === 'development' && (
+        {(
           <Alert
             icon={<IconInfoCircle size="1rem" />}
             color="blue"

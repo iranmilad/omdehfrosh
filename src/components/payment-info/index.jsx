@@ -39,7 +39,6 @@ const PaymentInfo = () => {
 
       // If we have sellerData directly, use it immediately
       if (sellerData) {
-        console.log('Using direct sellerData:', sellerData);
         setEnrichedSellerData(sellerData);
         return;
       }
@@ -49,13 +48,11 @@ const PaymentInfo = () => {
         setIsProcessingData(true);
         
         try {
-          console.log('Processing paymentStatus data for seller:', sellerId);
           
           // Find the seller data from paymentStatus
           const targetSeller = paymentStatus.order?.sellers?.find(s => s.seller.id === sellerId);
           
           if (!targetSeller) {
-            console.error('Target seller not found in paymentStatus');
             setIsProcessingData(false);
             return;
           }
@@ -152,10 +149,8 @@ const PaymentInfo = () => {
             orderIds: sellerOrderItems.map(item => item.order_id),
           };
 
-          console.log('Processed seller data from paymentStatus:', processedSellerData);
           setEnrichedSellerData(processedSellerData);
         } catch (error) {
-          console.error('Error processing seller data:', error);
         } finally {
           setIsProcessingData(false);
         }
@@ -254,8 +249,6 @@ const PaymentInfo = () => {
       </Paper>
     );
   }
-
-  console.log('Rendering payment component with final seller data:', finalSellerData);
 
   // FIXED: Simplified gateway routing
   const isOnlinePayment = gateway.paymentMethod === "online" || finalSellerData.paymentMethod?.paymentMethod === "online";

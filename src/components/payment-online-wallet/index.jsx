@@ -52,7 +52,6 @@ const PaymentInfoOnlineWallet = ({ depositData, gateway }) => {
 
   // Process data only when keys change
   const processedData = useMemo(() => {
-    console.log("Processing wallet deposit data:", finalDepositData);
     
     if (finalDepositData) {
       const amount = finalDepositData.amount || 0;
@@ -102,13 +101,11 @@ const PaymentInfoOnlineWallet = ({ depositData, gateway }) => {
     }
   }, [dispatch, depositDataForDispatch, processedData, finalGateway]);
 
-  console.log("Wallet Paymnt Lix", depositDataForDispatch);
 
   // Fixed useEffect to properly handle payment redirect
   useEffect(() => {
     // FIXED: Access the correct structure - walletPaymentLink directly, not walletPaymentLink.walletpaymentlink
     if (walletPaymentLink?.link_url) {
-      console.log("Wallet payment link received:", walletPaymentLink);
       
       const timer = setInterval(() => {
         setCountdown((prev) => {

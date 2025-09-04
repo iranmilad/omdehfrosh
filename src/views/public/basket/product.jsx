@@ -19,31 +19,35 @@ import {
 } from "@tabler/icons-react";
 import Counter from "../../../components/counter";
 import CompareButton from "../../../components/compareBtn";
-import { useData, useSend } from "../../../Libs/api";
 import { setInitial } from "../../../redux/cart";
 import { useDispatch, useSelector } from "react-redux";
 import CounterBasket from "../../../components/counter-basket";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { DEFAULT_COLOR_MAP } from '../../../Libs/attribute_colors/colors';
+import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 
 const Product = (props) => {
-  
-  const { data } = useData({ url: "/cart", queryKey: [''] });
-
   const cartItems = useSelector((state) => state.cart.items || []);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   // Convert productId to string for comparison and passing to components
   const productIdStr = String(props.productId);
 
-  const isInCart = data?.cart.some(
+  // Check if item is in cart using Redux state
+  const isInCart = cartItems.some(
     (item) =>
-      item.productId === props.productId &&
-      item.combinationsID === props.combinationsID &&
-      item.seller.id === props.seller.id
+      String(item.productId) === String(props.productId) &&
+      parseInt(item.combinationsID) === parseInt(props.combinationsID) &&
+      (item.seller?.id || item.seller_id) === (props.seller?.id || props.seller_id)
   );
 
+  // Hide component if item is not in cart
+  useEffect(() => {
+    setIsVisible(isInCart);
+  }, [isInCart]);
+
   const { primaryColor } = useMantineTheme();
-  const removeQuery = useSend({ url: "/cart/remove" });
   const dispatch = useDispatch();
 
   // Helper function to check if attributes should be rendered
@@ -51,7 +55,6 @@ const Product = (props) => {
     if (!attrs) return false;
     if (Array.isArray(attrs)) {
       if (attrs.length === 0) return false;
-      // Check if all elements are empty strings
       return attrs.some(attr => attr && attr !== "");
     }
     return attrs !== "";
@@ -61,7 +64,6 @@ const Product = (props) => {
   const getColorCode = (colorValue) => {
     if (!colorValue || colorValue === "") return null;
     
-    // If it's already a hex color code, return as is
     if (colorValue.startsWith('#')) {
       return colorValue;
     }
@@ -70,41 +72,96 @@ const Product = (props) => {
     return DEFAULT_COLOR_MAP[lowerColorValue] || DEFAULT_COLOR_MAP[colorValue] || colorValue;
   };
 
+  // Updated remove function that refetches cart data - ONLY for direct IconTrash clicks
+  const removeFromCartAPI = async (productId, seller, combinationsID) => {
+    const token = localStorage.getItem("user");
+    
+    try {
+      // Remove item from cart
+      const response = await fetch(getApiUrl("/cart/remove"), {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          productId,
+          seller,
+          combinationsID
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove item from cart");
+      }
+
+      const data = await response.json();
+
+      return {
+        message: "ok",
+        cart: data.cart || [],
+        total: data.total || 0
+      };
+    } catch (error) {
+      console.error('Error removing item from cart:', error);
+      throw error;
+    }
+  };
+
+  // Full remove function (with API call) - ONLY for direct IconTrash clicks
   const removeItem = async () => {
+    if (isRemoving || !isInCart) return; // Prevent double clicks and invalid removes
+    
+    setIsRemoving(true);
+    
+    // Notify parent component
     if (props.onRemoveStart) {
       props.onRemoveStart();
     }
     
-    dispatch(setInitial(cartItems.filter(item => item.productId !== props.productId))); 
-  
     try {
-      const response = await removeQuery.mutateAsync({
-        productId: props.productId,
-        seller: props.seller,
-        combinationsID: props.combinationsID,
-      });
+      // Make API call to remove item and get updated cart
+      const response = await removeFromCartAPI(
+        props.productId,
+        props.seller,
+        props.combinationsID
+      );
       
-      
-      if (response?.cart) {
+      // Update Redux state with server response
+      if (response?.cart !== undefined) {
         dispatch(setInitial([...response.cart]));  
-      } else {
       }
+      
+      // Hide the component immediately after successful removal
+      setIsVisible(false);
+      
     } catch (error) {
+      console.error('Failed to remove item from cart:', error);
+      // Don't hide on error, let user try again
+    } finally {
+      setIsRemoving(false);
     }
   };
-  
-  useEffect(() => {
-    if (data?.cart) {
-      dispatch(setInitial([...data.cart]));
-    }
-  }, [data, dispatch]);
 
-  // if (!isInCart) {
-  //   return null;  
-  // }
+  // UI-only remove function - for CounterBasket callback (no API call)
+  const removeItemUIOnly = () => {
+    setIsVisible(false);
+  };
+
+  // Don't render if item is not visible or not in cart
+  if (!isVisible || !isInCart) {
+    return null;
+  }
 
   return (
-    <Paper p="xl">
+    <Paper 
+      p="xl"
+      style={{
+        opacity: isRemoving ? 0.5 : 1,
+        transition: 'opacity 0.3s ease, transform 0.3s ease',
+        transform: isRemoving ? 'scale(0.95)' : 'scale(1)'
+      }}
+    >
       <Flex justify="space-between" gap="xl">
         <Box w="120" h="120" pos="relative">
           <Image w="100" h="120" fit="contain" src={props.image} />
@@ -144,17 +201,18 @@ const Product = (props) => {
               <Flex c={primaryColor} align="center" gap="xs">
                 <IconUser size={12} />
                 <Text size="xs" component="span">
-                  {props.seller.label}
+                  {props.seller?.label || props.seller?.name}
                 </Text>
               </Flex>
             </Flex>
             <Flex gap="5">
-              {/* <CompareButton id="123" variant="light" size="lg" /> */}
               <ActionIcon 
                 color="red" 
                 variant="light" 
                 size="lg" 
-                onClick={removeItem}
+                onClick={removeItem}  // This makes API call
+                loading={isRemoving}
+                disabled={isRemoving}
               >
                 <IconTrash />
               </ActionIcon>
@@ -164,10 +222,11 @@ const Product = (props) => {
             <CounterBasket
               fullWidth
               withButton
-              productId={productIdStr} // Pass as string
+              productId={productIdStr}
               seller={props.seller}
+              stock={props.stock}
               combinationsID={props.combinationsID}
-              removeFun={removeItem}
+              removeFun={removeItemUIOnly}  // This is UI-only, no API call
               count={props.count}
               productImage={props.image}
               attributes={props.attributes}

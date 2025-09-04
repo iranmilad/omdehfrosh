@@ -39,8 +39,6 @@ import { Attributes } from "../fast-edit/orderRow";
 import CounterFastOrder from "../../../components/counter-fastorder";
 import EditItemsFastOrder from "./edit-items";
 
-
-
 const TableRow = ({ 
   item, 
   columns, 
@@ -53,10 +51,8 @@ const TableRow = ({
   filters_brand_mode 
 }) => {
 
-
   const handleRowClick = () => {
   };
-
 
   const displayItem = selectedNodes?.[item.id] || item;
 
@@ -115,12 +111,7 @@ const handleInputChange = (id, key, value) => {
   });
 };
 
-  
-  
-    
   const [imageErrors, setImageErrors] = useState({});
-
-  
 
   return (
     <Row item={item} 
@@ -133,7 +124,7 @@ const handleInputChange = (id, key, value) => {
 
         let content;
         switch (column.key) {
-case "image":
+            case "image":
   const hasValidImage = displayItem.images && 
                        displayItem.images.length > 0 && 
                        displayItem.images[0] && 
@@ -143,8 +134,8 @@ case "image":
   content = hasValidImage ? (
     <Image 
       src={displayItem.images[0]} 
-      w={50} 
-      h={50}
+      w={40} 
+      h={40}
       onError={() => {
         // When image fails to load, mark it as error and trigger re-render
         setImageErrors(prev => ({ ...prev, [item.psid]: true }));
@@ -152,8 +143,8 @@ case "image":
     />
   ) : (
     <div style={{ 
-      width: 50, 
-      height: 50, 
+      width: 40, 
+      height: 40, 
       backgroundColor: '#f8f9fa', 
       display: 'flex', 
       alignItems: 'center', 
@@ -161,7 +152,7 @@ case "image":
       borderRadius: '4px',
       border: '1px solid #e9ecef'
     }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="1.5">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="1.5">
                   {/* Shopping bag/product icon */}
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
                   <line x1="3" y1="6" x2="21" y2="6"/>
@@ -178,13 +169,13 @@ case "image":
                 >
                   <Text
                     style={{
-                      fontSize: '10px', // Adjust the font size
-                      minWidth: '80px', // Minimum width of 80px
-                      display: 'inline-block', // Ensures it stays inline
-                      whiteSpace: 'normal', // Allows text to wrap if necessary
-                      wordWrap: 'break-word', // Break words if needed to prevent overflow
-                      overflow: 'hidden', // Hide overflow text
-                      textOverflow: 'ellipsis', // Show ellipsis when text overflows
+                      fontSize: '9px',
+                      minWidth: '60px',
+                      display: 'inline-block',
+                      whiteSpace: 'normal',
+                      wordWrap: 'break-word',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
                     }}
                   >
                     {item.name}
@@ -223,16 +214,16 @@ case "image":
                   break;
           case "seller":
             content = (
-              <Group gap={3} align="center">
+              <Group gap={2} align="center">
                 <Anchor
-                  size="sm"
+                  size="xs"
                   className="text-blue-500 hover:text-red-700 transition-colors duration-200"
                   component={NavLink}
                   to={`/seller/${displayItem.seller.id}`}
                 >
                   {displayItem.seller.label}
                 </Anchor>
-                <ThemeIcon size={16} variant="transparent">
+                <ThemeIcon size={12} variant="transparent">
                   <IconUserCircle />
                 </ThemeIcon>
               </Group>
@@ -246,7 +237,7 @@ case "image":
                   <CounterFastOrder
                     text="انتخاب"
                     withButton
-                    style={{ minWidth: "50px"}}
+                    style={{ minWidth: "40px"}}
                     key={displayItem.id}
                     item={displayItem}
                     priceFormat={filters_brand_mode.priceFormat}
@@ -260,7 +251,6 @@ case "image":
             content = "";
         }
 
-
         {column.key === firstVisibleColumn && item.nodes ? (
           <CellTree key={column.key} item={item}>
             {content}
@@ -269,29 +259,35 @@ case "image":
           <Cell 
             key={index} 
             style={{
-              minWidth: "50px", 
+              minWidth: "40px", 
+              padding: "2px 4px", // Minimal padding
+              margin: "0", // Remove margin
               textAlign: "center", 
-              wordBreak: 'break-word', // Break long words if necessary
-              whiteSpace: 'normal', // Allows text to wrap
-              overflow: 'visible', // Ensures that text overflow is visible
-              width: '100%', // Ensures that the cell takes full width
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              overflow: 'visible',
+              fontSize: '10px', // Smaller font
+              lineHeight: '1.2', // Tighter line height
             }}
           >
             {content}
           </Cell>
-
         )}
 
         return <Cell 
         key={index} 
         style={{
-          minWidth: "100px", // Ensure enough space
-          maxWidth: "200px", // Prevent excessive width
+          minWidth: "50px", // Reduced minimum width
+          maxWidth: "120px", // Reduced maximum width
+          padding: "2px 4px", // Minimal padding
+          margin: "0", // Remove margin
           textAlign: "center",
           wordBreak: "break-word",
           whiteSpace: "normal",
           overflow: "hidden",
           textOverflow: "ellipsis",
+          fontSize: '10px', // Smaller font
+          lineHeight: '1.2', // Tighter line height
         }}
       >
         {content}
@@ -318,17 +314,11 @@ const FastTableBrand = ({
 
   if (!nodes || nodes.length === 0) return null;
 
-  // if (!availableLocations || availableLocations.length === 0) return null;
-
-
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const isPrinting = usePrint();
   const { primaryColor } = useMantineTheme();
   const [ formData, setFormData ] = useState({});
-
-
-
 
   useEffect(() => {
     let newVisibleColumns = [];
@@ -361,8 +351,7 @@ const FastTableBrand = ({
 
     // Update the state with the combined columns
     setVisibleColumns(newVisibleColumns);
-  }, [isMobile, isTablet, isPortrait, isLandscape, isPrinting, icPriceKeys]); // Add icPriceKeys as a dependency
-
+  }, [isMobile, isTablet, isPortrait, isLandscape, isPrinting, icPriceKeys]);
 
   useEffect(() => {
     const initializeData = (items, acc = {}) => {
@@ -403,13 +392,6 @@ const FastTableBrand = ({
   
     setFormData(initializeData(nodes));
   }, [nodes]);
-  
-  
-
-  
-    // const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
-    // const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
-    
 
   let tree = useTree(
     { nodes: nodes || [] },
@@ -422,136 +404,173 @@ const FastTableBrand = ({
     }
   );
 
+  // Create custom compact theme
+  const mantineTheme = getTheme({
+    ...DEFAULT_OPTIONS,
+    // Override theme for minimal spacing
+    Table: `
+      border-collapse: collapse;
+      border-spacing: 0;
+      width: 100%;
+      table-layout: auto;
+    `,
+    Header: `
+      background-color: #f8f9fa;
+    `,
+    HeaderRow: `
+      border-bottom: 1px solid #dee2e6;
+    `,
+    HeaderCell: `
+      padding: 4px 6px !important;
+      margin: 0 !important;
+      border-right: 1px solid #dee2e6;
+      font-size: 10px;
+      font-weight: 600;
+      text-align: center;
+      white-space: normal;
+      word-break: break-word;
+      line-height: 1.2;
+    `,
+    Row: `
+      border-bottom: 1px solid #f1f3f4;
+      &:hover {
+        background-color: #f8f9fa;
+      }
+    `,
+    Cell: `
+      padding: 2px 4px !important;
+      margin: 0 !important;
+      border-right: 1px solid #f1f3f4;
+      font-size: 10px;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 1.2;
+    `,
+  });
+  
+  const theme = useTheme(mantineTheme);
 
-
-        const mantineTheme = getTheme(DEFAULT_OPTIONS);
-        const theme = useTheme(mantineTheme);
-
-        return (
-          <Box 
+  return (
+    <Box 
+      style={{ 
+        overflowX: "auto", 
+        width: "100%", 
+        maxWidth: "100%",
+        WebkitOverflowScrolling: "touch",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <div style={{ 
+        minWidth: `${
+          isMobile && isLandscape 
+            ? 400 // Reduced from 500
+            : isMobile && isPortrait 
+              ? 600 // Reduced from 800
+              : COLUMNS.length * 80 // Reduced from 120
+        }px`, 
+        overflowX: "auto" 
+      }}>
+        <Table
+          data={{ nodes }}
+          theme={theme}
+          tree={tree}
+          layout={{ isDiv: true, fixedHeader: true }}
           style={{ 
-            overflowX: "auto", 
             width: "100%", 
-            maxWidth: "100%",
-            WebkitOverflowScrolling: "touch",
-            whiteSpace: "nowrap",
+            tableLayout: "auto",
+            borderCollapse: "collapse",
+            borderSpacing: "0"
           }}
         >
-        <div style={{ 
-          minWidth: `${
-            isMobile && isLandscape 
-              ? 500 
-              : isMobile && isPortrait 
-                ? 800 
-                : COLUMNS.length * 120
-          }px`, 
-          overflowX: "auto" 
-        }}>
-      <Table
-        data={{ nodes }}
-        theme={theme}
-        tree={tree}
-        layout={{ isDiv: true, fixedHeader: true }}
-        style={{ width: "100%", tableLayout: "auto" }} // Prevents shrinking
-      >
-
-
-        {(tableList) => (
-          <>
-            {type === "head" ? (
-              <Header>
-                {/* <HeaderRow>
-                  {COLUMNS.map((column) => (
-                    <HeaderCell
-                      className="text-xs md:text-sm"
-                      hide={visibleColumns.includes(column.key)}
-                      key={column.key}
-                    >
-                      {column.label}
-                    </HeaderCell>
-                  ))}
-                </HeaderRow> */}
-              </Header>
-            ) : (
-              <Box className="hidden">
+          {(tableList) => (
+            <>
+              {type === "head" ? (
                 <Header>
-                  <HeaderRow>
-                  {COLUMNS.map((column) => (
-                    <HeaderCell
-                      style={{
-                        fontSize: isMobile ? '10px' : isTablet ? '12px' : '12px',
-                        minWidth: "120px",
-                        maxWidth: "200px",
-                        textAlign: "center",
-                        whiteSpace: "normal",
-                        wordBreak: "break-word",
-                      }}
-                      hide={visibleColumns.includes(column.key)}
-                      key={column.key}
-                    >
-                      {column.label}
-                      {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
-                        <Text size="sm" style={{ marginTop: '5px' }}>میلیون تومان</Text>
-                      )}
-                      {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
-                        <Text size="sm" style={{ marginTop: '5px' }}>هزار تومان</Text>
-                      )}
-                    </HeaderCell>
-                  ))}
-                  </HeaderRow>
+                  {/* Header content */}
                 </Header>
-              </Box>
-            )}
-            {type === "head" ? null : (
-              <Body>
-                <HeaderRow>
-                  {COLUMNS.map((column) => (
-                    <HeaderCell
-                      style={{
-                        fontSize: isMobile ? '10px' : isTablet ? '12px' : '12px', 
-                        minWidth: "120px",
-                        maxWidth: "200px",
-                        textAlign: "center",
-                        whiteSpace: "normal",
-                        wordBreak: "break-word",
-                      }}
-                      hide={visibleColumns.includes(column.key)}
-                      key={column.key}
-                    >
-                      {column.label}
-                      {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
-                        <Text style={{ marginTop: '5px', fontSize: '8px' }}>میلیون تومان</Text> 
-                      )}
-                      {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
-                        <Text style={{ marginTop: '5px', fontSize: '8px' }}>هزار تومان</Text>  
-                      )}
-                    </HeaderCell>
+              ) : (
+                <Box className="hidden">
+                  <Header>
+                    <HeaderRow>
+                    {COLUMNS.map((column) => (
+                      <HeaderCell
+                        style={{
+                          fontSize: '9px', // Reduced font size
+                          minWidth: "50px", // Reduced min width
+                          maxWidth: "120px", // Reduced max width
+                          padding: "4px 6px", // Minimal padding
+                          margin: "0", // Remove margin
+                          textAlign: "center",
+                          whiteSpace: "normal",
+                          wordBreak: "break-word",
+                          lineHeight: "1.2", // Tighter line height
+                        }}
+                        hide={visibleColumns.includes(column.key)}
+                        key={column.key}
+                      >
+                        {column.label}
+                        {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
+                          <Text size="xs" style={{ marginTop: '2px', fontSize: '7px' }}>میلیون تومان</Text>
+                        )}
+                        {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
+                          <Text size="xs" style={{ marginTop: '2px', fontSize: '7px' }}>هزار تومان</Text>
+                        )}
+                      </HeaderCell>
+                    ))}
+                    </HeaderRow>
+                  </Header>
+                </Box>
+              )}
+              {type === "head" ? null : (
+                <Body>
+                  <HeaderRow>
+                    {COLUMNS.map((column) => (
+                      <HeaderCell
+                        style={{
+                          fontSize: '9px', // Reduced font size
+                          minWidth: "50px", // Reduced min width
+                          maxWidth: "120px", // Reduced max width
+                          padding: "4px 6px", // Minimal padding
+                          margin: "0", // Remove margin
+                          textAlign: "center",
+                          whiteSpace: "normal",
+                          wordBreak: "break-word",
+                          lineHeight: "1.2", // Tighter line height
+                        }}
+                        hide={visibleColumns.includes(column.key)}
+                        key={column.key}
+                      >
+                        {column.label}
+                        {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
+                          <Text style={{ marginTop: '2px', fontSize: '7px' }}>میلیون تومان</Text> 
+                        )}
+                        {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
+                          <Text style={{ marginTop: '2px', fontSize: '7px' }}>هزار تومان</Text>  
+                        )}
+                      </HeaderCell>
+                    ))}
+                  </HeaderRow>
+                  {tableList.map((item) => (
+                    <TableRow
+                      key={item.psid}
+                      item={item}
+                      columns={COLUMNS}
+                      visibleColumns={visibleColumns}
+                      filterValues={filterValues}
+                      availableLocations={availableLocations}
+                      formData={formData}
+                      filters_brand_mode={filters_brand_mode}
+                      setFormData={setFormData}
+                    />
                   ))}
-                  
-                </HeaderRow>
-                {tableList.map((item) => (
-                  <TableRow
-                    key={item.psid}
-                    item={item}
-                    columns={COLUMNS}
-                    visibleColumns={visibleColumns}
-                    filterValues={filterValues}
-                    availableLocations={availableLocations}
-                    formData={formData}
-                    filters_brand_mode={filters_brand_mode}
-                    setFormData={setFormData}
-                  />
-                ))}
-              </Body>
-            )}
-          </>
-        )}
-      </Table>
-    </div>
+                </Body>
+              )}
+            </>
+          )}
+        </Table>
+      </div>
     </Box>
-
   );
-  
 };
 
 export default FastTableBrand;

@@ -14,7 +14,7 @@ import { useDisclosure } from "@mantine/hooks";
 import * as Yup from "yup";
 import { IconMessage2 } from "@tabler/icons-react";
 import XTitle from "../../../../components/title";
-import { useSend } from "../../../../Libs/api";
+// import { useSend } from "../../../../Libs/api";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useCookies } from "react-cookie";
 import { useProduct } from "..";
@@ -29,6 +29,7 @@ import { notifications } from "@mantine/notifications";
 import ErrorMessageModal from "../../../../components/errormessagemodal";
 import { useNavigate } from 'react-router-dom';
 import { getProductComments } from "../../../../redux/products/productcomments/getproductcomments/getProductCommentsActions";
+import { getApiUrl } from "../../../../Libs/utils/apiutils/apiutils";
 
 const commentValidationSchema = Yup.object().shape({
   comment: Yup.string()
@@ -90,24 +91,49 @@ const AddComment = ({ active }) => {
     dispatch(verifyToken());
   }, [dispatch]);
 
-  const getPurchasedProducts = useSend({ url: "/purchasedproducts" });
+  // const getPurchasedProducts = useSend({ url: "/purchasedproducts" });
+
+  // const getData = async () => {
+  //   try {
+  //     await getPurchasedProducts.mutateAsync(
+  //       { userID: user?.id, productId: product?.id },
+  //       {
+  //         onSuccess: (response) => {
+  //           setUserPurchasedProducts(
+  //             response.users?.[0]?.purchased_products || []
+  //           );
+  //         },
+  //         onError: (error) => console.error("Error:", error),
+  //       }
+  //     );
+  //   } catch (error) {
+  //   }
+  // };
 
   const getData = async () => {
-    try {
-      await getPurchasedProducts.mutateAsync(
-        { userID: user?.id, productId: product?.id },
-        {
-          onSuccess: (response) => {
-            setUserPurchasedProducts(
-              response.users?.[0]?.purchased_products || []
-            );
-          },
-          onError: (error) => console.error("Error:", error),
-        }
-      );
-    } catch (error) {
+  try {
+    const token = localStorage.getItem("user");
+    const response = await fetch(getApiUrl("/purchasedproducts"), {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userID: user?.id, productId: product?.id }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      setUserPurchasedProducts(result.users?.[0]?.purchased_products || []);
+    } else {
+      console.error("Failed to get purchased products:", result);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching purchased products:", error);
+  }
+};
+
 
   // Fixed comparison with proper type handling for both id and productId properties
   const hasPurchasedProduct = useMemo(() => {

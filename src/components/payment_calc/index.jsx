@@ -13,7 +13,6 @@ import { IconArrowRight } from "@tabler/icons-react";
 import PriceText from "../priceText";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { useData } from "../../Libs/api";
 
 const PaymentCalc = ({ children, submit, prev }) => {
 
@@ -32,7 +31,6 @@ const PaymentCalc = ({ children, submit, prev }) => {
   );
 
   
-  // const { data, isLoading } = useData({ url: "/cart", queryKey: [''] });
   const dispatch = useDispatch();
 
 

@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Cookies from "js-cookie";
-import { useData } from "../../../Libs/api";
 import SlideCategory from "./SlideCategory";
 import { 
   Center, 

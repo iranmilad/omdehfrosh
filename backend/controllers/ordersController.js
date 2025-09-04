@@ -141,33 +141,40 @@ export const getAllOrdersByUserId = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-// Update order status
-export const updateOrderStatus = async (req, res) => {
-  const { orderId } = req.params; // Get the custom order_id from the request params
-  const { deliveredStatus } = req.body; // Get the delivered status from the request body
 
-  const { user_id } = getUserFromToken(req, res);  // This will handle token extraction and verification
+export const updateOrderStatus = async (req, res) => {
+  const { orderId } = req.params;   // Custom order ID
+  const { deliveredStatus } = req.body;      // Boolean true/false
+
+  console.log(deliveredStatus, orderId)
+
+  const { user_id } = getUserFromToken(req, res); // optional: verify user
 
   try {
-    // Check if both order_id and deliveredStatus are provided
     if (!orderId || deliveredStatus === undefined) {
-      return res.status(400).json({ message: "Order ID and deliveredStatus are required" });
+      return res.status(400).json({ message: "Order ID and status are required" });
     }
 
-    // Update the 'delivered' field in the database with 'deliveredStatus' from the request body
-    const updatedOrder = await Order.findOneAndUpdate(
-      { order_id: orderId }, // Use the custom order_id to find the document
-      { delivered: deliveredStatus }, // Update the 'delivered' field
-      { new: true } // Return the updated order
-    );
+    // Convert boolean to string status
+    const newStatus = deliveredStatus ? "delivered" : "processing";
 
-    // If no order is found with the given order_id, return 404
+    // Update order status
+const updatedOrder = await OrderJ2B.findOneAndUpdate(
+  { id: orderId },
+  { status: newStatus },
+  { new: true }
+);
+
+const y = OrderJ2B.find({ id: "order_4b88e692-3b57-4f1d-8fd9-b24b6569546e" })
+
     if (!updatedOrder) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Send success response with the updated order
-    res.status(200).json({ message: "Order status updated successfully", updatedOrder });
+    res.status(200).json({
+      message: "Order status updated successfully",
+      updatedOrder
+    });
   } catch (error) {
     console.error("Error updating order status:", error);
     res.status(500).json({ message: "Internal Server Error" });

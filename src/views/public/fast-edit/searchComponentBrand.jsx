@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Cookies from "js-cookie";  
-import { useData } from "../../../Libs/api";
 import SlideCategory from "./SlideCategory";
 import { 
   Center, 
@@ -179,14 +178,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
   const queryKey = updateFiltersAndStore().query;
 
-  // const { data, isLoading, isFetching, error } = useData({
-  //   url,
-  //   method: "POST",
-  //   bodyData: updateFiltersAndStore().thisFilter,
-  //   queryKey: [url, queryKey],
-  //   queryOptions: { staleTime: 30 * 10000 },
-  // });
-  
+
 
   useEffect(() => {
 

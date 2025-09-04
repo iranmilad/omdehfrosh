@@ -161,19 +161,19 @@ const Login = () => {
 
         setSmsData({
           state: "error",
-          message: "Failed to send SMS",
+          message: "مشکلی در ارسال پیامک رخ داده است",
           error,
         });
         return {
           state: "error",
-          message: "Failed to send SMS",
+          message: "خطایی رخ داده است",
           error,
         };
       }
 
       const successData = {
         state: "ok",
-        message: "SMS sent successfully",
+        message: "پیام با موفقیت ارسال شد",
         data,
       };
       
@@ -183,7 +183,7 @@ const Login = () => {
     } catch (error) {
       const errorData = {
         state: "error",
-        message: "Internal Server Error",
+        message: "خطای سرور",
         error: error.message || error,
       };
       
@@ -218,12 +218,12 @@ const Login = () => {
 
         setLoginData({
           state: "error",
-          message: "Login failed",
+          message: "ورود ناموفق",
           error,
         });
         return {
           state: "error",
-          message: "Login failed",
+          message: "ورود ناموفق",
           error,
         };
       }
@@ -247,7 +247,7 @@ const Login = () => {
 
       const successData = {
         state: "ok",
-        message: "Login successful",
+        message: "ورود موفق",
         data,
       };
       
@@ -257,7 +257,7 @@ const Login = () => {
     } catch (error) {
       const errorData = {
         state: "error",
-        message: "Internal Server Error",
+        message: "خطای داخلی سرور",
         error: error.message || error,
       };
       

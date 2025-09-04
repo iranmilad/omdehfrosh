@@ -2,7 +2,6 @@ import { Button, Center, Loader, Modal, Stack, Text } from "@mantine/core";
 import { useClipboard, useDisclosure } from "@mantine/hooks";
 import { IconCheck, IconCopy, IconShare } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
-import { useData } from "../../../Libs/api";
 import React from "react";
 import Cookies from "js-cookie";
 import { useCookies }  from "react-cookie";

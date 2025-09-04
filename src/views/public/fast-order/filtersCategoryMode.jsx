@@ -31,8 +31,6 @@ import { shallowEqual, useMediaQuery } from "@mantine/hooks";
 import { useFastOrder } from ".";
 import { useFilterContext } from "./filterscontext";
 import { useLocation, useParams } from "react-router";
-import { useData } from "../../../Libs/api";
-import qs from "qs";
 
 const colors = [
   { label: "قرمز", value: "#FF0000" },

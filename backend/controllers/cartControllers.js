@@ -12,125 +12,7 @@ import OrderItemJ2B from "../models/OrderItemJ2B.js";
 import OrderJ2B from "../models/Orders_J2B.js"; // Your order schema
 
 
-export const getCart = async (req, res) => {
-  try {
-    const user = getUserFromToken(req);
 
-    if (!user || !user.user_id) {
-      return res.json({ message: "Cart is empty", cart: [], total: 0 });
-    }
-
-    const { user_id } = user;
-
-    // Find ALL basket orders for this user (one per supplier)
-    const basketOrders = await OrderJ2B.find({ 
-      user_id: user_id.toString(), 
-      status: "basket" 
-    });
-
-    if (!basketOrders || basketOrders.length === 0) {
-      return res.json({ message: "Cart is empty", cart: [], total: 0 });
-    }
-
-    const cartItems = [];
-    let totalAmount = 0;
-
-    for (const basketOrder of basketOrders) {
-      // Get all order items for this basket
-      const orderItems = await OrderItemJ2B.find({ order_id: basketOrder.id });
-
-      for (const orderItem of orderItems) {
-        // Group by product + combination
-        const productCombinations = {};
-
-        for (const productInfo of orderItem.product_id) {
-          const key = `${productInfo.id}-${productInfo.combinationId}`;
-
-          if (!productCombinations[key]) {
-            productCombinations[key] = {
-              productId: productInfo.id,
-              combinationId: productInfo.combinationId,
-              quantity: 0
-            };
-          }
-          productCombinations[key].quantity += 1;
-        }
-
-        for (const [key, productCombination] of Object.entries(productCombinations)) {
-          // Fetch product details
-          const product = await SingleProduct.findOne({ id: productCombination.productId });
-          if (!product) continue;
-
-          // Find combination
-          const combination = product.combinations.find(
-            c => c.id.toString() === productCombination.combinationId
-          );
-          if (!combination) continue;
-
-          // Find supplier
-          const supplier = combination.suppliers.find(
-            s => s.id === orderItem.supplier_id
-          );
-          if (!supplier) continue;
-
-          // Calculate quantity (use orderItem quantity directly per basket)
-          const itemQuantity = orderItem.quantity;
-
-          // Build attributes object
-          const attributes = {};
-          combination.options.forEach(option => {
-            if (option.type === "color") {
-              attributes.color = option.value;
-            } else if (option.type === "material") {
-              attributes.material = option.value;
-            }
-          });
-
-          const cartItem = {
-            price: {
-              regularPrice: supplier.price.regularPrice,
-              discountPercent: supplier.price.discountPercent,
-              discountedPrice: supplier.price.discountedPrice
-            },
-            seller: {
-              id: supplier.id,
-              label: supplier.name
-            },
-            productId: product.id,
-            combinationsID: combination.id,
-            seller_id: supplier.id,
-            name: product.general.title,
-            image: product.general.images[0] || null,
-            count: itemQuantity,
-            max: supplier.maxOrder,
-            min: supplier.minOrder,
-            attributes: [attributes]
-          };
-
-          cartItems.push(cartItem);
-
-          // Calculate total
-          const itemPrice = supplier.price.discountedPrice || supplier.price.regularPrice;
-          totalAmount += itemPrice * itemQuantity;
-        }
-      }
-    }
-
-    return res.json({
-      message: "ok",
-      cart: cartItems,
-      total: totalAmount
-    });
-
-  } catch (error) {
-    console.error("Error fetching cart:", error);
-    return res.status(500).json({ 
-      message: "Internal server error", 
-      cart: [], 
-      total: 0 
-    });
-  }
-};
 
 
 // Alternative simplified version if you want to use order totals directly
@@ -435,15 +317,427 @@ export const updateCartSubscription = async (req, res) => {
 
 // Cart Update API
 
+
+
+// Optional: Cleanup function to remove existing duplicates (run once)
+export const cleanupCartDuplicates = async () => {
+  try {
+    
+    const orderItems = await OrderItemJ2B.find({});
+    let cleanedCount = 0;
+    
+    for (let item of orderItems) {
+      const originalLength = item.product_id.length;
+      
+      // Create a Map to store unique products by id + combinationId
+      const uniqueProducts = new Map();
+      
+      for (let product of item.product_id) {
+        const key = `${product.id}-${product.combinationId}`;
+        if (!uniqueProducts.has(key)) {
+          uniqueProducts.set(key, {
+            id: product.id,
+            combinationId: product.combinationId.toString() // Ensure string consistency
+          });
+        }
+      }
+      
+      // Update with unique products only if duplicates were found
+      if (originalLength > uniqueProducts.size) {
+        item.product_id = Array.from(uniqueProducts.values());
+        await item.save();
+        cleanedCount++;
+      }
+    }
+    
+    return { success: true, cleanedCount };
+    
+  } catch (error) {
+    console.error("Error during cleanup:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+
+export const getCart = async (req, res) => {
+  try {
+    const user = getUserFromToken(req);
+
+    if (!user || !user.user_id) {
+      return res.json({ message: "Cart is empty", cart: [], total: 0 });
+    }
+
+    const { user_id } = user;
+
+    // Find ALL basket orders for this user (one per supplier)
+    const basketOrders = await OrderJ2B.find({ 
+      user_id: user_id.toString(), 
+      status: "basket" 
+    });
+
+    if (!basketOrders || basketOrders.length === 0) {
+      return res.json({ message: "Cart is empty", cart: [], total: 0 });
+    }
+
+    const cartItems = [];
+    let totalAmount = 0;
+
+    for (const basketOrder of basketOrders) {
+      // Get all order items for this basket - each item is now a unique product+combination
+      const orderItems = await OrderItemJ2B.find({ order_id: basketOrder.id });
+
+      for (const orderItem of orderItems) {
+        // Each orderItem now represents a single product+combination
+        const productInfo = orderItem.product_id[0]; // Only one product per document now
+        
+        // Fetch product details
+        const product = await SingleProduct.findOne({ id: productInfo.id });
+        if (!product) continue;
+
+        // Find combination
+        const combination = product.combinations.find(
+          c => c.id.toString() === productInfo.combinationId
+        );
+        if (!combination) continue;
+
+        // Find supplier
+        const supplier = combination.suppliers.find(
+          s => s.id === orderItem.supplier_id
+        );
+        if (!supplier) continue;
+
+        // Build attributes object
+        const attributes = {};
+        combination.options.forEach(option => {
+          if (option.type === "color" || option.attribute_name === 'رنگ') {
+            attributes.color = option.value;
+          } else if (option.type === "material" || option.attribute_name === 'جنس') {
+            attributes.material = option.value;
+          }
+          // Add other attribute types as needed
+        });
+
+        const cartItem = {
+          price: {
+            regularPrice: supplier.price.regularPrice,
+            discountPercent: supplier.price.discountPercent || 0,
+            discountedPrice: supplier.price.discountedPrice || supplier.price.regularPrice
+          },
+          seller: {
+            id: supplier.id,
+            label: supplier.name
+          },
+          productId: product.id,
+          combinationsID: combination.id,
+          seller_id: supplier.id,
+          name: product.general.title,
+          image: product.general.images[0] || null,
+          count: orderItem.quantity,
+          max: supplier.maxOrder,
+          min: supplier.minOrder,
+          stock: supplier.stock, // Added stock field at the same level as max/min
+          attributes: Object.keys(attributes).length > 0 ? [attributes] : []
+        };
+
+        cartItems.push(cartItem);
+
+        // Calculate total using the stored totalPrice from orderItem
+        totalAmount += orderItem.totalPrice;
+      }
+    }
+
+    return res.json({
+      message: "ok",
+      cart: cartItems,
+      total: totalAmount
+    });
+
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    return res.status(500).json({ 
+      message: "Internal server error", 
+      cart: [], 
+      total: 0 
+    });
+  }
+};
+
+export const removeFromCart = async (req, res) => {
+  try {
+    console.log('removeFromCart called with body:', JSON.stringify(req.body));
+    
+    const { user_id } = getUserFromToken(req, res);
+    const { productId, combinationsID, seller } = req.body;
+
+    console.log('Extracted user_id:', user_id);
+
+    // Validate required parameters
+    if (!productId) {
+      console.error('Missing productId parameter');
+      return res.status(400).json({ message: "Missing productId parameter" });
+    }
+
+    // Extract supplier_id with better error handling
+    let supplier_id;
+    try {
+      if (typeof seller === "object" && seller !== null) {
+        supplier_id = seller.id;
+      } else {
+        supplier_id = seller;
+      }
+      
+      if (!supplier_id) {
+        console.error('Invalid or missing seller parameter:', seller);
+        return res.status(400).json({ message: "Invalid or missing seller parameter" });
+      }
+    } catch (error) {
+      console.error("Error extracting supplier_id:", error);
+      return res.status(400).json({ message: "Invalid seller parameter format" });
+    }
+
+    console.log('Extracted supplier_id:', supplier_id);
+
+    // Handle both string and number user_id formats
+    const userIdQuery = {
+      $or: [
+        { user_id: user_id },
+        { user_id: user_id.toString() }
+      ]
+    };
+
+    // Find the specific supplier cart
+    const order = await OrderJ2B.findOne({ 
+      ...userIdQuery,
+      status: "basket", 
+      supplier_id: supplier_id 
+    });
+
+    console.log('Found order:', order ? order.id : 'null');
+
+    if (!order) {
+      console.error('Cart not found for user:', user_id, 'supplier:', supplier_id);
+      return res.status(404).json({ 
+        message: "Cart not found"
+      });
+    }
+
+    // Build delete query with better logging
+    let deleteQuery = {
+      order_id: order.id,
+      supplier_id: supplier_id,
+      "product_id.id": productId
+    };
+
+    // If combinationsID is provided, add it to the query for exact match
+    if (combinationsID) {
+      deleteQuery["product_id.combinationId"] = combinationsID.toString();
+    }
+
+    console.log('Delete query:', JSON.stringify(deleteQuery));
+
+    const deletedOrderItem = await OrderItemJ2B.findOneAndDelete(deleteQuery);
+
+    console.log('Deleted order item:', deletedOrderItem ? 'found and deleted' : 'not found');
+
+    if (!deletedOrderItem) {
+      console.error('Product not found in cart with query:', deleteQuery);
+      return res.status(404).json({ 
+        message: "Product not found in cart"
+      });
+    }
+
+    // Check remaining items and update/delete order if needed
+    const remainingItems = await OrderItemJ2B.find({ order_id: order.id });
+    console.log('Remaining items count:', remainingItems.length);
+
+    if (remainingItems.length === 0) {
+      // No items left, delete the order
+      await OrderJ2B.deleteOne({ id: order.id });
+      console.log('Order deleted as no items remain');
+    } else {
+      // Recalculate order totals
+      let totalPrice = 0;
+      let totalDiscount = 0;
+      
+      remainingItems.forEach((item) => {
+        totalPrice += item.totalPrice || 0;
+        totalDiscount += (item.price - item.totalPrice) || 0;
+      });
+
+      await OrderJ2B.findOneAndUpdate(
+        { id: order.id },
+        {
+          $set: {
+            total_price: totalPrice,
+            total_discount: totalDiscount,
+            updatedAt: new Date()
+          }
+        }
+      );
+      console.log('Order totals updated');
+    }
+
+    // Get ALL remaining cart items from ALL suppliers for the user
+    const allOrders = await OrderJ2B.find({ 
+      ...userIdQuery,
+      status: "basket" 
+    });
+
+    console.log('All remaining orders count:', allOrders.length);
+
+    if (allOrders.length === 0) {
+      console.log('No orders remaining, returning empty cart');
+      return res.json({
+        message: "ok",
+        cart: [],
+      });
+    }
+
+    // Get all remaining order items
+    const allOrderItems = await OrderItemJ2B.find({ 
+      order_id: { $in: allOrders.map(o => o.id) } 
+    });
+
+    console.log('All remaining order items count:', allOrderItems.length);
+
+    // Get unique product IDs for batch fetching with safety checks
+    const productIds = [...new Set(allOrderItems.map(item => {
+      // Handle both array and object formats
+      let productData;
+      if (Array.isArray(item.product_id)) {
+        productData = item.product_id[0];
+      } else if (item.product_id && typeof item.product_id === 'object') {
+        productData = item.product_id;
+      }
+      
+      return productData?.id;
+    }).filter(Boolean))];
+
+    console.log('Unique product IDs:', productIds);
+
+    // Fetch product details from SingleProduct collection
+    const products = await SingleProduct.find({ 
+      id: { $in: productIds } 
+    });
+
+    console.log('Found products count:', products.length);
+
+    // Create a map for quick product lookup
+    const productMap = {};
+    products.forEach(product => {
+      productMap[product.id] = product;
+    });
+
+    // Format response
+    const cartResponse = [];
+    
+    for (const item of allOrderItems) {
+      // Handle both array and object formats safely
+      let cartProduct;
+      if (Array.isArray(item.product_id)) {
+        cartProduct = item.product_id[0];
+      } else if (item.product_id && typeof item.product_id === 'object') {
+        cartProduct = item.product_id;
+      }
+
+      if (!cartProduct) {
+        console.warn('Invalid product_id format for item:', item._id);
+        continue;
+      }
+
+      const productDetails = productMap[cartProduct.id];
+      
+      if (!productDetails) {
+        console.warn(`Product not found: ${cartProduct.id}`);
+        continue;
+      }
+
+      // Find the specific combination
+      const combination = productDetails.combinations?.find(
+        combo => combo.id.toString() === cartProduct.combinationId
+      );
+      
+      if (!combination) {
+        console.warn(`Combination not found: ${cartProduct.combinationId} for product: ${cartProduct.id}`);
+        continue;
+      }
+
+      // Find the supplier within the combination
+      const supplier = combination.suppliers?.find(
+        sup => sup.id === item.supplier_id
+      );
+
+      if (!supplier) {
+        console.warn(`Supplier not found: ${item.supplier_id} for product: ${cartProduct.id}, combination: ${cartProduct.combinationId}`);
+        continue;
+      }
+
+      // Build attributes object from combination options
+      const attributes = {};
+      if (combination.options) {
+        combination.options.forEach(option => {
+          if (option.attribute_name === 'رنگ' || option.type === 'color') {
+            attributes.color = option.value;
+          } else if (option.attribute_name === 'جنس' || option.type === 'material') {
+            attributes.material = option.value;
+          }
+          // Add other attribute types as needed
+        });
+      }
+
+      // Use supplier pricing
+      const regularPrice = supplier.price?.regularPrice || 0;
+      const discountedPrice = supplier.price?.discountedPrice || regularPrice;
+      const discountPercent = regularPrice > 0 ? 
+        Math.round(((regularPrice - discountedPrice) / regularPrice) * 100) : 0;
+
+      cartResponse.push({
+        productId: cartProduct.id,
+        combinationsID: parseInt(cartProduct.combinationId),
+        seller_id: item.supplier_id,
+        name: productDetails.general?.title || `Product ${cartProduct.id}`,
+        image: productDetails.general?.images?.[0] || "",
+        price: {
+          regularPrice: regularPrice,
+          discountPercent: discountPercent,
+          discountedPrice: discountedPrice
+        },
+        count: item.quantity || 1,
+        max: supplier.maxOrder || 50,
+        min: supplier.minOrder || 1,
+        seller: {
+          id: item.supplier_id,
+          label: supplier.name
+        },
+        attributes: Object.keys(attributes).length > 0 ? [attributes] : []
+      });
+    }
+
+    console.log('Final cart response items count:', cartResponse.length);
+
+    res.json({
+      message: "ok",
+      cart: cartResponse,
+    });
+
+  } catch (error) {
+    console.error("Error removing product from cart:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ 
+      message: "error",
+      error: error.message,
+      cart: []
+    });
+  }
+};
 export const updateCart = async (req, res) => {
   try {
     const { user_id } = getUserFromToken(req, res);
+    
     const userIdStr = user_id.toString();
     const userIdNum = Number(user_id);
 
     const { productId, combinationsID, seller, count } = req.body;
-
-    console.log(productId, combinationsID, seller, count )
 
     if (!user_id || !productId || !combinationsID || !seller?.id || !count) {
       return res.status(400).json({
@@ -496,102 +790,73 @@ export const updateCart = async (req, res) => {
     const discountedUnitPrice = selectedSupplier.price.discountedPrice || selectedSupplier.price.regularPrice;
     
     // Total prices for this item
-    const itemTotalRegularPrice = regularUnitPrice * count;  // count * each item regular price (for price field)
-    const itemTotalDiscountedPrice = discountedUnitPrice * count;  // count * each item discounted price (for totalPrice field)
-    const itemTotalDiscount = itemTotalRegularPrice - itemTotalDiscountedPrice;  // total discount amount
+    const itemTotalRegularPrice = regularUnitPrice * count;
+    const itemTotalDiscountedPrice = discountedUnitPrice * count;
+    const itemTotalDiscount = itemTotalRegularPrice - itemTotalDiscountedPrice;
     
-    // Check existing basket
-// Check existing basket for SAME supplier
-let existingOrder = await OrderJ2B.findOne({ 
-  user_id: userIdStr, 
-  status: "basket", 
-  supplier_id: selectedSupplier.id 
-});
-
-const orderId = existingOrder?.id || `order_${uuidv4()}`;
-
-let order;
-
-if (existingOrder) {
-  // Update existing order
-  order = await OrderJ2B.findOneAndUpdate(
-    { id: existingOrder.id },
-    {
-      $set: {
-        updatedAt: new Date()
-      }
-    },
-    { new: true }
-  );
-} else {
-  // Create new order for this supplier
-  const orderData = {
-    id: orderId,
-    customer_name: customerName,
-    customer_email: customerEmail,
-    customer_phone_number: customerPhone,
-    user_id: userIdStr,
-    total_price: 0,
-    total_discount: 0,
-    discount_code_id: null,
-    status: "basket",
-    delivery_type: "store_delivery",
-    payment_method: "cash",
-    supplier_id: selectedSupplier.id
-  };
-  
-  order = new OrderJ2B(orderData);
-  await order.save();
-}
-
-
-    // Check if an OrderItem exists for this order + supplier
-    let orderItem = await OrderItemJ2B.findOne({ 
-      order_id: orderId, 
+    // Check existing basket for SAME supplier
+    let existingOrder = await OrderJ2B.findOne({ 
+      user_id: userIdStr, 
+      status: "basket", 
       supplier_id: selectedSupplier.id 
     });
 
-    if (orderItem) {
-      // Check if this exact product + combination already exists
-      const existingProduct = orderItem.product_id.find(p => 
-        p.id === productId && 
-        p.combinationId === combinationsID.toString()
+    const orderId = existingOrder?.id || `order_${uuidv4()}`;
+
+    let order;
+
+    if (existingOrder) {
+      // Update existing order
+      order = await OrderJ2B.findOneAndUpdate(
+        { id: existingOrder.id },
+        {
+          $set: {
+            updatedAt: new Date()
+          }
+        },
+        { new: true }
       );
+    } else {
+      // Create new order for this supplier
+      const orderData = {
+        id: orderId,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone_number: customerPhone,
+        user_id: userIdStr,
+        total_price: 0,
+        total_discount: 0,
+        discount_code_id: null,
+        status: "basket",
+        delivery_type: "store_delivery",
+        payment_method: "cash",
+        supplier_id: selectedSupplier.id
+      };
+      
+      order = new OrderJ2B(orderData);
+      await order.save();
+    }
 
-      if (existingProduct) {
-        // Product exists -> REPLACE quantity and recalculate prices
-        orderItem.quantity = count; // Set to new count
-        orderItem.price = itemTotalRegularPrice; // Total regular price (count × unit regular price)
-        orderItem.priceWithVat = itemTotalRegularPrice; // Initially same as regular price (no VAT applied yet)
-        orderItem.discount_price = discountedUnitPrice; // Unit discounted price
-        orderItem.totalPrice = itemTotalDiscountedPrice; // Total price after discount (count × unit discounted price)
+    // Check if an OrderItem exists for this specific product + combination + supplier
+    let orderItem = await OrderItemJ2B.findOne({ 
+      order_id: orderId, 
+      supplier_id: selectedSupplier.id,
+      "product_id.id": productId,
+      "product_id.combinationId": combinationsID.toString()
+    });
 
-      } else {
-        // Product doesn't exist -> add new product to existing order item
-        orderItem.product_id.push({ 
-          id: productId, 
-          combinationId: combinationsID.toString()
-        });
-        
-        // Add to existing quantities and prices
-        const oldQuantity = orderItem.quantity;
-        const newTotalQuantity = oldQuantity + count;
-        
-        // Update totals
-        orderItem.quantity = newTotalQuantity;
-        orderItem.price += itemTotalRegularPrice; // Add total regular price for new items
-        orderItem.priceWithVat += itemTotalRegularPrice; // Add total regular price (no VAT applied yet)
-        orderItem.totalPrice += itemTotalDiscountedPrice; // Add total discounted price for new items
-
-        // For discount_price, we need to calculate weighted average unit discounted price
-        const avgDiscountedUnitPrice = orderItem.totalPrice / newTotalQuantity;
-        orderItem.discount_price = avgDiscountedUnitPrice;
-      }
+    if (orderItem) {
+      // Product with this combination already exists -> UPDATE quantity and recalculate prices
+      orderItem.quantity = count; // Set to new count (replace, not add)
+      orderItem.price = itemTotalRegularPrice; // Total regular price (count × unit regular price)
+      orderItem.priceWithVat = itemTotalRegularPrice; // Initially same as regular price (no VAT applied yet)
+      orderItem.discount_price = discountedUnitPrice; // Unit discounted price
+      orderItem.totalPrice = itemTotalDiscountedPrice; // Total price after discount (count × unit discounted price)
 
       await orderItem.save();
 
     } else {
-      // Create new order item
+      // Create NEW order item document for this unique product + combination
       orderItem = new OrderItemJ2B({
         id: `item_${uuidv4()}`,
         order_id: orderId,
@@ -634,7 +899,6 @@ if (existingOrder) {
           total_discount: newOrderTotalDiscount, // Total discount amount of all items
           updatedAt: new Date(),
           vatLink: "",
-
         }
       },
       { new: true }
@@ -642,7 +906,7 @@ if (existingOrder) {
 
     res.status(200).json({
       success: true,
-      message: existingOrder ? "Item added to existing cart" : "New cart created",
+      message: orderItem ? "Cart item updated" : "New item added to cart",
       data: {
         orderId: order.id,
         customer: {
@@ -697,183 +961,7 @@ if (existingOrder) {
   }
 };
 
-// Optional: Cleanup function to remove existing duplicates (run once)
-export const cleanupCartDuplicates = async () => {
-  try {
-    console.log("Starting cleanup of duplicate cart items...");
-    
-    const orderItems = await OrderItemJ2B.find({});
-    let cleanedCount = 0;
-    
-    for (let item of orderItems) {
-      const originalLength = item.product_id.length;
-      
-      // Create a Map to store unique products by id + combinationId
-      const uniqueProducts = new Map();
-      
-      for (let product of item.product_id) {
-        const key = `${product.id}-${product.combinationId}`;
-        if (!uniqueProducts.has(key)) {
-          uniqueProducts.set(key, {
-            id: product.id,
-            combinationId: product.combinationId.toString() // Ensure string consistency
-          });
-        }
-      }
-      
-      // Update with unique products only if duplicates were found
-      if (originalLength > uniqueProducts.size) {
-        item.product_id = Array.from(uniqueProducts.values());
-        await item.save();
-        cleanedCount++;
-      }
-    }
-    
-    console.log(`Cleanup completed. ${cleanedCount} items were cleaned.`);
-    return { success: true, cleanedCount };
-    
-  } catch (error) {
-    console.error("Error during cleanup:", error);
-    return { success: false, error: error.message };
-  }
-};
 
-/*
-// Usage Example:
-
-// API Call:
-POST /api/cart/update
-Headers: {
-  "Authorization": "Bearer your-jwt-token"
-}
-Body: {
-  "productId": "67f99acf3c98fda9bffa9738",
-  "combinationsID": 19,
-  "seller": {
-    "id": 1,
-    "label": "دیجی کالا"
-  },
-  "count": 2
-}
-
-// Response:
-{
-  "success": true,
-  "message": "Item added to existing cart",
-  "data": {
-    "orderId": "order_123456",
-    "customer": {
-      "name": "سب سب سبسب",
-      "email": "sajjsatt1111@gmail.com",
-      "phone": "09380587367"
-    },
-    "pricing": {
-      "itemPrice": 1900000,
-      "itemDiscount": 100000,
-      "cartTotalPrice": 3800000,
-      "cartTotalDiscount": 200000,
-      "cartFinalPrice": 3600000
-    },
-    "addedItem": {
-      "productId": "67f99acf3c98fda9bffa9738",
-      "productTitle": "گوشی موبایل اپل مدل پرومکس دو سیم‌ کارت نات اکتیو سیزده",
-      "combinationsID": 19,
-      "seller": {
-        "id": 1,
-        "label": "دیجی کالا",
-        "name": "دیجی کالا"
-      },
-      "count": 2,
-      "unitPrice": 950000,
-      "totalPrice": 1900000
-    }
-  }
-}
-*/
-
-
-export const removeFromCart = async (req, res) => {
-  const { user_id } = getUserFromToken(req, res);
-    const { productId, combinationsID, seller } = req.body;
-
-    console.log(productId, combinationsID, seller);
-
-    // ✅ extract numeric supplier_id
-    const supplier_id = typeof seller === "object" ? seller.id : seller;
-
-
-  if (!productId || !combinationsID || !seller) {
-    return res.status(400).json({ message: "Missing required parameters" });
-  }
-
-  try {
-    // 🔹 Find the active cart (order with status "basket" and supplier)
-    const order = await OrderJ2B.findOne({ user_id, status: "basket", supplier_id });
-    if (!order) {
-      return res.status(404).json({ message: "Cart not found" });
-    }
-
-    // 🔹 Find the order item that matches all 3 keys
-    // 🔹 Remove only the matching product_id entry
-    const orderItem = await OrderItemJ2B.findOneAndUpdate(
-      {
-        order_id: order.id,
-        supplier_id,
-      },
-      {
-        $pull: {
-          product_id: { id: productId, combinationId: combinationsID },
-        },
-      },
-      { new: true }
-    );
-
-    if (!orderItem) {
-      return res.status(404).json({ message: "Product not found in cart" });
-    }
-
-    // 🔹 If no product_ids remain inside this item → delete the item itself
-    if (orderItem.product_id.length === 0) {
-      await OrderItemJ2B.deleteOne({ _id: orderItem._id });
-    }
-
-
-    // 🔹 Check if any items remain in this order
-    const remainingItems = await OrderItemJ2B.find({ order_id: order.id });
-
-    if (remainingItems.length === 0) {
-      // No items left → delete the order
-      await OrderJ2B.deleteOne({ id: order.id });
-      return res.json({
-        message: "Cart is now empty and has been deleted",
-        cart: [],
-      });
-    }
-
-    // 🔹 Recalculate totals
-    let totalPrice = 0;
-    let totalDiscount = 0;
-    remainingItems.forEach((item) => {
-      totalPrice += item.totalPrice;
-      totalDiscount += item.discount_price;
-    });
-
-    order.total_price = totalPrice;
-    order.total_discount = totalDiscount;
-    await order.save();
-
-    res.json({
-      message: "Product removed successfully",
-      cart: {
-        order,
-        items: remainingItems,
-      },
-    });
-  } catch (error) {
-    console.error("Error removing product from cart:", error);
-    res.status(500).json({ message: "Error removing product from cart", error });
-  }
-};
 
 
 
@@ -1093,7 +1181,6 @@ export const getFinalReceipt = async (req, res) => {
       
     };
 
-    console.log(`Final receipt generated for user ${user_id} with ${sellers.length} sellers, ${orders.length} orders, ${orderItems.length} order items`);
     res.status(200).json(finalReceipt);
 
   } catch (error) {
@@ -1478,8 +1565,6 @@ export const updateFinalReceiptGateway = async (req, res) => {
     const { user_id } = getUserFromToken(req, res); // This will handle token extraction and verification
 
     const { paymentMethod } = req.body; // Expect only a paymentMethod string
-    console.log('Payment Method:', paymentMethod);
-    console.log('User ID:', user_id);
 
     // Validate paymentMethod
     if (!paymentMethod) {
@@ -1516,7 +1601,6 @@ export const updateFinalReceiptGateway = async (req, res) => {
       }
     );
 
-    console.log('Update Result:', updateResult);
 
     // Check if any documents were modified
     if (updateResult.matchedCount === 0) {
@@ -1732,7 +1816,6 @@ export const vatRequestFinalReceipt = async (req, res) => {
   const { user_id } = getUserFromToken(req, res);
   const { vatRequested, orderId } = req.body;
 
-  console.log("Received orderId:", orderId);
 
   try {
     // Validate input
@@ -1785,9 +1868,6 @@ export const vatRequestFinalReceipt = async (req, res) => {
       });
     }
 
-    console.log(
-      `VAT request updated for orderId ${orderId}: vatRequested=${vatRequested}`
-    );
 
     res.status(200).json({
       status: "OK",

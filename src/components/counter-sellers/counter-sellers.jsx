@@ -1,11 +1,144 @@
 import { ActionIcon, Button, Center, Flex, Input, LoadingOverlay, Modal, Text } from "@mantine/core";
 import { IconPlus, IconMinus, IconTrash, IconBasket } from "@tabler/icons-react";
-import { useData, useSend } from "../../Libs/api";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { setInitial } from "../../redux/cart";
 import { useProduct } from "../../views/public/product";
 import { useEffect, useState } from "react";
+import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
+
+
+const cartAPI = {
+  updateCart: async (body) => {
+    const token = localStorage.getItem("user");
+    
+    try {
+      const response = await fetch(getApiUrl("/cart/update"), {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`, 
+          "Content-Type": "application/json"      
+        },
+        body: JSON.stringify(body),
+      });
+    
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update cart");
+      }
+
+      const cartResponse = await fetch(getApiUrl("/cart"), {
+        headers: {
+          'Authorization': `Bearer ${token}`, 
+          "Content-Type": "application/json"      
+        },
+      });
+      
+      if (!cartResponse.ok) {
+        throw new Error("Failed to fetch cart data");
+      }
+      
+      const serverD = await cartResponse.json();
+
+      return {
+        message: "ok",
+        cart: serverD.cart || [],
+        total: serverD.cart
+          ? serverD.cart.reduce(
+              (sum, item) => sum + item.price.discountedPrice * item.count,
+              0
+            )
+          : 0,
+      };
+    } catch (error) {
+      console.error("Update cart error:", error);
+      throw error;
+    }
+  },
+
+  removeFromCart: async (body) => {
+    const token = localStorage.getItem("user");
+
+    try {
+      const response = await fetch(getApiUrl("/cart/remove"), {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`, 
+          "Content-Type": "application/json"      
+        },
+        body: JSON.stringify(body),
+      });
+    
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to remove from cart");
+      }
+
+      const cartResponse = await fetch(getApiUrl("/cart"), {
+        headers: {
+          'Authorization': `Bearer ${token}`, 
+          "Content-Type": "application/json"      
+        },
+      });
+      
+      if (!cartResponse.ok) {
+        throw new Error("Failed to fetch cart data");
+      }
+      
+      const serverD = await cartResponse.json();
+
+      return {
+        message: "ok",
+        cart: serverD.cart || [],
+        total: serverD.cart
+          ? serverD.cart.reduce(
+              (sum, item) => sum + item.price.discountedPrice * item.count,
+              0
+            )
+          : 0,
+      };
+    } catch (error) {
+      console.error("Remove from cart error:", error);
+      throw error;
+    }
+  },
+
+  getCart: async () => {
+    const token = localStorage.getItem("user");
+
+    try {
+      const response = await fetch(getApiUrl("/cart"), {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${token}`, 
+          "Content-Type": "application/json"      
+        },
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem("user");
+        throw new Error("Failed to fetch cart data");
+      }
+      
+      const serverD = await response.json();
+
+      return {
+        message: "ok",
+        cart: serverD.cart || [],
+        totalPrice: serverD.total || 0
+      };
+    } catch (error) {
+      console.error("Get cart error:", error);
+      return {
+        message: "error",
+        cart: [],
+        totalPrice: 0,
+      };
+    }
+  }
+};
 
 // Helper function to validate if images exist and are valid
 const hasValidImages = (images) => {
@@ -38,45 +171,60 @@ const hasValidImages = (images) => {
 };
 
 const CounterSellers = (props) => {
-
   const {
     productId,
     seller,
     onChange,
     options,
     productName,
-    productImages, // This might not be passed, so we'll handle it gracefully
+    productImages,
     item
   } = props;
-
 
   const [cookies] = useCookies(["user"]);
   const dispatch = useDispatch();
 
-  const [ itemSellerId, setItemSellerId ] = useState(undefined) 
-  const [ itemSellerName, setItemSellerName ] = useState(undefined) 
+  const [itemSellerId, setItemSellerId] = useState(undefined);
+  const [itemSellerName, setItemSellerName] = useState(undefined);
+  const [matchingCombination, setMatchingCombination] = useState(undefined);
+  const [maxOrder, setMaxOrder] = useState(undefined);
+  const [minOrder, setMinOrder] = useState(undefined);
+  const [stock, setStock] = useState(undefined);
+  const [isSellerAvailable, setIsSellerAvailable] = useState(true);
+  const [price, setPrice] = useState(undefined);
 
-  const [ matchingCombination, setMatchingCombination ] = useState(undefined);
-  const [ maxOrder, setMaxOrder ] = useState(undefined);
-  const [ minOrder, setMinOrder ] = useState(undefined);
-  const [ stock, setStock ] = useState(undefined);
-  const [ isSellerAvailable, setIsSellerAvailable ] = useState(true);
-
-  const [ price, setPrice ] = useState(undefined);
+  // Replace hook state with regular state
+  const [cartData, setCartData] = useState({ cart: [], totalPrice: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPending, setIsPending] = useState(false);
 
   // Authentication state
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const [isPending, setIsPending] = useState(false);
-
-  const { combinations } = useProduct()
-
-  const updateQuery = useSend({ url: "/cart/update" });
-  const removeQuery = useSend({ url: "/cart/remove" });
-
-  const { data, isLoading } = useData({ url: "/cart" });
+  const { combinations } = useProduct();
   const items = useSelector((state) => state.cart?.items || []);
+
+  // Load cart data function
+  const loadCartData = async () => {
+    setIsLoading(true);
+    try {
+      const result = await cartAPI.getCart();
+      setCartData(result);
+      if (result.cart && result.cart.length > 0) {
+        dispatch(setInitial([...result.cart]));
+      }
+    } catch (error) {
+      console.error("Failed to load cart data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load cart data on component mount
+  useEffect(() => {
+    loadCartData();
+  }, []);
 
   const findMatchingCombination = (productId, options, combinations) => {
     if (!Array.isArray(options) || !Array.isArray(combinations)) return null;
@@ -203,7 +351,7 @@ const CounterSellers = (props) => {
     }
   };
 
-  const handleChange = ({value, item}) => {
+  const handleChange = async ({value, item}) => {
     if (!user || !isVerified) {
       setShowAuthModal(true);
       return;
@@ -225,29 +373,28 @@ const CounterSellers = (props) => {
 
     setIsPending(true);
 
-    updateQuery.mutateAsync(
-      {
+    try {
+      const result = await cartAPI.updateCart({
         "productId": productId,
         "seller": {"id": newSellerId, "label": newSellerName}, 
         "count": Number(value),
         "combinationsID": matchingCombination?.id,
-      },
-      {
-        onSuccess: (data) => {
-          if (data.cart) {
-            dispatch(setInitial([...data.cart]));
-          } else {
-            throw new Error("Failed to fetch cart data");              
-          }
-        },
-        onSettled: () => {
-          setIsPending(false);
-        }
+      });
+
+      if (result.cart) {
+        dispatch(setInitial([...result.cart]));
+        setCartData(result);
+      } else {
+        throw new Error("Failed to fetch cart data");              
       }
-    );
+    } catch (error) {
+      console.error("Failed to update cart:", error);
+    } finally {
+      setIsPending(false);
+    }
   };
 
-  const handleRemove = ({ value, item }) => {
+  const handleRemove = async ({ value, item }) => {
     if (!user || !isVerified) {
       setShowAuthModal(true);
       return;
@@ -263,23 +410,22 @@ const CounterSellers = (props) => {
   
     setIsPending(true);
   
-    removeQuery.mutateAsync(
-      {
+    try {
+      const result = await cartAPI.removeFromCart({
         "productId": productId,
         "seller": { "id": item.id, "label": item.name },
         "combinationsID": matchingCombination?.id
-      },
-      {
-        onSuccess: (data) => {
-          if (data.cart) {
-            dispatch(setInitial([...data.cart]));
-          }
-        },
-        onSettled: () => {
-          setIsPending(false);
-        }
+      });
+
+      if (result.cart) {
+        dispatch(setInitial([...result.cart]));
+        setCartData(result);
       }
-    );
+    } catch (error) {
+      console.error("Failed to remove from cart:", error);
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const handleAddToCart = () => {
@@ -293,27 +439,17 @@ const CounterSellers = (props) => {
     }
     
     if (item) {
-      handleChange({ value: minOrder, item });
+      // Use the minimum between minOrder and available stock
+      const safeMinOrder = Math.min(minOrder || 1, stock || 1, maxOrder || 1);
+      handleChange({ value: safeMinOrder, item });
     }
   };
 
-  useEffect(() => {
-    if (data?.cart && data.cart.length > 0) {
-      dispatch(setInitial([...data.cart]));
-    }
-  }, []);
-  
   useEffect(() => {
     if (item?.id) {
       setItemSellerId(item.id);
     }
   }, [item?.id]);
-
-  useEffect(() => {
-    if (data?.cart?.length) {
-      dispatch(setInitial(data.cart));
-    }
-  }, [data?.cart]);
 
   useEffect(() => {
     if (!options || !combinations) {

@@ -5,7 +5,6 @@ export const verifyPaymentWallet = createAsyncThunk(
   "wallet/verifyPaymentWallet",
   async (paymentData, { rejectWithValue }) => {
     try {
-      console.log("Sending payment data to API:", paymentData);
       
           const token = localStorage.getItem("user");
 
