@@ -13,9 +13,6 @@ import Sellers from "./sellers";
 import { useDispatch, useSelector } from "react-redux";
 import { 
   getSingleProductDetails, 
-  clearProductThrottle,
-  canFetchProduct,
-  getRemainingThrottleTime
 } from "../../../redux/products/singleproductpage/singleProductPageGetActions";
 
 const ProductContext = createContext();
@@ -36,12 +33,7 @@ const Product = () => {
 
     const timer = setTimeout(() => {
       
-      if (canFetchProduct(slug)) {
         dispatch(getSingleProductDetails({ slug }));
-      } else {
-        const remainingTime = getRemainingThrottleTime(slug);
-
-      }
 
       setDelayedLoading(false); // delay finished, now rely on redux loading
     }, 2000);

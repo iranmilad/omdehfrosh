@@ -827,6 +827,8 @@ export const createNewUserTicket = async (req, res) => {
 
   const { title, department, description, ticketShortDesc } = req.body;
 
+  console.log(req.body)
+
 
   const { user_id } = getUserFromToken(req, res); // your custom token auth
 
