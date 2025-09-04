@@ -49,7 +49,7 @@ const PaymentSellers = () => {
 
   const [paymentURL , setPaymentURL]  = useState("");
 
-  const {mutateAsync} = useSend({url:"https://jsonplaceholder.typicode.com/posts"})
+  // const {mutateAsync} = useSend({url:"https://jsonplaceholder.typicode.com/posts"})
 
   const [cookies, setCookie] = useCookies(["user"]);
 
@@ -130,21 +130,21 @@ const PaymentSellers = () => {
     </Radio.Card>
   ));
 
-  function SubmitCart () {
+  // function SubmitCart () {
 
-    dispatch(toggleLoading())
+  //   dispatch(toggleLoading())
 
-    mutateAsync({},{
-        onSuccess: () => {
-            dispatch(toggleLoading());
-            setButtonLink({component:"a", href:"https://google.com"})
-        },
-        onError: () => {
-        },
-        onSettled: (err) => {
-        }
-    })
-  }
+  //   mutateAsync({},{
+  //       onSuccess: () => {
+  //           dispatch(toggleLoading());
+  //           setButtonLink({component:"a", href:"https://google.com"})
+  //       },
+  //       onError: () => {
+  //       },
+  //       onSettled: (err) => {
+  //       }
+  //   })
+  // }
 
   useEffect(() => {
     dispatch(verifyToken());

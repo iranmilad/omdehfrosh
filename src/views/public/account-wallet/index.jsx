@@ -24,7 +24,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from 'react-router';
 import { notifications } from '@mantine/notifications';
 
-import { useSend, useData } from "../../../Libs/api";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { fetchUserInfo } from '../../../redux/users/userinfo/userInfo';
 import { updateUserInfo } from '../../../redux/users/updateuserinfo/updateUserInforActions';
@@ -157,9 +156,6 @@ function Account_Wallet() {
   const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData); // Use the state from Redux
   
  
-
-  console.log(depositData)
-
 
   useEffect(() => {
     dispatch(getAllGateWaysData({ state: "online" }));

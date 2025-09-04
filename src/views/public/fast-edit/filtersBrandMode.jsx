@@ -27,7 +27,6 @@ import { shallowEqual } from "@mantine/hooks";
 import { useFastOrder } from ".";
 import { useFilterContext } from "./filterscontext";
 import { useLocation, useParams } from "react-router";
-import { useData } from "../../../Libs/api";
 import qs from "qs";
 
 const colors = [
@@ -214,14 +213,7 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
 
   // const queryKey = changeFilters().query;
 
-  // درخواست برای داده‌ها
-  // const { data, isLoading, isFetching } = useData({
-  //   url,
-  //   method: "POST",
-  //   bodyData: changeFilters().thisFilter,
-  //   queryKey: [url, queryKey],
-  //   queryOptions: { staleTime: 30 * 10000 },
-  // });
+
 
   // useMemo(() => {
   //   if (data) {

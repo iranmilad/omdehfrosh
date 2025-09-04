@@ -2,34 +2,60 @@ import { Button, Paper } from "@mantine/core";
 import PurchasePanel from "../purchasePanel";
 import { IconArrowLeft, IconBell } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import StockAlert from "../stockAlert";
 import { useDispatch, useSelector } from "react-redux";
-import { useData } from "../../../../Libs/api";
 import { setInitial } from "../../../../redux/cart";
-
-
+import { getApiUrl } from "../../../../Libs/utils/apiutils/apiutils";
 
 function InfoSection() {
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { data, isLoading } = useData({ url: "/cart", queryKey: [''] });
-  
   const cartItems = useSelector((state) => state.cart.items || []);
-
   const dispatch = useDispatch();
-
-
   const stockAlert = useDisclosure(false);
 
   useEffect(() => {
-    if (Array.isArray(data?.cart)) {
-      dispatch(setInitial([...data.cart])); // ✅ Safe to spread
-    } else {
-      dispatch(setInitial([])); // ✅ Avoids crash by setting an empty array
-    }
-  }, [data, dispatch]);
-  
-  
+    const fetchCart = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem("user");
+
+        const response = await fetch(getApiUrl("/cart"), {
+          method: "GET",
+          headers: new Headers({
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          }),
+        });
+
+        if (!response.ok) {
+          localStorage.removeItem("user"); // ✅ remove invalid/expired token
+          throw new Error("Failed to fetch cart data");
+        }
+
+        const serverData = await response.json();
+
+        const result = {
+          cart: serverData.cart || [],
+          totalPrice: serverData.total || 0,
+        };
+
+        setData(result);
+        dispatch(setInitial([...result.cart])); // ✅ update Redux
+      } catch (err) {
+        console.error("Error fetching cart:", err);
+        setData({ cart: [], totalPrice: 0 });
+        dispatch(setInitial([]));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCart();
+  }, [dispatch]);
+
   return (
     <>
       <div className="lg:mt-8 lg:mb-8"></div>

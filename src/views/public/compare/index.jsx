@@ -17,12 +17,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { NavLink, useParams } from "react-router";
 import XTitle from "../../../components/title";
-import {
-  useIsFirstRender,
-  useLocalStorage,
-  useSessionStorage,
-} from "@mantine/hooks";
-import { useData, useSend } from "../../../Libs/api";
+
 import InfoBox from "../../../components/InfoBox";
 import { useDispatch, useSelector } from "react-redux";
 import Category from "../../../components/category";

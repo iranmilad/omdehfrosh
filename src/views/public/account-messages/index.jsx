@@ -15,7 +15,6 @@ import {
 } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router";
-import { useData } from "../../../Libs/api";
 
 import { getUserTickets } from "../../../redux/usermyaccounts/usermyaccounts/getusertickets/getUserTicketsActions";
 
@@ -26,12 +25,7 @@ function Account_Messages() {
   const { primaryColor } = useMantineTheme();
   const [sort, setSort] = useState("all");
 
-  const {data, isLoading, isFetching} = useData({
-    url:"/tickets", 
-    queryKey: ['tickets', sort],
-    params: {sort},
-    queryOptions:{staleTime: 60 * 1000}
-  });
+
   
   const dispatch = useDispatch()
 
@@ -46,7 +40,7 @@ function Account_Messages() {
   }, [dispatch])
 
   // Combined loading state
-  const isLoadingData = loadingUserTickets || isFetching;
+  const isLoadingData = loadingUserTickets;
 
   return (
     <>

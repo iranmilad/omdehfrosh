@@ -50,11 +50,16 @@ import BottomNavigation from "../bottomNavigation";
 import MobileSearch from "../mobileSearch";
 import MiniCart from "../miniCart";
 import { useEffect, useState, useRef } from "react";
-import { useData } from "../../Libs/api";
 import { setInitial, clearCart } from "../../redux/cart";
 import { logout, verifyToken, verifyTokenSilent } from "../../redux/auth/authusers/auth";
 import Notifications from "../notifications";
 import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
+
+// API utility function
+const getApiUrl = (endpoint) => {
+  // Replace with your actual API base URL logic
+  return `${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}${endpoint}`;
+};
 
 const Header = () => {
   const location = useLocation();
@@ -64,6 +69,10 @@ const Header = () => {
   const [showBottomNav, setShowBottomNav] = useState(false); // Start hidden
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
+
+  // Cart data state
+  const [cartData, setCartData] = useState({ cart: [], totalPrice: 0 });
+  const [isLoadingCart, setIsLoadingCart] = useState(false);
 
   const {
     notificationNumber,
@@ -89,8 +98,53 @@ const Header = () => {
   const isSmallScreen = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
   
   const cartItems = useSelector((state) => [...state.cart.items]); 
-  
-  const { data, isLoading } = useData({ url: "/cart", queryKey: [''] });
+
+  // Cart API function
+  const fetchCartData = async () => {
+    const token = localStorage.getItem("user");
+    
+    if (!token) {
+      setCartData({ cart: [], totalPrice: 0 });
+      return;
+    }
+
+    setIsLoadingCart(true);
+    
+    try {
+      const response = await fetch(getApiUrl("/cart"), {
+        method: "GET",
+        headers: new Headers({
+          'Authorization': `Bearer ${token}`, 
+          "Content-Type": "application/json"      
+        }),        
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem("user"); // Remove token if not valid
+        throw new Error("Failed to fetch cart data");
+      }
+
+      const serverData = await response.json();
+      
+      const newCartData = {
+        cart: serverData.cart || [],
+        totalPrice: serverData.total || 0
+      };
+      
+      setCartData(newCartData);
+      
+      // Update Redux cart state if we have cart items
+      if (newCartData.cart.length > 0) {
+        dispatch(setInitial(newCartData.cart));
+      }
+      
+    } catch (error) {
+      console.warn('Failed to fetch cart data:', error.message);
+      setCartData({ cart: [], totalPrice: 0 });
+    } finally {
+      setIsLoadingCart(false);
+    }
+  };
 
   // Scroll handler
   const handleScroll = () => {
@@ -152,12 +206,15 @@ const Header = () => {
     }
   }, [dispatch, user, isVerified]);
 
-  // Update cart when data changes
+  // Fetch cart data when user is authenticated
   useEffect(() => {
-    if (data?.cart?.length) {
-      dispatch(setInitial(data.cart));
+    if (user && isVerified) {
+      fetchCartData();
+    } else {
+      // Clear cart data if user is not authenticated
+      setCartData({ cart: [], totalPrice: 0 });
     }
-  }, [data?.cart, dispatch]); 
+  }, [user, isVerified, dispatch]);
 
   const Logout = async () => {
     try {
@@ -167,6 +224,9 @@ const Header = () => {
       // Clear Redux states
       dispatch(logout());
       dispatch(clearCart());
+      
+      // Clear local cart data
+      setCartData({ cart: [], totalPrice: 0 });
       
       // Silent re-verification to update auth state
       await dispatch(verifyTokenSilent());

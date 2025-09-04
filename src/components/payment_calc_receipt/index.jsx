@@ -21,8 +21,6 @@ import { notifications } from "@mantine/notifications";
 
 const PaymentCalcReceipt = ({ children, prev, gateway }) => {
 
-  console.log("xxxxxxxxxxxxxxxxxxxx")
-
   const dispatch = useDispatch();
   
   const { orderfinalreceipt, loadingfinalreceipt, errorfinalreceipt } = useSelector(
@@ -74,8 +72,6 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
       } 
     });
   };
-
-  console.log(orderfinalreceipt)
 
   // FIXED: Add order-specific receipt request using orderId
   const applyReceipt = async (sellerId) => {
@@ -287,7 +283,6 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
     return <Text color="red">{errorfinalreceipt}</Text>;
   }
 
-  console.log(orderfinalreceipt)
 
   return (
     <>

@@ -9,7 +9,6 @@ import {
 
 import ProductBox from "../account-favorite/productBox/index"
 
-import { useData } from "../../../Libs/api";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
 import { useEffect } from "react";
@@ -22,7 +21,6 @@ function Account_Favorite() {
   const { userAccount, loading, error } = useSelector((state) => state.userMyAccounts);
 
 
-  const { data, isLoading,refetch } = useData({ url: "/favorites" });
 
 
   useEffect(() => {
@@ -41,7 +39,7 @@ function Account_Favorite() {
       <Flex justify="space-between" align="center" mb="xl">
         <Title>محصولات علاقه مندی</Title>
       </Flex>
-      {!isLoading ? (
+      {!loading ? (
         <Grid>
           {userAccount &&
             userAccount?.favorites?.map((item, index) => (

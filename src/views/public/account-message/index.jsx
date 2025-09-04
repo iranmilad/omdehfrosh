@@ -51,9 +51,6 @@ function Account_Message() {
       (state) => state.ticketSendMessage
     );
 
-    console.log("userTicketById", userTicketById)
-    console.log("ticketData", ticketData)
-
     useEffect(() => {
         if (ticketData?.state === "ok") {
           notifications.show({

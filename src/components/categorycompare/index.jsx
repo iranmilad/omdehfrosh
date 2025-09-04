@@ -20,7 +20,6 @@ import { IconFilter, IconSortDescending } from "@tabler/icons-react";
 import { useDebouncedValue, useDisclosure } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import qs from "qs";
-import { useData } from "../../Libs/api";
 import Filters from "./Filters";
 import ProductList from "./ProductList";
 import { useParams } from "react-router";
@@ -79,14 +78,6 @@ function CategoryCompare({ enabled, url = "/seller/123/products", slug: propSlug
   );
 
   const queryKey = changeFilters().query;
-
-  // const { isLoading, isFetching, data } = useData({
-  //   url,
-  //   queryOptions: { staleTime: 30 * 10000, enabled },
-  //   bodyData: changeFilters().filters,
-  //   method: "POST",
-  //   queryKey: [url, queryKey],
-  // });
 
 
   useEffect(() => {

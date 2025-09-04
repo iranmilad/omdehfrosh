@@ -31,7 +31,6 @@ const DefaultSlideImage = ({ index }) => (
 
 // Component to handle individual slide image with error handling
 const SlideImage = ({ item, index }) => {
-  console.log(item);
 
   const [imageErrors, setImageErrors] = useState({
     mobile: false,
@@ -60,7 +59,6 @@ const SlideImage = ({ item, index }) => {
                            imageErrors.fallback; // Include fallback error
 
   const handleImageError = (imageType) => {
-    console.log(`Image error for ${imageType}:`, imageType === 'fallback' ? 'fallback image' : item[`${imageType}Image`]);
     setImageErrors(prev => ({
       ...prev,
       [imageType]: true

@@ -30,7 +30,6 @@ import "swiper/css/free-mode";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import { FreeMode, Navigation, Thumbs } from "swiper/modules";
-import { useData } from "../../../Libs/api";
 import ProductBox from "../../../components/productBox";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
@@ -53,12 +52,7 @@ function Account_Index() {
 
   const { primaryColor } = useMantineTheme();
 
-  console.log("ordersByUserId", ordersByUserId)
 
-  const { isLoading, data } = useData({
-    url: "/myaccount",
-    queryKey: ["myaccount", true],
-  });
 
   useEffect(() => {
     dispatch(verifyToken());
@@ -175,7 +169,7 @@ function Account_Index() {
   }
 
   // Show loading if data is being fetched (only after authentication is confirmed)
-  if (isLoading || loadingOrdersByUserId) {
+  if (loading || loadingOrdersByUserId) {
     return (
       <Center>
         <Loader />

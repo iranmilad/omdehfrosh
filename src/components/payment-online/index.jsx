@@ -135,9 +135,6 @@ const SmartProductImage = ({
 
 const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus, source }) => {
 
-  console.log("pymntStatpaymentStatuspaymentSausus", paymentStatus, source);
-  console.log("paymentData", paymentData);
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -211,15 +208,8 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
 
   // Process data only when keys change
   const processedData = useMemo(() => {
-    console.log("Processing data - source:", sourceKey);
-    console.log("PaymentData available:", !!paymentData);
-    console.log("PaymentStatus available:", !!paymentStatus);
-    console.log("Full paymentData:", paymentData);
-    console.log("Full paymentStatus:", paymentStatus);
-    
+
     if (sourceKey === "checkstatus" && paymentStatus) {
-      console.log("Using checkstatus path");
-      // Extract from paymentStatus structure
       const firstSeller = paymentStatus.order?.sellers?.[0] || {};
       const seller = firstSeller.seller || {};
       const priceApplyEachSeller = paymentStatus.order?.totalPriceToPay || 0;
@@ -249,7 +239,6 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
         sellerName: seller.label || "نامشخص"
       };
     } else if (paymentData) {
-      console.log("Using paymentData path");
       // Use paymentData structure
       const seller = paymentData.seller || {};
       const priceApplyEachSeller = paymentData.priceApplyEachSeller || 0;
@@ -272,17 +261,7 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
       const orderId = orderIds[0];
       const orderItemId = orderItemIds[0];
       
-      console.log('Extracted IDs:', {
-        orderId,
-        orderItemId,
-        orderIds,
-        orderItemIds,
-        fromPaymentData: !!paymentData.orderIds,
-        fromLocationState: !!locationState.orderId,
-        fromItems: items.length > 0,
-        paymentDataOrderIds: paymentData.orderIds,
-        paymentDataOrderItemIds: paymentData.orderItemIds
-      });
+
       
       return {
         seller,
@@ -300,27 +279,13 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
       };
     }
     
-    console.log("No matching condition - returning null");
-    console.log("Conditions check:", {
-      isCheckStatus: sourceKey === "checkstatus",
-      hasPaymentStatus: !!paymentStatus,
-      hasPaymentData: !!paymentData,
-      sourceKey
-    });
     
     return null;
   }, [sourceKey, paymentStatusKey, paymentDataKey, locationState]);
 
   // Early return if no data
   if (!processedData) {
-    console.log('No processed data available. Debug info:', {
-      sourceKey,
-      hasPaymentData: !!paymentData,
-      hasPaymentStatus: !!paymentStatus,
-      locationState,
-      paymentDataKeys: paymentData ? Object.keys(paymentData) : [],
-      paymentStatusKeys: paymentStatus ? Object.keys(paymentStatus) : []
-    });
+
     
     return (
       <div style={{ padding: '20px', background: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '8px' }}>
@@ -355,18 +320,6 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
     sellerName
   } = processedData;
 
-  // Debug logging
-  console.log('Processed data:', {
-    orderId,
-    orderItemId,
-    orderIds,
-    orderItemIds,
-    sellerId,
-    totalAmount,
-    sellerName,
-    source: sourceKey,
-    itemsCount: items.length
-  });
 
   // Helper function to render product attributes - memoized to prevent recreations
   const renderAttributes = useCallback((attributes) => {
@@ -441,25 +394,16 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
         orderTracking: orderTracking?.[0] || null,
       };
 
-      console.log('Payment request data being sent:', paymentRequestData);
-      console.log('Available IDs - orderId:', orderId, 'orderItemId:', orderItemId, 'orderIds:', orderIds, 'orderItemIds:', orderItemIds);
-      
+
       dispatch(getPaymentLink({ paymentRequestData }));
     } else {
-      console.warn('Missing required IDs for payment link generation:', {
-        orderId,
-        orderItemId,
-        orderIds,
-        orderItemIds,
-        orderfinalreceipt: !!orderfinalreceipt
-      });
+
     }
   }, [orderfinalreceipt, dispatch, sellerDataForDispatch, orderTracking, orderId, orderItemId, orderIds, orderItemIds]);
 
   // Fixed useEffect to properly handle payment redirect
   useEffect(() => {
     if (paymentLink?.link_url) {
-      console.log("Payment link received:", paymentLink);
       
       const timer = setInterval(() => {
         setCountdown((prev) => {
@@ -474,14 +418,12 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
               try {
                 // Parse the body data from your API response
                 const bodyData = JSON.parse(paymentLink.body || '{}');
-                console.log('Parsed body data:', bodyData);
                 
                 // Add the parsed data as URL parameters
                 Object.keys(bodyData).forEach(key => {
                   paymentParams.append(key, bodyData[key]);
                 });
               } catch (e) {
-                console.error('Error parsing payment body data:', e);
                 paymentParams.append('order_id', orderId || '');
                 paymentParams.append('order_item_id', orderItemId || '');
                 paymentParams.append('amount_to_pay', totalAmount || 0);
@@ -605,12 +547,7 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
                   </Text>
                 )}
               </Flex>
-              {/* Debug info in development */}
-              {process.env.NODE_ENV === 'development' && (
-                <Text size="xs" c="gray.5">
-                  Debug: Order ID: {orderId}, Order Item ID: {orderItemId}, Source: {sourceKey}
-                </Text>
-              )}
+
             </Stack>
 
             <Divider my="md" />
@@ -737,11 +674,11 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
                 <Text c="yellow.8" size="sm" ta="center" fw="500">
                   در حال بررسی اطلاعات پرداخت...
                 </Text>
-                {process.env.NODE_ENV === 'development' && (
+                {/* {process.env.NODE_ENV === 'development' && (
                   <Text size="xs" c="yellow.7" ta="center" mt="xs">
                     Debug: orderId: {orderId}, orderItemId: {orderItemId}, orderfinalreceipt: {!!orderfinalreceipt}
                   </Text>
-                )}
+                )} */}
               </Paper>
             )}
 

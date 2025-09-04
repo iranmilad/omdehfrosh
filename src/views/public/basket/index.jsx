@@ -32,11 +32,16 @@ import { NavLink, useNavigate } from "react-router";
 import PaymentCalc from "../../../components/payment_calc";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState, useCallback } from "react";
-import { useData } from "../../../Libs/api";
 import { setInitial } from "../../../redux/cart";
 import { useCookies } from "react-cookie";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import CartStepper from "../../../components/cartStepper";
+
+/* ---------------------- API Configuration ---------------------- */
+// You'll need to replace this with your actual API base URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
+const getApiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
 
 /* ---------------------- Pretty SVG placeholder as DATA URI ---------------------- */
 const buildPlaceholderDataUri = (label = "تصویر در دسترس نیست") => {
@@ -262,7 +267,7 @@ const AuthErrorComponent = () => (
   </Container>
 );
 
-const CartErrorComponent = () => (
+const CartErrorComponent = ({ onRetry }) => (
   <Container size="sm" py="xl">
     <Paper p="xl" radius="xl" shadow="md" style={{ border: '1px solid #fed7aa' }}>
       <Center>
@@ -279,10 +284,10 @@ const CartErrorComponent = () => (
           </ThemeIcon>
           <Box ta="center">
             <Title order={3} mb="sm" c="orange.7">خطا در بارگذاری سبد خرید</Title>
-            <Text c="dimmed" size="sm">لطفا صفحه را نوسازی کنید</Text>
+            <Text c="dimmed" size="sm">لطفا مجدداً تلاش کنید</Text>
           </Box>
           <Button 
-            onClick={() => window.location.reload()} 
+            onClick={onRetry} 
             size="lg"
             radius="xl"
             style={{
@@ -354,10 +359,23 @@ const EmptyCartComponent = () => (
                 backgroundClip: 'text',
               }}
             >
-              سبد خرید ...
+              سبد خرید خالی است
             </Title>
-
-
+            <Text c="dimmed" mb="xl">
+              هنوز هیچ محصولی به سبد خرید اضافه نکرده‌اید
+            </Text>
+            <Button 
+              component={NavLink} 
+              to="/products" 
+              size="lg"
+              radius="xl"
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none'
+              }}
+            >
+              مشاهده محصولات
+            </Button>
           </Box>
         </Stack>
       </Center>
@@ -381,13 +399,16 @@ const EnhancedStepper = ({ active = 0 }) => {
 const Basket = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const [cookies] = useCookies(["user"]);
   
-  // Enhanced loading state management
+  // State management
   const [authInitialized, setAuthInitialized] = useState(false);
   const [initialCartLoaded, setInitialCartLoaded] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [cartData, setCartData] = useState(null);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartError, setCartError] = useState(null);
+  const [isFetching, setIsFetching] = useState(false);
 
   // Get Redux cart items (real-time updates)
   const reduxItems = useSelector((state) => state.cart.items || []);
@@ -395,14 +416,83 @@ const Basket = () => {
   const { isVerified, loading: authLoading, error: authError, user } = authState;
 
   const shouldFetchCart = user && isVerified;
-  
-  const { data, isLoading: cartLoading, error: cartApiError, refetch, isFetching } = useData({
-    url: "/cart",
-    queryKey: ["basket-cart"],
-    enabled: shouldFetchCart,
-  });
 
-  console.log(data)
+  // Filter out invalid or empty items from the cart
+  const getValidCartItems = (items) => {
+    if (!Array.isArray(items)) return [];
+    
+    return items.filter(item => {
+      // Check if item exists and has required properties
+      if (!item) return false;
+      
+      // Check if item has a valid product ID
+      if (!item.productId) return false;
+      
+      // Check if item has a valid count > 0
+      if (!item.count || item.count <= 0) return false;
+      
+      // Check if item has price information
+      if (!item.price) return false;
+      
+      return true;
+    });
+  };
+
+  // Fetch cart data function
+  const fetchCartData = useCallback(async (showLoader = true) => {
+    if (!shouldFetchCart) return;
+
+    try {
+      if (showLoader) {
+        setCartLoading(true);
+      } else {
+        setIsFetching(true);
+      }
+      setCartError(null);
+
+      const token = localStorage.getItem("user");
+      
+      const response = await fetch(getApiUrl("/cart"), {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem("user");
+          navigate("/login", { replace: true });
+          return;
+        }
+        throw new Error("Failed to fetch cart data");
+      }
+
+      const data = await response.json();
+      
+      // Filter valid items before setting state
+      const validCartItems = getValidCartItems(data.cart);
+      
+      setCartData({
+        ...data,
+        cart: validCartItems
+      });
+      
+      // Update Redux store with valid items only
+      dispatch(setInitial([...validCartItems]));
+      
+      setInitialCartLoaded(true);
+      
+    } catch (error) {
+      console.error("Cart fetch error:", error);
+      setCartError(error.message || "خطا در بارگذاری سبد خرید");
+      setInitialCartLoaded(true);
+    } finally {
+      setCartLoading(false);
+      setIsFetching(false);
+    }
+  }, [shouldFetchCart, dispatch, navigate]);
 
   // Handle remove action from Product components
   const handleRemoveStart = useCallback(async () => {
@@ -410,17 +500,17 @@ const Basket = () => {
     
     // Wait a bit then force refetch to ensure we catch any updates
     setTimeout(async () => {
-      await refetch();
+      await fetchCartData(false);
       setIsRemoving(false);
-    }, 1000); // Wait 1 second then refetch and reset
-  }, [refetch]);
+    }, 1000);
+  }, [fetchCartData]);
 
-  // Force refetch when component mounts (coming from other pages)
-  const forceRefreshCart = useCallback(() => {
-    if (shouldFetchCart) {
-      refetch();
-    }
-  }, [shouldFetchCart, refetch]);
+  // Retry function for error component
+  const handleRetry = useCallback(() => {
+    setCartError(null);
+    setInitialCartLoaded(false);
+    fetchCartData(true);
+  }, [fetchCartData]);
 
   // Initialize authentication check
   useEffect(() => {
@@ -428,6 +518,7 @@ const Basket = () => {
       try {
         await dispatch(verifyToken());
       } catch (error) {
+        console.error("Auth verification error:", error);
       } finally {
         setAuthInitialized(true);
       }
@@ -446,38 +537,32 @@ const Basket = () => {
     }
   }, [authInitialized, isVerified, authError, user, navigate]);
 
+  // Fetch cart data when authenticated
   useEffect(() => {
-    if (cartApiError) {
-      setInitialCartLoaded(true);
-      return;
+    if (shouldFetchCart && !initialCartLoaded) {
+      fetchCartData(true);
     }
+  }, [shouldFetchCart, initialCartLoaded, fetchCartData]);
 
-    if (data) {
-      try {
-        if (data.cart && Array.isArray(data.cart)) {
-          dispatch(setInitial([...data.cart]));
-        } else {
-          // Server returned empty cart
-          dispatch(setInitial([]));
-        }
-        setInitialCartLoaded(true);
-      } catch (error) {
-        setInitialCartLoaded(true);
-      }
+  // Force refetch when component mounts (coming from other pages)
+  useEffect(() => {
+    if (shouldFetchCart && initialCartLoaded) {
+      fetchCartData(false);
     }
-  }, [data, dispatch, cartApiError]);
+  }, []);
 
   // Calculate loading states
   const isAuthLoading = !authInitialized || authLoading;
-  const isCartLoading = shouldFetchCart && (cartLoading || !initialCartLoaded);
+  const isCartLoading = (user && isVerified) && (cartLoading || !initialCartLoaded);
   const isOverallLoading = isAuthLoading || isCartLoading;
   const isPageLoading = isOverallLoading || isRemoving || isFetching;
 
-  // Use Redux items (real-time) but wait for initial server sync
-  const displayItems = initialCartLoaded ? reduxItems : [];
+  // Use Redux items as primary source, but ensure they're valid
+  const validReduxItems = getValidCartItems(reduxItems);
+  const validCartDataItems = getValidCartItems(cartData?.cart || []);
+  const displayItems = validReduxItems.length > 0 ? validReduxItems : validCartDataItems;
   const hasItems = displayItems && displayItems.length > 0;
 
-  // Show loading while anything is loading (including initial load)
   if (isOverallLoading) {
     return <LoadingComponent />;
   }
@@ -488,11 +573,11 @@ const Basket = () => {
   }
 
   // Show cart error
-  if (cartApiError && !cartLoading) {
-    return <CartErrorComponent />;
+  if (cartError && !cartLoading) {
+    return <CartErrorComponent onRetry={handleRetry} />;
   }
 
-  // Show empty cart
+  // Show empty cart - removed the undefined shouldForceEmpty variable
   if (!hasItems && !cartLoading) {
     return (
       <>
@@ -539,7 +624,7 @@ const Basket = () => {
       <Box style={{ position: 'relative', minHeight: '100vh' }}>
         <LoadingOverlay 
           pos="fixed" 
-          visible={isPageLoading || isAuthLoading || isCartLoading || isOverallLoading || isRemoving || isFetching || cartLoading}
+          visible={isPageLoading}
           zIndex={1000} 
           h="100%" 
           w="100%"
@@ -594,7 +679,7 @@ const Basket = () => {
                         </Text>
                       </Box>
                     </Group>
-                    <Badge 
+                    {/* <Badge 
                       size="lg" 
                       radius="xl" 
                       variant="light"
@@ -605,7 +690,7 @@ const Basket = () => {
                       }}
                     >
                       {displayItems.length} محصول
-                    </Badge>
+                    </Badge> */}
                   </Group>
                   
                   <Divider mb="xl" />
@@ -613,7 +698,7 @@ const Basket = () => {
                   <Stack gap="lg">
                     {displayItems.map((item, index) => (
                       <Box
-                        key={item.productId || index}
+                        key={`${item.productId}-${item.combinationsID || index}`}
                         style={{
                           animation: `slideUp 0.6s ease-out ${index * 0.1}s both`
                         }}
@@ -646,7 +731,7 @@ const Basket = () => {
                     }}
                   >
                     <PaymentCalc
-                      cartItems={data?.cart || displayItems}
+                      cartItems={displayItems}
                       submit={{ to: "/basket-info", component: NavLink }}
                     >
                       ادامه فرآیند خرید

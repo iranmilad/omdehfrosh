@@ -40,8 +40,6 @@ const PaymentStatusCheckWallet = () => {
     (state) => state.walletPaymentStatus
   );
 
-  console.log("walletPaymentSaus", walletPaymentStatus)
-  console.log("paymentData", paymentData)
 
   // Enhanced status determination
   const getPaymentStatus = () => {
@@ -93,29 +91,17 @@ const PaymentStatusCheckWallet = () => {
 
   // Parse the payment data from URL parameters
   useEffect(() => {
-    console.log("=== FRONTEND URL DEBUG ===");
-    console.log("Full URL:", window.location.href);
-    console.log("Search params:", location.search);
-    console.log("Data string:", dataString);
-    
+
     try {
       if (dataString) {
         const parsedData = JSON.parse(dataString);
-        console.log("Parsed URL data:", parsedData);
-        console.log("Body keys:", parsedData.body ? Object.keys(parsedData.body) : 'No body');
-        if (parsedData.body) {
-          console.log("Transaction ID from URL:", parsedData.body.transaction_id);
-          console.log("Status from URL:", parsedData.body.status);
-        }
+
         
         setPaymentData(parsedData.body);
         
-        // Always send complete payment data to backend for verification
-        console.log("Sending to verifyPaymentWallet:", parsedData);
         dispatch(verifyPaymentWallet(parsedData));
       }
     } catch (e) {
-      console.error('Error parsing payment data:', e);
     }
   }, [dispatch, dataString, location.search]);
 
@@ -281,8 +267,6 @@ const PaymentStatusCheckWallet = () => {
         );
     }
   };
-
-  console.log("paymentStatu", paymentStatus)
 
   return (
     <Container size="sm" py="xl">

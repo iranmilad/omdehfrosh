@@ -21,31 +21,45 @@ import { IconShoppingCart, IconTrash, IconUser, IconX, IconCheck } from "@tabler
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router";
-import { useSend } from "../../Libs/api";
 import { setInitial } from "../../redux/cart";
 import InfoBox from "../InfoBox";
 import { getsubscriptionPlansGet } from "../../redux/usermyaccounts/usermyaccounts/getsubscriptionplans/getSubscriptionPlansActions";
-import { DEFAULT_COLOR_MAP } from '../../Libs/attribute_colors/colors'
+import { DEFAULT_COLOR_MAP } from '../../Libs/attribute_colors/colors';
 
-const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID }) => {
+// Helper function to get API URL - you may need to adjust this import
+const getApiUrl = (endpoint) => {
+  // Replace with your actual API URL building logic
+  return `${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}${endpoint}`;
+};
+
+const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min }) => {
   const dispatch = useDispatch();
   const [isRemoving, setIsRemoving] = useState(false);
-
-  const removeQuery = useSend({ url: "/cart/remove" });
   const { primaryColor } = useMantineTheme();
 
-  // Default image fallback logic
+  // Cleanup effect to ensure loading state is reset if component unmounts
+  useEffect(() => {
+    return () => {
+      if (isRemoving) {
+        setIsRemoving(false);
+      }
+    };
+  }, [isRemoving]);
+
+  // Enhanced default image with better styling
   const defaultImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <rect width="200" height="200" fill="#f8f9fa" stroke="#e9ecef" stroke-width="2"/>
-      <rect x="50" y="70" width="100" height="80" fill="#dee2e6" stroke="#adb5bd" stroke-width="2" rx="4"/>
-      <path d="M50 70 L75 50 L125 50 L150 70 Z" fill="#ced4da" stroke="#adb5bd" stroke-width="2"/>
-      <path d="M150 70 L150 150 L175 130 L175 50 L150 70 Z" fill="#c6c8ca" stroke="#adb5bd" stroke-width="2"/>
-      <rect x="40" y="105" width="120" height="8" fill="#6c757d" opacity="0.7"/>
-      <rect x="95" y="60" width="8" height="90" fill="#6c757d" opacity="0.7"/>
-      <circle cx="100" cy="110" r="15" fill="#fff" stroke="#6c757d" stroke-width="2"/>
-      <rect x="92" y="102" width="16" height="16" fill="none" stroke="#6c757d" stroke-width="2" rx="2"/>
-      <circle cx="100" cy="110" r="3" fill="#6c757d"/>
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="200" height="200" fill="url(#grad1)" stroke="#dee2e6" stroke-width="1"/>
+      <rect x="40" y="60" width="120" height="80" fill="#ffffff" stroke="#ced4da" stroke-width="1" rx="8"/>
+      <circle cx="100" cy="100" r="25" fill="#f8f9fa" stroke="#adb5bd" stroke-width="2"/>
+      <path d="M85 95 L95 105 L115 85" stroke="#6c757d" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="100" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#6c757d">تصویر محصول</text>
     </svg>
   `)}`;
   
@@ -66,8 +80,11 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     if (!attrs) return false;
     if (Array.isArray(attrs)) {
       if (attrs.length === 0) return false;
-      // Check if all elements are empty strings
-      return attrs.some(attr => attr && attr !== "");
+      return attrs.some(attr => 
+        (attr && typeof attr === 'object' && 
+         (attr.color || attr.material || attr.warranty)) ||
+        (typeof attr === 'string' && attr !== "")
+      );
     }
     return attrs !== "";
   };
@@ -86,56 +103,156 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     return DEFAULT_COLOR_MAP[lowerColorValue] || DEFAULT_COLOR_MAP[colorValue] || colorValue;
   };
 
+  // Calculate discount percentage for display
+  const discountPercentage = useMemo(() => {
+    if (price?.regularPrice && price?.discountedPrice && price.regularPrice > price.discountedPrice) {
+      return Math.round(((price.regularPrice - price.discountedPrice) / price.regularPrice) * 100);
+    }
+    return null;
+  }, [price]);
+
+  // Enhanced remove function with better error handling
   const removeItem = async () => {
-    // Set loading state for this specific item
     setIsRemoving(true);
 
     try {
-      const response = await removeQuery.mutateAsync({
-        productId,
-        seller: seller,
-        combinationsID,
-      });
-
-      if (response?.message === "error" || !response?.cart ) {
-        notifications.show({
-          title: 'خطا',
-          message: 'مشکلی پیش آمده است دوباره تلاش کنید',
-          color: 'red',
-          icon: <IconX size={16} />,
-          autoClose: 4000,
-          position: 'top-right'
-        });
-        setIsRemoving(false);
-        return;
+      const token = localStorage.getItem("user");
+      
+      if (!token) {
+        throw new Error("No authentication token found");
       }
 
-      if (response?.cart) {
-        dispatch(setInitial([...response.cart]));
+      const requestPayload = {
+        productId: productId,
+        seller: seller,
+        combinationsID: combinationsID || null,
+      };
+      
+
+      const removeResponse = await fetch(getApiUrl("/cart/remove"), {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestPayload),
+      });
+
+      if (removeResponse.status === 404) {
+        const errorData = await removeResponse.json();
+        
+        if (errorData.message === "Cart not found") {
+          dispatch(setInitial([]));
+          notifications.show({
+            title: 'اطلاع',
+            message: 'سبد خرید خالی است',
+            color: 'blue',
+            icon: <IconCheck size={16} />,
+            autoClose: 3000,
+            position: 'top-right'
+          });
+          setIsRemoving(false);
+          return;
+        }
+        
+        throw new Error(`Item not found: ${errorData.message}`);
+      }
+      
+      if (!removeResponse.ok) {
+        const errorText = await removeResponse.text();
+        throw new Error(`HTTP ${removeResponse.status}: ${errorText}`);
+      }
+
+      const removeData = await removeResponse.json();
+
+      if (removeData?.message === "error") {
+        throw new Error(removeData.error || "Server returned an error");
+      }
+
+      if (removeData?.message === "ok") {
+        const newCartItems = removeData.cart || [];
+        dispatch(setInitial(newCartItems));
+        
         notifications.show({
           title: 'موفق',
-          message: 'محصول از سبد خرید حذف شد',
+          message: newCartItems.length === 0 ? 'سبد خرید خالی شد' : 'محصول از سبد خرید حذف شد',
           color: 'green',
           icon: <IconCheck size={16} />,
           autoClose: 3000,
           position: 'top-right'
         });
+        
+        setIsRemoving(false);
+        return;
       }
+
+      // Fallback: fetch updated cart
+      const cartResponse = await fetch(getApiUrl("/cart"), {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (cartResponse.ok) {
+        const cartData = await cartResponse.json();
+        if (cartData?.message === "ok" && cartData?.cart) {
+          dispatch(setInitial([...cartData.cart]));
+          notifications.show({
+            title: 'موفق',
+            message: 'محصول از سبد خرید حذف شد',
+            color: 'green',
+            icon: <IconCheck size={16} />,
+            autoClose: 3000,
+            position: 'top-right'
+          });
+        }
+      }
+
+      setIsRemoving(false);
+
     } catch (error) {
       console.error("Remove failed:", error);
+      
+      let errorMessage = 'مشکلی پیش آمده است دوباره تلاش کنید';
+      let errorTitle = 'خطا در حذف';
+      
+      if (error.message.includes('404') || error.message.includes('not found')) {
+        errorMessage = 'محصول در سبد خرید یافت نشد';
+        errorTitle = 'محصول یافت نشد';
+      } else if (error.message.includes('400')) {
+        errorMessage = 'اطلاعات ارسالی نامعتبر است';
+        errorTitle = 'خطا در اطلاعات';
+      } else if (error.message.includes('401') || error.message.includes('authentication')) {
+        errorMessage = 'لطفا دوباره وارد شوید';
+        errorTitle = 'خطا در احراز هویت';
+      } else if (error.message.includes('500')) {
+        errorMessage = 'مشکل در سرور، لطفا بعداً تلاش کنید';
+        errorTitle = 'خطا در سرور';
+      } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+        errorMessage = 'مشکل در اتصال به اینترنت';
+        errorTitle = 'خطا در اتصال';
+      }
+      
       notifications.show({
-        title: 'خطا در اتصال',
-        message: 'مشکلی پیش آمده است دوباره تلاش کنید',
+        title: errorTitle,
+        message: errorMessage,
         color: 'red',
         icon: <IconX size={16} />,
-        autoClose: 4000,
+        autoClose: 5000,
         position: 'top-right'
       });
+      
       setIsRemoving(false);
     }
 
-    dispatch(getsubscriptionPlansGet());
-    // Note: Don't set setIsRemoving(false) here because the component will unmount when item is removed
+    // Refresh subscription plans
+    try {
+      dispatch(getsubscriptionPlansGet());
+    } catch (planError) {
+      console.warn("Failed to refresh subscription plans:", planError);
+    }
   };
 
   return (
@@ -145,27 +262,77 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
       w="100%" 
       style={{ 
         opacity: isRemoving ? 0.5 : 1,
-        transition: 'opacity 0.2s ease'
+        transition: 'all 0.3s ease',
+        transform: isRemoving ? 'scale(0.95)' : 'scale(1)',
+        borderRadius: '8px',
+        padding: '8px',
+        backgroundColor: 'var(--mantine-color-gray-0)',
+        border: '1px solid var(--mantine-color-gray-2)',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      <Anchor component={NavLink} to={`product/${productId}`} style={{ flexShrink: 0 }}>
-        <Image 
-          src={getValidImageSrc()} 
-          w={70} 
-          h={70} 
-          fit="contain" 
-          radius="sm"
-          fallbackSrc={defaultImage}
-        />
-      </Anchor>
-      <Flex gap="6" direction="column" flex="1" style={{ minWidth: 0 }}>
+      {/* Product Image */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <Anchor component={NavLink} to={`product/${productId}`}>
+          <Image 
+            src={getValidImageSrc()} 
+            w={80} 
+            h={80} 
+            fit="contain" 
+            radius="md"
+            fallbackSrc={defaultImage}
+            style={{
+              border: '1px solid var(--mantine-color-gray-3)',
+              backgroundColor: '#fff'
+            }}
+          />
+        </Anchor>
+        
+        {/* Quantity badge */}
+        <Badge
+          size="xs"
+          variant="filled"
+          color="blue"
+          style={{
+            position: 'absolute',
+            top: -4,
+            right: -4,
+            minWidth: '20px',
+            height: '20px',
+            padding: '0 6px',
+            fontSize: '10px',
+            fontWeight: 600
+          }}
+        >
+          {count}
+        </Badge>
+      </div>
+
+      {/* Product Details */}
+      <Flex gap="xs" direction="column" flex="1" style={{ minWidth: 0 }}>
+        {/* Product Name and Remove Button */}
         <Flex align="flex-start" justify="space-between" gap="sm">
           <Text 
             component={NavLink} 
             to={`product/${productId}`} 
             className="line-clamp-2"
             size="sm"
-            style={{ flex: 1, minWidth: 0 }}
+            fw={500}
+            style={{ 
+              flex: 1, 
+              minWidth: 0,
+              color: 'var(--mantine-color-dark-7)',
+              textDecoration: 'none',
+              lineHeight: 1.4
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.color = 'var(--mantine-primary-color-filled)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.color = 'var(--mantine-color-dark-7)';
+            }}
           >
             {name}
           </Text>
@@ -173,35 +340,50 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
             color="red" 
             variant="light" 
             onClick={removeItem}
-            style={{ flexShrink: 0 }}
+            style={{ 
+              flexShrink: 0,
+              transition: 'all 0.2s ease'
+            }}
             size="sm"
             loading={isRemoving}
             disabled={isRemoving}
+            radius="md"
           >
             {isRemoving ? <Loader size={12} /> : <IconTrash size={12} />}
           </ActionIcon>
         </Flex>
         
+        {/* Product Attributes */}
         {shouldRenderAttributes(attributes) && (
-          <Flex gap="xs" wrap="wrap">
-            {attributes?.map((item, index) => (
-              <Flex key={index} gap="xs">
-                {/* Color attribute */}
-                {item.color && item.color !== "" && (
-                  <Badge variant="light" color="dark" size="xs">
-                    <span style={{ color: getColorCode(item.color) }}>⬤</span>
-                  </Badge>
+          <Flex gap="xs" wrap="wrap" style={{ margin: '4px 0' }}>
+            {attributes?.map((attr, index) => (
+              <Flex key={index} gap="xs" wrap="wrap">
+                {/* Color attribute - only colorful circle */}
+                {attr.color && attr.color !== "" && (
+                  <div
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      backgroundColor: getColorCode(attr.color),
+                      border: '2px solid var(--mantine-color-gray-4)',
+                      display: 'inline-block',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
                 )}
+                
                 {/* Material attribute */}
-                {item.material && item.material !== "" && (
-                  <Badge variant="light" color="dark" size="xs">
-                    <Text size="xs">{item.material}</Text>
+                {attr.material && attr.material !== "" && (
+                  <Badge variant="light" color="gray" size="xs" radius="sm">
+                    <Text size="xs">{attr.material}</Text>
                   </Badge>
                 )}
+                
                 {/* Warranty attribute */}
-                {item.warranty && item.warranty !== "" && (
-                  <Badge variant="light" color="blue" size="xs">
-                    <Text size="xs">{item.warranty}</Text>
+                {attr.warranty && attr.warranty !== "" && (
+                  <Badge variant="light" color="blue" size="xs" radius="sm">
+                    <Text size="xs">{attr.warranty}</Text>
                   </Badge>
                 )}
               </Flex>
@@ -209,27 +391,79 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
           </Flex>
         )}
         
-        <Flex c={primaryColor} align="center" gap="xs">
-          <IconUser size={12} />
-          <Text size="xs" component="span">{seller?.label}</Text>
+        {/* Seller Information */}
+        <Flex align="center" gap="xs" style={{ margin: '2px 0' }}>
+          <IconUser size={12} color="var(--mantine-color-gray-6)" />
+          <Text size="xs" c="gray.6">{seller?.label}</Text>
         </Flex>
         
-        <Flex dir="ltr" gap="sm" align="center" justify="space-between" w="100%">
-          <Text fw={500} size="sm">
-            <NumberFormatter 
-              thousandSeparator 
-              value={price?.discountedPrice ? price.discountedPrice : price.regularPrice} 
-            />
-          </Text>
-          <Text c="var(--mantine-primary-color-filled)" size="xs">
-            x {count}
-          </Text>
+
+        
+        {/* Price Section */}
+        <Flex 
+          dir="ltr" 
+          gap="sm" 
+          align="center" 
+          justify="space-between" 
+          w="100%"
+          style={{ marginTop: 'auto', padding: '8px 0' }}
+        >
+          <Flex direction="column" align="start" gap="2px">
+            {/* Discounted Price */}
+            <Flex align="center" gap="xs">
+              <Text fw={600} size="sm" c="dark">
+                <NumberFormatter 
+                  thousandSeparator 
+                  value={price?.discountedPrice || price?.regularPrice} 
+                />
+                <Text component="span" size="xs" c="dimmed" mr="4px">
+                  تومان
+                </Text>
+              </Text>
+              
+              {/* Discount badge */}
+              {discountPercentage && (
+                <Badge color="red" size="xs" variant="filled" radius="sm">
+                  {discountPercentage}%
+                </Badge>
+              )}
+            </Flex>
+            
+            {/* Original Price (if discounted) */}
+            {price?.discountedPrice && price?.regularPrice > price?.discountedPrice && (
+              <Text 
+                size="xs" 
+                c="gray.5" 
+                style={{ textDecoration: 'line-through' }}
+              >
+                <NumberFormatter 
+                  thousandSeparator 
+                  value={price.regularPrice} 
+                />
+              </Text>
+            )}
+          </Flex>
+          
+          {/* Quantity Display */}
+          <Flex 
+            align="center" 
+            gap="xs"
+            style={{
+              backgroundColor: 'var(--mantine-primary-color-light)',
+              padding: '4px 8px',
+              borderRadius: '6px',
+              border: '1px solid var(--mantine-primary-color-outline)'
+            }}
+          >
+            <Text c="var(--mantine-primary-color-filled)" size="xs" fw={500}>
+              × {count}
+            </Text>
+          </Flex>
         </Flex>
       </Flex>
     </Flex>
   );
 };
-
 const MiniCart = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const navigate = useNavigate();
@@ -237,6 +471,7 @@ const MiniCart = () => {
   // Get cart data from Redux store only
   const cartState = useSelector((state) => state.cart);
   const items = cartState?.items || [];
+
   
   // Authentication state
   const { user, isVerified } = useSelector((state) => state.auth);
@@ -260,7 +495,8 @@ const MiniCart = () => {
       navigate("/basket");
     }, 100); // Small delay to ensure drawer closes smoothly
   };
-  
+
+
   return (
     <>
       <Indicator
@@ -382,13 +618,17 @@ const MiniCart = () => {
                       py="md"
                     >
                       <Stack className="divide-y" gap="sm">
-                        {items.map((item, index) => (
-                          <MiniBox 
-                            key={`${item.productId}-${item.combinationsID}-${index}`} 
-                            {...item} 
-                            item={item}
-                          />
-                        ))}
+                        {items.map((item, index) => {
+                          // Create a unique key that will change when items are removed
+                          const uniqueKey = `${item.productId}-${item.combinationsID || 'no-combo'}-${index}-${items.length}`;
+                          return (
+                            <MiniBox 
+                              key={uniqueKey}
+                              {...item} 
+                              item={item}
+                            />
+                          );
+                        })}
                       </Stack>
                     </ScrollArea>
                   </div>

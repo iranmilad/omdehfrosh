@@ -20,7 +20,6 @@ import PaymentCalc from "../../../components/payment_calc";
 import { useForm } from "@mantine/form";
 import { IconArrowRight, IconBuildingCommunity, IconCreditCard } from "@tabler/icons-react";
 import { useEffect, useLayoutEffect, useState } from "react";
-import {useSend} from '../../../Libs/api'
 import { useDispatch, useSelector } from "react-redux";
 import { toggleLoading } from "../../../redux/global";
 import { notifications } from '@mantine/notifications';
@@ -147,11 +146,11 @@ const PaymentMethod = () => {
 
   const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData);
 
-  console.log(fetchedGateways)
 
 
   const [ paymentURL , setPaymentURL ]  = useState("");
-  const { mutateAsync } = useSend({url:"https://jsonplaceholder.typicode.com/posts"})
+
+
   const [ cookies, setCookie ] = useCookies(["user"]);
   const [ pageActive, setPageActive ] = useState(false);
   const { isVerified, loading: authLoading, error: authError } = useSelector((state) => state.auth);

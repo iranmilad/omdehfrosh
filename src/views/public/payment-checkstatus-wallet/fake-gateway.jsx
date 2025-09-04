@@ -39,8 +39,6 @@ const FakeGatewayWallet = () => {
 
   const progressValue = ((5 - countdown) / 5) * 100;
 
-        console.log("ddiu", location.state)
-      console.log("ddssgi", walletData)
 
   // Extract wallet payment data from URL parameters or location state
   useEffect(() => {

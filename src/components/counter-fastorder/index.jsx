@@ -23,23 +23,41 @@ const CounterFastOrder = (props) => {
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
 
   const [matchingCombination, setMatchingCombination] = useState(undefined);
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState(0); // Start with 0 instead of 1
   const [isPending, setIsPending] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [cartData, setCartData] = useState({ cart: [] });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Get Redux cart items
   const items = useSelector((state) => state.cart?.items || []);
 
-  // Function to get API URL (you'll need to implement this based on your setup)
+  // Function to get API URL
   const getApiUrl = (endpoint) => {
-    // Replace with your actual API base URL
     return `${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}${endpoint}`;
   };
 
-  // Fetch cart data
-  const fetchCartData = async () => {
+  // Function to find current item count from Redux store
+  const getCurrentItemCount = () => {
+    const matchedItem = items.find(cartItem =>
+      cartItem.productId === item?.id &&
+      cartItem.combinationsID?.toString() === item?.combinationsID?.toString() &&
+      cartItem.seller?.id === item?.seller?.id
+    );
+
+    return matchedItem ? matchedItem.count : 0;
+  };
+
+  // Update local count whenever Redux cart changes
+  useEffect(() => {
+    const currentCount = getCurrentItemCount();
+    setCount(currentCount);
+  }, [items, item?.id, item?.combinationsID, item?.seller?.id]);
+
+  // Fetch cart data and sync with Redux
+  const fetchAndSyncCart = async () => {
     const token = localStorage.getItem("user");
+    
+    if (!token) return;
     
     try {
       setIsLoading(true);
@@ -52,23 +70,22 @@ const CounterFastOrder = (props) => {
       });
 
       if (!response.ok) {
-        localStorage.removeItem("user");
+        if (response.status === 401) {
+          localStorage.removeItem("user");
+        }
         throw new Error("Failed to fetch cart data");
       }
       
       const serverData = await response.json();
-      const newCartData = {
-        cart: serverData.cart || [],
-        totalPrice: serverData.total || 0
-      };
       
-      setCartData(newCartData);
-      return newCartData;
+      if (serverData.message === "ok" && Array.isArray(serverData.cart)) {
+        // Update Redux store with fresh cart data
+        dispatch(setInitial(serverData.cart));
+      }
+      
     } catch (error) {
       console.error("Error fetching cart:", error);
-      const errorData = { cart: [], totalPrice: 0 };
-      setCartData(errorData);
-      return errorData;
+      // On error, don't change the cart state
     } finally {
       setIsLoading(false);
     }
@@ -95,12 +112,8 @@ const CounterFastOrder = (props) => {
 
       const data = await response.json();
       
-      // Fetch updated cart data
-      const updatedCart = await fetchCartData();
-      
-      if (updatedCart.cart) {
-        dispatch(setInitial([...updatedCart.cart]));
-      }
+      // Refresh cart data from server and sync with Redux
+      await fetchAndSyncCart();
       
       return data;
     } catch (error) {
@@ -130,43 +143,29 @@ const CounterFastOrder = (props) => {
 
       const data = await response.json();
       
-      // Fetch updated cart data
-      const updatedCart = await fetchCartData();
-      
-      if (updatedCart.cart) {
-        dispatch(setInitial({
-          items: updatedCart.cart,
-          totalPrice: updatedCart.totalPrice || 0
-        }));
+      // Update Redux with the cart data returned from remove API
+      if (data.message === "ok") {
+        dispatch(setInitial(data.cart || []));
+      } else {
+        // Fallback: refresh cart data from server
+        await fetchAndSyncCart();
       }
       
       return data;
     } catch (error) {
       console.error("Error removing from cart:", error);
+      // On error, refresh cart to get current state
+      await fetchAndSyncCart();
       throw error;
     }
   };
 
-  const getItemCount = (cartData, item) => {
-    if (!Array.isArray(cartData)) {
-      return 0;
+  // Load cart data on component mount
+  useEffect(() => {
+    if (user && isVerified) {
+      fetchAndSyncCart();
     }
-
-    const matchedItem = cartData.find(cartItem =>
-      cartItem.productId === item?.id &&
-      cartItem.combinationsID === item?.combinationsID &&
-      cartItem.seller?.id === item?.seller?.id &&
-      cartItem.attributes?.every(attr =>
-        item?.attributes?.some(itemAttr => 
-          itemAttr.label === attr.color || itemAttr.label === attr.warranty
-        )
-      )
-    );
-
-    return matchedItem ? matchedItem.count : 0;
-  };
-
-  const itemCount = getItemCount(cartData.cart, item);
+  }, [user, isVerified]);
 
   const extractAttributes = (attributes) => {
     let result = [{}];
@@ -182,15 +181,6 @@ const CounterFastOrder = (props) => {
     return result;
   };
 
-  // Load cart data on component mount
-  useEffect(() => {
-    fetchCartData();
-  }, []);
-  
-  useEffect(() => {
-    setCount(itemCount); 
-  }, [itemCount]);
-
   const handleChange = async (value) => {
     // Check if user is authenticated
     if (!user || !isVerified) {
@@ -201,10 +191,7 @@ const CounterFastOrder = (props) => {
     setIsPending(true);
 
     const newCount = Math.max(1, parseInt(value, 10));
-    setCount(newCount);
-
-    const extractedAttributes = extractAttributes(item?.attributes || []);
-
+    
     try {
       await updateCartItem({
         "productId": item?.id,
@@ -213,33 +200,23 @@ const CounterFastOrder = (props) => {
         "combinationsID": item?.combinationsID,
       });
 
-      // Find updated count in new cart data
-      const foundItem = items.find(
-        (cartItem) =>
-          cartItem.productId === item.productId &&
-          cartItem.seller.id === item.seller.id &&
-          cartItem.combinationsID === item.combinationsID
-      );
+      // The count will be updated via useEffect when Redux state changes
       
     } catch (error) {
       console.error("Failed to update cart:", error);
-      // Optionally show error message to user
+      // Optionally show error notification here
     } finally {
       setIsPending(false);
     }
   };
 
-  const handleRemove = async (value) => {
+  const handleRemove = async () => {
     // Check if user is authenticated
     if (!user || !isVerified) {
       setShowAuthModal(true);
       return;
     }
 
-    const newCount = Math.max(1, parseInt(value, 10));
-    setCount(newCount);
-
-    const extractedAttributes = extractAttributes(item?.attributes || []);
     setIsPending(true);
 
     try {
@@ -249,19 +226,11 @@ const CounterFastOrder = (props) => {
         combinationsID: item?.combinationsID,
       });
 
-      // Find updated count in new cart data
-      const foundItem = items.find(
-        (cartItem) =>
-          cartItem.productId === item.productId &&
-          cartItem.seller.id === item.seller.id &&
-          cartItem.combinationsID === item.combinationsID
-      );
-
-      setCount(0);
+      // The count will be updated to 0 via useEffect when Redux state changes
       
     } catch (error) {
       console.error("Failed to remove item:", error);
-      // Optionally show error message to user
+      // Optionally show error notification here
     } finally {
       setIsPending(false);
     }
@@ -279,7 +248,7 @@ const CounterFastOrder = (props) => {
     if (count > minOrder) {
       handleChange(count - 1);
     } else {
-      handleRemove(0);
+      handleRemove();
     }
   };
 
@@ -319,7 +288,7 @@ const CounterFastOrder = (props) => {
         left={0}
       />
 
-      { count > 0 ? (
+      {count > 0 ? (
         <Flex align="center" gap="1">
           <Button
             p={0}
