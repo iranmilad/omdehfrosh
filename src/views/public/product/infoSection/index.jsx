@@ -11,6 +11,7 @@ import { getApiUrl } from "../../../../Libs/utils/apiutils/apiutils";
 function InfoSection() {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [shouldRenderStockAlert, setShouldRenderStockAlert] = useState(false);
 
   const cartItems = useSelector((state) => state.cart.items || []);
   const dispatch = useDispatch();
@@ -56,6 +57,11 @@ function InfoSection() {
     fetchCart();
   }, [dispatch]);
 
+  const handleStockAlertOpen = () => {
+    setShouldRenderStockAlert(true); // ✅ Enable rendering
+    stockAlert[1].open();
+  };
+
   return (
     <>
       <div className="lg:mt-8 lg:mb-8"></div>
@@ -71,13 +77,16 @@ function InfoSection() {
           fullWidth
           variant="transparent"
           h="30"
-          onClick={() => stockAlert[1].open()}
+          onClick={handleStockAlertOpen} // ✅ Updated handler
         >
           <IconBell stroke={1.4} style={{ marginLeft: "5px" }} />
           <span>اطلاع رسانی قیمت و موجودی</span>
         </Button>
       </Paper>
-      <StockAlert opened={stockAlert[0]} close={stockAlert[1].close} />
+      {/* ✅ Conditional rendering - only render after button is clicked */}
+      {shouldRenderStockAlert && (
+        <StockAlert opened={stockAlert[0]} close={stockAlert[1].close} />
+      )}
     </>
   );
 }

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import DatePicker from '../../../components/datePicker';
 import * as yup from 'yup';
 import { IMaskInput } from 'react-imask';
+import {useSend,useData} from "../../../Libs/api"
 import { useDispatch, useSelector } from "react-redux";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { fetchUserInfo } from '../../../redux/users/userinfo/userInfo';
@@ -18,10 +19,6 @@ import ErrorMessageModal from '../../../components/errormessagemodal';
 const validationSchema = yup.object().shape({
     name: yup.string().required("نام الزامی است"),
     family: yup.string().required("نام خانوادگی الزامی است"),
-    mobile: yup
-        .string()
-        .matches(/^09[0-9]{9}$/, "فرمت شماره موبایل صحیح نیست")
-        .required("شماره موبایل الزامی است"),
     email: yup
         .string()
         .email("فرمت ایمیل صحیح نیست")
@@ -32,7 +29,6 @@ const validationSchema = yup.object().shape({
         .required("کد ملی الزامی است"),
     birthday: yup
         .string()
-        .matches(/^\d{4}\/\d{1,2}\/\d{1,2}$/, "فرمت تاریخ تولد صحیح نیست")
         .required("تاریخ تولد الزامی است"),
 });
 
@@ -44,7 +40,6 @@ function Account_EditAccount() {
     const dispatch = useDispatch();
 
     const [showAlert, setShowAlert] = useState(false);
-    const [hasShownNotification, setHasShownNotification] = useState(false);
 
     const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
     
@@ -56,28 +51,17 @@ function Account_EditAccount() {
     
     const [modalOpen, setModalOpen] = useState(false);
 
-    // Clear update state on component mount
-    useEffect(() => {
-        dispatch(clearUserInfo());
-    }, [dispatch]);
+    console.log(userInfo)
 
-    // Clean up on component unmount
-    useEffect(() => {
-        return () => {
-            dispatch(clearUserInfo());
-        };
-    }, [dispatch]);
     
     useEffect(() => {
         if (updateuser && updateuser.state) {
           setShowAlert(true);
     
-          // Hide alert after 2 seconds
           const timer = setTimeout(() => {
             setShowAlert(false);
           }, 2000);
     
-          // Cleanup timeout if component unmounts or the alert is hidden earlier
           return () => clearTimeout(timer);
         }
       }, [updateuser]);
@@ -115,44 +99,26 @@ function Account_EditAccount() {
 
 
       useEffect(() => {
-        // Only show notification if it hasn't been shown yet for this update
-        if (updateuser && updateuser?.state === "ok" && !hasShownNotification) {
+        if (updateuser && updateuser?.state === "ok" ) {
           notifications.show({
             title: updateuser.message,
             color: "green",
             autoClose: true
           });
-          setHasShownNotification(true);
-          
-          // Clear the state after showing notification
-          setTimeout(() => {
-            dispatch(clearUserInfo());
-            setHasShownNotification(false);
-          }, 3000);
         }
-        
-        if (updateuser && updateuser?.state === "error" && !hasShownNotification) {
+        if (updateuser && updateuser?.state === "error" ) {
             notifications.show({
               title: updateuser.message,
               color: "red",
               autoClose: true
             });
-            setHasShownNotification(true);
-            
-            // Clear the state after showing notification
-            setTimeout(() => {
-              dispatch(clearUserInfo());
-              setHasShownNotification(false);
-            }, 3000);
-        }
+          }
 
-      }, [updateuser, hasShownNotification, dispatch]);
+      }, [errorUpdateUser, updateuser]);
       
 
 
     useEffect(() => {
-
-
         if (errorUpdateUser?.status === 401) {
             setModalOpen(true);
 
@@ -164,8 +130,6 @@ function Account_EditAccount() {
           }, 4000);
         }
 
-
-
         if (errorUpdateUser?.status === 403) {
             setModalOpen(true);
 
@@ -174,13 +138,10 @@ function Account_EditAccount() {
             setModalOpen(false);
 
           }, 4000);
-
-
         }
 
     }, [errorUpdateUser, dispatch, navigate]);
     
-
 
     useEffect(() => {
         dispatch(verifyToken());
@@ -188,57 +149,116 @@ function Account_EditAccount() {
 
 
     useEffect(() => {
-
       if (user) {
         dispatch(fetchUserInfo())
       }
-
     }, [dispatch, user])
 
+
+    // Helper function to convert Persian/Jalali date to Gregorian YYYY-MM-DD format for API
+    const convertPersianToGregorian = (persianDate) => {
+        if (!persianDate) return "";
+        
+        console.log('Converting Persian date:', persianDate);
+        
+        try {
+            // If it's already in Gregorian format, return as is
+            if (/^\d{4}-\d{2}-\d{2}$/.test(persianDate)) {
+                console.log('Already in Gregorian format');
+                return persianDate;
+            }
+            
+            // Handle Persian format - flexible parsing for both 1402/6/5 and 1402/06/05
+            if (persianDate.includes('/')) {
+                // Parse with flexible format to handle single digit months/days
+                const gregorianMoment = moment(persianDate, 'jYYYY/jM/jD');
+                console.log('Moment parsed:', gregorianMoment.isValid() ? 'valid' : 'invalid');
+                
+                if (gregorianMoment.isValid()) {
+                    const result = gregorianMoment.format('YYYY-MM-DD');
+                    console.log('Converted result:', result);
+                    return result;
+                }
+            }
+            
+            console.error('Invalid Persian date format:', persianDate);
+            return "";
+        } catch (error) {
+            console.error('Date conversion error:', error);
+            return "";
+        }
+    };
+
+    // Helper function to convert Gregorian date to display format if needed
+    const convertGregorianToPersian = (gregorianDate) => {
+        if (!gregorianDate) return "";
+        try {
+            // If it's already in Persian format, return as is
+            if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(gregorianDate)) {
+                return gregorianDate;
+            }
+            // Convert from Gregorian YYYY-MM-DD to Persian format for display
+            const persianMoment = moment(gregorianDate, 'YYYY-MM-DD');
+            return persianMoment.format('jYYYY/jMM/jDD');
+        } catch (error) {
+            console.error('Date conversion error:', error);
+            return gregorianDate;
+        }
+    };
 
 
     const form = useForm({
         initialValues: {
-            name: userInfo?.user?.name || "",
-            id: userInfo?.user?.id || "",
-            family: userInfo?.user?.family || "",
-            // mobile: userInfo?.user?.mobile || "",
-            email: userInfo?.user?.email || "",
-            nationalCode: userInfo?.user?.nationalCode || "",
-            birthday: userInfo?.user?.birthday || "",
+            name: "",
+            id: "",
+            family: "",
+            mobile: "",
+            email: "",
+            nationalCode: "",
+            birthday: "",
         },
         validate: yupResolver(validationSchema)
     });
     
 
+    // Fixed useEffect to properly set form values when userInfo is loaded
     useEffect(() => {
         if (userInfo && userInfo.user) {
+            console.log('Setting form values, original birthday:', userInfo.user.birthday);
+            
+            // For the DatePicker, we need to keep it in the original format that it expects
+            // Check what format your DatePicker component expects
+            const birthdayValue = userInfo.user.birthday || "";
+            
             form.setValues({
                 name: userInfo.user.name || "",
+                id: userInfo.user.id || "",
                 family: userInfo.user.family || "",
                 mobile: userInfo.user.mobile || "",
                 email: userInfo.user.email || "",
                 nationalCode: userInfo.user.nationalCode || "",
-                birthday: userInfo.user.birthday || ""
-                    
+                birthday: birthdayValue // Keep original format for DatePicker
             });
+            
+            console.log('Form birthday value set to:', birthdayValue);
         }
     }, [userInfo]);
     
 
-    const submitForm = async (values) => {
-        // Reset notification flag before submitting
-        setHasShownNotification(false);
-        
-        const updatedValues = {
-            ...values,
-            mobile: values.mobile, // Rename 'mobile' to 'phone'
-        };
+const submitForm = async (values) => {
+  console.log('Form values before conversion:', values);
+  
+  const updatedValues = {
+    ...values,
+    mobile: values.mobile,
+    birthday: convertPersianToGregorian(values.birthday), // Convert only for API submission
+  };
 
-       await dispatch(updateUserInfo(updatedValues));
-
-       await dispatch(fetchUserInfo())
-    }
+  console.log('Values being sent to API:', updatedValues);
+  
+  await dispatch(updateUserInfo(updatedValues));
+  await dispatch(fetchUserInfo());
+};
 
 
     if (loadingUserInfo) {
@@ -256,7 +276,6 @@ function Account_EditAccount() {
         <ErrorMessageModal
             opened={modalOpen}
             onClose={() => setModalOpen(false)}
-            // status={errorUpdateUser?.status}
             message={errorUpdateUser?.message}
         />
         <Title mb="lg">جزئیات حساب</Title>
@@ -301,7 +320,6 @@ function Account_EditAccount() {
                         placeholder='شماره تلفن خود را کنید' 
                         label="شماره تلفن" 
                         {...form.getInputProps("mobile")} 
-                        // error={updateuser?.state === "error" && updateuser?.error?.mobile}
                         disabled={true}
                     />
                 </GridCol>
@@ -360,21 +378,8 @@ function Account_EditAccount() {
                 </GridCol>
             </Grid>
             <Button mt="40" type='submit' loading={loadingUpdateUser}>ذخیره</Button>
-
         </form>
-
-
-        {/* {updateuser && updateuser?.state === "ok" ? (
-            <Flex mt="md">
-                {showAlert && <Alert>{updateuser?.message}</Alert>}
-            </Flex>
-            ) : updateuser && updateuser?.state === "error" ? (
-            <Flex>
-                <Alert color="red">{updateuser?.message}</Alert>
-            </Flex>
-            ) : null} */}
-
-        </>
+    </>
   )
 }
 

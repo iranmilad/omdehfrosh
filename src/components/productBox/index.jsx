@@ -146,6 +146,8 @@ function ProductBox({
     );
   };
 
+  console.log(id)
+
   return (
     <Paper
       ref={ref}
@@ -160,15 +162,15 @@ function ProductBox({
     >
       {!skeleton ? (
         <>
-          <Box component={slug ? NavLink : 'div'} to={slug ? `/product/${slug}` : undefined}>
+          <Box component={id ? NavLink : 'div'} to={id ? `/product/${id}` : undefined}>
             {renderProductImage()}
           </Box>
           <Box my="lg">
             <Text
               fw="600"
               size="sm"
-              component={slug ? NavLink : 'div'}
-              to={slug ? `/product/${slug}` : undefined}
+              component={id ? NavLink : 'div'}
+              to={id ? `/product/${id}` : undefined}
               style={{
                 display: "-webkit-box",
                 WebkitBoxOrient: "vertical",
@@ -185,8 +187,8 @@ function ProductBox({
             </Text>
           </Box>
           <Flex justify="space-between" align="end" mt="auto">
-            {slug ? (
-              <Button component={NavLink} to={`/product/${slug}`}>
+            {id ? (
+              <Button component={NavLink} to={`/product/${id}`}>
                 {width < 240 ? <IconEye size={14} /> : "مشاهده"}
               </Button>
             ) : (

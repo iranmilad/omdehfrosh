@@ -17,7 +17,8 @@ import {
   getAllUserMessageComponentByUserId,
   getUserMessagesModalDataByTableIndexAndRowId,
   getNotificationsNumber,
-  setNotificationSeen
+  setNotificationSeen,
+  getDepartmentsData // Add this import
 }
   from '../controllers/userMyAccountsControllers.js'
 
@@ -42,13 +43,9 @@ router.get("/user-messages/notification-component", getAllUserMessageComponentBy
 
 router.get("/user-messages/notification-component/modal-component", getUserMessagesModalDataByTableIndexAndRowId); 
 
-
 router.get("/notifications/number", getNotificationsNumber); 
 
-
 router.post("/notifications/set-seen", setNotificationSeen); 
-
-
 
 router.get("/user-tickets", getAllUserTickets)
 
@@ -56,16 +53,17 @@ router.post("/user-tickets/create", createNewUserTicket)
 
 router.get("/user-tickets/:id", getUserTicketsById)
 
+// Add the departments route here
+router.get("/tickets/getdepartmentsdata", getDepartmentsData);
+
 router.post(
   "/user-tickets/messages/newmessage/:ticketId",
   upload.single("file"),
   submitNewMessageToTicket
 );
 
-
 // Route to update an existing user account by ID
 router.put("/update/:id", updateUserMyAccount);
-
 
 router.get("/allsubscriptionplans", getAllSubscriptionPlans)
 
@@ -73,19 +71,10 @@ router.post("/subscriptions/purchase/:modelId", purchaseSubscriptionByModelId)
 
 router.get("/subscriptions/getsubscriptionbyuserid", getSubscriptionPlansByUserId)
 
-
-
 // Route to delete a user account by ID
 router.delete("/delete/:id", deleteUserMyAccount);
 
-
-
-
-
-
-
 // Route for batch importing user accounts
 router.post("/batch-import", batchImportUserMyAccounts);
-
 
 export default router;

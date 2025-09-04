@@ -8,6 +8,7 @@ import {
   Select,
   Stack,
   Title,
+  Text,
   em,
   Notification
 } from "@mantine/core";
@@ -23,40 +24,59 @@ import {
   setUserStockAlertInfo, 
   removeUserStockAlertInfo 
 } from "../../../../redux/users/userstockaler/userStockAlertInfoActions";
+import { verifyToken } from "../../../../redux/auth/authusers/auth";
 
 const alertTypes = [
   { label: "رسیدن به قیمت خاص", value: "price_reach" },
-  { label: "موجود شدن کالای فروشنده", value: "stock_available" },
-  { label: "موجودی", value: "inventory" },
-  { label: "بهترین قیمت کالا", value: "best_price" },
+  { label: "موجود شدن کالای فروشنده", value: "inventory_reach" },
+  // { label: "موجودی", value: "inventory" },
+  // { label: "بهترین قیمت کالا", value: "best_price" },
   { label: "انتخاب نشده", value: "not_selected"}
-
 ];
 
 const alertTypeTranslations = {
-  stock_available: "موجود شدن کالای فروشنده",
+  inventory_reach: "موجود شدن کالای فروشنده",
   price_reach: "رسیدن به قیمت خاص",
-  inventory: "موجودی",
-  best_price: "بهترین قیمت کالا"
+  // inventory: "موجودی",
+  // best_price: "بهترین قیمت کالا"
 };
-
 
 const supplierSelectionOptions = [
   { label: "تمامی تامین کننده ها", value: "all" },
   { label: "انتخاب تامین کننده ها", value: "select" }
 ];
 
+// Default form values
+const getDefaultValues = () => ({
+  alertType: "price_reach",
+  price: 100000, 
+  inventory: 1,
+  supplierSelection: "all",
+  selectedSuppliers: [],
+  sms: true,
+  email: false
+});
+
 function StockAlert(props) {
   const { combinations, product, slug } = useProduct() || { combinations: [] };
   const mobile = useMediaQuery(`(max-width: ${em(750)})`);
   const [showPreviousSettings, setShowPreviousSettings] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isInitialized, setIsInitialized] = useState(false);
+  
   const userAlertInfo = useSelector((state) => state.userAlertInfo);
   const stockAlert = useSelector((state) => state.stockAlert);
 
   const dispatch = useDispatch();
-  
+
+  const { user } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(verifyToken());
+  }, [dispatch]);
+
   // Extract unique suppliers
   const uniqueSuppliers = useMemo(() => {
     if (!combinations || combinations.length === 0) return [];
@@ -73,64 +93,107 @@ function StockAlert(props) {
   }, [combinations]);
 
   const form = useForm({
-    initialValues: {
-      alertType: "price_reach",
-      price: 100000, 
-      inventory: "",
-      supplierSelection: "all",
-      selectedSuppliers: ["all"], // Changed from "all" to ["all"]
-      sms: true,
-      email: false
-    }
+    initialValues: getDefaultValues()
   });
+  
   const filteredAlertTypes = alertTypes.filter(alert => alert.value !== "not_selected");
 
+  // Helper function to get current form state for API calls
+  const getCurrentFormState = () => ({
+    alertType: form.values.alertType || "price_reach",
+    price: form.values.price || 100000,
+    inventory: form.values.inventory || 1,
+    supplierSelection: form.values.supplierSelection || "all",
+    selectedSuppliers: form.values.selectedSuppliers || [],
+    sms: form.values.sms ?? true,
+    email: form.values.email ?? false,
+  });
+
+  // Function to reset form fields except email and sms
+  const resetFormFieldsExceptNotifications = (preserveSms, preserveEmail) => {
+    const defaultValues = getDefaultValues();
+    form.setValues({
+      ...defaultValues,
+      sms: preserveSms,
+      email: preserveEmail
+    });
+  };
+
+  // Handle SMS checkbox change
+  const handleSmsChange = (event) => {
+    const isChecked = event.currentTarget.checked;
+    const currentEmail = form.values.email;
+    
+    // Reset all fields to default except notifications
+    resetFormFieldsExceptNotifications(isChecked, currentEmail);
+  };
+
+  // Handle Email checkbox change
+  const handleEmailChange = (event) => {
+    const isChecked = event.currentTarget.checked;
+    const currentSms = form.values.sms;
+    
+    // Reset all fields to default except notifications
+    resetFormFieldsExceptNotifications(currentSms, isChecked);
+  };
 
   const handleSupplierToggle = (id) => {
-    form.setFieldValue("selectedSuppliers", (prev) =>
-      prev.includes(id) ? prev.filter((sId) => sId !== id) : [...prev, id]
-    );
+    const currentState = getCurrentFormState();
+    const newSelectedSuppliers = currentState.selectedSuppliers.includes(id) 
+      ? currentState.selectedSuppliers.filter((sId) => sId !== id) 
+      : [...currentState.selectedSuppliers, id];
+    
+    form.setFieldValue("selectedSuppliers", newSelectedSuppliers);
   };
 
   const handleSupplierSelectionChange = (value) => {
-    // Ensure value is always valid
     const validValue = value && (value === "all" || value === "select") ? value : "all";
+    const currentState = getCurrentFormState();
     
     form.setFieldValue("supplierSelection", validValue);
     if (validValue === "all") {
-      form.setFieldValue("selectedSuppliers", ["all"]); // Changed from "all" to ["all"]
+      // When "all" is selected, selectedSuppliers should be empty array
+      form.setFieldValue("selectedSuppliers", []);
     } else {
-      form.setFieldValue("selectedSuppliers", uniqueSuppliers.map(supplier => supplier.id)); // Default all suppliers selected
+      // When "select" is chosen, populate with all supplier IDs
+      form.setFieldValue("selectedSuppliers", uniqueSuppliers.map(supplier => supplier.id));
     }
   };
-  
 
   const submitStockAlertSettings = async ({ value }) => {
-    if (!slug) {
+    if (!user) {
+      setShowLoginModal(true);
       return;
     }
     
-    // Ensure supplierSelection is always a valid enum value
-    const validSupplierSelection = form.values.supplierSelection || "all";
+    if (!slug) return;
+    
+    // Get current form state to ensure all values are preserved
+    const currentState = getCurrentFormState();
+    const validSupplierSelection = currentState.supplierSelection || "all";
+    
+    // Transform "select" to "selected" before sending to server
+    const transformedSupplierSelection = validSupplierSelection === "select" ? "selected" : validSupplierSelection;
     
     const alertData = {
-      alertType: form.values.alertType || "not_selected",
-      price: form.values.price,
+      alertType: currentState.alertType,
+      price: currentState.price,
       product_id: slug,
-      inventory: form.values.inventory,
-      supplierSelection: validSupplierSelection, // Always "all" or "select"
-      selectedSuppliers: validSupplierSelection === "all" ? [] : form.values.selectedSuppliers,
-      sms: form.values.sms,
-      email: form.values.email,
+      inventory: currentState.inventory,
+      supplierSelection: transformedSupplierSelection,
+      selectedSuppliers: validSupplierSelection === "all" ? [] : currentState.selectedSuppliers,
+      sms: currentState.sms,
+      email: currentState.email,
     };
 
     try {
       const response = await dispatch(setUserStockAlertInfo(alertData)).unwrap();
       
+      console.log("Sending to server:", alertData); // Debug log
+      
       if (response && response.data) {
         const alertResponseData = response.data;
         
-        // Dispatch the user alert info to the Redux store
         dispatch(setAlertInfo({
           alertType: alertResponseData.alertType,
           price: alertResponseData.price,
@@ -142,24 +205,26 @@ function StockAlert(props) {
           product_id: slug,
         }));
         
-        // Show success modal
         setSuccessMessage("تنظیمات با موفقیت ثبت شد");
         setShowSuccessModal(true);
-      } else {
       }
     } catch (error) {
+      console.error("Error saving alert:", error);
+      console.error("Data sent:", alertData); // Debug what was sent
     }
   };
 
   const handleRemoveStockAlert = async () => {
-    if (!slug) {
+    if (!user) {
+      setShowLoginModal(true);
       return;
     }
+    
+    if (!slug) return;
 
     try {
       const response = await dispatch(removeUserStockAlertInfo(slug)).unwrap();
       
-      // Based on your backend response structure, the data is in response.userStockAlert
       if (response && response.userStockAlert) {
         dispatch(setAlertInfo({
           alertType: response.userStockAlert.alertType,
@@ -172,44 +237,34 @@ function StockAlert(props) {
           product_id: slug,
         }));
         
-        // Also update the form with the default values
-        form.setValues({
-          alertType: response.userStockAlert.alertType,
-          price: response.userStockAlert.price || 100000,
-          inventory: response.userStockAlert.inventory,
-          supplierSelection: response.userStockAlert.supplierSelection,
-          selectedSuppliers: response.userStockAlert.selectedSuppliers,
-          sms: response.userStockAlert.sms,
-          email: response.userStockAlert.email,
-        });
+        // Reset to default values after removal
+        form.setValues(getDefaultValues());
         
-        // Show success modal
         setSuccessMessage("اطلاع رسانی با موفقیت حذف شد");
         setShowSuccessModal(true);
-        
-      } else {
       }
     } catch (error) {
+      console.error("Error removing alert:", error);
     }
   };
-  
 
-  // Function to handle the button click
   const handleShowPreviousSettings = async () => {
-    if (!slug) {
+    if (!user) {
+      setShowLoginModal(true);
       return;
     }
+    
+    if (!slug) return;
 
-    // Open the modal first, then fetch data
-    setShowPreviousSettings(true);
-  
     try {
       const response = await dispatch(getUserStockAlertInfo(slug)).unwrap();
+
+      console.log(response)
       
       if (response && response.data) {
         const alertData = response.data;
         
-        // Dispatch the user alert info to the Redux store
+        // Update Redux state
         dispatch(setAlertInfo({
           alertType: alertData.alertType,
           price: alertData.price,
@@ -221,26 +276,34 @@ function StockAlert(props) {
           product_id: slug,
         }));
 
-        // Also update the form with the values from Redux state  
-        form.setValues({
-          alertType: alertData.alertType || "not_selected",
+        // Update form values - ensure we handle all cases properly
+        const formValues = {
+          alertType: alertData.alertType || "price_reach",
           price: alertData.price || 100000,
-          inventory: alertData.inventory || "",
-          supplierSelection: alertData.supplierSelection || "all", // Ensure valid value
-          selectedSuppliers: alertData.selectedSuppliers || ["all"],
-          sms: alertData.sms || false,
-          email: alertData.email || false,
-        });
+          inventory: alertData.inventory || 1,
+          supplierSelection: alertData.supplierSelection || "all",
+          selectedSuppliers: Array.isArray(alertData.selectedSuppliers) ? alertData.selectedSuppliers : [],
+          sms: alertData.sms ?? true,
+          email: alertData.email ?? false,
+        };
+        
+        form.setValues(formValues);
+        
+        // Show the modal after data is loaded
+        setShowPreviousSettings(true);
       } else {
+        // No existing alert data - show default values
+        setShowPreviousSettings(true);
       }
     } catch (error) {
+      console.error("Error fetching previous settings:", error);
+      // Still show the modal even if there's an error
+      setShowPreviousSettings(true);
     }
   };
   
   const readAlertDataForFirst = async () => {
-    if (!slug) {
-      return;
-    }
+    if (!slug || !user || isInitialized) return;
       
     try {
       const response = await dispatch(getUserStockAlertInfo(slug)).unwrap();
@@ -248,7 +311,7 @@ function StockAlert(props) {
       if (response && response.data) {
         const alertData = response.data;
         
-        // Dispatch the user alert info to the Redux store
+        // Update Redux state
         dispatch(setAlertInfo({
           alertType: alertData.alertType,
           price: alertData.price,
@@ -259,200 +322,304 @@ function StockAlert(props) {
           email: alertData.email,
           product_id: slug,
         }));
- 
+
+        // Update form with existing data
+        const formValues = {
+          alertType: alertData.alertType || "price_reach",
+          price: alertData.price || 100000,
+          inventory: alertData.inventory || 1,
+          supplierSelection: alertData.supplierSelection || "all",
+          selectedSuppliers: Array.isArray(alertData.selectedSuppliers) ? alertData.selectedSuppliers : [],
+          sms: alertData.sms ?? true,
+          email: alertData.email ?? false,
+        };
+        
+        form.setValues(formValues);
       } else {
+        // No existing data, set default values
+        form.setValues(getDefaultValues());
       }
+      
+      setIsInitialized(true);
     } catch (error) {
+      console.error("Error reading initial alert data:", error);
+      // Set default values on error
+      form.setValues(getDefaultValues());
+      setIsInitialized(true);
     }
   }
 
-useEffect(() => {
-  if (props.opened && slug) {
-    readAlertDataForFirst();
-  }
-}, [props.opened, slug]); 
+  useEffect(() => {
+    if (props.opened && slug && user) {
+      readAlertDataForFirst();
+    } else if (props.opened && !user) {
+      // Set default values when modal opens for non-authenticated users
+      form.setValues(getDefaultValues());
+      setIsInitialized(true);
+    }
+  }, [props.opened, slug, user]); 
 
+  // Reset initialization when modal closes
+  useEffect(() => {
+    if (!props.opened) {
+      setIsInitialized(false);
+      // Reset form to defaults when modal closes
+      form.setValues(getDefaultValues());
+    }
+  }, [props.opened]);
 
-
-  // Don't render if slug is not available
-  if (!slug) {
-    return null;
-  }
+  if (!slug) return null;
 
   return (
     <>
       <Modal
-        size="lg"
+        size="md"
         fullScreen={mobile}
         title="اطلاع رسانی قیمت و موجودی"
         onClose={props.close}
         opened={props.opened}
+        styles={{
+            body: {
+              maxHeight: "65vh",
+              overflowY: "auto",
+            },
+          }}
       >
-        <Title>چطور به شما اطلاع دهیم؟</Title>
-        <Stack mt="md">
-          <Checkbox
-            label={`ارسال پیامک به ${"09374039436"}`}
-            checked={form.values.sms}
-            onChange={() => form.setFieldValue("sms", !form.values.sms)}
-          />
-          <Checkbox
-            label={`ارسال ایمیل به ${"coding.farhad@gmail.com"}`}
-            checked={form.values.email}
-            onChange={() => form.setFieldValue("email", !form.values.email)}
-          />
-        </Stack>
+        <Stack spacing="sm">
+          {/* Notification Methods */}
+          <div>
+            <Title order={5} mb="xs">چطور به شما اطلاع دهیم؟</Title>
+            <Stack spacing="xs">
+              <Checkbox
+                size="sm"
+                label={`پیامک به ${"09374039436"}`}
+                checked={form.values.sms ?? true}
+                onChange={handleSmsChange}
+                disabled={!user}
+              />
+              <Checkbox
+                size="sm"
+                label={`ایمیل به ${"coding.farhad@gmail.com"}`}
+                checked={form.values.email ?? false}
+                onChange={handleEmailChange}
+                disabled={!user}
+              />
+            </Stack>
+          </div>
 
-        <Title mt="xl">نحوه گزارش</Title>
-        <Select
-          mt="xs"
-          data={filteredAlertTypes}
-          w="max-content"
-          mb="lg"
-          {...form.getInputProps("alertType")}
-        />
+          <Divider size="xs" />
 
-        {form.values.alertType === "price_reach" && (
-          <Flex>
+          {/* Alert Type */}
+          <div>
+            <Title order={5} mb="xs">نحوه گزارش</Title>
+            <Select
+              size="sm"
+              data={filteredAlertTypes}
+              w="200px"
+              disabled={!user}
+              {...form.getInputProps("alertType")}
+            />
+          </div>
+
+          {/* Price Input */}
+          {form.values.alertType === "price_reach" && (
             <NumberInput
-              label="قیمت مد نظر شما(تومان)"
+              size="sm"
+              label="قیمت مد نظر (تومان)"
               value={form.values.price}
-              onChange={(value) => form.setFieldValue("price", value)}
+              onChange={(value) => form.setFieldValue("price", value || 100000)}
               thousandSeparator
               min={0}
-              w="100%"
-              mb="lg"
+              w="200px"
+              disabled={!user}
             />
+          )}
+
+          {/* Inventory Input */}
+          {form.values.alertType === "inventory_reach" && (
+            <NumberInput
+              size="sm"
+              label="تعداد موجودی مد نظر"
+              value={form.values.inventory}
+              onChange={(value) => form.setFieldValue("inventory", value || 1)}
+              min={1}
+              w="200px"
+              disabled={!user}
+            />
+          )}
+
+          {/* Supplier Selection */}
+          {form.values.alertType && (
+            <>
+              <Divider size="xs" />
+              <div>
+                <Title order={5} mb="xs">انتخاب تامین کننده</Title>
+                <Select
+                  size="sm"
+                  data={supplierSelectionOptions}
+                  value={form.values.supplierSelection || "all"}
+                  onChange={handleSupplierSelectionChange}
+                  w="200px"
+                  mb="xs"
+                  disabled={!user}
+                />
+
+                {form.values.supplierSelection === "select" && uniqueSuppliers.length > 0 && (
+                  <Stack spacing="xs">
+                    {uniqueSuppliers.map((supplier) => (
+                      <Checkbox
+                        key={supplier.id}
+                        size="sm"
+                        label={
+                          <Text size="sm">
+                            {supplier.name} <Text component="span" size="xs" c="dimmed">(ID: {supplier.id})</Text>
+                          </Text>
+                        }
+                        checked={
+                          Array.isArray(form.values.selectedSuppliers) && 
+                          form.values.selectedSuppliers.includes(supplier.id)
+                        }
+                        onChange={() => handleSupplierToggle(supplier.id)}
+                        disabled={!user}
+                      />
+                    ))}
+                  </Stack>
+                )}
+              </div>
+            </>
+          )}
+
+          <Divider />
+
+          {/* Action Buttons */}
+          <Flex gap="xs" wrap="wrap">
+            <Button 
+              size="sm"
+              onClick={submitStockAlertSettings} 
+              disabled={
+                !user || 
+                (!form.values.sms && !form.values.email) ||
+                !form.values.alertType ||
+                form.values.alertType === "not_selected" ||
+                form.values.alertType === "" ||
+                (form.values.alertType === "price_reach" && (!form.values.price || form.values.price === "")) ||
+                (form.values.alertType === "inventory_reach" && (!form.values.inventory || form.values.inventory === ""))
+              }
+              loading={stockAlert.setLoading}
+            >
+              ذخیره
+            </Button>
+            <Button 
+              size="sm"
+              variant="light" 
+              color="red" 
+              onClick={handleRemoveStockAlert}
+              loading={stockAlert.removeLoading}
+              disabled={!user}
+            >
+              حذف
+            </Button>
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={handleShowPreviousSettings}
+              loading={stockAlert.getLoading}
+              disabled={!user}
+            >
+              تنظیمات قبلی
+            </Button>
           </Flex>
-        )}
 
-        {form.values.alertType && (
-          <>
-            <Title mt="xl">انتخاب تامین کننده</Title>
-            <Select
-              mt="xs"
-              data={supplierSelectionOptions}
-              value={form.values.supplierSelection}
-              onChange={handleSupplierSelectionChange}
-              w="max-content"
-              mb="lg"
-            />
-
-            {form.values.supplierSelection === "select" && uniqueSuppliers.length > 0 && (
-              <Stack>
-                {uniqueSuppliers.map((supplier) => (
-                  <Checkbox
-                    key={supplier.id}
-                    label={`(ID: ${supplier.id}) ${supplier.name}`} // Display name and ID
-                    checked={
-                      Array.isArray(form.values.selectedSuppliers) && 
-                      (form.values.selectedSuppliers.includes("all") || form.values.selectedSuppliers.includes(supplier.id))
-                    }
-                    onChange={() => handleSupplierToggle(supplier.id)}
-                  />
-                ))}
-              </Stack>
-            )}
-
-
-          </>
-        )}
-
-        <Divider my="lg" />
-
-        <Flex gap="sm">
-        <Button 
-          onClick={submitStockAlertSettings} 
-          disabled={!form.values.sms && !form.values.email} // Disable button if neither is selected
-          loading={stockAlert.setLoading}
-        >
-          ذخیره
-        </Button>
-          <Button 
-            variant="light" 
-            color="red" 
-            onClick={handleRemoveStockAlert}
-            loading={stockAlert.removeLoading}
-          >
-            حذف اطلاع رسانی
-          </Button>
-          <Button 
-            onClick={handleShowPreviousSettings}
-            loading={stockAlert.getLoading}
-          >
-            تنظیمات قبلی
-          </Button>
-        </Flex>
+          {/* Authentication Warning */}
+          {!user && (
+            <Text size="sm" c="orange" ta="center" mt="xs">
+              برای استفاده از اطلاع‌رسانی ابتدا وارد حساب کاربری خود شوید
+            </Text>
+          )}
+        </Stack>
       </Modal>
 
-      {/* Previous Settings Notification Box */}
+      {/* Previous Settings Modal - Compact */}
       <Modal
         opened={showPreviousSettings}
         onClose={() => setShowPreviousSettings(false)}
         title="تنظیمات قبلی"
         centered
-        size="md"
-        styles={{ modal: { backgroundColor: "white", padding: "20px" } }}
+        size="sm"
       >
-        <Stack>
-          <Title order={4}>تنظیمات ذخیره‌شده</Title>
-          <Divider />
-          <p><strong>نوع هشدار:</strong> {alertTypeTranslations[userAlertInfo.alertType] || "مشخص نشده"}</p>
+        <Stack spacing="xs">
+          <Text size="sm"><strong>نوع هشدار:</strong> {alertTypeTranslations[userAlertInfo.alertType] || "مشخص نشده"}</Text>
           {userAlertInfo.alertType === "price_reach" && (
-            <p><strong>قیمت مد نظر:</strong> {userAlertInfo.price} تومان</p>
+            <Text size="sm"><strong>قیمت مد نظر:</strong> {userAlertInfo.price?.toLocaleString()} تومان</Text>
           )}
-          <p><strong>روش اطلاع‌رسانی:</strong> {userAlertInfo.sms ? "پیامک" : ""} {userAlertInfo.email ? "ایمیل" : ""}</p>
-          <p>
+          {userAlertInfo.alertType === "inventory_reach" && (
+            <Text size="sm"><strong>تعداد موجودی مد نظر:</strong> {userAlertInfo.inventory}</Text>
+          )}
+          <Text size="sm">
+            <strong>روش اطلاع‌رسانی:</strong>{" "}
+            {userAlertInfo.sms && userAlertInfo.email ? "پیامک و ایمیل" : 
+             userAlertInfo.sms ? "پیامک" : 
+             userAlertInfo.email ? "ایمیل" : "انتخاب نشده"}
+          </Text>
+          <Text size="sm">
             <strong>تامین‌کننده‌ها:</strong>{" "}
             {userAlertInfo.supplierSelection === "all"
               ? "تمامی تامین‌کننده‌ها"
               : Array.isArray(userAlertInfo.selectedSuppliers) && userAlertInfo.selectedSuppliers.length > 0
               ? userAlertInfo.selectedSuppliers.join(", ")
               : "هیچ تامین‌کننده‌ای انتخاب نشده"}
-          </p>
-          <Divider />
-          <Button onClick={() => setShowPreviousSettings(false)}>بستن</Button>
+          </Text>
+          <Button size="sm" onClick={() => setShowPreviousSettings(false)}>بستن</Button>
         </Stack>
       </Modal>
 
-      {/* Success Modal */}
+      {/* Login Required Modal */}
       <Modal
-        opened={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="پیام موفقیت"
+        opened={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title="ورود به سایت"
         centered
-        size="sm"
-        styles={{ 
-          modal: { 
-            backgroundColor: "white", 
-            padding: "20px",
-            borderRadius: "10px"
-          } 
-        }}
+        size="xs"
       >
-        <Stack align="center" spacing="md">
-          <div style={{ 
-            fontSize: "48px", 
-            color: "#28a745",
-            marginBottom: "10px"
-          }}>
-            ✅
-          </div>
-          <Title order={4} ta="center" c="green">
-            {successMessage}
-          </Title>
+        <Stack align="center" spacing="sm">
+          <Text size="xl" c="blue">🔐</Text>
+          <Text size="sm" ta="center" fw={500}>
+            ابتدا وارد سایت شوید
+          </Text>
           <Button 
-            onClick={() => setShowSuccessModal(false)}
-            variant="filled"
-            color="green"
             size="sm"
+            onClick={() => setShowLoginModal(false)}
+            variant="filled"
+            color="blue"
           >
             تایید
           </Button>
         </Stack>
       </Modal>
 
-
-
+      {/* Success Modal - Compact */}
+      <Modal
+        opened={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="پیام موفقیت"
+        centered
+        size="xs"
+      >
+        <Stack align="center" spacing="sm">
+          <Text size="xl" c="green">✅</Text>
+          <Text size="sm" ta="center" c="green" fw={500}>
+            {successMessage}
+          </Text>
+          <Button 
+            size="sm"
+            onClick={() => setShowSuccessModal(false)}
+            variant="filled"
+            color="green"
+          >
+            تایید
+          </Button>
+        </Stack>
+      </Modal>
     </>
   );
 }

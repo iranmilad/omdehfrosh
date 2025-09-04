@@ -98,9 +98,11 @@ export const registerUser = async (req, res) => {
 };
 
 
+
 export const updateUser = async (req, res) => {
   try {
-    // Handle token extraction and verification
+
+    console.log(req.body)
     let userId;
 
     try {
@@ -110,16 +112,31 @@ export const updateUser = async (req, res) => {
       return res.status(401).send();
     }
 
-    const { mobile, socialNumber } = req.body;
-
-    const d = req.body
-
+    const { mobile, socialNumber, birthday } = req.body;
     const cleanedPhoneSocial = socialNumber ? socialNumber.replace(/\s+/g, "") : null;
 
     const user = await UserAccounts.findOne({ userId });
-
     if (!user) {
       return res.status(404).send(); // User not found
+    }
+
+    // --- 🗓 Convert birthday to Jalali (1355/02/23) before saving ---
+    let birthdayJalali = user.birthday; // keep old if not provided
+    if (birthday) {
+      try {
+        // If input is already Jalali (e.g., 1355/02/23), just keep it
+        if (/^\d{4}\/\d{2}\/\d{2}$/.test(birthday)) {
+          birthdayJalali = birthday;
+        } else {
+          // Assume Gregorian (YYYY-MM-DD) → convert to Jalali
+          const m = moment(birthday, "YYYY-MM-DD");
+          if (m.isValid()) {
+            birthdayJalali = m.format("jYYYY/jMM/jDD");
+          }
+        }
+      } catch (e) {
+        console.error("Birthday conversion failed:", e);
+      }
     }
 
     // Update user fields
@@ -135,51 +152,16 @@ export const updateUser = async (req, res) => {
     user.postalCode = req.body.postalCode ?? user.postalCode;
     user.socialNetworkName = req.body.socialName ?? user.socialNetworkName;
     user.socialNetworkMobile = cleanedPhoneSocial ?? user.socialNetworkMobile;
-    user.birthday = req.body.birthday ?? user.birthday;
+    user.birthday = birthdayJalali;
     user.updatedAt = new Date();
 
     await user.save();
-
-
-    // "message": "خطا رخ داده است.",
-    // "state": "error",
-    // "error": {
-    //     "name": "از کاراکترهای فارسی استفاده کنید",
-    //     "surName": "از کاراکترهای فارسی استفاده کنید",
-    //     "nationalCode": "فقط اعداد مجاز هستند",
-    //     "email": "فرمت ایمیل صحیح نیست",
-    //     "birthday": "تاریخ تولد را به شمسی وارد کنید"
-    // }
-    
-    // res.status(201).json({
-    //   message: "خطایی رخ داده است",
-    //   state: "error",
-    //   errors: {
-    //     name: "فقط کاراکترهای فارسی مجاز هستند",
-    //     surName: "از کاراکترهای فارسی استفاده شود",
-    //     nationalCode: "شماره ملی نامعتبر است",
-    //     mobile: "شماره موبایل نامعتبر است",
-    //     email: "فرمت ایمیل صحیح نیست",
-    //     birthday: "تاریخ تولد را به شمسی وارد کنید",
-    //     province: "استان را انتخاب کنید",
-    //     city: "شهر را انتخاب کنید",
-    //     address: "آدرس را وارد کنید",
-    //     postalCode: "کد پستی را وارد کنید",
-    //     socialNetworkMobile: "شماره موبایل را وارد کنید",
-    //     socialNetworkName: "نام شبکه اجتماعی را وارد کنید",
-    //   },
-
-    // });
-
 
     return res.status(200).json({
       message: "اطلاعات کاربری با موفقیت ویرایش شدند",
       state: "ok",
       status: "ok"
     });
-
-
-
 
   } catch (error) {
     console.error("Error updating user:", error);
@@ -189,6 +171,7 @@ export const updateUser = async (req, res) => {
     });
   }
 };
+
 
   
   export const userStockAlertInfoGet = async (req, res) => {
@@ -318,7 +301,7 @@ export const userStockAlertInfoSet = async (req, res) => {
 export const userStockAlertInfoRemove = async (req, res) => {
   try {  
     const {user_id} = getUserFromToken(req, res);  // This will handle token extraction and verification
-    const product_id = req.params.product_id; // Extract product_id from URL parameters
+    const {product_id} = req.params; // Extract product_id from URL parameters
 
     if (!product_id) {
       return res.status(400).json({ 

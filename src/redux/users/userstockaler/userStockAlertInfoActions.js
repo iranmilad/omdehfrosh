@@ -92,7 +92,7 @@ export const removeUserStockAlertInfo = createAsyncThunk(
     try {
       
       const response = await fetch(getApiUrl(`/users/userstockalertinforemove/${product_id}`), {
-        method: "DELETE", // CHANGED: Should be DELETE instead of GET
+        method: "GET", // CHANGED: Should be DELETE instead of GET
         headers: {
           'Authorization': `Bearer ${token}`, 
           "Content-Type": "application/json"      
