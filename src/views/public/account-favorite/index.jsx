@@ -14,25 +14,18 @@ import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/g
 import { useEffect } from "react";
 
 function Account_Favorite() {
-
-
   const dispatch = useDispatch();
 
   const { userAccount, loading, error } = useSelector((state) => state.userMyAccounts);
 
-
-
+  // Create a refetch function
+  const refetch = () => {
+    dispatch(getUserMyAccount());
+  };
 
   useEffect(() => {
-
-    if (userAccount) {
-      dispatch(getUserMyAccount());
-    }
-
+    dispatch(getUserMyAccount());
   }, [dispatch]);
-
-
-
 
   return (
     <>
@@ -53,7 +46,7 @@ function Account_Favorite() {
           {Array(3)
             .fill(0)
             .map((item, index) => (
-              <GridCol span={{ lg: 4 }}>
+              <GridCol key={index} span={{ lg: 4 }}>
                 <ProductBox id="12" favoriteAdded={false} skeleton={true} />
               </GridCol>
             ))}

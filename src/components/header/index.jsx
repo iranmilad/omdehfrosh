@@ -54,12 +54,7 @@ import { setInitial, clearCart } from "../../redux/cart";
 import { logout, verifyToken, verifyTokenSilent } from "../../redux/auth/authusers/auth";
 import Notifications from "../notifications";
 import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
-
-// API utility function
-const getApiUrl = (endpoint) => {
-  // Replace with your actual API base URL logic
-  return `${process.env.REACT_APP_API_URL || 'http://localhost:3001/api'}${endpoint}`;
-};
+import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 
 const Header = () => {
   const location = useLocation();

@@ -5,12 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setInitial } from "../../redux/cart";
 import { useProduct } from "../../views/public/product";
 import { useEffect, useState } from "react";
-
-// Direct API functions
-const getApiUrl = (endpoint) => {
-  // Replace with your actual API base URL
-  return `${process.env.REACT_APP_API_BASE_URL}${endpoint}`;
-};
+import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 
 const cartAPI = {
   updateCart: async (body) => {

@@ -6,6 +6,7 @@ import { getBrandBySlug } from '../../../redux/brands/getbrandsdata/getBrandsDat
 const Brands = () => {
     const { slug } = useParams();
     const dispatch = useDispatch();
+    const [imageError, setImageError] = useState(false);
 
     const { brands, currentBrand, isLoading, error, errorCode, errorType } = useSelector((state) => state.brandsData);
 
@@ -23,12 +24,61 @@ const Brands = () => {
         return false;
     };
 
+    // Helper function to check if image is valid
+    const isImageValid = (imgSrc) => {
+        if (!imgSrc) return false;
+        if (typeof imgSrc !== 'string') return false;
+        if (imgSrc.trim() === '') return false;
+        if (Array.isArray(imgSrc) && (imgSrc.length === 0 || imgSrc[0] === '')) return false;
+        return true;
+    };
+
+    // Brand placeholder SVG
+    const BrandPlaceholderSVG = () => (
+        <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="128" height="128" rx="16" fill="#F8FAFC"/>
+            <rect width="128" height="128" rx="16" stroke="#E2E8F0" strokeWidth="2"/>
+            <g transform="translate(32, 24)">
+                <rect x="0" y="16" width="64" height="48" rx="4" fill="#64748B" opacity="0.6"/>
+                <rect x="8" y="24" width="8" height="8" rx="2" fill="#94A3B8"/>
+                <rect x="20" y="24" width="8" height="8" rx="2" fill="#94A3B8"/>
+                <rect x="36" y="24" width="8" height="8" rx="2" fill="#94A3B8"/>
+                <rect x="48" y="24" width="8" height="8" rx="2" fill="#94A3B8"/>
+                <rect x="8" y="36" width="8" height="8" rx="2" fill="#94A3B8"/>
+                <rect x="20" y="36" width="8" height="8" rx="2" fill="#94A3B8"/>
+                <rect x="36" y="36" width="8" height="8" rx="2" fill="#94A3B8"/>
+                <rect x="48" y="36" width="8" height="8" rx="2" fill="#94A3B8"/>
+                <rect x="8" y="48" width="8" height="12" rx="2" fill="#CBD5E1"/>
+                <rect x="20" y="48" width="8" height="12" rx="2" fill="#CBD5E1"/>
+                <rect x="36" y="48" width="8" height="12" rx="2" fill="#CBD5E1"/>
+                <rect x="48" y="48" width="8" height="12" rx="2" fill="#CBD5E1"/>
+                <rect x="26" y="48" width="12" height="16" rx="2" fill="#475569"/>
+                <circle cx="34" cy="56" r="1" fill="#94A3B8"/>
+                <circle cx="32" cy="8" r="8" fill="#3B82F6"/>
+                <rect x="28" y="4" width="8" height="8" rx="2" fill="white"/>
+                <rect x="30" y="6" width="4" height="4" rx="1" fill="#3B82F6"/>
+            </g>
+            <rect x="20" y="88" width="88" height="6" rx="3" fill="#E2E8F0"/>
+            <rect x="32" y="100" width="64" height="4" rx="2" fill="#F1F5F9"/>
+        </svg>
+    );
+
     // Helper component for displaying empty state message
     const EmptyDataMessage = () => (
         <p className="text-gray-500 italic text-center py-4">
             اطلاعاتی در این باره وجود ندارد
         </p>
     );
+
+    // Handle image error
+    const handleImageError = () => {
+        setImageError(true);
+    };
+
+    // Reset image error when brand changes
+    useEffect(() => {
+        setImageError(false);
+    }, [brand]);
 
     useEffect(() => {
         if (slug) {
@@ -238,16 +288,21 @@ const Brands = () => {
             {/* Brand Header */}
             <div className="mb-8">
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                    {/* Brand Logo */}
-                    {brand.logo && !isDataEmpty(brand.logo) && (
-                        <div className="flex-shrink-0">
+                    {/* Brand Logo with Error Handling */}
+                    <div className="flex-shrink-0">
+                        {isImageValid(brand.logo) && !imageError ? (
                             <img 
                                 src={brand.logo} 
-                                alt={brand.name}
+                                alt={brand.name || 'Brand Logo'}
                                 className="w-32 h-32 object-contain rounded-lg shadow-md bg-white p-2"
+                                onError={handleImageError}
                             />
-                        </div>
-                    )}
+                        ) : (
+                            <div className="w-32 h-32 flex items-center justify-center rounded-lg shadow-md bg-white p-2">
+                                <BrandPlaceholderSVG />
+                            </div>
+                        )}
+                    </div>
                     
                     {/* Brand Info */}
                     <div className="flex-1 text-center md:text-right">

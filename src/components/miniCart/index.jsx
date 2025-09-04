@@ -25,12 +25,8 @@ import { setInitial } from "../../redux/cart";
 import InfoBox from "../InfoBox";
 import { getsubscriptionPlansGet } from "../../redux/usermyaccounts/usermyaccounts/getsubscriptionplans/getSubscriptionPlansActions";
 import { DEFAULT_COLOR_MAP } from '../../Libs/attribute_colors/colors';
+import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 
-// Helper function to get API URL - you may need to adjust this import
-const getApiUrl = (endpoint) => {
-  // Replace with your actual API URL building logic
-  return `${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}${endpoint}`;
-};
 
 const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min }) => {
   const dispatch = useDispatch();
