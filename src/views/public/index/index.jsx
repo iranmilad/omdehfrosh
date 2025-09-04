@@ -25,6 +25,8 @@ function Home() {
     successShopHome,
     lastFetched 
   } = useSelector((state) => state.shopHome);
+
+  console.log(homeData)
   
   // Get user from Redux to trigger refetch on auth changes
   const { user } = useSelector((state) => state.auth);

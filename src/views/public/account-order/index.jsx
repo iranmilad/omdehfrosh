@@ -118,20 +118,22 @@ function Account_Order() {
   };
 
   // Get order status badge
-  const getOrderStatusBadge = (status) => {
-    switch (status) {
-      case 'processing':
-        return { color: 'blue', text: 'در حال پردازش' };
-      case 'completed':
-        return { color: 'green', text: 'تکمیل شده' };
-      case 'cancelled':
-        return { color: 'red', text: 'لغو شده' };
-      case 'pending':
-        return { color: 'yellow', text: 'در انتظار' };
-      default:
-        return { color: 'gray', text: status || 'نامشخص' };
-    }
-  };
+const getOrderStatusBadge = (status) => {
+  switch (status) {
+    case 'processing':
+      return { color: 'blue', text: 'در حال پردازش' };
+    case 'completed':
+      return { color: 'green', text: 'تکمیل شده' };
+    case 'cancelled':
+      return { color: 'red', text: 'لغو شده' };
+    case 'pending':
+      return { color: 'yellow', text: 'در انتظار' };
+    case 'delivered':
+      return { color: 'green', text: 'تحویل داده شد' }; // ✅ new
+    default:
+      return { color: 'gray', text: status || 'نامشخص' };
+  }
+};
 
   useEffect(() => {
     dispatch(verifyToken());
@@ -311,7 +313,7 @@ function Account_Order() {
       <DeliveryConfirmationModal opened={modalOpened} onClose={() => setModalOpened(false)} />
 
       {/* Delivery Confirmation Alert */}
-      {!displayOrder.delivered && displayOrder.isPaid === "paid" && (
+      {displayOrder.status !== "delivered" && displayOrder.isPaid === "paid" && (
         <Transition mounted={showAlert} transition="fade" duration={400} timingFunction="ease">
           {(styles) => (
             <div style={styles}>
@@ -325,6 +327,7 @@ function Account_Order() {
           )}
         </Transition>
       )}
+
 
       <Divider my="xl" />
       
