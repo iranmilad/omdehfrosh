@@ -502,7 +502,6 @@ const Counter = (props) => {
             h={45}
             onClick={handleAddToCart}
           >
-            افزودن  
           </Button>
         )}
       </>

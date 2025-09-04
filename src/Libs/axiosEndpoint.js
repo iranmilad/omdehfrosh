@@ -55,11 +55,11 @@ axiosInstance.interceptors.response.use(
         
       } else {
         // Show notification for all other errors
-        notifications.show({
-          title: "پیام سیستم",
-          message: `${data?.message || "خطایی رخ داده است"}`,
-          color: "yellow", // Use yellow for all errors except 401
-        });
+        // notifications.show({
+        //   title: "پیام سیستم",
+        //   message: `${data?.message || "خطایی رخ داده است"}`,
+        //   color: "yellow", // Use yellow for all errors except 401
+        // });
       }
     } else {
       // Handle network errors or other issues without a response

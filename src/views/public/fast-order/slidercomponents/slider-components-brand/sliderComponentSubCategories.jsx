@@ -49,7 +49,7 @@ const SliderComponentSubCategories = ({
   );
 };
 
-// SVG Icon Component for fallback
+// Enhanced SVG Icon Component for subcategory fallback
 const SubCategoryIcon = () => (
   <svg 
     width="25" 
@@ -59,7 +59,11 @@ const SubCategoryIcon = () => (
     xmlns="http://www.w3.org/2000/svg"
     className="w-[25px] h-[25px] rounded-full"
   >
-    <rect x="6" y="6" width="12" height="12" rx="2" fill="#9CA3AF" />
+    <circle cx="12" cy="12" r="11" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
+    <circle cx="8" cy="8" r="2" fill="#9CA3AF"/>
+    <circle cx="16" cy="8" r="2" fill="#9CA3AF"/>
+    <circle cx="8" cy="16" r="2" fill="#9CA3AF"/>
+    <circle cx="16" cy="16" r="2" fill="#9CA3AF"/>
   </svg>
 );
 
@@ -150,6 +154,38 @@ export function SingleCategoryWithSubcategories({
     }
   };
 
+  // Comprehensive image validation function
+  const isValidImage = (imageValue) => {
+    if (imageValue == null) return false;
+    if (Array.isArray(imageValue)) {
+      if (imageValue.length === 0) return false;
+      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
+    }
+    if (typeof imageValue === 'string') {
+      const trimmed = imageValue.trim();
+      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  };
+
+  // Enhanced image error handler
+  const handleImageError = (e, subCategoryName) => {
+    console.warn(`Failed to load subcategory image: ${e.target.src} for subcategory: ${subCategoryName}`);
+    // Hide the broken image and let the icon show instead
+    e.target.style.display = 'none';
+    // Find the parent container and show the fallback icon
+    const parent = e.target.closest('.image-container');
+    if (parent) {
+      const fallbackIcon = parent.querySelector('.fallback-icon');
+      if (fallbackIcon) {
+        fallbackIcon.style.display = 'flex';
+      }
+    }
+  };
+
   return (
     <>
       {shouldShow && (
@@ -177,6 +213,8 @@ export function SingleCategoryWithSubcategories({
                         )
                     );
 
+                    const showImage = isValidImage(subCategory.image);
+
                     return (
                       <div
                         key={subIndex}
@@ -184,24 +222,29 @@ export function SingleCategoryWithSubcategories({
                         onClick={() => onClick(category, subCategory, parentItem.idBrand)}
                       >
                         <div
-                          className={`flex px-2 h-[35px] w-full gap-2 justify-center items-center border-[1.5px]
+                          className={`flex px-3 h-[32px] w-full gap-2 justify-center items-center border-[1.5px]
                           ${isActiveBorder ? "border-red-600" : "border-none"} bg-gray-100`}
-                          style={{ borderRadius: '18px' }}
+                          style={{ borderRadius: '16px' }}
                         >
-                          <div className='w-fit h-[25px] bg-white rounded-full flex-shrink-0'>
-                            {subCategory.image && subCategory.image.trim() !== "" ? (
-                              <img
-                                className="w-fit h-full object-cover rounded-full"
-                                src={subCategory.image}
-                                alt={subCategory.name}
-                              />
+                          <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0 image-container relative flex items-center justify-center'>
+                            {showImage ? (
+                              <>
+                                <img
+                                  className="w-[20px] h-[20px] object-cover rounded-full"
+                                  src={subCategory.image}
+                                  alt={subCategory.name}
+                                  onError={(e) => handleImageError(e, subCategory.name)}
+                                  style={{ display: 'block' }}
+                                />
+                                <div className="fallback-icon w-[20px] h-[20px] bg-white rounded-full items-center justify-center absolute inset-0" style={{ display: 'none' }}>
+                                  <SubCategoryIcon />
+                                </div>
+                              </>
                             ) : (
-                              <div className="w-[25px] h-[25px] bg-white rounded-full flex items-center justify-center">
-                                <SubCategoryIcon />
-                              </div>
+                              <SubCategoryIcon />
                             )}
                           </div>
-                          <span className="text-center text-[9px] leading-tight break-words">
+                          <span className="text-center text-[10px] font-medium leading-tight break-words">
                             {subCategory.name}
                           </span>
                         </div>

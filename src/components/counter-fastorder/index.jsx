@@ -1,12 +1,9 @@
 import { ActionIcon, Button, Flex, Input, LoadingOverlay, Modal, Text } from "@mantine/core";
 import { IconPlus, IconMinus, IconTrash, IconBasket } from "@tabler/icons-react";
-import { useData, useSend } from "../../Libs/api";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { setInitial } from "../../redux/cart";
 import { useEffect, useState } from "react";
-
-
 
 const CounterFastOrder = (props) => {
   const {
@@ -16,7 +13,6 @@ const CounterFastOrder = (props) => {
     options = { t: "" },
     productName = "",
     productImages = "",
-    // isPending = false,
     item,
     priceFormat
   } = props;
@@ -27,57 +23,175 @@ const CounterFastOrder = (props) => {
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
 
   const [matchingCombination, setMatchingCombination] = useState(undefined);
-  const [count, setCount] = useState(1); // Local count state
-  const [isPending, setIsPending] = useState(false);  // This will handle the loading state
-  const [showAuthModal, setShowAuthModal] = useState(false); // New state for modal
+  const [count, setCount] = useState(1);
+  const [isPending, setIsPending] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [cartData, setCartData] = useState({ cart: [] });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { data = { cart: [] }, isLoading } = useData({ url: "/cart" });
   const items = useSelector((state) => state.cart?.items || []);
 
-  const updateQuery = useSend({ url: "/cart/update" });
-  const removeQuery = useSend({ url: "/cart/remove" });
+  // Function to get API URL (you'll need to implement this based on your setup)
+  const getApiUrl = (endpoint) => {
+    // Replace with your actual API base URL
+    return `${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}${endpoint}`;
+  };
+
+  // Fetch cart data
+  const fetchCartData = async () => {
+    const token = localStorage.getItem("user");
+    
+    try {
+      setIsLoading(true);
+      const response = await fetch(getApiUrl("/cart"), {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem("user");
+        throw new Error("Failed to fetch cart data");
+      }
+      
+      const serverData = await response.json();
+      const newCartData = {
+        cart: serverData.cart || [],
+        totalPrice: serverData.total || 0
+      };
+      
+      setCartData(newCartData);
+      return newCartData;
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      const errorData = { cart: [], totalPrice: 0 };
+      setCartData(errorData);
+      return errorData;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update cart item
+  const updateCartItem = async (updateData) => {
+    const token = localStorage.getItem("user");
+    
+    try {
+      const response = await fetch(getApiUrl("/cart/update"), {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update cart");
+      }
+
+      const data = await response.json();
+      
+      // Fetch updated cart data
+      const updatedCart = await fetchCartData();
+      
+      if (updatedCart.cart) {
+        dispatch(setInitial([...updatedCart.cart]));
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Error updating cart:", error);
+      throw error;
+    }
+  };
+
+  // Remove cart item
+  const removeCartItem = async (removeData) => {
+    const token = localStorage.getItem("user");
+    
+    try {
+      const response = await fetch(getApiUrl("/cart/remove"), {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(removeData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to remove item");
+      }
+
+      const data = await response.json();
+      
+      // Fetch updated cart data
+      const updatedCart = await fetchCartData();
+      
+      if (updatedCart.cart) {
+        dispatch(setInitial({
+          items: updatedCart.cart,
+          totalPrice: updatedCart.totalPrice || 0
+        }));
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      throw error;
+    }
+  };
 
   const getItemCount = (cartData, item) => {
     if (!Array.isArray(cartData)) {
-        // console.error("cartData is not an array:", cartData);
-        return 0;
+      return 0;
     }
 
     const matchedItem = cartData.find(cartItem =>
-        cartItem.productId === item?.id &&
-        cartItem.combinationsID === item?.combinationsID &&
-        cartItem.seller?.id === item?.seller?.id &&
-        cartItem.attributes?.every(attr =>
-            item?.attributes?.some(itemAttr => 
-                itemAttr.label === attr.color || itemAttr.label === attr.warranty
-            )
+      cartItem.productId === item?.id &&
+      cartItem.combinationsID === item?.combinationsID &&
+      cartItem.seller?.id === item?.seller?.id &&
+      cartItem.attributes?.every(attr =>
+        item?.attributes?.some(itemAttr => 
+          itemAttr.label === attr.color || itemAttr.label === attr.warranty
         )
+      )
     );
 
     return matchedItem ? matchedItem.count : 0;
   };
 
-  const itemCount = getItemCount(data.cart, item);
+  const itemCount = getItemCount(cartData.cart, item);
 
   const extractAttributes = (attributes) => {
-    let result = [{}]; // Initialize with an empty object
+    let result = [{}];
 
     attributes?.forEach(attr => {
-        if (attr.type === "color") {
-            result[0].color = attr.label || "";
-        } else if (attr.type === "warranty") {
-            result[0].warranty = attr.label || "";
-        }
+      if (attr.type === "color") {
+        result[0].color = attr.label || "";
+      } else if (attr.type === "warranty") {
+        result[0].warranty = attr.label || "";
+      }
     });
 
     return result;
   };
+
+  // Load cart data on component mount
+  useEffect(() => {
+    fetchCartData();
+  }, []);
   
   useEffect(() => {
     setCount(itemCount); 
   }, [itemCount]);
 
-  const handleChange = (value) => {
+  const handleChange = async (value) => {
     // Check if user is authenticated
     if (!user || !isVerified) {
       setShowAuthModal(true);
@@ -91,40 +205,31 @@ const CounterFastOrder = (props) => {
 
     const extractedAttributes = extractAttributes(item?.attributes || []);
 
+    try {
+      await updateCartItem({
+        "productId": item?.id,
+        "seller": item?.seller,
+        "count": newCount,
+        "combinationsID": item?.combinationsID,
+      });
 
-
-    updateQuery.mutateAsync(
-        {
-            "productId": item?.id,
-            "seller": item?.seller,
-            "count": newCount,
-            "combinationsID": item?.combinationsID,
-        },
-        {
-        onSuccess: (data) => {
-          if (data.cart) {
-            dispatch(setInitial([...data.cart]));
-
-            // Find updated count in new cart data
-            const foundItem = items.find(
-              (cartItem) =>
-                cartItem.productId === item.productId &&
-                cartItem.seller.id === item.seller.id &&
-                cartItem.combinationsID === item.combinationsID
-            );
-          
-          } else {
-            throw new Error("Failed to fetch cart data");
-          }
-        },
-        onSettled: () => {
-          setIsPending(false); // Reset loading state
-        }
-      }
-    );
+      // Find updated count in new cart data
+      const foundItem = items.find(
+        (cartItem) =>
+          cartItem.productId === item.productId &&
+          cartItem.seller.id === item.seller.id &&
+          cartItem.combinationsID === item.combinationsID
+      );
+      
+    } catch (error) {
+      console.error("Failed to update cart:", error);
+      // Optionally show error message to user
+    } finally {
+      setIsPending(false);
+    }
   };
 
-  const handleRemove = (value) => {
+  const handleRemove = async (value) => {
     // Check if user is authenticated
     if (!user || !isVerified) {
       setShowAuthModal(true);
@@ -135,42 +240,31 @@ const CounterFastOrder = (props) => {
     setCount(newCount);
 
     const extractedAttributes = extractAttributes(item?.attributes || []);
-
     setIsPending(true);
 
-    removeQuery.mutateAsync(
-        {
-            productId: item?.id,
-            seller: item?.seller,
-            combinationsID: item?.combinationsID,
-        },
-        {
-        onSuccess: (data) => {
-          if (data.cart) {
-            dispatch(setInitial({
-              items: data.cart,
-              totalPrice: data.totalPrice || 0
-            }));
-              
-            // Find updated count in new cart data
-            const foundItem = items.find(
-              (cartItem) =>
-                cartItem.productId === item.productId &&
-                cartItem.seller.id === item.seller.id &&
-                cartItem.combinationsID === item.combinationsID
-            );
+    try {
+      await removeCartItem({
+        productId: item?.id,
+        seller: item?.seller,
+        combinationsID: item?.combinationsID,
+      });
 
-            setCount(0);
-          
-          } else {
-            throw new Error("Failed to fetch cart data");
-          }
-        },
-        onSettled: () => {
-          setIsPending(false); // Reset loading state
-        }
-      }
-    );
+      // Find updated count in new cart data
+      const foundItem = items.find(
+        (cartItem) =>
+          cartItem.productId === item.productId &&
+          cartItem.seller.id === item.seller.id &&
+          cartItem.combinationsID === item.combinationsID
+      );
+
+      setCount(0);
+      
+    } catch (error) {
+      console.error("Failed to remove item:", error);
+      // Optionally show error message to user
+    } finally {
+      setIsPending(false);
+    }
   };
   
   const increment = () => {
@@ -185,7 +279,7 @@ const CounterFastOrder = (props) => {
     if (count > minOrder) {
       handleChange(count - 1);
     } else {
-      handleRemove(0); // Remove item when reaching minOrder
+      handleRemove(0);
     }
   };
 
@@ -226,63 +320,77 @@ const CounterFastOrder = (props) => {
       />
 
       { count > 0 ? (
-      <Flex align="center" gap="1">
-        <Button
-          p={0}
-          px={0}
-          h={15}
-          w={70}
-          variant="transparent"
-          size="10px"
-          onClick={() => {
-            if (item?.stock) {
-              handleChange(item.stock);
-            }
-          }}
-        >
-          حداکثر
-        </Button>
+        <Flex align="center" gap="1">
+          <Button
+            p={0}
+            px={0}
+            h={15}
+            w={70}
+            variant="transparent"
+            size="10px"
+            onClick={() => {
+              if (item?.stock) {
+                handleChange(item.stock);
+              }
+            }}
+          >
+            حداکثر
+          </Button>
 
-        <ActionIcon
-          size="md"
-          radius="999999"
-          variant="light"
-          color="green"
-          onClick={increment} // Trigger increment logic
-        >
-          <IconPlus size={15} />
-        </ActionIcon>
+          <ActionIcon
+            size="md"
+            radius="999999"
+            variant="light"
+            color="green"
+            onClick={increment}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <IconPlus size={15} />
+          </ActionIcon>
 
-        {/* Removed individual Loader - now handled by LoadingOverlay */}
-        <Input
-          type="number"
-          w={25}
-          styles={{ input: { textAlign: "center" } }}
-          variant="unstyled"
-          value={count}
-          readOnly
-          px={0}
-        />
+          <Input
+            type="number"
+            w={25}
+            styles={{ input: { textAlign: "center" } }}
+            variant="unstyled"
+            value={count}
+            readOnly
+            px={0}
+          />
 
-        <ActionIcon
-          size="md"
-          radius="999999"
-          variant="light"
-          color="red"
-          onClick={decrement} // Trigger decrement logic
-        >
-          <IconMinus size={10} />
-        </ActionIcon>
-      </Flex>) : (
+          <ActionIcon
+            size="md"
+            radius="999999"
+            variant="light"
+            color="red"
+            onClick={decrement}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <IconMinus size={10} />
+          </ActionIcon>
+        </Flex>
+      ) : (
         <Button
           fullWidth
-          leftSection={<IconBasket />}
           h={45}
-          onClick={handleAddToCart} // Use new handler instead of direct handleChange
+          onClick={handleAddToCart}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          افزودن  
+          <IconBasket />
         </Button>
-        )}
+      )}
     </>
   );
 };

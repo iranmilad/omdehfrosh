@@ -41,7 +41,7 @@ const SliderComponentCategories = ({
   );
 };
 
-// SVG Icon Component for fallback
+// Enhanced SVG Icon Component for fallback
 const CategoryIcon = () => (
   <svg 
     width="25" 
@@ -51,7 +51,11 @@ const CategoryIcon = () => (
     xmlns="http://www.w3.org/2000/svg"
     className="w-[25px] h-[25px]"
   >
-    <rect x="6" y="6" width="12" height="12" rx="2" fill="#9CA3AF" />
+    <rect x="3" y="3" width="18" height="18" rx="2" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
+    <rect x="6" y="6" width="5" height="5" rx="1" fill="#9CA3AF"/>
+    <rect x="13" y="6" width="5" height="5" rx="1" fill="#9CA3AF"/>
+    <rect x="6" y="13" width="5" height="5" rx="1" fill="#9CA3AF"/>
+    <rect x="13" y="13" width="5" height="5" rx="1" fill="#9CA3AF"/>
   </svg>
 );
 
@@ -110,6 +114,36 @@ export function SingleCategoryGroup({
     }
   };
 
+  // Comprehensive image validation function
+  const isValidImage = (imageValue) => {
+    if (imageValue == null) return false;
+    if (Array.isArray(imageValue)) {
+      if (imageValue.length === 0) return false;
+      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
+    }
+    if (typeof imageValue === 'string') {
+      const trimmed = imageValue.trim();
+      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  };
+
+  // Enhanced image error handler
+  const handleImageError = (e, categoryTitle) => {
+    console.warn(`Failed to load category image: ${e.target.src} for category: ${categoryTitle}`);
+    // Hide the broken image and let the icon show instead
+    e.target.style.display = 'none';
+    // Find the parent container and show the fallback icon
+    const parent = e.target.parentElement;
+    const fallbackIcon = parent.querySelector('.fallback-icon');
+    if (fallbackIcon) {
+      fallbackIcon.style.display = 'block';
+    }
+  };
+
   const isActive = filterBrandStorage.includes(parentItem.idBrand);
 
   return (
@@ -125,6 +159,8 @@ export function SingleCategoryGroup({
                   member.idCategories.includes(category.idCategory)
               );
 
+              const showImage = isValidImage(category.image);
+
               return (
                 <div 
                   key={index} 
@@ -136,12 +172,19 @@ export function SingleCategoryGroup({
                       ${isActiveBorder ? "border-red-600" : "border-none"}`}
                     style={{ borderRadius: '18px' }}  // Rounded corners same as others
                   >
-                    {category.image && category.image.trim() !== "" ? (
-                      <img 
-                        className="w-fit h-[25px] object-cover" 
-                        src={category.image} 
-                        alt={category.title} 
-                      />
+                    {showImage ? (
+                      <div className="relative">
+                        <img 
+                          className="w-fit h-[25px] object-cover" 
+                          src={category.image} 
+                          alt={category.title}
+                          onError={(e) => handleImageError(e, category.title)}
+                          style={{ display: 'block' }}
+                        />
+                        <div className="fallback-icon" style={{ display: 'none' }}>
+                          <CategoryIcon />
+                        </div>
+                      </div>
                     ) : (
                       <CategoryIcon />
                     )}

@@ -438,6 +438,7 @@ export const updateCartSubscription = async (req, res) => {
 export const updateCart = async (req, res) => {
   try {
     const { user_id } = getUserFromToken(req, res);
+    
     const userIdStr = user_id.toString();
     const userIdNum = Number(user_id);
 
