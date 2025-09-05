@@ -4,10 +4,9 @@ import getHttpCodeMessage from "../../../../Libs/httpcodes/httpcodes";
 
 export const createNewUserTicket = createAsyncThunk(
   "userTickets/createNewUserTicket",
-  async ({ title, department, description, ticketShortDesc }, { rejectWithValue }) => {
+  async ({ title, department, departmentLabel, description, ticketShortDesc }, { rejectWithValue }) => {
 
     const token = localStorage.getItem("user");
-
 
     try {
       const response = await fetch(getApiUrl("/user-myaccounts/user-tickets/create"), {
@@ -16,7 +15,13 @@ export const createNewUserTicket = createAsyncThunk(
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         }),
-        body: JSON.stringify({ title, department, description, ticketShortDesc }), // Sending ticket data
+        body: JSON.stringify({ 
+          title, 
+          department, 
+          departmentLabel, // Include department label
+          description, 
+          ticketShortDesc 
+        }),
       });
 
       if (!response.ok) {

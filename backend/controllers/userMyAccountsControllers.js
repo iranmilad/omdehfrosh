@@ -820,15 +820,10 @@ export const submitNewMessageToTicket = async (req, res) => {
 
 
 
-
-
 export const createNewUserTicket = async (req, res) => {
+  const { title, department, departmentLabel, description, ticketShortDesc } = req.body;
 
-
-  const { title, department, description, ticketShortDesc } = req.body;
-
-  console.log(req.body)
-
+  console.log(JSON.stringify(req.body));
 
   const { user_id } = getUserFromToken(req, res); // your custom token auth
 
@@ -838,33 +833,47 @@ export const createNewUserTicket = async (req, res) => {
 
     // If user doc doesn't exist, create a new one
     if (!userTickets) {
-      return res.status(404).send()
+      return res.status(404).json({
+        message: "User tickets not found",
+        state: "error"
+      });
     }
 
-    // Generate a unique ticket ID (or use UUID)
-    const newTicketId = `ticket${userTickets.tickets.length + 1}`;
+    // Generate a unique ticket ID (you can also use UUID)
+    const newTicketId = `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create new ticket object
+    // Helper function to get team name from key
+    const getTeamNameFromKey = (key) => {
+      const teamNames = {
+        technical_support: "پشتیبانی فنی",
+        finance: "مالی و حسابداری", 
+        customer_relations: "ارتباط با مشتریان",
+      };
+      return teamNames[key] || key;
+    };
+
+    // Create new ticket object matching your schema
     const newTicket = {
       ticketId: newTicketId,
       ticketTitle: title,
       team: department,
-      teamName: getTeamNameFromKey(department), // Optional: map key to display name
+      teamName: departmentLabel || getTeamNameFromKey(department), // Use provided label or fallback
       ticketDescription: ticketShortDesc,
       messages: [
         {
           sender: {
             role: "user",
             userId: user_id,
-            name: userTickets.tickets[0]?.requesterName || "ناشناس", // fallback if needed
+            name: userTickets.tickets[0]?.requesterName || "کاربر", // fallback if needed
           },
           message: description,
+          file: "", // empty file field as per schema
         },
       ],
       ticketStatus: "open",
       requesterId: user_id,
-      requesterName: userTickets.tickets[0]?.requesterName || "ناشناس", // reuse or fallback
-      priority: "medium", // Default, can be changed
+      requesterName: userTickets.tickets[0]?.requesterName || "کاربر", // reuse or fallback
+      priority: "medium", // Default priority
       createdAt: new Date().toLocaleDateString("fa-IR"),
       updatedAt: new Date().toLocaleDateString("fa-IR"),
     };
@@ -875,7 +884,7 @@ export const createNewUserTicket = async (req, res) => {
     // Save the updated document
     await userTickets.save();
 
-
+    // Uncomment below for testing error responses
     // return res.status(200).json({
     //   "message": "خطا رخ داده است.",
     //   "state": "error",
@@ -887,17 +896,45 @@ export const createNewUserTicket = async (req, res) => {
     //   }
     // });
 
-
-  return res.status(201).json({
-    message: "تیکت با موفقیت ایجاد شد",
-    ticket: newTicket ,
-    state: "ok",
-  });
-
+    return res.status(201).json({
+      message: "تیکت با موفقیت ایجاد شد",
+      ticket: newTicket,
+      state: "ok",
+    });
 
   } catch (error) {
     console.error("Error creating new ticket:", error);
-    res.status(500).json({ message: "Failed to create new ticket", error });
+    res.status(500).json({ 
+      message: "Failed to create new ticket", 
+      error: error.message,
+      state: "error"
+    });
+  }
+};
+
+// Add this function to your userMyAccountsControllers.js file
+
+export const getDepartmentsData = async (req, res) => {
+  try {
+    // Static departments data
+    const departments = [
+      { label: "پشتیبانی فنی", value: "technical_support" },
+      { label: "مالی و حسابداری", value: "finance" },
+      { label: "ارتباط با مشتریان", value: "customer_relations" }
+    ];
+
+    res.status(200).json({
+      success: true,
+      data: departments,
+      message: "Departments data retrieved successfully"
+    });
+  } catch (error) {
+    console.error("Error getting departments data:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving departments data",
+      error: error.message
+    });
   }
 };
 

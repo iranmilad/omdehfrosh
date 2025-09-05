@@ -45,6 +45,7 @@ export const getHomePageData = async (req, res) => {
       Brand.findOne().lean()
     ]);
 
+    
     // Process categories with user subscription logic
     let filteredCategories;
     if (!userData || !userData.user_id) {

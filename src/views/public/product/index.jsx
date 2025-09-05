@@ -42,11 +42,11 @@ const Product = () => {
   }, [dispatch, slug]);
 
   // Clean up throttle when component unmounts (optional)
-  useEffect(() => {
-    return () => {
-      // clearProductThrottle(slug); // optional
-    };
-  }, [slug]);
+  // useEffect(() => {
+  //   return () => {
+  //     // clearProductThrottle(slug); // optional
+  //   };
+  // }, [slug]);
 
   let supplier = null;
   const isFirstRender = useIsFirstRender();

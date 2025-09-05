@@ -13,7 +13,6 @@ const userStockAlertSchema = new mongoose.Schema(
     alertType: {
       type: String,
       required: true,
-      enum: ["stock_available", "price_reach", "inventory", "best_price", "not_selected"], // Example options
     },
     price: {
       type: String, // Change to Number if needed
@@ -26,16 +25,9 @@ const userStockAlertSchema = new mongoose.Schema(
     supplierSelection: {
       type: String,
       required: true,
-      enum: ["select", "all"], // Example options
     },
     selectedSuppliers: {
-      type: [Number], // ✅ Change from ObjectId to Number
-      validate: {
-        validator: function (value) {
-          return value === "all" || (Array.isArray(value) && value.every(v => typeof v === "number"));
-        },
-        message: "selectedSuppliers must be 'all' or an array of numbers.",
-      },
+      type: [Number],
     },
     sms: {
       type: Boolean,
@@ -49,7 +41,7 @@ const userStockAlertSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Create compound index for efficient queries and ensure uniqueness per user-product combination
+// Ensure uniqueness per user-product
 userStockAlertSchema.index({ userId: 1, product_id: 1 }, { unique: true });
 
 const UserStockAlert = mongoose.model("UserStockAlert", userStockAlertSchema);

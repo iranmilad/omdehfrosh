@@ -92,19 +92,47 @@ const Product = (props) => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to remove item from cart");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData?.message || "Failed to remove item from cart");
       }
 
       const data = await response.json();
-
-      return {
-        message: "ok",
-        cart: data.cart || [],
-        total: data.total || 0
-      };
+      return data;
     } catch (error) {
       console.error('Error removing item from cart:', error);
       throw error;
+    }
+  };
+
+  // Fetch fresh cart data from server
+  const fetchCartData = async () => {
+    const token = localStorage.getItem("user");
+    
+    if (!token) return;
+    
+    try {
+      const response = await fetch(getApiUrl("/cart"), {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch cart data");
+      }
+      
+      const serverData = await response.json();
+      
+      if (serverData.message === "ok" && Array.isArray(serverData.cart)) {
+        return serverData.cart;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      return null;
     }
   };
 
@@ -120,24 +148,46 @@ const Product = (props) => {
     }
     
     try {
-      // Make API call to remove item and get updated cart
-      const response = await removeFromCartAPI(
+      // Make API call to remove item
+      const removeResponse = await removeFromCartAPI(
         props.productId,
         props.seller,
         props.combinationsID
       );
       
-      // Update Redux state with server response
-      if (response?.cart !== undefined) {
-        dispatch(setInitial([...response.cart]));  
-      }
+      console.log('Remove response:', removeResponse);
       
-      // Hide the component immediately after successful removal
-      setIsVisible(false);
+      // Check if the API returned updated cart data
+      if (removeResponse?.message === "ok") {
+        if (Array.isArray(removeResponse.cart)) {
+          // Use the cart data from remove response
+          dispatch(setInitial(removeResponse.cart));
+        } else {
+          // Fallback: fetch fresh cart data if remove response doesn't include cart
+          const freshCartData = await fetchCartData();
+          if (freshCartData !== null) {
+            dispatch(setInitial(freshCartData));
+          }
+        }
+        
+        // Hide the component immediately after successful removal
+        setIsVisible(false);
+      } else {
+        throw new Error("Remove operation failed");
+      }
       
     } catch (error) {
       console.error('Failed to remove item from cart:', error);
-      // Don't hide on error, let user try again
+      
+      // Fallback: try to fetch fresh cart data to sync state
+      try {
+        const freshCartData = await fetchCartData();
+        if (freshCartData !== null) {
+          dispatch(setInitial(freshCartData));
+        }
+      } catch (fetchError) {
+        console.error('Failed to fetch cart data after remove error:', fetchError);
+      }
     } finally {
       setIsRemoving(false);
     }
