@@ -20,7 +20,11 @@ const SliderComponentBrands = ({
   searchType, 
   tab, 
   filterBrandStorage, 
-  setFilterBrandStorage 
+  setFilterBrandStorage,
+  filterBrandsCategoryStorage,
+  setFilterBrandsCategoryStorage,
+  filterBrandsCategorySubCategoryStorage,
+  setFilterBrandsCategorySubCategoryStorage,
 }) => {
 
   const { checkedRows } = useBrandRowSelection();
@@ -31,7 +35,17 @@ const SliderComponentBrands = ({
       const allBrandIds = items?.map(item => item.idBrand) || [];
       const allSelected = allBrandIds.every(id => filterBrandStorage.includes(id));
       
-      setFilterBrandStorage(allSelected ? [] : allBrandIds);
+      if (allSelected) {
+        // Clear all filters when deselecting all
+        setFilterBrandStorage([]);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
+      } else {
+        // Select all brands and clear category filters
+        setFilterBrandStorage(allBrandIds);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
+      }
     }
   };
 
@@ -59,6 +73,10 @@ const SliderComponentBrands = ({
             tab={tab}
             filterBrandStorage={filterBrandStorage}
             setFilterBrandStorage={setFilterBrandStorage}
+            filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+            setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+            filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+            setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
             isDisabled={isSlideSelectionActive} 
           />
         </SwiperSlide>
@@ -91,7 +109,11 @@ export function SingleCategory1({
   clickType, 
   searchType, 
   filterBrandStorage, 
-  setFilterBrandStorage, 
+  setFilterBrandStorage,
+  filterBrandsCategoryStorage,
+  setFilterBrandsCategoryStorage,
+  filterBrandsCategorySubCategoryStorage,
+  setFilterBrandsCategorySubCategoryStorage,
   tab, 
   badge, 
   categories,
@@ -102,7 +124,17 @@ export function SingleCategory1({
   const onClick = () => {
     if (isDisabled) return;
     if (clickType === "brands") {
-      setFilterBrandStorage(isActive ? [] : [item.idBrand]);
+      if (isActive) {
+        // Deselecting current brand - clear all filters
+        setFilterBrandStorage([]);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
+      } else {
+        // Selecting new brand - set only this brand and clear category filters
+        setFilterBrandStorage([item.idBrand]);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
+      }
     }
   };
 

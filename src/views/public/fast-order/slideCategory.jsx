@@ -116,6 +116,10 @@ function SlideCategory({
                   tab={tab}
                   filterBrandStorage={filterBrandStorage}
                   setFilterBrandStorage={setFilterBrandStorage}
+                  filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+                  setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+                  filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+                  setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
                   />
               </div>
     

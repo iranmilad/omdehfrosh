@@ -475,6 +475,8 @@ const SearchComponentBrand = ({
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
+  console.log(filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage)
+
   return (
     <>
       {/* Add Filter Modal */}
