@@ -71,6 +71,12 @@ const Product = (props) => {
     const lowerColorValue = colorValue.toLowerCase();
     return DEFAULT_COLOR_MAP[lowerColorValue] || DEFAULT_COLOR_MAP[colorValue] || colorValue;
   };
+const handleCartRemovalComplete = async () => {
+  // Refetch cart data or notify the Basket component
+  if (props.onRemoveStart) {
+    props.onRemoveStart(); // This will trigger Basket's handleRemoveStart
+  }
+};
 
   // Updated remove function that refetches cart data - ONLY for direct IconTrash clicks
   const removeFromCartAPI = async (productId, seller, combinationsID) => {
@@ -269,22 +275,23 @@ const Product = (props) => {
             </Flex>
           </Flex>
           <Flex justify="space-between" mt="lg">
-            <CounterBasket
-              fullWidth
-              withButton
-              productId={productIdStr}
-              seller={props.seller}
-              stock={props.stock}
-              combinationsID={props.combinationsID}
-              removeFun={removeItemUIOnly}  // This is UI-only, no API call
-              count={props.count}
-              productImage={props.image}
-              attributes={props.attributes}
-              poductName={props.name}
-              price={props.price}
-              max={props.max}
-              min={props.min}
-            />
+          <CounterBasket
+            fullWidth
+            withButton
+            productId={productIdStr}
+            seller={props.seller}
+            stock={props.stock}
+            combinationsID={props.combinationsID}
+            removeFun={removeItemUIOnly}
+            onRemoveComplete={handleCartRemovalComplete} // NEW: Pass the callback
+            count={props.count}
+            productImage={props.image}
+            attributes={props.attributes}
+            poductName={props.name}
+            price={props.price}
+            max={props.max}
+            min={props.min}
+          />
           </Flex>
         </div>
       </Flex>
