@@ -8,8 +8,6 @@ import { useEffect, useState, useRef } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 
 // Direct API functions
-
-
 const cartAPI = {
   updateCart: async (body) => {
     const token = localStorage.getItem("user");
@@ -74,7 +72,6 @@ const cartAPI = {
         throw new Error(data.message || "Failed to remove from cart");
       }
 
-      // Return the response data directly since backend already returns fresh cart
       return {
         message: "ok",
         cart: data.cart || [],
@@ -99,7 +96,6 @@ const cartAPI = {
       });
 
       if (!response.ok) {
-        // localStorage.removeItem("user");
         throw new Error("Failed to fetch cart data");
       }
       
@@ -127,6 +123,7 @@ const CounterBasket = (props) => {
     seller,
     combinationsID,
     removeFun,
+    onRemoveComplete, // NEW: Callback to notify parent when removal is complete
     productImage,
     attributes,
     poductName,
@@ -135,23 +132,14 @@ const CounterBasket = (props) => {
     min
   } = props;
 
-
-  // Safely convert productId to string for string operations
   const productIdStr = typeof productId === 'string' ? productId : String(productId || '');
-
   const [cookies] = useCookies(["user"]);
   const dispatch = useDispatch();
-
   const [isPageLoading, setIsPageLoading] = useState(false);
-  
-  // Add ref to prevent double calls
   const isRemoving = useRef(false);
-
-  // Get items from Redux store
   const items = useSelector((state) => state.cart?.items || []);
 
   const getProductCount = (items, productId, seller, combinationsID) => {
-    // Normalize both values for comparison
     const normalizeId = (id) => String(id).trim();
     const normalizeCombinationId = (id) => parseInt(id);
     
@@ -173,37 +161,30 @@ const CounterBasket = (props) => {
 
     return foundItem ? foundItem.count : 0;
   };
-    
+
   const count = getProductCount(items, productId, seller, combinationsID);
   const [localCount, setLocalCount] = useState(count);
 
-  // Update local count when Redux store changes
   useEffect(() => {
     const currentCount = getProductCount(items, productId, seller, combinationsID);
     setLocalCount(currentCount);
   }, [items, productId, seller, combinationsID]);
 
+  const realMax = Math.min(max || Infinity, props.stock || Infinity);
 
-const realMax = Math.min(max || Infinity, props.stock || Infinity);
+  const increment = () => {
+    if (localCount >= realMax || isPageLoading) return;
+    const newCount = localCount + 1;
+    setLocalCount(newCount);
+    handleChange({ value: newCount });
+  };
 
-const increment = () => {
-  if (localCount >= realMax || isPageLoading) return;
-
-  const newCount = localCount + 1;
-  setLocalCount(newCount);
-  handleChange({ value: newCount });
-};
-
-const handleMaxClick = () => {
-  if (realMax && !isPageLoading) {
-    setLocalCount(realMax);
-    handleChange({ value: realMax });
-  }
-};
-
-  
-
-
+  const handleMaxClick = () => {
+    if (realMax && !isPageLoading) {
+      setLocalCount(realMax);
+      handleChange({ value: realMax });
+    }
+  };
 
   const decrement = () => {
     if (isPageLoading) return;
@@ -233,7 +214,6 @@ const handleMaxClick = () => {
       }
     } catch (error) {
       console.error("Update failed:", error);
-      // Revert local count on error
       const currentCount = getProductCount(items, productId, seller, combinationsID);
       setLocalCount(currentCount);
     } finally {
@@ -242,58 +222,48 @@ const handleMaxClick = () => {
   };
 
   const handleRemove = async () => {
-    // Prevent double calls
     if (isPageLoading || isRemoving.current) return;
     
     isRemoving.current = true;
     setIsPageLoading(true);
     
     try {
-      
       const response = await cartAPI.removeFromCart({
         productId,
         seller: seller,
         combinationsID,
       });
       
-      
-      // Force update Redux store with fresh cart data
       if (response?.cart !== undefined) {
+        // Update Redux store
         dispatch(setInitial([...response.cart]));
         
-        // Set local count to 0 immediately
+        // Set local count to 0
         setLocalCount(0);
         
-        // Call the UI-only remove function to hide the Product component
+        // Call UI-only remove function
         if (removeFun && typeof removeFun === 'function') {
           removeFun();
         }
-      }
-
-      const response2 = await cartAPI.getCart();
-
-      if (response2?.cart) {
-        dispatch(setInitial([...response.cart]));
+        
+        // NEW: Notify parent component that removal is complete
+        if (onRemoveComplete && typeof onRemoveComplete === 'function') {
+          onRemoveComplete();
+        }
       }
       
     } catch (error) {
-      // Don't show error for "Cart not found" as it might be a double call
-      if (!error.message?.includes("Cart not found")) {
-        // Handle other errors appropriately
-      }
+      console.error("Remove failed:", error);
     } finally {
       setIsPageLoading(false);
       isRemoving.current = false;
     }
   };
 
-
-  // Show counter only if item is in cart and not a subscription
   const shouldShowCounter = localCount > 0 && !productIdStr.toLowerCase().includes("subscription");
 
   return (
     <>
-      {/* Full page loading overlay */}
       <LoadingOverlay 
         pos="fixed" 
         visible={isPageLoading} 
@@ -328,7 +298,6 @@ const handleMaxClick = () => {
             <IconPlus size={15} />
           </ActionIcon>
 
-          
           <Input
             type="number"
             w={35}

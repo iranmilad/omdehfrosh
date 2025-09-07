@@ -1,17 +1,31 @@
 import { ActionIcon, Center, Image, Paper, Title, Box, Text } from "@mantine/core";
 import { IconChevronLeft, IconChevronRight, IconBuildingStore } from "@tabler/icons-react";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { NavLink } from "react-router";
 import { FreeMode, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 function BrandSlider({ items }) {
-
-
   const sliderRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
-  const [isEnd, setIsEnd] = useState(items && items.children && items.children.length > 3 ? false : true);
+  const [isEnd, setIsEnd] = useState(false);
   const [failedImages, setFailedImages] = useState(new Set());
+
+  // Calculate if we need navigation based on actual content width vs container
+  const itemCount = items?.children?.length || 0;
+  const shouldShowNavigation = itemCount > 1; // Show navigation if more than 1 item
+  const shouldLoop = itemCount > 4; // Only loop if we have more than 4 items
+
+  useEffect(() => {
+    // Reset states when items change
+    if (itemCount <= 1) {
+      setIsBeginning(true);
+      setIsEnd(true);
+    } else {
+      setIsBeginning(true);
+      setIsEnd(itemCount <= 4); // If 4 or fewer items, we might reach the end quickly
+    }
+  }, [itemCount]);
 
   // Handler functions for custom navigation
   const handlePrev = () => {
@@ -27,6 +41,12 @@ function BrandSlider({ items }) {
   };
 
   const handleSlideChange = (swiper) => {
+    setIsBeginning(swiper.isBeginning);
+    setIsEnd(swiper.isEnd);
+  };
+
+  const handleSwiper = (swiper) => {
+    // Update states when swiper is initialized
     setIsBeginning(swiper.isBeginning);
     setIsEnd(swiper.isEnd);
   };
@@ -92,21 +112,6 @@ function BrandSlider({ items }) {
           color="rgba(255, 255, 255, 0.9)" 
           style={{ zIndex: 2 }} 
         />
-        
-        {/* Brand text */}
-        {/* <Text 
-          c="white" 
-          fw={500} 
-          size="xs" 
-          ta="center"
-          style={{ 
-            zIndex: 2,
-            textShadow: "0 1px 2px rgba(0,0,0,0.3)",
-            lineHeight: 1,
-          }}
-        >
-          برند
-        </Text> */}
       </Box>
     );
   };
@@ -161,13 +166,33 @@ function BrandSlider({ items }) {
         ref={sliderRef}
         slidesPerView="auto"
         spaceBetween={30}
-        loop={items.children.length > 3}
+        loop={shouldLoop}
         modules={[Navigation]}
         onSliderMove={handleSlideChange}
         onSlideChange={handleSlideChange}
+        onSwiper={handleSwiper}
+        breakpoints={{
+          // Responsive breakpoints
+          320: {
+            slidesPerView: 2,
+            spaceBetween: 20,
+          },
+          480: {
+            slidesPerView: 3,
+            spaceBetween: 25,
+          },
+          768: {
+            slidesPerView: 4,
+            spaceBetween: 30,
+          },
+          1024: {
+            slidesPerView: 5,
+            spaceBetween: 30,
+          },
+        }}
         style={{ position: "relative", marginTop: "35px" }}
       >
-        {!isBeginning && (
+        {shouldShowNavigation && !isBeginning && (
           <ActionIcon
             variant="white"
             radius={999}
@@ -179,7 +204,7 @@ function BrandSlider({ items }) {
             <IconChevronRight size={18} />
           </ActionIcon>
         )}
-        {!isEnd && (
+        {shouldShowNavigation && !isEnd && (
           <ActionIcon
             variant="white"
             radius={999}
@@ -197,7 +222,7 @@ function BrandSlider({ items }) {
             style={{
               padding: "25px",
               paddingRight: 0,
-              width: "100px",
+              width: "120px", // Fixed width instead of 100px for better consistency
               height: "100px",
               display: "flex",
               alignItems: "center",

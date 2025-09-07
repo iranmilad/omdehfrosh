@@ -21,6 +21,8 @@ import { MdCompare } from "react-icons/md";
 import { useFavorites } from '../../../../Libs/hooks/useFavourites'
 
 function IconBar({ favorite, data }) {
+
+  console.log(data)
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -54,7 +56,8 @@ function IconBar({ favorite, data }) {
   // Check if current product is favorite using cookies
   const isFavorite = checkIsFavorite(data.id);
   
-  // Debug log
+  // Check if categoryName exists to show compare buttons
+  const hasCategoryName = data?.general?.categoryName && data.general.categoryName.trim() !== '';
 
   // add to favorites
   useEffect(() => {
@@ -290,22 +293,28 @@ function IconBar({ favorite, data }) {
           </Tooltip>
         )}
 
-        <Tooltip
-          label={"مقایسه"}
-          position="right"
-          zIndex={9999}
-        >
-          <ActionIcon
-            size="md"
-            variant="transparent"
-            onClick={handleNavigate}
-            color={"green"}
+        {/* Only show compare button if categoryName exists */}
+        {hasCategoryName && (
+          <Tooltip
+            label={"مقایسه"}
+            position="right"
+            zIndex={9999}
           >
-            <MdCompare size={25} />
-          </ActionIcon>
-        </Tooltip>
+            <ActionIcon
+              size="md"
+              variant="transparent"
+              onClick={handleNavigate}
+              color={"green"}
+            >
+              <MdCompare size={25} />
+            </ActionIcon>
+          </Tooltip>
+        )}
 
-        <CompareBtn id={data.id} category={data.general.categoryName} variant="transparent" />
+        {/* Only show CompareBtn component if categoryName exists */}
+        {hasCategoryName && (
+          <CompareBtn id={data.id} category={data.general.categoryName} variant="transparent" />
+        )}
 
         <Tooltip label="اشتراک گذاری" position="right">
           <ActionIcon
