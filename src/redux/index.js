@@ -119,6 +119,8 @@ import gateWaysDataReducer from './gatewaysdata/gatewaysdata/gateWaysDataSlice.j
 
 import fastEditBrandModeReducer from "./fastedit/fasteditbrandmode/fastEditBrandModeUpdateSlice.js"; // Import your reducer
 
+import getSubscriptionInfoReducer from './usermyaccounts/usermyaccounts/purchasesubscriptions/getsubscriptioninfo/getSubscriptionInfoSlice.js'
+
 // user my accounts reducers
 import userMyAccountsGetReducer from './usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetSlice.js'
 
@@ -167,6 +169,7 @@ export default configureStore({
       updateUserInfo: updateUserInfoReducer,
       getPaymentLink: getPaymentLinkReducer,
       verifypayment: verifyPaymentReducer,
+      getSubscriptionInfo: getSubscriptionInfoReducer,
       singleProduct: singleProductReducer,
       orders: ordersReducer,
       orderStatusUpdate: orderStatusUpdateReducer,

@@ -5,7 +5,7 @@ import getHttpCodeMessage from "../../../../Libs/httpcodes/httpcodes";
 // Action to purchase a subscription plan by modelId
 export const purchaseSubscriptionByModelId = createAsyncThunk(
   "subscriptions/purchaseSubscription",
-  async ({ modelId }, { rejectWithValue }) => {
+  async ({ modelId, transactionId }, { rejectWithValue }) => {
     const token = localStorage.getItem("user");
 
     try {
@@ -14,6 +14,9 @@ export const purchaseSubscriptionByModelId = createAsyncThunk(
         headers: new Headers({
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          transactionId: transactionId
         }),
       });
 
