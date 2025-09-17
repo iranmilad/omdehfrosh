@@ -161,7 +161,6 @@ const handleCartRemovalComplete = async () => {
         props.combinationsID
       );
       
-      console.log('Remove response:', removeResponse);
       
       // Check if the API returned updated cart data
       if (removeResponse?.message === "ok") {

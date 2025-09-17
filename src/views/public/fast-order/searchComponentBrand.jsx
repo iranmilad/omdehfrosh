@@ -475,7 +475,8 @@ const SearchComponentBrand = ({
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
-  console.log(filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage)
+
+  console.log("render SearchComponentBrand", tableData);
 
   return (
     <>

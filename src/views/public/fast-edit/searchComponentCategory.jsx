@@ -233,6 +233,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
   }, [tableData, filterBrandStorage]); 
 
 
+
     const isMobile = useMediaQuery("(max-width: 768px)");
     const isTablet = useMediaQuery("(max-width: 1024px)");
 
@@ -242,7 +243,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
 
         <div className="flex flex-row justify-between mb-4">
           <div className="flex">
-            <XTitle>سفارش سریع</XTitle>
+            <XTitle>ویرایش سریع</XTitle>
           </div>
           <div className="flex">
             <ShareModal filters={updateFiltersAndStore().thisFilter} />
@@ -257,21 +258,32 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
             <Tabs.Tab value="category">جستجو بر اساس دسته بندی</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value="category">
-            {loading && searchType === "category" ? (
-              tableData ? 
-              <SlideCategory
-                tab={category}
-                items={tableData?.category}
-                searchType={searchType}
-                click={setCategory}
-                filterCategoryStorage={filterCategoryStorage}
-                setFilterCategoryStorage={setFilterCategoryStorage}
-                filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-              /> : null
-            ) : null}
+            {searchType === "category" && (
+              loading ? (
+                <Center>
+                  <Loader />
+                </Center>
+              ) : (
+                tableData?.category ? (
+                  <SlideCategory
+                    tab={category}
+                    items={tableData.category}
+                    searchType={searchType}
+                    click={setCategory}
+                    filterCategoryStorage={filterCategoryStorage}
+                    setFilterCategoryStorage={setFilterCategoryStorage}
+                    filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                    setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                    filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                    setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                  />
+                ) : (
+                  <Center>
+                    <Text>No categories available</Text>
+                  </Center>
+                )
+              )
+            )}
           </Tabs.Panel>
         </Tabs>
 

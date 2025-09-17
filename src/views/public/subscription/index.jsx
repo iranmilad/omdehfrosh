@@ -110,7 +110,6 @@ const handlePurchaseClick = (plan) => {
   }
 };
 
-    console.log(subscriptionInfo)
 
   // const handleConfirmPurchase = () => {
   //   purchaseSubscription(confirmModal.plan);

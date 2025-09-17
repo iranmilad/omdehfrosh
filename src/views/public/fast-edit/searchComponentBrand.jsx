@@ -225,7 +225,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
         <div className="flex flex-row justify-between mb-4">
           <div className="flex">
-            <XTitle>سفارش سریع</XTitle>
+            <XTitle>ویرایش سریع</XTitle>
           </div>
           <div className="flex">
             <ShareModal filters={updateFiltersAndStore().thisFilter} />

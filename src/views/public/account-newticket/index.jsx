@@ -182,7 +182,6 @@ function Account_Newticket() {
   };
 
   const handleSubmit = (values) => {
-    console.log(values);
     
     // Find the department label
     const selectedDepartment = departments.find(dept => dept.value === values.department);

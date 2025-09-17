@@ -10,6 +10,9 @@ export const getCategoryDataBySlug = async (req, res) => {
 
   const { filters } = req.body;
   const { slug } = req.params;
+  
+
+  console.log(filters, slug)
 
   const minPrice = filters.price_min;
   const maxPrice = filters.price_max;

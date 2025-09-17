@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -16,28 +16,24 @@ import {
   SegmentedControl,
   Select,
   Modal,
+  TextInput,
+  Checkbox,
 } from "@mantine/core";
-import { IconFilter } from "@tabler/icons-react";
+import { IconFilter, IconSearch, IconSortDescending } from "@tabler/icons-react";
 import { useDebouncedState, useDebouncedValue, useDisclosure } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import qs from "qs";
-import Filters from "./Filters";
 import ProductList from "./ProductList";
 import SortingAndPagination from "./SortingAndPagination";
 import ProductBox from "../productBox";
-import { IconSortDescending } from "@tabler/icons-react";
-import { useParams, useNavigate } from "react-router";
+import Price from './price';
+import PaperCollpase from '../PaperCollapse';
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { getCategoryData } from "../../redux/category/getcategorydata/getCategoryDataActions";
 import DelayedFullScreenLoader from "../centerloading";
 import { verifyToken } from "../../redux/auth/authusers/auth";
 import { fetchUserInfo } from "../../redux/users/userinfo/userInfo";
-
-const DEFAULT_FILTERS = {
-  brands: ["samsung"],
-  colors: ["black"],
-  delivery_areas: ["fars"]
-};
 
 const sortFilter = [
   { label: "جدیدترین", value: "newest" },
@@ -46,12 +42,171 @@ const sortFilter = [
   { label: "پرفروش‌ترین", value: "best_selling" },
 ];
 
+// Internal Filters Component
+const FiltersSection = React.memo(({ 
+  isFetching, 
+  data, 
+  slug, 
+  form, 
+  handleDynamicChange, 
+  setSearch, 
+  setPage, 
+  filterDisclosure,
+  onFiltersSubmit
+}) => {
+  const dynamicFilters = data?.filters || [];
+
+  const handleSearchChange = (event) => {
+    setSearch(event.target.value);
+    setPage(1);
+  };
+
+  const handlePriceChange = (updatedPrice) => {
+    form.setFieldValue("price", updatedPrice);
+    setPage(1);
+  };
+
+  const handleFilterChange = (filterKey, optionValue, checked) => {
+    const currentValues = form.values.dynamic[filterKey] || [];
+    const updatedValues = checked
+      ? [...currentValues, optionValue]
+      : currentValues.filter((val) => val !== optionValue);
+    handleDynamicChange(filterKey, updatedValues);
+  };
+
+  const FilterContent = () => (
+    <>
+      <Paper h={83} display="flex" style={{ alignItems: "center" }}>
+        <TextInput
+          w="100%"
+          variant="filled"
+          styles={{ input: { height: 45 } }}
+          rightSection={<IconSearch size={18} />}
+          placeholder="جستجو محصول"
+          onChange={handleSearchChange}
+        />
+      </Paper>
+      <Price
+        priceRange={data?.price}
+        data={data ?? data}
+        priceSliderMin={100}
+        priceSliderMax={200000}
+        onPriceChange={handlePriceChange}
+      />
+
+      {dynamicFilters.map((filter, index) => (
+        <PaperCollpase key={index} title={filter.title}>
+          <Stack mt="xs">
+            {filter.options.map((option) => (
+              <Checkbox
+                key={option.value}
+                label={option.label}
+                checked={form.values.dynamic[filter.key]?.includes(option.value)}
+                onChange={(e) => handleFilterChange(filter.key, option.value, e.target.checked)}
+              />
+            ))}
+          </Stack>
+        </PaperCollpase>
+      ))}
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop view */}
+      <Stack visibleFrom="md">
+        <FilterContent />
+      </Stack>
+
+      {/* Mobile Filter Button */}
+      <Button
+        hiddenFrom="md"
+        leftSection={<IconFilter size={18} />}
+        onClick={filterDisclosure[1].open}
+      >
+        فیلتر ها
+      </Button>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        opened={filterDisclosure[0]}
+        onClose={filterDisclosure[1].close}
+        title="فیلترها"
+        size="100%"
+        position="right"
+      >
+        <LoadingOverlay visible={isFetching} />
+        <Stack>
+          <FilterContent />
+          <Button h={35} size="xs" radius={99999} w="max-content" onClick={onFiltersSubmit}>
+            فیلتر
+          </Button>
+        </Stack>
+      </Drawer>
+    </>
+  );
+});
+
 function Category({ enabled, onSelectProduct }) {
   const { slug } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
+  const initialLoadRef = useRef(false);
 
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
+
+  const DEFAULT_FILTERS = {
+    brands: [],
+    colors: [],
+    delivery_areas: []
+  };
+
+  // Helper function to parse URL parameters
+  const parseUrlFilters = useCallback(() => {
+    const urlFilters = { ...DEFAULT_FILTERS };
+    
+    // Parse brands
+    const brandsParam = searchParams.get('brands');
+    if (brandsParam) {
+      try {
+        const parsedBrands = JSON.parse(brandsParam);
+        if (Array.isArray(parsedBrands)) {
+          urlFilters.brands = parsedBrands;
+        }
+      } catch (e) {
+        console.warn('Failed to parse brands parameter:', e);
+      }
+    }
+
+    // Parse colors
+    const colorsParam = searchParams.get('colors');
+    if (colorsParam) {
+      try {
+        const parsedColors = JSON.parse(colorsParam);
+        if (Array.isArray(parsedColors)) {
+          urlFilters.colors = parsedColors;
+        }
+      } catch (e) {
+        console.warn('Failed to parse colors parameter:', e);
+      }
+    }
+
+    // Parse delivery_areas
+    const deliveryAreasParam = searchParams.get('delivery_areas');
+    if (deliveryAreasParam) {
+      try {
+        const parsedDeliveryAreas = JSON.parse(deliveryAreasParam);
+        if (Array.isArray(parsedDeliveryAreas)) {
+          urlFilters.delivery_areas = parsedDeliveryAreas;
+        }
+      } catch (e) {
+        console.warn('Failed to parse delivery_areas parameter:', e);
+      }
+    }
+
+    return urlFilters;
+  }, [searchParams]);
 
   const {
     categoryData,
@@ -59,43 +214,40 @@ function Category({ enabled, onSelectProduct }) {
     errorCategoryData
   } = useSelector((state) => state.categoryData);
 
-
-  const [page, setPage] = useState(1);
-  const [sortValue, setSortValue] = useState("newest");
-  const [search, setSearch] = useState("");
+  // Initialize state from URL parameters
+  const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1);
+  const [sortValue, setSortValue] = useState(searchParams.get('sort') || "newest");
+  const [search, setSearch] = useState(searchParams.get('s') || "");
   const [debouncedSearch] = useDebouncedValue(search, 600);
   const filterDisclosure = useDisclosure(false);
   
+  // Parse URL filters once and use them in form initialization
+  const urlFilters = useMemo(() => parseUrlFilters(), [parseUrlFilters]);
+  
   const form = useForm({
     initialValues: {
-      price: {min: 0, max: 0},
-      dynamic: DEFAULT_FILTERS
+      price: {
+        min: parseInt(searchParams.get('price_min')) || 0,
+        max: parseInt(searchParams.get('price_max')) || 0
+      },
+      dynamic: urlFilters
     }
   });
 
-  useEffect(() => {
-    dispatch(verifyToken());
-  }, [dispatch]);
-
-  // Call fetchUserInfo when user exists
-  useEffect(() => {
-    if (user) {
-      dispatch(fetchUserInfo());
-    }
-  }, [user, dispatch]);
-
-  const changeFilters = useCallback((customSortValue) => {
+  // Single function to build and dispatch API call
+  const fetchCategoryData = useCallback((customFilters = {}) => {
     const filters = {
       price_min: form.values.price.min || 0,
       price_max: form.values.price.max || 9000000,
       ...form.values.dynamic,
       limit: 20,
       page,
-      sort: customSortValue ?? sortValue,
+      sort: sortValue,
       s: debouncedSearch,
+      ...customFilters // Override with any custom filters
     };
 
-    // Remove undefined/null values and empty arrays to clean up the request
+    // Remove undefined/null values and empty arrays
     Object.keys(filters).forEach(key => {
       if (filters[key] === undefined || filters[key] === null || filters[key] === '') {
         delete filters[key];
@@ -104,75 +256,96 @@ function Category({ enabled, onSelectProduct }) {
         delete filters[key];
       }
     });
-  
-    return {
-      filters,
-      query: qs.stringify(filters, {
-        addQueryPrefix: true,
-        arrayFormat: "comma",
-      })
-    };
-  }, [form.values, page, sortValue, debouncedSearch]);
+
+    dispatch(getCategoryData({ slug, filters }));
+  }, [dispatch, slug, form.values, page, sortValue, debouncedSearch]);
+
+  // Auth effects
+  useEffect(() => {
+    dispatch(verifyToken());
+  }, [dispatch]);
 
   useEffect(() => {
-    if (slug) { 
-      const filtersData = changeFilters().filters;
-      dispatch(getCategoryData({slug: slug, filters: filtersData}));
+    if (user) {
+      dispatch(fetchUserInfo());
     }
-  }, [dispatch, slug, changeFilters]);
+  }, [user, dispatch]);
 
+  // Main data fetching effect - only runs once on mount and when essential params change
   useEffect(() => {
-    if(categoryData && !errorCategoryData){
-      // Set price defaults
-      form.setDirty('price', categoryData?.price);
+    if (slug && !initialLoadRef.current) {
+      initialLoadRef.current = true;
+      fetchCategoryData();
+    }
+  }, [slug, fetchCategoryData]);
+
+  // Handle debounced search changes
+  useEffect(() => {
+    if (initialLoadRef.current) {
+      fetchCategoryData();
+    }
+  }, [debouncedSearch]);
+
+  // Set default values only after first successful API call
+  useEffect(() => {
+    if (categoryData && !errorCategoryData && initialLoadRef.current) {
+      let shouldUpdate = false;
+      const updates = {};
+
+      // Set price defaults only if not already set from URL
+      if (form.values.price.min === 0 && form.values.price.max === 0 && categoryData?.price) {
+        updates.price = categoryData.price;
+        shouldUpdate = true;
+      }
       
-      // Set default filter values if they haven't been set yet
-      if (!form.values.dynamic.brands && categoryData?.brands?.length > 0) {
-        form.setFieldValue('dynamic.brands', [categoryData.brands[0].name || categoryData.brands[0]]);
+      // Only set default filters if no URL params were provided AND no existing values
+      if (!searchParams.get('brands') && (!form.values.dynamic.brands || form.values.dynamic.brands.length === 0) && categoryData?.brands?.length > 0) {
+        updates['dynamic.brands'] = [categoryData.brands[0].name || categoryData.brands[0]];
+        shouldUpdate = true;
       }
-      if (!form.values.dynamic.colors && categoryData?.colors?.length > 0) {
-        form.setFieldValue('dynamic.colors', [categoryData.colors[0].name || categoryData.colors[0]]);
+      if (!searchParams.get('colors') && (!form.values.dynamic.colors || form.values.dynamic.colors.length === 0) && categoryData?.colors?.length > 0) {
+        updates['dynamic.colors'] = [categoryData.colors[0].name || categoryData.colors[0]];
+        shouldUpdate = true;
       }
-      if (!form.values.dynamic.delivery_areas && categoryData?.delivery_areas?.length > 0) {
-        form.setFieldValue('dynamic.delivery_areas', [categoryData.delivery_areas[0].name || categoryData.delivery_areas[0]]);
+      if (!searchParams.get('delivery_areas') && (!form.values.dynamic.delivery_areas || form.values.dynamic.delivery_areas.length === 0) && categoryData?.delivery_areas?.length > 0) {
+        updates['dynamic.delivery_areas'] = [categoryData.delivery_areas[0].name || categoryData.delivery_areas[0]];
+        shouldUpdate = true;
       }
-    };
-  },[categoryData, loadingCategoryData, errorCategoryData, form]);
+
+      if (shouldUpdate) {
+        Object.keys(updates).forEach(key => {
+          form.setFieldValue(key, updates[key]);
+        });
+      }
+    }
+  }, [categoryData, errorCategoryData, form, searchParams]);
 
   const changeSort = useCallback((val) => {
     setSortValue(val);
     setPage(1);
-  
-    const newFilters = changeFilters(val).filters;
-    
-    dispatch(getCategoryData({ slug, filters: newFilters }));
-  }, [slug, changeFilters, dispatch]);
+    fetchCategoryData({ sort: val, page: 1 });
+  }, [fetchCategoryData]);
   
   const handleDynamicChange = useCallback((key, value) => {
     form.setFieldValue(`dynamic.${key}`, value);
     setPage(1);
-    
-    // Trigger new category data fetch with updated filters
-    const newFilters = changeFilters().filters;
-    newFilters.dynamic = { ...newFilters.dynamic, [key]: value };
-    
-    dispatch(getCategoryData({ slug, filters: newFilters }));
-  }, [form, changeFilters, slug, dispatch]);
+    fetchCategoryData({ [key]: value, page: 1 });
+  }, [form, fetchCategoryData]);
 
   const handlePageChange = useCallback((newPage) => {
     setPage(newPage);
-    
-    const newFilters = changeFilters().filters;
-    newFilters.page = newPage;
-    
-    dispatch(getCategoryData({ slug, filters: newFilters }));
-  }, [changeFilters, slug, dispatch]);
+    fetchCategoryData({ page: newPage });
+  }, [fetchCategoryData]);
+
+  const handleFiltersSubmit = useCallback(() => {
+    fetchCategoryData();
+    filterDisclosure[1].close();
+  }, [fetchCategoryData, filterDisclosure]);
 
   // Handle API error case with retry functionality
   if (errorCategoryData && !loadingCategoryData) {
     const handleRetry = () => {
-      const filtersData = changeFilters().filters;
-      dispatch(getCategoryData({slug: slug, filters: filtersData}));
+      fetchCategoryData();
     };
 
     return (
@@ -241,8 +414,6 @@ function Category({ enabled, onSelectProduct }) {
     );
   }
 
-
-
   // If the subscription model is "basic", show the page to everyone
   if (categoryData?.subscriptionModel?.modelId === "basic") {
     return (
@@ -251,27 +422,17 @@ function Category({ enabled, onSelectProduct }) {
         {categoryData && (
           <Grid>
             <GridCol span={{md:3}}>
-              <Stack visibleFrom="md">
-                <Filters
-                  data={categoryData}
-                  form={form}
-                  slug={slug}
-                  changeFilters={changeFilters().filters}
-                  getCategoryData={getCategoryData}
-                  setSearch={setSearch}
-                  handleDynamicChange={handleDynamicChange}
-                  setPage={setPage}
-                  filterDisclosure={filterDisclosure}
-                  isFetching={loadingCategoryData}
-                />
-              </Stack>
-              <Button
-                hiddenFrom="md"
-                leftSection={<IconFilter size={18} />}
-                onClick={filterDisclosure[1].open}
-              >
-                فیلتر ها
-              </Button>
+              <FiltersSection
+                data={categoryData}
+                form={form}
+                slug={slug}
+                setSearch={setSearch}
+                handleDynamicChange={handleDynamicChange}
+                setPage={setPage}
+                filterDisclosure={filterDisclosure}
+                isFetching={loadingCategoryData}
+                onFiltersSubmit={handleFiltersSubmit}
+              />
             </GridCol>
             <GridCol span={{ md:9}}>
               <Paper py="md">
@@ -410,27 +571,17 @@ function Category({ enabled, onSelectProduct }) {
       {categoryData && (
         <Grid>
           <GridCol span={{md:3}}>
-            <Stack visibleFrom="md">
-              <Filters
-                data={categoryData}
-                form={form}
-                slug={slug}
-                changeFilters={changeFilters().filters}
-                getCategoryData={getCategoryData}
-                setSearch={setSearch}
-                handleDynamicChange={handleDynamicChange}
-                setPage={setPage}
-                filterDisclosure={filterDisclosure}
-                isFetching={loadingCategoryData}
-              />
-            </Stack>
-            <Button
-              hiddenFrom="md"
-              leftSection={<IconFilter size={18} />}
-              onClick={filterDisclosure[1].open}
-            >
-              فیلتر ها
-            </Button>
+            <FiltersSection
+              data={categoryData}
+              form={form}
+              slug={slug}
+              setSearch={setSearch}
+              handleDynamicChange={handleDynamicChange}
+              setPage={setPage}
+              filterDisclosure={filterDisclosure}
+              isFetching={loadingCategoryData}
+              onFiltersSubmit={handleFiltersSubmit}
+            />
           </GridCol>
           <GridCol span={{ md:9}}>
             <Paper py="md">

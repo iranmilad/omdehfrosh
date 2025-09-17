@@ -332,11 +332,15 @@ const FastTableCategory = ({
     } 
     // Tablet view columns
     else if (isTablet) {
-      newVisibleColumns = ["image", "stock", "minOrder"];
+      newVisibleColumns = ["image", "maxOrder", "deliveryTime", "stock", "minOrder"];
     } 
     // For non-mobile and non-tablet views (desktop)
     else {
-      newVisibleColumns = [];
+      newVisibleColumns = [
+         "image", "deliveryTime", "discount",
+        "minOrder", "maxOrder", "seller", "delivery"
+      ];
+    
     }
 
     // Add columns for printing
@@ -463,10 +467,10 @@ const FastTableCategory = ({
       <div style={{ 
         minWidth: `${
           isMobile && isLandscape 
-            ? 400 // Reduced from 500
+            ? 350 // Reduced from 500
             : isMobile && isPortrait 
-              ? 600 // Reduced from 800
-              : COLUMNS.length * 80 // Reduced from 120
+              ? 400 // Reduced from 800
+              : COLUMNS.length // Reduced from 120
         }px`, 
         overflowX: "auto" 
       }}>

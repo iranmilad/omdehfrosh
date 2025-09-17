@@ -189,7 +189,6 @@ function StockAlert(props) {
     try {
       const response = await dispatch(setUserStockAlertInfo(alertData)).unwrap();
       
-      console.log("Sending to server:", alertData); // Debug log
       
       if (response && response.data) {
         const alertResponseData = response.data;
@@ -259,7 +258,6 @@ function StockAlert(props) {
     try {
       const response = await dispatch(getUserStockAlertInfo(slug)).unwrap();
 
-      console.log(response)
       
       if (response && response.data) {
         const alertData = response.data;
