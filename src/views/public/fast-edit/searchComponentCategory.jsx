@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import Cookies from "js-cookie";  // ✅ Import js-cookie
+import Cookies from "js-cookie";  
 import SlideCategory from "./SlideCategory";
 import { 
   Center, 
@@ -9,7 +9,8 @@ import {
   Paper, 
   Space, 
   Stack, 
-  Tabs 
+  Tabs,
+  Text
 } from "@mantine/core";
 import qs from "qs";
 import { useParams } from "react-router";
@@ -23,17 +24,13 @@ import { useMediaQuery } from "@mantine/hooks";
 
 const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocations, filters, setFilters, setNodes, setNodesSubCategories }) => {
 
-
-    const dispatch = useDispatch();
-    const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-  
+  const dispatch = useDispatch();
+  const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
 
   const [brands, setBrands] = useState({ parent: [], clickedBrands: [], categories: [] });
   const [category, setCategory] = useState({ parent: [], clickedCategories: [], subCategory: [], brands: [] });
- 
 
   const { tableData, loading } = useSelector((state) => state.fastEditCategoryModeData);
-  
 
   const COOKIE_NAME = "search_filters_category_fast_edit";
 
@@ -72,7 +69,6 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
   
   const [localFilters, setLocalFilters] = useState(initialFilters.filters);
 
-
   // filters in category mode
   const [filterCategoryStorage, setFilterCategoryStorage] = useState(initialFilters.uniqueIDClickedCategories);
   const [filterCategorySubCategoryStorage, setFilterCategorySubCategoryStorage] = useState(initialFilters.uniqueIDClickedSubCategories);
@@ -83,36 +79,22 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
   const url = "/fastorder";
   const { id } = useParams();
 
-  // useEffect(() => {
-  //   setFilters(localFilters); // Sync local state with parent state
-  // }, [localFilters]);
-
-  
+  // ✅ This effect updates the cookie whenever filters change (like in brand mode)
   useEffect(() => {
-  
     Cookies.set(COOKIE_NAME, JSON.stringify({
       searchType: searchType,
       uniqueIDClickedCategories: filterCategoryStorage,
       uniqueIDClickedSubCategories: filterCategorySubCategoryStorage,
       uniqueIDClickedSubCategoriesBrands: filterCategorySubCategoryBrandsStorage,
-      filters: localFilters,
-
+      filters: filters, // ✅ Use the actual filters prop instead of localFilters
     }), { expires: 7 });
-  }, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage, filters, localFilters]);
-  
-  // ✅ Load filters from cookies when the component mounts
-  const storedFilters = useMemo(() => {
-    const cookieFilters = Cookies.get(COOKIE_NAME);
-
-
-    if (cookieFilters) {
-      try {
-        return JSON.parse(cookieFilters);
-      } catch (error) {
-      }
-    }
-    return null;
-  }, []);
+  }, [
+    searchType, 
+    filterCategoryStorage, 
+    filterCategorySubCategoryStorage, 
+    filterCategorySubCategoryBrandsStorage, 
+    filters // ✅ Add filters as dependency
+  ]);
   
   useEffect(() => {
     const storedFilters = Cookies.get(COOKIE_NAME);
@@ -126,29 +108,23 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
         setFilterCategorySubCategoryBrandsStorage(parsedFilters.uniqueIDClickedSubCategoriesBrands || []);
 
         setLocalFilters(parsedFilters.filters || {});
-        setFilters(parsedFilters.filters || {});  // Sync with parent if needed
+        setFilters(parsedFilters.filters || {});  
 
-        setSearchType(parsedFilters.searchType || "brand");
+        setSearchType(parsedFilters.searchType || "category");
       } catch (error) {
       }
     } else {
     }
   }, []);
 
-  
-
-  // ✅ Function to update filters and store in cookies
   const updateFiltersAndStore = useCallback(() => {
     let thisFilter = {};
 
     if (searchType === "brand") {
-      
-      // thisFilter.filters = filters;
       thisFilter.searchType = searchType;
       thisFilter.uniqueIDClickedBrands = filterBrandStorage;
       thisFilter.uniqueIDClickedBrandsCategories = filterBrandsCategoryStorage;
       thisFilter.filterBrandsCategorySubCategoryStorage = filterBrandsCategorySubCategoryStorage;
-   
     } else if (searchType === "category") {
       thisFilter.searchType = "category";
       thisFilter.parent = category.parent;
@@ -158,7 +134,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
       thisFilter.uniqueIDClickedSubCategoriesBrands = filterCategorySubCategoryBrandsStorage;
     }
 
-    thisFilter.filters = filters;
+    thisFilter.filters = filters; // ✅ Use the actual filters prop
     if (id) thisFilter.userId = id;
 
     // ✅ Store in cookie (valid for 7 days)
@@ -175,7 +151,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     brands, 
     category,
     searchType, 
-    filters, 
+    filters, // ✅ Use filters instead of localFilters
     filterBrandStorage, 
     filterBrandsCategoryStorage, 
     filterBrandsCategorySubCategoryStorage,
@@ -187,41 +163,23 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
 
   const queryKey = updateFiltersAndStore().query;
 
+  console.log("filters", filters)
 
-
-
-  // useEffect(() => {
-  //   dispatch(fetchFastOrderCategoryModeTableData())
-
-  // }, [dispatch]);  
-
-    useEffect(() => {
-  
-      // if(user?.id) {
-
-        dispatch(fetchFastEditCategoryModeTableData({
-          searchType,
-          // supplierId: user?.id,
-          uniqueIDClickedCategories: updateFiltersAndStore().thisFilter.uniqueIDClickedCategories,
-          uniqueIDClickedSubCategories: updateFiltersAndStore().thisFilter.uniqueIDClickedSubCategories,
-          uniqueIDClickedSubCategoriesBrands: updateFiltersAndStore().thisFilter.uniqueIDClickedSubCategoriesBrands
-        }));
-        
-      // }
-  
-    }, [
-      dispatch, 
-      // user?.id,
+  useEffect(() => {
+    dispatch(fetchFastEditCategoryModeTableData({
       searchType,
-      updateFiltersAndStore().thisFilter.uniqueIDClickedCategories,
-      updateFiltersAndStore().thisFilter.uniqueIDClickedSubCategories,
-      updateFiltersAndStore().thisFilter.uniqueIDClickedSubCategoriesBrands,
-      filterCategoryStorage
-    ]);
-    
-
-
-
+      uniqueIDClickedCategories: updateFiltersAndStore().thisFilter.uniqueIDClickedCategories,
+      uniqueIDClickedSubCategories: updateFiltersAndStore().thisFilter.uniqueIDClickedSubCategories,
+      uniqueIDClickedSubCategoriesBrands: updateFiltersAndStore().thisFilter.uniqueIDClickedSubCategoriesBrands
+    }));
+  }, [
+    dispatch, 
+    searchType,
+    updateFiltersAndStore().thisFilter.uniqueIDClickedCategories,
+    updateFiltersAndStore().thisFilter.uniqueIDClickedSubCategories,
+    updateFiltersAndStore().thisFilter.uniqueIDClickedSubCategoriesBrands,
+    filterCategoryStorage
+  ]);
 
   useEffect(() => {
     if (tableData) {
@@ -232,10 +190,8 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     }
   }, [tableData, filterBrandStorage]); 
 
-
-
-    const isMobile = useMediaQuery("(max-width: 768px)");
-    const isTablet = useMediaQuery("(max-width: 1024px)");
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isTablet = useMediaQuery("(max-width: 1024px)");
 
   return (
     <>
@@ -249,8 +205,6 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
             <ShareModal filters={updateFiltersAndStore().thisFilter} />
           </div>
         </div>
-
-        {/* <LoadingOverlay pos="fixed" visible={isFetching || isLoading} zIndex={1000} h="100%" /> */}
 
         <Tabs styles={{ panel: { marginTop: "20px" } }} variant="pills" defaultValue="brand" value={searchType} onChange={setSearchType}>
           <Tabs.List>

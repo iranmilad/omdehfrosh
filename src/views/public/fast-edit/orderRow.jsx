@@ -50,29 +50,29 @@ function OrderRow({ id = 0, attributes, inventory = 2,seller, onReplace }) {
 // Default SVG component for when no attributes exist
 const DefaultAttributesSVG = () => (
   <svg 
-    width="80" 
-    height="80" 
+    width="40" 
+    height="40" 
     viewBox="0 0 80 80" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    style={{ opacity: 0.4 }}
+    style={{ opacity: 1 }}
   >
     <circle 
       cx="40" 
       cy="40" 
       r="30" 
-      stroke="#ced4da" 
+      stroke="#000000" 
       strokeWidth="2" 
       strokeDasharray="4,4"
       fill="none"
     />
     <path 
       d="M30 40h20M40 30v20" 
-      stroke="#ced4da" 
+      stroke="#000000" 
       strokeWidth="2" 
       strokeLinecap="round"
     />
-    <text 
+    {/* <text 
       x="40" 
       y="60" 
       textAnchor="middle" 
@@ -81,7 +81,7 @@ const DefaultAttributesSVG = () => (
       fontFamily="system-ui"
     >
       هیچ ویژگی‌ای وجود ندارد
-    </text>
+    </text> */}
   </svg>
 );
 
@@ -98,9 +98,9 @@ export function Attributes({items}){
       ) : (
         <Stack gap="" align="center">
           <DefaultAttributesSVG />
-          <Text size="sm" c="dimmed" ta="center">
+          {/* <Text size="sm" c="dimmed" ta="center">
             هیچ ویژگی‌ای برای نمایش وجود ندارد
-          </Text>
+          </Text> */}
         </Stack>
       )}
     </Center>

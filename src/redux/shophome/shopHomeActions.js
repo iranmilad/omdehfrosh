@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import getHttpCodeMessage from "../../Libs/httpcodes/httpcodes";
+import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 
 export const fetchShopHomeData = createAsyncThunk(
   "shopHome/fetchShopHomeData",

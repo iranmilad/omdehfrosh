@@ -218,6 +218,8 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     const isMobile = useMediaQuery("(max-width: 768px)");
     const isTablet = useMediaQuery("(max-width: 1024px)");
 
+    console.log("tableData", filters);
+
 
   return (
     <>

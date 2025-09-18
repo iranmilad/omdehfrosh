@@ -63,7 +63,7 @@ import RotateModal from "../../../components/rotatemodal";
 
 const FastOrderContext = createContext();
 
-function FastEdit() {
+function FastOrder() {
   const dispatch = useDispatch();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -711,4 +711,4 @@ useEffect(() => {
 
 export const useFastOrder = () => useContext(FastOrderContext)
 
-export default FastEdit;
+export default FastOrder;
