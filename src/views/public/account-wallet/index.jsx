@@ -39,6 +39,7 @@ import { handleKnownErrors } from '../../../Libs/errorstatushandle/httpErrorStat
 import { clearWithdrawState } from '../../../redux/payment/wallet/walletwithdrawal/walletWithDrawalSlice';
 import { clearTransferState } from '../../../redux/payment/wallet/wallettransfer/walletTransferSlice';
 import { get } from 'http';
+import { getAllOrdersByUserId } from '../../../redux/orders/orders/getallordersbyuserid/getAllOrdersByUserIdActions';
 
 
 const depositValidationSchema = yup.object().shape({
@@ -131,9 +132,9 @@ function Account_Wallet() {
   const [selectedGatewayId, setSelectedGatewayId] = useState(null);
   const [confirmTransferModal, setConfirmTransferModal] = useState(false);
 
-  const { user } = useSelector((state) => state.auth);
   const { userInfo, loadingUserInfo } = useSelector((state) => state.user);
   const { updateuser, errorUpdateUser } = useSelector((state) => state.updateUserInfo);
+    const [loginModalOpen, setLoginModalOpen] = useState(false);
 
 
   const { withdrawResult, loadingWithdraw, errorWithdraw } = useSelector((state) => state.walletWithDrawal);
@@ -143,6 +144,7 @@ function Account_Wallet() {
 
   const [modalOpenTransferError, setModalOpenTransferError] = useState(false);
 
+    const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
 
   const { userAccount } = useSelector((state) => state.userMyAccounts);
 
@@ -556,6 +558,74 @@ useEffect(() => {
 
              
           }, [errorTransfer]);
+
+
+
+    useEffect(() => {
+      // Only check after auth loading is complete
+      if (!authLoading) {
+        if (!isVerified || !user) {
+          setLoginModalOpen(true);
+          // Auto redirect to login after 3 seconds
+          const timer = setTimeout(() => {
+            navigate('/login');
+          }, 3000);
+          
+          // Cleanup timer if component unmounts
+          return () => clearTimeout(timer);
+        } else {
+          setLoginModalOpen(false);
+          // User is authenticated, fetch data
+          dispatch(getUserMyAccount({userId: user.id}));
+          dispatch(getAllOrdersByUserId());
+        }
+      }
+    }, [dispatch, isVerified, user, authLoading, navigate]);
+
+    // Handle immediate redirect to login page
+    const handleGoToLogin = () => {
+      navigate('/login');
+    };
+
+              if (!isVerified || !user) {
+                return (
+                  <>
+                    <Modal
+                      opened={loginModalOpen}
+                      onClose={() => {}} // Prevent closing by clicking outside
+                      closeOnClickOutside={false}
+                      closeOnEscape={false}
+                      withCloseButton={false}
+                      title="ورود به حساب کاربری"
+                      centered
+                      overlayProps={{
+                        backgroundOpacity: 0,
+                        blur: 0,
+                      }}
+                    >
+                      <Text mb="md">لطفا وارد حساب کاربری شوید</Text>
+                      <Text size="sm" c="dimmed" mb="md">
+                        در حال انتقال به صفحه ورود...
+                      </Text>
+                      <Flex gap="sm" justify="flex-end">
+                        <Button 
+                          onClick={handleGoToLogin}
+                        >
+                          رفتن به صفحه ورود
+                        </Button>
+                      </Flex>
+                    </Modal>
+                    
+                    {/* Show a placeholder content while modal is open */}
+                    <Center h={400}>
+                      <Stack align="center" gap="md">
+                        <Text size="xl" c="dimmed">در حال بررسی وضعیت ورود...</Text>
+                      </Stack>
+                    </Center>
+                  </>
+                );
+              }
+          
 
   if (loadingUserInfo) return <Center><Loader /></Center>;
   if (!userInfo?.user) return <Center>خطایی رخ داده است. لطفاً دوباره تلاش کنید.</Center>;

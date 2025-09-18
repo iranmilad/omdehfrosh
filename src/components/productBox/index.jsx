@@ -146,7 +146,6 @@ function ProductBox({
     );
   };
 
-  console.log(id)
 
   return (
     <Paper

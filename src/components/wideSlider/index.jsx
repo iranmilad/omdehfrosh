@@ -122,7 +122,7 @@ const SlideImage = ({ item, index }) => {
             transition: "transform 0.3s ease"
           }}
           onError={() => handleImageError('fallback')}
-          onLoad={() => console.log(`Image loaded successfully: ${fallbackImage}`)}
+          // onLoad={() => console.log(`Image loaded successfully: ${fallbackImage}`)}
         />
       )}
     </picture>

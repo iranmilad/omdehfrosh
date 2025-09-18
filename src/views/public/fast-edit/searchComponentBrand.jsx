@@ -218,6 +218,8 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     const isMobile = useMediaQuery("(max-width: 768px)");
     const isTablet = useMediaQuery("(max-width: 1024px)");
 
+    console.log("tableData", filters);
+
 
   return (
     <>
@@ -225,7 +227,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
         <div className="flex flex-row justify-between mb-4">
           <div className="flex">
-            <XTitle>سفارش سریع</XTitle>
+            <XTitle>ویرایش سریع</XTitle>
           </div>
           <div className="flex">
             <ShareModal filters={updateFiltersAndStore().thisFilter} />

@@ -52,19 +52,24 @@ function Account_Index() {
 
   const { primaryColor } = useMantineTheme();
 
-
-
   useEffect(() => {
     dispatch(verifyToken());
     dispatch(clearTicketCreationState())
   }, [dispatch]);
 
-  // Check authentication status and show modal if needed
+  // Check authentication status and show modal, then redirect
   useEffect(() => {
     // Only check after auth loading is complete
     if (!authLoading) {
       if (!isVerified || !user) {
         setLoginModalOpen(true);
+        // Auto redirect to login after 3 seconds
+        const timer = setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+        
+        // Cleanup timer if component unmounts
+        return () => clearTimeout(timer);
       } else {
         setLoginModalOpen(false);
         // User is authenticated, fetch data
@@ -72,7 +77,7 @@ function Account_Index() {
         dispatch(getAllOrdersByUserId());
       }
     }
-  }, [dispatch, isVerified, user, authLoading]);
+  }, [dispatch, isVerified, user, authLoading, navigate]);
 
   // Format date function
   const formatDate = (dateString) => {
@@ -106,10 +111,9 @@ function Account_Index() {
     }
   };
 
-  // Handle redirect to login page
+  // Handle immediate redirect to login page
   const handleGoToLogin = () => {
-    setLoginModalOpen(false);
-    navigate('/');
+    navigate('/login');
   };
 
   // Show loading while checking authentication
@@ -133,28 +137,22 @@ function Account_Index() {
           withCloseButton={false}
           title="ورود به حساب کاربری"
           centered
+          overlayProps={{
+            backgroundOpacity: 0,
+            blur: 0,
+          }}
         >
-          <Stack gap="md">
-            <Center>
-              <IconLogin size={64} color="#fa5252" />
-            </Center>
-            <Text ta="center" size="lg" fw={500}>
-              برای مشاهده اطلاعات حساب کاربری نیاز است وارد شوید
-            </Text>
-            <Text ta="center" c="dimmed">
-              لطفاً ابتدا وارد حساب کاربری خود شوید تا بتوانید اطلاعات حساب، سفارشات و محصولات مورد علاقه خود را مشاهده کنید.
-            </Text>
-            <Group justify="center" mt="md">
-              <Button
-                leftSection={<IconLogin size={16} />}
-                onClick={handleGoToLogin}
-                size="md"
-                color="red"
-              >
-                ورود به حساب کاربری
-              </Button>
-            </Group>
-          </Stack>
+          <Text mb="md">لطفا وارد حساب کاربری شوید</Text>
+          <Text size="sm" c="dimmed" mb="md">
+            در حال انتقال به صفحه ورود...
+          </Text>
+          <Flex gap="sm" justify="flex-end">
+            <Button 
+              onClick={handleGoToLogin}
+            >
+              رفتن به صفحه ورود
+            </Button>
+          </Flex>
         </Modal>
         
         {/* Show a placeholder content while modal is open */}

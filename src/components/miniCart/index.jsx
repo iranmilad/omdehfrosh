@@ -13,7 +13,8 @@ import {
   Stack,
   Text,
   useMantineTheme,
-  Loader
+  Loader,
+  Modal
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -30,8 +31,30 @@ import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 
 const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isRemoving, setIsRemoving] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { primaryColor } = useMantineTheme();
+
+  // Helper function to handle token expiration
+  const handleTokenExpiration = (error) => {
+    // Check if the error is related to token expiration
+    if (error.message.includes('توکن نامعتبر است') || 
+        error.message.includes('Unauthorized') || 
+        error.status === 401) {
+      localStorage.removeItem("user");
+      dispatch(setInitial([])); // Clear cart
+      setShowAuthModal(true);
+      return true;
+    }
+    return false;
+  };
+
+  // Handle login redirect
+  const handleLoginRedirect = () => {
+    setShowAuthModal(false);
+    navigate('/login');
+  };
 
   // Cleanup effect to ensure loading state is reset if component unmounts
   useEffect(() => {
@@ -107,7 +130,7 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     return null;
   }, [price]);
 
-  // Enhanced remove function with better error handling
+  // Enhanced remove function with token expiration handling
   const removeItem = async () => {
     setIsRemoving(true);
 
@@ -123,7 +146,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         seller: seller,
         combinationsID: combinationsID || null,
       };
-      
 
       const removeResponse = await fetch(getApiUrl("/cart/remove"), {
         method: "POST",
@@ -133,6 +155,13 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         },
         body: JSON.stringify(requestPayload),
       });
+
+      // Handle 401 Unauthorized immediately
+      if (removeResponse.status === 401) {
+        handleTokenExpiration({ status: 401, message: 'Unauthorized' });
+        setIsRemoving(false);
+        return;
+      }
 
       if (removeResponse.status === 404) {
         const errorData = await removeResponse.json();
@@ -191,6 +220,13 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         },
       });
 
+      // Handle 401 for cart fetch as well
+      if (cartResponse.status === 401) {
+        handleTokenExpiration({ status: 401, message: 'Unauthorized' });
+        setIsRemoving(false);
+        return;
+      }
+
       if (cartResponse.ok) {
         const cartData = await cartResponse.json();
         if (cartData?.message === "ok" && cartData?.cart) {
@@ -210,6 +246,12 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
 
     } catch (error) {
       console.error("Remove failed:", error);
+      
+      // Handle token expiration for caught errors
+      if (handleTokenExpiration(error)) {
+        setIsRemoving(false);
+        return;
+      }
       
       let errorMessage = 'مشکلی پیش آمده است دوباره تلاش کنید';
       let errorTitle = 'خطا در حذف';
@@ -252,214 +294,240 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
   };
 
   return (
-    <Flex 
-      gap="md" 
-      pt="sm" 
-      w="100%" 
-      style={{ 
-        opacity: isRemoving ? 0.5 : 1,
-        transition: 'all 0.3s ease',
-        transform: isRemoving ? 'scale(0.95)' : 'scale(1)',
-        borderRadius: '8px',
-        padding: '8px',
-        backgroundColor: 'var(--mantine-color-gray-0)',
-        border: '1px solid var(--mantine-color-gray-2)',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
-      {/* Product Image */}
-      <div style={{ position: 'relative', flexShrink: 0 }}>
-        <Anchor component={NavLink} to={`product/${productId}`}>
-          <Image 
-            src={getValidImageSrc()} 
-            w={80} 
-            h={80} 
-            fit="contain" 
-            radius="md"
-            fallbackSrc={defaultImage}
-            style={{
-              border: '1px solid var(--mantine-color-gray-3)',
-              backgroundColor: '#fff'
-            }}
-          />
-        </Anchor>
-        
-        {/* Quantity badge */}
-        <Badge
-          size="xs"
-          variant="filled"
-          color="blue"
-          style={{
-            position: 'absolute',
-            top: -4,
-            right: -4,
-            minWidth: '20px',
-            height: '20px',
-            padding: '0 6px',
-            fontSize: '10px',
-            fontWeight: 600
-          }}
-        >
-          {count}
-        </Badge>
-      </div>
-
-      {/* Product Details */}
-      <Flex gap="xs" direction="column" flex="1" style={{ minWidth: 0 }}>
-        {/* Product Name and Remove Button */}
-        <Flex align="flex-start" justify="space-between" gap="sm">
-          <Text 
-            component={NavLink} 
-            to={`product/${productId}`} 
-            className="line-clamp-2"
-            size="sm"
-            fw={500}
-            style={{ 
-              flex: 1, 
-              minWidth: 0,
-              color: 'var(--mantine-color-dark-7)',
-              textDecoration: 'none',
-              lineHeight: 1.4
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.color = 'var(--mantine-primary-color-filled)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.color = 'var(--mantine-color-dark-7)';
-            }}
+    <>
+      {/* Authentication Modal */}
+      <Modal
+        opened={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="ورود به حساب کاربری"
+        centered
+        closeOnClickOutside={false}
+        closeOnEscape={false}
+      >
+        <Text mb="md">لطفا وارد حساب کاربری شوید</Text>
+        <Flex gap="sm" justify="flex-end">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAuthModal(false)}
           >
-            {name}
-          </Text>
-          <ActionIcon 
-            color="red" 
-            variant="light" 
-            onClick={removeItem}
-            style={{ 
-              flexShrink: 0,
-              transition: 'all 0.2s ease'
-            }}
-            size="sm"
-            loading={isRemoving}
-            disabled={isRemoving}
-            radius="md"
+            انصراف
+          </Button>
+          <Button 
+            onClick={handleLoginRedirect}
           >
-            {isRemoving ? <Loader size={12} /> : <IconTrash size={12} />}
-          </ActionIcon>
+            ورود به حساب کاربری
+          </Button>
         </Flex>
-        
-        {/* Product Attributes */}
-        {shouldRenderAttributes(attributes) && (
-          <Flex gap="xs" wrap="wrap" style={{ margin: '4px 0' }}>
-            {attributes?.map((attr, index) => (
-              <Flex key={index} gap="xs" wrap="wrap">
-                {/* Color attribute - only colorful circle */}
-                {attr.color && attr.color !== "" && (
-                  <div
-                    style={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '50%',
-                      backgroundColor: getColorCode(attr.color),
-                      border: '2px solid var(--mantine-color-gray-4)',
-                      display: 'inline-block',
-                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
-                    }}
+      </Modal>
+
+      <Flex 
+        gap="md" 
+        pt="sm" 
+        w="100%" 
+        style={{ 
+          opacity: isRemoving ? 0.5 : 1,
+          transition: 'all 0.3s ease',
+          transform: isRemoving ? 'scale(0.95)' : 'scale(1)',
+          borderRadius: '8px',
+          padding: '8px',
+          backgroundColor: 'var(--mantine-color-gray-0)',
+          border: '1px solid var(--mantine-color-gray-2)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Product Image */}
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <Anchor component={NavLink} to={`product/${productId}`}>
+            <Image 
+              src={getValidImageSrc()} 
+              w={80} 
+              h={80} 
+              fit="contain" 
+              radius="md"
+              fallbackSrc={defaultImage}
+              style={{
+                border: '1px solid var(--mantine-color-gray-3)',
+                backgroundColor: '#fff'
+              }}
+            />
+          </Anchor>
+          
+          {/* Quantity badge */}
+          <Badge
+            size="xs"
+            variant="filled"
+            color="blue"
+            style={{
+              position: 'absolute',
+              top: -4,
+              right: -4,
+              minWidth: '20px',
+              height: '20px',
+              padding: '0 6px',
+              fontSize: '10px',
+              fontWeight: 600
+            }}
+          >
+            {count}
+          </Badge>
+        </div>
+
+        {/* Product Details */}
+        <Flex gap="xs" direction="column" flex="1" style={{ minWidth: 0 }}>
+          {/* Product Name and Remove Button */}
+          <Flex align="flex-start" justify="space-between" gap="sm">
+            <Text 
+              component={NavLink} 
+              to={`product/${productId}`} 
+              className="line-clamp-2"
+              size="sm"
+              fw={500}
+              style={{ 
+                flex: 1, 
+                minWidth: 0,
+                color: 'var(--mantine-color-dark-7)',
+                textDecoration: 'none',
+                lineHeight: 1.4
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.color = 'var(--mantine-primary-color-filled)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.color = 'var(--mantine-color-dark-7)';
+              }}
+            >
+              {name}
+            </Text>
+            <ActionIcon 
+              color="red" 
+              variant="light" 
+              onClick={removeItem}
+              style={{ 
+                flexShrink: 0,
+                transition: 'all 0.2s ease'
+              }}
+              size="sm"
+              loading={isRemoving}
+              disabled={isRemoving}
+              radius="md"
+            >
+              {isRemoving ? <Loader size={12} /> : <IconTrash size={12} />}
+            </ActionIcon>
+          </Flex>
+          
+          {/* Product Attributes */}
+          {shouldRenderAttributes(attributes) && (
+            <Flex gap="xs" wrap="wrap" style={{ margin: '4px 0' }}>
+              {attributes?.map((attr, index) => (
+                <Flex key={index} gap="xs" wrap="wrap">
+                  {/* Color attribute - only colorful circle */}
+                  {attr.color && attr.color !== "" && (
+                    <div
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        backgroundColor: getColorCode(attr.color),
+                        border: '2px solid var(--mantine-color-gray-4)',
+                        display: 'inline-block',
+                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                  )}
+                  
+                  {/* Material attribute */}
+                  {attr.material && attr.material !== "" && (
+                    <Badge variant="light" color="gray" size="xs" radius="sm">
+                      <Text size="xs">{attr.material}</Text>
+                    </Badge>
+                  )}
+                  
+                  {/* Warranty attribute */}
+                  {attr.warranty && attr.warranty !== "" && (
+                    <Badge variant="light" color="blue" size="xs" radius="sm">
+                      <Text size="xs">{attr.warranty}</Text>
+                    </Badge>
+                  )}
+                </Flex>
+              ))}
+            </Flex>
+          )}
+          
+          {/* Seller Information */}
+          <Flex align="center" gap="xs" style={{ margin: '2px 0' }}>
+            <IconUser size={12} color="var(--mantine-color-gray-6)" />
+            <Text size="xs" c="gray.6">{seller?.label}</Text>
+          </Flex>
+
+          {/* Price Section */}
+          <Flex 
+            dir="ltr" 
+            gap="sm" 
+            align="center" 
+            justify="space-between" 
+            w="100%"
+            style={{ marginTop: 'auto', padding: '8px 0' }}
+          >
+            <Flex direction="column" align="start" gap="2px">
+              {/* Discounted Price */}
+              <Flex align="center" gap="xs">
+                <Text fw={600} size="sm" c="dark">
+                  <NumberFormatter 
+                    thousandSeparator 
+                    value={price?.discountedPrice || price?.regularPrice} 
                   />
-                )}
+                  <Text component="span" size="xs" c="dimmed" mr="4px">
+                    تومان
+                  </Text>
+                </Text>
                 
-                {/* Material attribute */}
-                {attr.material && attr.material !== "" && (
-                  <Badge variant="light" color="gray" size="xs" radius="sm">
-                    <Text size="xs">{attr.material}</Text>
-                  </Badge>
-                )}
-                
-                {/* Warranty attribute */}
-                {attr.warranty && attr.warranty !== "" && (
-                  <Badge variant="light" color="blue" size="xs" radius="sm">
-                    <Text size="xs">{attr.warranty}</Text>
+                {/* Discount badge */}
+                {discountPercentage && (
+                  <Badge color="red" size="xs" variant="filled" radius="sm">
+                    {discountPercentage}%
                   </Badge>
                 )}
               </Flex>
-            ))}
-          </Flex>
-        )}
-        
-        {/* Seller Information */}
-        <Flex align="center" gap="xs" style={{ margin: '2px 0' }}>
-          <IconUser size={12} color="var(--mantine-color-gray-6)" />
-          <Text size="xs" c="gray.6">{seller?.label}</Text>
-        </Flex>
-        
-
-        
-        {/* Price Section */}
-        <Flex 
-          dir="ltr" 
-          gap="sm" 
-          align="center" 
-          justify="space-between" 
-          w="100%"
-          style={{ marginTop: 'auto', padding: '8px 0' }}
-        >
-          <Flex direction="column" align="start" gap="2px">
-            {/* Discounted Price */}
-            <Flex align="center" gap="xs">
-              <Text fw={600} size="sm" c="dark">
-                <NumberFormatter 
-                  thousandSeparator 
-                  value={price?.discountedPrice || price?.regularPrice} 
-                />
-                <Text component="span" size="xs" c="dimmed" mr="4px">
-                  تومان
-                </Text>
-              </Text>
               
-              {/* Discount badge */}
-              {discountPercentage && (
-                <Badge color="red" size="xs" variant="filled" radius="sm">
-                  {discountPercentage}%
-                </Badge>
+              {/* Original Price (if discounted) */}
+              {price?.discountedPrice && price?.regularPrice > price?.discountedPrice && (
+                <Text 
+                  size="xs" 
+                  c="gray.5" 
+                  style={{ textDecoration: 'line-through' }}
+                >
+                  <NumberFormatter 
+                    thousandSeparator 
+                    value={price.regularPrice} 
+                  />
+                </Text>
               )}
             </Flex>
             
-            {/* Original Price (if discounted) */}
-            {price?.discountedPrice && price?.regularPrice > price?.discountedPrice && (
-              <Text 
-                size="xs" 
-                c="gray.5" 
-                style={{ textDecoration: 'line-through' }}
-              >
-                <NumberFormatter 
-                  thousandSeparator 
-                  value={price.regularPrice} 
-                />
+            {/* Quantity Display */}
+            <Flex 
+              align="center" 
+              gap="xs"
+              style={{
+                backgroundColor: 'var(--mantine-primary-color-light)',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                border: '1px solid var(--mantine-primary-color-outline)'
+              }}
+            >
+              <Text c="var(--mantine-primary-color-filled)" size="xs" fw={500}>
+                × {count}
               </Text>
-            )}
-          </Flex>
-          
-          {/* Quantity Display */}
-          <Flex 
-            align="center" 
-            gap="xs"
-            style={{
-              backgroundColor: 'var(--mantine-primary-color-light)',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              border: '1px solid var(--mantine-primary-color-outline)'
-            }}
-          >
-            <Text c="var(--mantine-primary-color-filled)" size="xs" fw={500}>
-              × {count}
-            </Text>
+            </Flex>
           </Flex>
         </Flex>
       </Flex>
-    </Flex>
+    </>
   );
 };
+
 const MiniCart = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const navigate = useNavigate();
@@ -468,7 +536,6 @@ const MiniCart = () => {
   const cartState = useSelector((state) => state.cart);
   const items = cartState?.items || [];
 
-  
   // Authentication state
   const { user, isVerified } = useSelector((state) => state.auth);
 
@@ -491,7 +558,6 @@ const MiniCart = () => {
       navigate("/basket");
     }, 100); // Small delay to ensure drawer closes smoothly
   };
-
 
   return (
     <>

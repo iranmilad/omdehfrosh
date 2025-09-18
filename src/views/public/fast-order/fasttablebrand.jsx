@@ -51,6 +51,8 @@ const TableRow = ({
   filters_brand_mode 
 }) => {
 
+  console.log("item", item)
+
   const handleRowClick = () => {
   };
 
@@ -125,42 +127,42 @@ const handleInputChange = (id, key, value) => {
         let content;
         switch (column.key) {
             case "image":
-  const hasValidImage = displayItem.images && 
-                       displayItem.images.length > 0 && 
-                       displayItem.images[0] && 
-                       displayItem.images[0].trim() !== "" &&
-                       !imageErrors[item.psid]; // Check if this specific image failed to load
+            const hasValidImage = displayItem.images && 
+                                displayItem.images.length > 0 && 
+                                displayItem.images[0] && 
+                                displayItem.images[0].trim() !== "" &&
+                                !imageErrors[item.psid]; // Check if this specific image failed to load
 
-  content = hasValidImage ? (
-    <Image 
-      src={displayItem.images[0]} 
-      w={40} 
-      h={40}
-      onError={() => {
-        // When image fails to load, mark it as error and trigger re-render
-        setImageErrors(prev => ({ ...prev, [item.psid]: true }));
-      }}
-    />
-  ) : (
-    <div style={{ 
-      width: 40, 
-      height: 40, 
-      backgroundColor: '#f8f9fa', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      borderRadius: '4px',
-      border: '1px solid #e9ecef'
-    }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="1.5">
-                  {/* Shopping bag/product icon */}
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                  <line x1="3" y1="6" x2="21" y2="6"/>
-                  <path d="m16 10a4 4 0 0 1-8 0"/>
-                </svg>
-    </div>
-  );
-  break;
+            content = hasValidImage ? (
+              <Image 
+                src={displayItem.images[0]} 
+                w={40} 
+                h={40}
+                onError={() => {
+                  // When image fails to load, mark it as error and trigger re-render
+                  setImageErrors(prev => ({ ...prev, [item.psid]: true }));
+                }}
+              />
+            ) : (
+              <div style={{ 
+                width: 40, 
+                height: 40, 
+                backgroundColor: '#f8f9fa', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                borderRadius: '4px',
+                border: '1px solid #e9ecef'
+              }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="1.5">
+                            {/* Shopping bag/product icon */}
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="m16 10a4 4 0 0 1-8 0"/>
+                          </svg>
+              </div>
+            );
+            break;
             case "name":
               content = (
                 <NavLink
@@ -192,8 +194,8 @@ const handleInputChange = (id, key, value) => {
           case "discount":
              content = displayItem.price.discountedPrice;
              break;
-          case "psid":
-            content = displayItem.psid;
+          // case "psid":
+          //   content = displayItem.psid;
             break;
           case "stock":
             content = `${displayItem.stock} عدد`;
@@ -332,11 +334,14 @@ const FastTableBrand = ({
     } 
     // Tablet view columns
     else if (isTablet) {
-      newVisibleColumns = ["image", "stock", "minOrder"];
+      newVisibleColumns = ["image", "maxOrder", "deliveryTime", "stock", "minOrder"];
     } 
     // For non-mobile and non-tablet views (desktop)
     else {
-      newVisibleColumns = [];
+      newVisibleColumns = [
+         "image", "deliveryTime", "discount",
+        "minOrder", "maxOrder", "seller", "delivery"
+      ];
     }
 
     // Add columns for printing
@@ -463,10 +468,10 @@ const FastTableBrand = ({
       <div style={{ 
         minWidth: `${
           isMobile && isLandscape 
-            ? 400 // Reduced from 500
+            ? 350 // Reduced from 500
             : isMobile && isPortrait 
-              ? 600 // Reduced from 800
-              : COLUMNS.length * 80 // Reduced from 120
+              ? 400 // Reduced from 800
+              : COLUMNS.length  // Reduced from 120
         }px`, 
         overflowX: "auto" 
       }}>

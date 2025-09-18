@@ -964,7 +964,12 @@ export const getAllSubscriptionPlans = async (req, res) => {
 
 export const purchaseSubscriptionByModelId = async (req, res) => {
   const { modelId } = req.params;
-  const { user_id } = getUserFromToken(req, res); // Assuming getUserFromToken is a function to extract the user ID from the token
+  const { user_id } = getUserFromToken(req, res);
+
+  const { transactionId } = req.body; // Get transactionId from request body
+
+  console.log(JSON.stringify({transactionId: transactionId, modelId: modelId}))
+  
 
   try {
     // 1. Find the subscription plan by modelId
@@ -978,7 +983,7 @@ export const purchaseSubscriptionByModelId = async (req, res) => {
 
     // 2. Calculate expiration date based on the subscription duration
     const currentDate = new Date();
-    const expirationDate = new Date(currentDate.getTime() + subscription.durationDays * 24 * 60 * 60 * 1000); // Adding durationDays to current date
+    const expirationDate = new Date(currentDate.getTime() + subscription.durationDays * 24 * 60 * 60 * 1000);
 
     // 3. Find the user account
     const userAccount = await UserAccounts.findOne({ userId: user_id });
@@ -990,31 +995,53 @@ export const purchaseSubscriptionByModelId = async (req, res) => {
     }
 
     // 4. Check if the subscription modelId already exists in the user's subscriptions
-    const existingSubscription = userAccount.subscriptions[modelId]; // Check for the modelId in subscriptions object
+    const existingSubscription = userAccount.subscriptions[modelId];
     if (existingSubscription) {
       return res.status(400).json({
         message: 'Subscription with this modelId already exists.',
       });
     }
 
-    // 5. If it doesn't exist, add the new subscription
-    userAccount.subscriptions = userAccount.subscriptions || {};  // Ensure subscriptions is initialized as an object
+    // 5. Generate a unique transaction ID
+    const generateTransactionId = () => {
+      const timestamp = Date.now().toString();
+      const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+      return `TXN-${timestamp}-${randomPart}`;
+    };
+
+    const transactionId = generateTransactionId();
+
+    // 6. If subscription doesn't exist, add the new subscription
+    userAccount.subscriptions = userAccount.subscriptions || {};
     
     userAccount.subscriptions[modelId] = {
       modelId: subscription.modelId,
+      transactionId: transactionId,
       expirationDate: expirationDate,
       startDate: currentDate,
+      title: subscription.title,
+      duration: subscription.duration,
+      price: subscription.price,
     };
 
-    
     userAccount.markModified('subscriptions');
 
     // Save the updated user account
     await userAccount.save();
 
-    // 6. Respond with the updated user account and subscription info
+    // 7. Respond with the updated user account and subscription info
     return res.status(200).json({
       message: 'Subscription purchased successfully',
+      transactionId: transactionId,
+      subscription: {
+        modelId: subscription.modelId,
+        title: subscription.title,
+        duration: subscription.duration,
+        transactionId: transactionId,
+        startDate: currentDate,
+        expirationDate: expirationDate,
+        price: subscription.price,
+      },
       subscriptions: userAccount.subscriptions,
     });
   } catch (error) {
@@ -1027,6 +1054,67 @@ export const purchaseSubscriptionByModelId = async (req, res) => {
 };
 
 
+export const getSubscriptionInfoByModelId = async (req, res) => {
+  const { modelId } = req.params;
+
+  // 🔑 extract user from token inside the controller
+  const { user_id } = getUserFromToken(req, res);
+
+  try {
+    // 1. Find the subscription plan definition
+    const subscription = await Subscription.findOne({ modelId });
+    if (!subscription) {
+      return res.status(404).json({ message: "Subscription plan not found" });
+    }
+
+    // 2. Find user's account
+    const userAccount = await UserAccounts.findOne({ userId: user_id });
+    if (!userAccount) {
+      return res.status(404).json({ message: "User account not found" });
+    }
+
+
+    // 3. Check if the user already purchased this plan
+    const userSubscription = userAccount.subscriptions?.[modelId] || null;
+
+    // 4. Generate a unique transaction ID for this request
+    const generateTransactionId = () => {
+      const timestamp = Date.now().toString();
+      const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+      return `TXN-${timestamp}-${randomPart}`;
+    };
+
+    const transactionId = generateTransactionId();
+
+    // 5. Build response
+    const response = {
+      transactionId: transactionId, // Add generated transaction ID
+      plan: {
+        modelId: subscription.modelId,
+        title: subscription.title,
+        duration: subscription.duration,
+        durationDays: subscription.durationDays,
+        price: subscription.price || { regularPrice: 0, discountedPrice: 0, discountNum: 0, discountPer: 0 },
+        features: subscription.features || [],
+      },
+      userSubscription: userSubscription
+        ? {
+            transactionId: userSubscription.transactionId, // Existing transaction ID if already purchased
+            startDate: userSubscription.startDate,
+            expirationDate: userSubscription.expirationDate,
+          }
+        : null,
+    };
+
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching subscription info:", error);
+    return res.status(500).json({
+      message: "An error occurred while fetching subscription info",
+      error: error.message,
+    });
+  }
+};
 
 
 export const getSubscriptionPlansByUserId = async (req, res) => {

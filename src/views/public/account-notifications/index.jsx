@@ -8,11 +8,16 @@ import {
   Box, 
   Center, 
   Alert,
-  Button
+  Button,
+  Modal,
+  Text,
+  Flex
 } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { verifyToken } from '../../../redux/auth/authusers/auth';
 import { markNotificationAsRead, userMessagesGetComponent } from '../../../redux/usermyaccounts/usermyaccounts/usermessagesgetcomponent/userMessagesGetComponentActions';
+import { useNavigate } from 'react-router';
+import { getUserMyAccount } from '../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions';
 
 // Default SVG image as a data URL
 const DEFAULT_IMAGE_SVG = `data:image/svg+xml;base64,${btoa(`
@@ -153,6 +158,13 @@ const triggerNotificationRefresh = () => {
 
 // Main Account Notifications Component
 function Account_Notifications() {
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
+  const [redirectTimer, setRedirectTimer] = useState(null);
+  const navigate = useNavigate();
+
+  const { isVerified, loading: authLoading, error: authError, user: userVerified } = useSelector((state) => state.auth);
+  
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
   const [notificationData, setNotificationData] = useState(null);
@@ -171,14 +183,79 @@ function Account_Notifications() {
     reduxComponentError: state.userMessages?.error
   }));
 
-  // Load user messages component on mount
+  // Initial auth check - only verify token
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await dispatch(verifyToken()).unwrap();
+      } catch (error) {
+        console.log('Auth verification failed:', error);
+      } finally {
+        setAuthCheckComplete(true);
+      }
+    };
+
+    if (!authCheckComplete) {
+      checkAuth();
+    }
+  }, [dispatch, authCheckComplete]);
+
+  // Handle auth state changes after initial check
+  useEffect(() => {
+    // Only proceed after auth check is complete
+    if (!authCheckComplete) return;
+
+    const isAuthenticated = isVerified && userVerified;
+
+    if (!isAuthenticated) {
+      // Clear any existing timer
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+
+      // Show modal first
+      setLoginModalOpen(true);
+      
+      // Set up redirect timer
+      const timer = setTimeout(() => {
+        navigate('/login');
+      }, 3000);
+      
+      setRedirectTimer(timer);
+    } else {
+      // User is authenticated
+      setLoginModalOpen(false);
+      
+      // Clear redirect timer if it exists
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+        setRedirectTimer(null);
+      }
+      
+      // Fetch user account data
+      if (user?.id) {
+        dispatch(getUserMyAccount({userId: user.id}));
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+    };
+  }, [dispatch, isVerified, userVerified, authCheckComplete, navigate, user?.id]);
+
+  // Load notifications only when authenticated
   useEffect(() => {
     const loadNotifications = async () => {
+      // Only load if authenticated
+      if (!authCheckComplete || !isVerified || !userVerified) {
+        return;
+      }
+
       setIsLoading(true);
       try {
-        // Verify token first
-        await dispatch(verifyToken()).unwrap();
-        
         // Trigger notification count refresh when this component opens
         triggerNotificationRefresh();
         
@@ -192,38 +269,35 @@ function Account_Notifications() {
         
         setNotificationData(result);
       } catch (error) {
+        console.error('Failed to load notifications:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadNotifications();
-  }, [dispatch, refreshKey]);
+  }, [dispatch, refreshKey, authCheckComplete, isVerified, userVerified]);
 
   // Handle notification click
   const handleNotificationClick = async (notificationId, index) => {
     try {
-      
       // Mark as read
       await dispatch(markNotificationAsRead({ notificationId, index })).unwrap();
       
       // Trigger notification count refresh
       triggerNotificationRefresh();
       
-      // Optionally fetch modal component or handle navigation
-      // await dispatch(userMessagesModalComponentGet({ notificationId }));
-      
       // Refresh the notifications to update read status
       setRefreshKey(prev => prev + 1);
       
     } catch (error) {
+      console.error('Failed to handle notification click:', error);
     }
   };
 
   // Handle mark as read/unread
   const handleMarkAsRead = async (notificationId, index, isRead) => {
     try {
-      
       // Call the API to mark as read/unread
       await dispatch(markNotificationAsRead({ 
         notificationId, 
@@ -238,13 +312,34 @@ function Account_Notifications() {
       setRefreshKey(prev => prev + 1);
       
     } catch (error) {
+      console.error('Failed to mark as read:', error);
     }
+  };
+
+  // Handle immediate redirect to login page
+  const handleGoToLogin = () => {
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+      setRedirectTimer(null);
+    }
+    navigate('/login');
+  };
+
+  // Handle modal close (if needed)
+  const handleModalClose = () => {
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+      setRedirectTimer(null);
+    }
+    setLoginModalOpen(false);
+    // Optionally redirect immediately or allow user to stay
+    navigate('/login');
   };
 
   // Create props to pass to dynamic component
   const dynamicComponentProps = useMemo(() => ({
     onNotificationClick: handleNotificationClick,
-    onMarkAsRead: handleMarkAsRead, // Add the new handler
+    onMarkAsRead: handleMarkAsRead,
     notificationIds: notificationData?.notificationIds || [],
     count: notificationData?.count || 0,
     // Add image utilities to props
@@ -260,7 +355,6 @@ function Account_Notifications() {
     dynamicComponentProps
   );
 
-
   // Refresh handler
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -268,7 +362,65 @@ function Account_Notifications() {
     triggerNotificationRefresh();
   };
 
-  // Loading state
+  // Show loading while checking auth
+  if (!authCheckComplete || authLoading) {
+    return (
+      <Container size="md" py="xl">
+        <Center>
+          <Stack align="center" spacing="md">
+            <Loader size="lg" />
+            <Title order={3}>در حال بررسی وضعیت ورود...</Title>
+          </Stack>
+        </Center>
+      </Container>
+    );
+  }
+
+  // Show modal and placeholder if not authenticated
+  if (!isVerified || !userVerified) {
+    return (
+      <>
+        <Modal
+          opened={loginModalOpen}
+          onClose={handleModalClose}
+          closeOnClickOutside={false}
+          closeOnEscape={false}
+          withCloseButton={true}
+          title="ورود به حساب کاربری"
+          centered
+          overlayProps={{
+            backgroundOpacity: 0.6,
+            blur: 3,
+          }}
+        >
+          <Text mb="md">لطفا وارد حساب کاربری شوید</Text>
+          <Text size="sm" c="dimmed" mb="md">
+            در حال انتقال به صفحه ورود در 3 ثانیه...
+          </Text>
+          <Flex gap="sm" justify="flex-end">
+            <Button 
+              onClick={handleGoToLogin}
+              variant="filled"
+            >
+              رفتن به صفحه ورود
+            </Button>
+          </Flex>
+        </Modal>
+        
+        {/* Show a placeholder content while modal is open */}
+        <Container size="md" py="xl">
+          <Center h={400}>
+            <Stack align="center" gap="md">
+              <Text size="xl" c="dimmed">در حال بررسی وضعیت ورود...</Text>
+              <Loader size="md" />
+            </Stack>
+          </Center>
+        </Container>
+      </>
+    );
+  }
+
+  // Loading state for notifications
   if (isLoading || isLoadingComponent) {
     return (
       <Container size="md" py="xl">
@@ -308,6 +460,7 @@ function Account_Notifications() {
     );
   }
 
+  // Main authenticated view
   return (
     <Container size="md" py="xl">
       <Stack spacing="md">
@@ -326,19 +479,16 @@ function Account_Notifications() {
         </Box>
 
         {/* Debug info (remove in production) */}
-        {(
-          <Alert
-            icon={<IconInfoCircle size="1rem" />}
-            color="blue"
-            variant="light"
-            style={{ marginTop: '2rem' }}
-          >
-            تعداد پیام‌ها: {notificationData?.count || 0}
-            <br />
-            آخرین بروزرسانی: {new Date().toLocaleString('fa-IR')}
-            <br />
-          </Alert>
-        )}
+        <Alert
+          icon={<IconInfoCircle size="1rem" />}
+          color="blue"
+          variant="light"
+          style={{ marginTop: '2rem' }}
+        >
+          تعداد پیام‌ها: {notificationData?.count || 0}
+          <br />
+          آخرین بروزرسانی: {new Date().toLocaleString('fa-IR')}
+        </Alert>
       </Stack>
     </Container>
   );

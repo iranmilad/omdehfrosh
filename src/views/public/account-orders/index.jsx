@@ -13,9 +13,11 @@ import {
   Text,
   NumberFormatter,
   Group,
-  Stack
+  Stack,
+  Modal,
+  Flex
 } from '@mantine/core'
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import InfoBox from "../../../components/InfoBox"
 import { verifyToken } from '../../../redux/auth/authusers/auth';
 import { getUserMyAccount } from '../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions';
@@ -26,8 +28,12 @@ function Account_Orders() {
     const { primaryColor } = useMantineTheme();
     const [activePage, setActivePage] = useState(1);
     const itemsPerPage = 10;
+    
+    // State for login modal
+    const [loginModalOpen, setLoginModalOpen] = useState(false);
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
     const { order, loading, error } = useSelector((state) => state.orders)
@@ -68,13 +74,82 @@ function Account_Orders() {
     useEffect(() => {
       dispatch(verifyToken());
     }, [dispatch]);
-  
+
+    // Check authentication status and show modal, then redirect
     useEffect(() => {
-      if (user) {
-        dispatch(getUserMyAccount({userId: user.id}));
-        dispatch(getAllOrdersByUserId());
+      // Only check after auth loading is complete
+      if (!authLoading) {
+        if (!isVerified || !user) {
+          setLoginModalOpen(true);
+          // Auto redirect to login after 3 seconds
+          const timer = setTimeout(() => {
+            navigate('/login');
+          }, 3000);
+          
+          // Cleanup timer if component unmounts
+          return () => clearTimeout(timer);
+        } else {
+          setLoginModalOpen(false);
+          // User is authenticated, fetch data
+          dispatch(getUserMyAccount({userId: user.id}));
+          dispatch(getAllOrdersByUserId());
+        }
       }
-    }, [dispatch, user]);
+    }, [dispatch, isVerified, user, authLoading, navigate]);
+
+    // Handle immediate redirect to login page
+    const handleGoToLogin = () => {
+      navigate('/login');
+    };
+
+    // Show loading while checking authentication
+    if (authLoading) {
+      return (
+        <Center>
+          <Loader />
+        </Center>
+      );
+    }
+
+    // Show login modal if user is not authenticated
+    if (!isVerified || !user) {
+      return (
+        <>
+          <Modal
+            opened={loginModalOpen}
+            onClose={() => {}} // Prevent closing by clicking outside
+            closeOnClickOutside={false}
+            closeOnEscape={false}
+            withCloseButton={false}
+            title="ورود به حساب کاربری"
+            centered
+            overlayProps={{
+              backgroundOpacity: 0,
+              blur: 0,
+            }}
+          >
+            <Text mb="md">لطفا وارد حساب کاربری شوید</Text>
+            <Text size="sm" c="dimmed" mb="md">
+              در حال انتقال به صفحه ورود...
+            </Text>
+            <Flex gap="sm" justify="flex-end">
+              <Button 
+                onClick={handleGoToLogin}
+              >
+                رفتن به صفحه ورود
+              </Button>
+            </Flex>
+          </Modal>
+          
+          {/* Show a placeholder content while modal is open */}
+          <Center h={400}>
+            <Stack align="center" gap="md">
+              <Text size="xl" c="dimmed">در حال بررسی وضعیت ورود...</Text>
+            </Stack>
+          </Center>
+        </>
+      );
+    }
 
     // Get orders array and sort by date (newest first)
     const ordersArray = ordersByUserId?.orders || [];

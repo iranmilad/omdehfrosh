@@ -26,6 +26,8 @@ import { verifyToken } from "../../../redux/auth/authusers/auth";
 import DelayedFullScreenLoader from "../../../components/centerloading";
 import { getSubscriptionByUserId } from "../../../redux/usermyaccounts/usermyaccounts/getsubscriptionbyuserid/getSubscriptionByUserIdActions";
 import { purchaseSubscriptionByModelId } from "../../../redux/usermyaccounts/usermyaccounts/purchasesubscriptions/purchaseSubscriptionsActions";
+import { getSubscriptionInfoByModelId } from "../../../redux/usermyaccounts/usermyaccounts/purchasesubscriptions/getsubscriptioninfo/getSubscriptionInfoActions";
+import { setShowSubscriptionModal } from "../../../redux/usermyaccounts/usermyaccounts/purchasesubscriptions/getsubscriptioninfo/getSubscriptionInfoSlice"; 
 
 function Subscription() {
   const theme = useMantineTheme();
@@ -45,6 +47,19 @@ function Subscription() {
   });
 
   const { user } = useSelector((state) => state.auth);
+
+
+  const {
+  subscriptionInfo,
+  loadingSubscriptionInfo,
+  showSubscriptionModal,
+  errorSubscriptionInfo,
+} = useSelector((state) => state.getSubscriptionInfo);
+
+
+
+
+
   const { subscriptionPlansGet, loadingsubscriptionPlansGet } = useSelector(
     (state) => state.subscriptionsPlansGet
   );
@@ -77,40 +92,54 @@ function Subscription() {
     }
   }, [user, hasCheckedAuth]);
 
-  const handlePurchaseClick = (plan) => {
-    const accountBalance = subscriptionByUserId?.account_balance || 0;
-    const planPrice = plan.price.discountedPrice;
+const handlePurchaseClick = (plan) => {
+  const accountBalance = subscriptionByUserId?.account_balance || 0;
+  const planPrice = plan.price.discountedPrice;
 
-    if (accountBalance < planPrice) {
-      setBalanceModal({
-        opened: true,
-        planTitle: plan.title,
-        planPrice: planPrice,
-        accountBalance: accountBalance,
-      });
-    } else {
-      setConfirmModal({
-        opened: true,
-        plan: plan,
-      });
-    }
-  };
+  if (accountBalance < planPrice) {
+    setBalanceModal({
+      opened: true,
+      planTitle: plan.title,
+      planPrice: planPrice,
+      accountBalance: accountBalance,
+    });
+  } else {
+    // Fetch subscription info first
+    dispatch(getSubscriptionInfoByModelId({ modelId: plan.modelId }));
 
-  const handleConfirmPurchase = () => {
-    purchaseSubscription(confirmModal.plan);
-    setConfirmModal({ opened: false, plan: null });
-  };
+  }
+};
 
-  const purchaseSubscription = async (plan) => {
-    try {
-      // Wait for the purchase to complete
-      await dispatch(purchaseSubscriptionByModelId({ modelId: plan.modelId }));
-      
-      // Then fetch updated subscription data
-      dispatch(getSubscriptionByUserId());
-    } catch (error) {
-    }
-  };
+
+  // const handleConfirmPurchase = () => {
+  //   purchaseSubscription(confirmModal.plan);
+  //   setConfirmModal({ opened: false, plan: null });
+  // };
+
+// Update the handleConfirmPurchase function
+const handleConfirmPurchase = () => {
+  if (!subscriptionInfo?.plan) return;
+  
+  // Pass both the plan and the transactionId
+  purchaseSubscription(subscriptionInfo.plan, subscriptionInfo.transactionId);
+  dispatch(setShowSubscriptionModal(false));
+};
+
+// Update the purchaseSubscription function to accept transactionId
+const purchaseSubscription = async (plan, transactionId) => {
+  try {
+    // Wait for the purchase to complete with transactionId
+    await dispatch(purchaseSubscriptionByModelId({ 
+      modelId: plan.modelId,
+      transactionId: transactionId 
+    }));
+    
+    // Then fetch updated subscription data
+    dispatch(getSubscriptionByUserId());
+  } catch (error) {
+    console.error('Purchase error:', error);
+  }
+};
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('fa-IR').format(price);
@@ -151,7 +180,7 @@ function Subscription() {
       </Modal>
 
       {/* Confirmation Modal */}
-      <Modal
+      {/* <Modal
         opened={confirmModal.opened}
         onClose={() => setConfirmModal({ opened: false, plan: null })}
         title="تایید خرید اشتراک"
@@ -204,7 +233,68 @@ function Subscription() {
             </Button>
           </Group>
         </Stack>
+      </Modal> */}
+
+      {/* Confirmation Modal (now uses subscriptionInfo) */}
+      <Modal
+        opened={showSubscriptionModal}
+        onClose={() => dispatch(setShowSubscriptionModal(false))}
+        title="تایید خرید اشتراک"
+        centered
+        size="sm"
+      >
+        <Stack align="center" gap="md">
+          <ThemeIcon size={60} color="blue" variant="light">
+            <IconCircleCheckFilled size={30} />
+          </ThemeIcon>
+          
+          <Text ta="center" size="lg" fw={500}>
+            آیا از خرید این اشتراک اطمینان دارید؟
+          </Text>
+
+          {loadingSubscriptionInfo && (
+            <Text c="dimmed" size="sm">در حال بارگذاری...</Text>
+          )}
+
+          {subscriptionInfo?.plan && (
+            <Box w="100%">
+              <Group justify="space-between" mb="xs">
+                <Text size="sm" c="dimmed">پلن انتخابی:</Text>
+                <Text size="sm" fw={500}>{subscriptionInfo.plan.title}</Text>
+              </Group>
+
+              <Group justify="space-between" mb="xs">
+                <Text size="sm" c="dimmed">مدت زمان:</Text>
+                <Text size="sm" fw={500}>{subscriptionInfo.plan.duration}</Text>
+              </Group>
+
+              <Group justify="space-between" mb="md">
+                <Text size="sm" c="dimmed">قیمت:</Text>
+                <Text size="sm" fw={500} c="green">
+                  {formatPrice(subscriptionInfo.plan.price?.discountedPrice || 0)} تومان
+                </Text>
+              </Group>
+            </Box>
+          )}
+          <Group gap="xs" mt="md">
+            <Button 
+              variant="filled" 
+              color="blue"
+              onClick={handleConfirmPurchase}
+              disabled={!subscriptionInfo?.plan}
+            >
+              تایید خرید
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => dispatch(setShowSubscriptionModal(false))}
+            >
+              انصراف
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
+
 
       {/* Insufficient Balance Modal */}
       <Modal

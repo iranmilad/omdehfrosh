@@ -18,7 +18,8 @@ import {
   getUserMessagesModalDataByTableIndexAndRowId,
   getNotificationsNumber,
   setNotificationSeen,
-  getDepartmentsData // Add this import
+  getDepartmentsData, // Add this import
+  getSubscriptionInfoByModelId
 }
   from '../controllers/userMyAccountsControllers.js'
 
@@ -68,6 +69,8 @@ router.put("/update/:id", updateUserMyAccount);
 router.get("/allsubscriptionplans", getAllSubscriptionPlans)
 
 router.post("/subscriptions/purchase/:modelId", purchaseSubscriptionByModelId)
+
+router.get("/subscriptions/info/:modelId", getSubscriptionInfoByModelId);
 
 router.get("/subscriptions/getsubscriptionbyuserid", getSubscriptionPlansByUserId)
 

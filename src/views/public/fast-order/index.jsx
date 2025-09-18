@@ -63,7 +63,7 @@ import RotateModal from "../../../components/rotatemodal";
 
 const FastOrderContext = createContext();
 
-function FastEdit() {
+function FastOrder() {
   const dispatch = useDispatch();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -225,7 +225,7 @@ const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
 const COLUMNS = [
   { key: "image", label: "تصویر", width: "160px" },
   { key: "name", label: "نام کالا", width: "160px" },
-  { key: "psid", label: "آی‌دی مشخصه", width: "160px" },
+  // { key: "psid", label: "آی‌دی مشخصه", width: "160px" },
   { key: "price", label: "قیمت", width: "160px" }, // Insert ICPrice columns after this
   { key: "discount", label: "با تخفیف", width: "160px" },
   { key: "attributes", label: "ویژگی ها", width: "160px" },
@@ -400,7 +400,7 @@ const handleDeleteSavedFilter = (id) => {
 };
 
 useEffect(() => {
-  const slug = searchType === "brand" ? "brand-fast-edit" : "category-fast-edit";
+  const slug = searchType === "brand" ? "brand-fast-order" : "category-fast-order";
   dispatch(getFilterSettings(slug));
 }, [searchType]);
 
@@ -533,6 +533,7 @@ useEffect(() => {
       <Loader size="lg" />
     </Box>
   );
+
 
   return (
     <>
@@ -710,4 +711,4 @@ useEffect(() => {
 
 export const useFastOrder = () => useContext(FastOrderContext)
 
-export default FastEdit;
+export default FastOrder;

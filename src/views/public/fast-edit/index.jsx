@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useId, createContext, useContext, useMemo } from "react";
+import { useState, useEffect, useCallback, useId, createContext, useContext, useMemo, useRef } from "react";
 import XTitle from "../../../components/title";
 import OrderRow, { Attributes } from "./orderRow";
 import Filters from "./filtersBrandMode";
@@ -41,32 +41,23 @@ import DelayedFullScreenLoader from "../../../components/centerloading";
 import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
-
-
+import RotateModal from "../../../components/rotatemodal";
 
 const FastOrderContext = createContext();
 
 function FastEdit() {
 
-      const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-
-
-
-
+  const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
 
   const dispatch = useDispatch()
-
 
   useEffect(() => {
     dispatch(verifyToken());
   }, [dispatch]);
 
-
   const location = useLocation();
 
-
   const [modalOpen, setModalOpen] = useState(false);
-
 
   const [visibleColumns, setVisibleColumns] = useState([]);
   const [nodes, setNodes ] = useState(null);
@@ -121,42 +112,39 @@ function FastEdit() {
   const initialFilters_brand_mode = getInitialFilters_brand_mode();
   const [filters_brand_mode, setFilters_brand_mode] = useState(initialFilters_brand_mode.filters);
 
-
   // cookie category mode
   const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
 
-    // ✅ Load filters from cookies initially
-    const getInitialFilters_category_mode = () => {
-      const storedFilters_category_mode = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
-      if (storedFilters_category_mode) {
-        try {
-          return JSON.parse(storedFilters_category_mode);
-        } catch (error) {
-        }
+  // ✅ Load filters from cookies initially
+  const getInitialFilters_category_mode = () => {
+    const storedFilters_category_mode = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
+    if (storedFilters_category_mode) {
+      try {
+        return JSON.parse(storedFilters_category_mode);
+      } catch (error) {
       }
-      return {
-        searchType: "category",
-        uniqueIDClickedCategories: [],
-        uniqueIDClickedSubCategories: [],
-        uniqueIDClickedSubCategoriesBrands: [],
-        filters: {
-          color: "all",
-          province: "all",
-          stockStatus: "all",
-          minStock: "",
-          deliveryTime: "",
-          paymentType: "",
-          supplier: "",
-          sort: "bestPrice",
-          priceFormat: "hezar",
-        },
-      };
+    }
+    return {
+      searchType: "category",
+      uniqueIDClickedCategories: [],
+      uniqueIDClickedSubCategories: [],
+      uniqueIDClickedSubCategoriesBrands: [],
+      filters: {
+        color: "all",
+        province: "all",
+        stockStatus: "all",
+        minStock: "",
+        deliveryTime: "",
+        paymentType: "",
+        supplier: "",
+        sort: "bestPrice",
+        priceFormat: "hezar",
+      },
     };
+  };
 
-    const initialFilters_category_mode = getInitialFilters_category_mode();
-    const [filters_category_mode, setFilters_category_mode] = useState(initialFilters_category_mode.filters);
-  
-  
+  const initialFilters_category_mode = getInitialFilters_category_mode();
+  const [filters_category_mode, setFilters_category_mode] = useState(initialFilters_category_mode.filters);
 
   const [opened, setOpened] = useState(false);
 
@@ -165,96 +153,89 @@ function FastEdit() {
   else if(filters_brand_mode.priceFormat === "hezar") priceFormatLabel = "هزار تومان";
   else priceFormatLabel = "میلیون تومان";
 
-
   // Table columns
-// Base column definitions
-const COLUMNS = [
-  { key: "image", label: "تصویر", width: "160px" },
-  { key: "shortName", label: "نام اختصاری کالا", width: "160px" },
-  { key: "name", label: "نام کالا", width: "160px" },
-  // { key: "psid", label: "آی‌دی مشخصه", width: "160px" },
-  { key: "price", label: "قیمت", width: "160px" }, // Insert ICPrice columns after this
-  { key: "discount", label: "تخفیف", width: "160px" },
-  { key: "attributes", label: "ویژگی ها", width: "160px" },
-  { key: "stock", label: "موجودی", width: "160px" },
-  { key: "minOrder", label: "حداقل سفارش", width: "120px" },
-  { key: "maxOrder", label: "حداکثر سفارش", width: "120px" },
-  { key: "seller", label: "تامین کننده", width: "120px" },
-  { key: "deliveryTime", label: "زمان تحویل", width: "120px" },
-  { key: "payment_type", label: "نوع پرداخت", width: "120px" },
-  { key: "delivery", label: "محل ارسال", width: "120px" },
-  { key: "action", label: "عملیات", width: "120px" }
-];
+  // Base column definitions
+  const COLUMNS = [
+    { key: "image", label: "تصویر", width: "160px" },
+    { key: "shortName", label: "نام اختصاری کالا", width: "160px" },
+    { key: "name", label: "نام کالا", width: "160px" },
+    // { key: "psid", label: "آی‌دی مشخصه", width: "160px" },
+    { key: "price", label: "قیمت", width: "160px" }, // Insert ICPrice columns after this
+    { key: "discount", label: "تخفیف", width: "160px" },
+    { key: "attributes", label: "ویژگی ها", width: "160px" },
+    { key: "stock", label: "موجودی", width: "160px" },
+    { key: "minOrder", label: "حداقل سفارش", width: "120px" },
+    { key: "maxOrder", label: "حداکثر سفارش", width: "120px" },
+    { key: "seller", label: "تامین کننده", width: "120px" },
+    { key: "deliveryTime", label: "زمان تحویل", width: "120px" },
+    { key: "payment_type", label: "نوع پرداخت", width: "120px" },
+    { key: "delivery", label: "محل ارسال", width: "120px" },
+    { key: "action", label: "عملیات", width: "120px" }
+  ];
 
-// Function to extract unique ICPrice labels
-const extractICPriceLabels = (items, icLabels = new Set()) => {
-  if (!Array.isArray(items)) return icLabels; // Handle null/undefined
+  // Function to extract unique ICPrice labels
+  const extractICPriceLabels = (items, icLabels = new Set()) => {
+    if (!Array.isArray(items)) return icLabels; // Handle null/undefined
 
-  items.forEach(item => {
-    if (item?.price?.ICPrice) {  // Ensure price and ICPrice exist
-      item.price.ICPrice.forEach(ic => icLabels.add(ic.label));
-    }
+    items.forEach(item => {
+      if (item?.price?.ICPrice) {  // Ensure price and ICPrice exist
+        item.price.ICPrice.forEach(ic => icLabels.add(ic.label));
+      }
 
-    // Recursively check deeper nodes
-    if (Array.isArray(item?.nodes)) {
-      extractICPriceLabels(item.nodes, icLabels);
-    }
-  });
+      // Recursively check deeper nodes
+      if (Array.isArray(item?.nodes)) {
+        extractICPriceLabels(item.nodes, icLabels);
+      }
+    });
 
-  return icLabels;
-};
+    return icLabels;
+  };
 
-// Get all unique ICPrice labels from brands
-const getAllICPriceLabels = (brands) => {
-  if (!Array.isArray(brands)) return [];
+  // Get all unique ICPrice labels from brands
+  const getAllICPriceLabels = (brands) => {
+    if (!Array.isArray(brands)) return [];
 
-  const icLabels = new Set();
-  
-  brands.forEach(brand => {
-    extractICPriceLabels(brand.items, icLabels);
-  });
+    const icLabels = new Set();
+    
+    brands.forEach(brand => {
+      extractICPriceLabels(brand.items, icLabels);
+    });
 
-  return [...icLabels].map(label => ({
-    key: `ICPrice_${label}`,
-    label: `قیمت (${label.toUpperCase()})`,
-    width: "120px"
-  }));
-};
+    return [...icLabels].map(label => ({
+      key: `ICPrice_${label}`,
+      label: `قیمت (${label.toUpperCase()})`,
+      width: "120px"
+    }));
+  };
 
-// Example product data
-const productData = useMemo(() => (Array.isArray(nodes) ? nodes : []), [nodes]);
+  // Example product data
+  const productData = useMemo(() => (Array.isArray(nodes) ? nodes : []), [nodes]);
 
-// Extract ICPrice columns
-const icPriceColumns = getAllICPriceLabels(productData);
-
-// const icPriceKeys = icPriceColumns.map(column => column.key);
-
-
-// ✅ Find the index of "price" and insert ICPrice columns right after it
-const priceIndex = COLUMNS.findIndex(col => col.key === "price");
-const updatedColumns = [
-  ...COLUMNS.slice(0, priceIndex + 1),  // Columns before and including "price"
-  ...icPriceColumns,                   // Insert ICPrice columns here
-  ...COLUMNS.slice(priceIndex + 1)      // Remaining columns after "price"
-];
-
-
-useEffect(() => {
-  // Extract ICPrice columns only once (or when nodes change)
+  // Extract ICPrice columns
   const icPriceColumns = getAllICPriceLabels(productData);
 
-  // Extract the keys from icPriceColumns
-  const icPriceKeys = icPriceColumns.map(column => column.key);
+  // ✅ Find the index of "price" and insert ICPrice columns right after it
+  const priceIndex = COLUMNS.findIndex(col => col.key === "price");
+  const updatedColumns = [
+    ...COLUMNS.slice(0, priceIndex + 1),  // Columns before and including "price"
+    ...icPriceColumns,                   // Insert ICPrice columns here
+    ...COLUMNS.slice(priceIndex + 1)      // Remaining columns after "price"
+  ];
 
-  // Set the keys to the state
-  setIcPriceLabels(icPriceKeys);
-}, [productData]);  // Depend on `productData`, so it updates when productData changes
+  useEffect(() => {
+    // Extract ICPrice columns only once (or when nodes change)
+    const icPriceColumns = getAllICPriceLabels(productData);
 
+    // Extract the keys from icPriceColumns
+    const icPriceKeys = icPriceColumns.map(column => column.key);
+
+    // Set the keys to the state
+    setIcPriceLabels(icPriceKeys);
+  }, [productData]);  // Depend on `productData`, so it updates when productData changes
 
   // Handle saving column visibility settings
   const handleSave = () => setOpened(false);
 
-  
   const handleVisibleColumnsChange = (event, columnKey) => {
     const isChecked = event.target.checked; // true = hiding, false = showing
     setVisibleColumns((prev) =>
@@ -263,7 +244,6 @@ useEffect(() => {
         : [...prev, columnKey] // Add to visible (show)
     );
   };
-
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -285,7 +265,6 @@ useEffect(() => {
     }
   }, [location, searchType]);
 
-
   const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
   const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
   
@@ -301,9 +280,6 @@ useEffect(() => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-
-
-
   const { 
     loadingBrandModeUpdate, 
     brandModeUpdate,
@@ -311,51 +287,42 @@ useEffect(() => {
     successMessageBrandModeUpdate 
   } = useSelector((state) => state.fastEditBrandMode);
 
-
-
-
-
-    useEffect(() => {
-      const nonNotifyStatuses = [
-        400, 401, 403, 404, 405, 406, 408, 409,
-        410, 411, 412, 413, 414, 415, 416, 417,
-        422, 429
-      ];
-    
-      const isEmpty = (obj) => !obj || Object.keys(obj).length === 0;
-    
-      const hasValidStatus = errorBrandModeUpdate && typeof errorBrandModeUpdate.status !== "undefined" && !isNaN(Number(errorBrandModeUpdate.status));
-    
-      if (!isEmpty(errorBrandModeUpdate) && hasValidStatus && !nonNotifyStatuses.includes(Number(errorBrandModeUpdate.status))) {
-  
-  
-        notifications.show({
-          title: errorBrandModeUpdate?.message || "خطایی رخ داده است",
-          color: "red",
-          autoClose: true,
-        });
-      }
-  
-      dispatch(clearFastEditBrandModeState())
-  
-  
-    }, [errorBrandModeUpdate]);
-    
-
-    useEffect(() => {
-
-      if (errorBrandModeUpdate?.status) {
-        handleKnownErrors(errorBrandModeUpdate?.status, setModalOpen, navigate);
-        setErrMessage(errorBrandModeUpdate?.message)
-      }
-
-      dispatch(clearFastEditBrandModeState())
-
-    }, [errorBrandModeUpdate]);
-
-  
   useEffect(() => {
+    const nonNotifyStatuses = [
+      400, 401, 403, 404, 405, 406, 408, 409,
+      410, 411, 412, 413, 414, 415, 416, 417,
+      422, 429
+    ];
   
+    const isEmpty = (obj) => !obj || Object.keys(obj).length === 0;
+  
+    const hasValidStatus = errorBrandModeUpdate && typeof errorBrandModeUpdate.status !== "undefined" && !isNaN(Number(errorBrandModeUpdate.status));
+  
+    if (!isEmpty(errorBrandModeUpdate) && hasValidStatus && !nonNotifyStatuses.includes(Number(errorBrandModeUpdate.status))) {
+
+      notifications.show({
+        title: errorBrandModeUpdate?.message || "خطایی رخ داده است",
+        color: "red",
+        autoClose: true,
+      });
+    }
+
+    dispatch(clearFastEditBrandModeState())
+
+  }, [errorBrandModeUpdate]);
+  
+
+  useEffect(() => {
+    if (errorBrandModeUpdate?.status) {
+      handleKnownErrors(errorBrandModeUpdate?.status, setModalOpen, navigate);
+      setErrMessage(errorBrandModeUpdate?.message)
+    }
+
+    dispatch(clearFastEditBrandModeState())
+
+  }, [errorBrandModeUpdate]);
+
+  useEffect(() => {
     if (!brandModeUpdate || brandModeUpdate.state !== "error") return;
 
     if (Array.isArray(brandModeUpdate.errors) && brandModeUpdate.errors.length > 0) {
@@ -397,35 +364,23 @@ useEffect(() => {
     }
 
     dispatch(clearFastEditBrandModeState())
-
     
   }, [brandModeUpdate]);
 
+  useEffect(() => {
+    if (brandModeUpdate && brandModeUpdate.state === "ok" ) {
+      notifications.show({
+        title: brandModeUpdate?.message,
+        color: "green",
+        autoClose: true
+      });
+    }
 
-            useEffect(() => {
-              if (brandModeUpdate && brandModeUpdate.state === "ok" ) {
-                notifications.show({
-                  title: brandModeUpdate?.message,
-                  color: "green",
-                  autoClose: true
-                });
-              }
-
-  
-              dispatch(clearFastEditBrandModeState())
-
-      
-            }, [ brandModeUpdate]);
-
-
-
+    dispatch(clearFastEditBrandModeState())
+    
+  }, [ brandModeUpdate]);
 
   const [delayedLoading, setDelayedLoading] = useState(false);
-
-
-  
-  
-
 
   useEffect(() => {
     if(errorBrandModeUpdate) {
@@ -433,61 +388,115 @@ useEffect(() => {
     }
   }, [errorBrandModeUpdate])
 
+  // ✅ Add sticky filters functionality (same as FastOrder)
+  const [isFixed, setIsFixed] = useState(false);
+  const componentRef = useRef(null);
+  const lastScrollY = useRef(0);
+  const originalTop = useRef(0);
 
-  
+  useEffect(() => {
+    if (componentRef.current) {
+      originalTop.current = componentRef.current.offsetTop;
+    }
 
-  if (!user || user.role !== "supplier") {
-    return (
-      <Modal
-        opened={true}
-        onClose={() => {}}
-        title="ورود به حساب کاربری"
-        centered
-        withCloseButton={false}
-        closeOnClickOutside={false}
-        zIndex={50}
-      >
-        <Stack>
-          <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>
-          <Button
-            onClick={() => navigate("/login")}
-            variant="filled"
-            color="blue"
-            fullWidth
-          >
-            ورود به حساب کاربری
-          </Button>
-        </Stack>
-      </Modal>
-    );
-  }
-  
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY < lastScrollY.current) {
+        // Scrolling up
+        if (currentScrollY > originalTop.current) {
+          setIsFixed(true); // stick to top
+        } else {
+          setIsFixed(false); // back to original position
+        }
+      } else {
+        // Scrolling down
+        setIsFixed(false); // normal flow
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+// Add this before the main return statement, after all the useEffects
+
+// Show loading while authentication is being verified
+if (authLoading) {
+  return <DelayedFullScreenLoader />;
+}
+
+// Show error if authentication verification failed
+if (authError) {
+  return (
+    <Center style={{ minHeight: '200px' }}>
+      <Stack align="center">
+        <Text color="red">خطا در بررسی احراز هویت</Text>
+        <Button onClick={() => dispatch(verifyToken())}>تلاش مجدد</Button>
+      </Stack>
+    </Center>
+  );
+}
+
+// Only show access denied modal after we've confirmed the user's status
+if (!user || user.role !== "supplier") {
+  return (
+    <Modal
+      opened={true}
+      onClose={() => {}}
+      title="ورود به حساب کاربری"
+      centered
+      withCloseButton={false}
+      closeOnClickOutside={false}
+      zIndex={50}
+    >
+      <Stack>
+        <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>
+        <Button
+          onClick={() => navigate("/login")}
+          variant="filled"
+          color="blue"
+          fullWidth
+        >
+          ورود به حساب کاربری
+        </Button>
+      </Stack>
+    </Modal>
+  );
+}
+
+// Remove the redundant check at the bottom
+// if (user.role === "supplier") { ... }
   
   if (user.role === "supplier") {
 
   return (
     <>
+      {
+        !loadingBrandModeUpdate &&
+        <ErrorMessageModal
+          opened={modalOpen}
+          onClose={() => setModalOpen(false)}
+          // status={errors?.status}
+          message={errMessage}
+      />
+      }
 
-
-
-
-
-    {
-      !loadingBrandModeUpdate &&
-      <ErrorMessageModal
-        opened={modalOpen}
-        onClose={() => setModalOpen(false)}
-        // status={errors?.status}
-        message={errMessage}
-    />
-    }
-
-    
       <FastOrderContext.Provider 
-        value={{visibleColumns, setVisibleColumns, filters_brand_mode, filterValues, setFilters_brand_mode, setFilterValues, searchType }}>
+        value={{
+          visibleColumns, 
+          setVisibleColumns, 
+          filters_category_mode, 
+          filters_brand_mode, 
+          filterValues, 
+          setFilters_category_mode,
+          setFilters_brand_mode, 
+          setFilterValues, 
+          searchType }}>
             
             <FilterProvider>
-
 
           {
             searchType === "brand" ? 
@@ -517,122 +526,132 @@ useEffect(() => {
             </div>
           }
 
+          {/* ✅ Apply sticky behavior to filters (same as FastOrder) */}
+          <div
+            ref={componentRef}
+            style={{
+              position: isFixed ? "fixed" : "static",
+              top: isFixed ? 0 : "auto",
+              left: 0,
+              right: 0,
+              zIndex: 999,
+              background: isFixed ? "white" : "transparent",
+            }}
+          >
+            {
+              searchType === "brand" ?
+                <Paper id="fastorder-filters">
+                  <FiltersBrandMode
+                    setFilters={setFilters_brand_mode} 
+                    nodes={nodes} 
+                    setNodesSubCategories={setNodesSubCategoriesData} 
+                    setNodes={setNodes} 
+                    filters={filters_brand_mode} 
+                    searchType={searchType} 
+                  />
+              </Paper>
+              :
+              <Paper id="fastorder-filters">
+                <FiltersCategoryMode
+                  setFilters={setFilters_category_mode} 
+                  nodes={nodes} 
+                  setNodesSubCategories={setNodesSubCategoriesData} 
+                  setNodes={setNodes} 
+                  filters={filters_category_mode} 
+                  searchType={searchType} 
+                />
+            </Paper>
+            }
+          </div>
 
+          <Group
+            id="fastorder-tablesettings"
+            mt="lg"
+            mb="sm"
+            justify="center"
+            align="center"
+          >
+            <Button
+              leftSection={<IconSettings size={16} />}
+              onClick={() => setOpened(true)}
+              py={0}
+            >
+              نمایش ستون‌ها
+            </Button>
+                    
+            <RotateModal isPortrait={isPortrait} />
+
+            {/* {isPortrait && (
+              <Button 
+                leftSection={<FaRotate 
+                size={12} />} 
+                py={0} 
+                fz="ls"
+                color="red" 
+
+                >
+                <Text style={{ fontSize: "10px" }}>برای تجربه بهتر لطفا از حالت صفحه نمایش افقی استفاده کنید</Text>
+              </Button>
+            )} */}
+
+          </Group>
 
         {
-          searchType === "brand" ?
-            <Paper id="fastorder-filters">
-              <FiltersBrandMode
-                setFilters={setFilters_brand_mode} 
-                nodes={nodes} 
-                setNodesSubCategories={setNodesSubCategoriesData} 
-                setNodes={setNodes} 
-                filters={filters_brand_mode} 
-                searchType={searchType} 
-              />
-          </Paper>
-          :
-          <Paper id="fastorder-filters">
-            <FiltersCategoryMode
-              setFilters={setFilters_category_mode} 
-              nodes={nodes} 
-              setNodesSubCategories={setNodesSubCategoriesData} 
-              setNodes={setNodes} 
-              filters={filters_category_mode} 
-              searchType={searchType} 
-            />
-        </Paper>
+        searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
+          (
+            <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+              <FastTableBrand type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodes[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+              {nodes.map((item, index) => (
+                <React.Fragment key={index}>
+                  <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                    <Text size="18px" c="dark">
+                      {item.label}
+                    </Text>
+                  </Flex>
+                  <FastTableBrand keyIndex={index} isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} setNodes={setNodes} availableLocations={availableLocations}  type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+                </React.Fragment>
+              ))}
+            </Paper>
+          ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
+          (
+            <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+              <FastTableCategory type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+              {nodesSubCategoriesData?.map((item, index) => (
+                <React.Fragment key={index}>
+                  <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                    <Text size="18px" c="dark">
+                      {item.label}
+                    </Text>
+                  </Flex>
+                  <FastTableCategory isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} keyIndex={index} availableLocations={availableLocations}  setNodes={setNodesSubCategoriesData} type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+                </React.Fragment>
+              ))}
+            </Paper>
+          ) : null
         }
 
-
-
-        <Group
-          id="fastorder-tablesettings"
-          mt="lg"
-          mb="sm"
-          justify="center"
-          align="center"
-        >
-          <Button
-            leftSection={<IconSettings size={16} />}
-            onClick={() => setOpened(true)}
-            py={0}
+          <Modal
+            opened={opened}
+            onClose={() => setOpened(false)}
+            title="نمایش دادن ستون‌ها"
           >
-            نمایش ستون‌ها
-          </Button>
-
-          {isPortrait && (
-            <Button 
-              leftSection={<FaRotate 
-              size={12} />} 
-              py={0} 
-              fz="ls"
-              color="red" 
-
-              >
-              <Text style={{ fontSize: "10px" }}>برای تجربه بهتر لطفا از حالت صفحه نمایش افقی استفاده کنید</Text>
-            </Button>
-          )}
-
-        </Group>
-
-      {
-      searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
-        (
-          <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-            <FastTableBrand type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodes[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
-            {nodes.map((item, index) => (
-              <React.Fragment key={index}>
-                <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                  <Text size="18px" c="dark">
-                    {item.label}
-                  </Text>
-                </Flex>
-                <FastTableBrand keyIndex={index} isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} setNodes={setNodes} availableLocations={availableLocations}  type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
-              </React.Fragment>
+            <Stack>
+            {updatedColumns.map((column) => (
+              <Checkbox
+                key={column.key}
+                label={column.label}
+                checked={!visibleColumns.includes(column.key)} // Shows checked when NOT visible
+                onChange={(event) => handleVisibleColumnsChange(event, column.key)} // Toggles correctly
+              />
             ))}
-          </Paper>
-        ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
-        (
-          <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-            <FastTableCategory type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
-            {nodesSubCategoriesData?.map((item, index) => (
-              <React.Fragment key={index}>
-                <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                  <Text size="18px" c="dark">
-                    {item.label}
-                  </Text>
-                </Flex>
-                <FastTableCategory isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} keyIndex={index} availableLocations={availableLocations}  setNodes={setNodesSubCategoriesData} type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
-              </React.Fragment>
-            ))}
-          </Paper>
-        ) : null
-      }
+            </Stack>
+          </Modal>
 
+          </FilterProvider>
 
-        <Modal
-          opened={opened}
-          onClose={() => setOpened(false)}
-          title="نمایش دادن ستون‌ها"
-        >
-          <Stack>
-          {updatedColumns.map((column) => (
-            <Checkbox
-              key={column.key}
-              label={column.label}
-              checked={!visibleColumns.includes(column.key)} // Shows checked when NOT visible
-              onChange={(event) => handleVisibleColumnsChange(event, column.key)} // Toggles correctly
-            />
-          ))}
-          </Stack>
-        </Modal>
-
-        </FilterProvider>
-
-      </FastOrderContext.Provider>
+        </FastOrderContext.Provider>
     </>
-);
+  );
   }
 }
 

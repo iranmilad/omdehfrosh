@@ -26,11 +26,12 @@ function Home() {
     lastFetched 
   } = useSelector((state) => state.shopHome);
 
-  console.log(homeData)
-  
+
   // Get user from Redux to trigger refetch on auth changes
   const { user } = useSelector((state) => state.auth);
 
+
+  console.log(homeData)
 
   useEffect(() => {
     // You can add additional conditions like cache expiration here
@@ -76,7 +77,6 @@ function Home() {
   }
 
   
-  
 
 
   return (
@@ -99,8 +99,8 @@ function Home() {
                 return (
                   <ProductHighlightCard key={index} items={section.data} />
                 );
-              case "productGrid":
-                return <ProductGrid key={index} items={section.data} />;
+              // case "productGrid":
+              //   return <ProductGrid key={index} items={section.data} />;
               case "brands":
                 return <BrandSlider key={index} items={section?.data} />;
               case "featured_products":

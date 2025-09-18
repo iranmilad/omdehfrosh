@@ -22,7 +22,6 @@ import { useFavorites } from '../../../../Libs/hooks/useFavourites'
 
 function IconBar({ favorite, data }) {
 
-  console.log(data)
   const dispatch = useDispatch();
   const navigate = useNavigate();
 

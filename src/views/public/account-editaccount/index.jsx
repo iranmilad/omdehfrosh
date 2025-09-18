@@ -51,7 +51,6 @@ function Account_EditAccount() {
     
     const [modalOpen, setModalOpen] = useState(false);
 
-    console.log(userInfo)
 
     
     useEffect(() => {
@@ -159,12 +158,10 @@ function Account_EditAccount() {
     const convertPersianToGregorian = (persianDate) => {
         if (!persianDate) return "";
         
-        console.log('Converting Persian date:', persianDate);
         
         try {
             // If it's already in Gregorian format, return as is
             if (/^\d{4}-\d{2}-\d{2}$/.test(persianDate)) {
-                console.log('Already in Gregorian format');
                 return persianDate;
             }
             
@@ -172,11 +169,9 @@ function Account_EditAccount() {
             if (persianDate.includes('/')) {
                 // Parse with flexible format to handle single digit months/days
                 const gregorianMoment = moment(persianDate, 'jYYYY/jM/jD');
-                console.log('Moment parsed:', gregorianMoment.isValid() ? 'valid' : 'invalid');
                 
                 if (gregorianMoment.isValid()) {
                     const result = gregorianMoment.format('YYYY-MM-DD');
-                    console.log('Converted result:', result);
                     return result;
                 }
             }
@@ -224,7 +219,6 @@ function Account_EditAccount() {
     // Fixed useEffect to properly set form values when userInfo is loaded
     useEffect(() => {
         if (userInfo && userInfo.user) {
-            console.log('Setting form values, original birthday:', userInfo.user.birthday);
             
             // For the DatePicker, we need to keep it in the original format that it expects
             // Check what format your DatePicker component expects
@@ -240,13 +234,11 @@ function Account_EditAccount() {
                 birthday: birthdayValue // Keep original format for DatePicker
             });
             
-            console.log('Form birthday value set to:', birthdayValue);
         }
     }, [userInfo]);
     
 
 const submitForm = async (values) => {
-  console.log('Form values before conversion:', values);
   
   const updatedValues = {
     ...values,
@@ -254,7 +246,6 @@ const submitForm = async (values) => {
     birthday: convertPersianToGregorian(values.birthday), // Convert only for API submission
   };
 
-  console.log('Values being sent to API:', updatedValues);
   
   await dispatch(updateUserInfo(updatedValues));
   await dispatch(fetchUserInfo());

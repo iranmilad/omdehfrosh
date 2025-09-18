@@ -1,7 +1,6 @@
 import { Box, Container } from '@mantine/core';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-// import { SingleCategoryWithSubcategories } from '../SingleCategoryWithSubcategories';
 
 const SliderComponentSubCategories = ({ 
   items,
@@ -22,13 +21,16 @@ const SliderComponentSubCategories = ({
           modules={[FreeMode, Navigation]}       
           freeMode={true} 
           slidesPerView="auto" 
-          spaceBetween={15} 
-          className="p-4"
+          spaceBetween={8}          // Updated spacing
+          className="mt-2"          // Updated margin
           style={{ width: "100%" }}
           loop={true}
-          >
+        >
           {items?.map((item, index) => (
-            <SwiperSlide key={index} style={{ width: "auto" }}>
+            <SwiperSlide 
+              key={index} 
+              style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}
+            >
               <SingleCategoryWithSubcategories 
                 parentItem={item} 
                 clickType={clickType}
@@ -49,6 +51,24 @@ const SliderComponentSubCategories = ({
   );
 };
 
+// Enhanced SVG Icon Component for subcategory fallback
+const SubCategoryIcon = () => (
+  <svg 
+    width="20" 
+    height="20" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-[20px] h-[20px] rounded-full"
+  >
+    <circle cx="12" cy="12" r="11" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
+    <circle cx="8" cy="8" r="2" fill="#9CA3AF"/>
+    <circle cx="16" cy="8" r="2" fill="#9CA3AF"/>
+    <circle cx="8" cy="16" r="2" fill="#9CA3AF"/>
+    <circle cx="16" cy="16" r="2" fill="#9CA3AF"/>
+    <path d="M8 10 L8 14 M10 8 L14 8 M10 16 L14 16 M16 10 L16 14" stroke="#6B7280" strokeWidth="1"/>
+  </svg>
+);
 
 export function SingleCategoryWithSubcategories({ 
   parentItem, 
@@ -63,43 +83,47 @@ export function SingleCategoryWithSubcategories({
   setFilterBrandsCategorySubCategoryStorage
 }) {
 
-
   if (!parentItem || !Array.isArray(parentItem.categories)) return null;
 
   const isActiveBrands = filterBrandStorage.includes(parentItem.idBrand);
-
   const isActiveCategories = parentItem.categories.some((category) =>
-  filterBrandsCategoryStorage.some(
-    (entry) =>
-      entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
-  )
-);
-
+    filterBrandsCategoryStorage.some(
+      (entry) =>
+        entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
+    )
+  );
   const shouldShow = isActiveBrands && isActiveCategories;
-
-
 
   const onClick = (item, itemSubCategory, idBrand) => {
     if (searchType === "brand" && clickType === "brandSubCategories") {
       setFilterBrandsCategorySubCategoryStorage((prevState) => {
         const safePrevState = prevState || [];
-  
-        const brandEntry = safePrevState.find((entry) => entry.idBrand === idBrand);
-  
+
+        // Create a deep copy to avoid mutating the original state
+        const newState = safePrevState.map(entry => ({
+          ...entry,
+          idCategories: [...entry.idCategories],
+          idSubCategories: entry.idSubCategories.map(subEntry => ({
+            ...subEntry,
+            idSubCategories: [...subEntry.idSubCategories]
+          }))
+        }));
+
+        const brandEntry = newState.find((entry) => entry.idBrand === idBrand);
+
         if (brandEntry) {
           if (!brandEntry.idCategories.includes(item.idCategory)) {
             brandEntry.idCategories.push(item.idCategory);
           }
-  
+
           let categoryEntry = brandEntry.idSubCategories.find(sub => sub.idCategory === item.idCategory);
-  
+
           if (categoryEntry) {
             if (categoryEntry.idSubCategories.includes(itemSubCategory.idSubCategory)) {
               categoryEntry.idSubCategories = categoryEntry.idSubCategories.filter(sub => sub !== itemSubCategory.idSubCategory);
-  
+
               if (categoryEntry.idSubCategories.length === 0) {
                 brandEntry.idSubCategories = brandEntry.idSubCategories.filter(sub => sub.idCategory !== item.idCategory);
-                
                 brandEntry.idCategories = brandEntry.idCategories.filter(cat => cat !== item.idCategory);
               }
             } else {
@@ -111,15 +135,15 @@ export function SingleCategoryWithSubcategories({
               idSubCategories: [itemSubCategory.idSubCategory],
             });
           }
-  
+
           if (brandEntry.idSubCategories.length === 0) {
-            return safePrevState.filter(entry => entry.idBrand !== idBrand);
+            return newState.filter(entry => entry.idBrand !== idBrand);
           }
-  
-          return [...safePrevState];
+
+          return newState;
         } else {
           return [
-            ...safePrevState,
+            ...newState,
             {
               idBrand,
               idCategories: [item.idCategory],
@@ -135,92 +159,112 @@ export function SingleCategoryWithSubcategories({
       });
     }
   };
-  
-  
-  
 
+  // Comprehensive image validation function
+  const isValidImage = (imageValue) => {
+    if (imageValue == null) return false;
+    if (Array.isArray(imageValue)) {
+      if (imageValue.length === 0) return false;
+      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
+    }
+    if (typeof imageValue === 'string') {
+      const trimmed = imageValue.trim();
+      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  };
 
-  // const isActiveBrands = filterBrandStorage.includes(parentItem.idBrand)
-
-
-
+  // Enhanced image error handler
+  const handleImageError = (e, subCategoryName) => {
+    console.warn(`Failed to load subcategory image: ${e.target.src} for subcategory: ${subCategoryName}`);
+    // Hide the broken image and let the icon show instead
+    e.target.style.display = 'none';
+    // Find the parent container and show the fallback icon
+    const parent = e.target.closest('.image-container');
+    if (parent) {
+      const fallbackIcon = parent.querySelector('.fallback-icon');
+      if (fallbackIcon) {
+        fallbackIcon.style.display = 'flex';
+      }
+    }
+  };
 
   return (
     <>
-    {
-      shouldShow &&
-      <div className="border-2 w-full items-center border-gray-300 p-4 rounded-lg flex flex-row gap-3">
+      {shouldShow && (
+        <div className="items-center justify-center border-gray-300 rounded-lg flex flex-row gap-2">
+          {/* Categories mapped horizontally */}
+          {parentItem.categories.map((category, index) => {
+            const isCategoryActive = filterBrandsCategoryStorage.some(
+              (entry) => entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
+            );
 
-      {/* Categories */}
-      {parentItem.categories.map((category, index) => {
+            if (!isCategoryActive) return null;
 
-      const isCategoryActive = filterBrandsCategoryStorage.some(
-        (entry) => entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
-      );
+            return (
+              <div key={index} className="flex flex-col items-center rounded-lg">
+                {/* Subcategories row */}
+                <div className="flex flex-row gap-2">
+                  {category.subCategories.map((subCategory, subIndex) => {
+                    const isActiveBorder = filterBrandsCategorySubCategoryStorage.some(
+                      (member) =>
+                        member.idBrand === parentItem.idBrand &&
+                        member.idSubCategories.some(
+                          (categoryEntry) =>
+                            categoryEntry.idCategory === category.idCategory &&
+                            categoryEntry.idSubCategories.includes(subCategory.idSubCategory)
+                        )
+                    );
 
-        return (
-          isCategoryActive && (
-            <div key={index} className="border p-3 flex flex-col items-center rounded-lg">
+                    const showImage = isValidImage(subCategory.image);
 
-            {/* Subcategories Row */}
-            <div className="flex flex-row gap-2">
-              {category.subCategories.map((subCategory, subIndex) => {
-                
-                const isActiveBorder = filterBrandsCategorySubCategoryStorage.some(
-                  (member) =>
-                    member.idBrand === parentItem.idBrand &&
-                    member.idSubCategories.some(
-                      (categoryEntry) =>
-                        categoryEntry.idCategory === category.idCategory &&
-                        categoryEntry.idSubCategories.includes(subCategory.idSubCategory)
-                    )
-                );
-                
-
-                return (
-                  <div 
-                  key={subIndex} 
-                  className=" text-sm w-[80px] flex flex-col items-center cursor-pointer"
-                  onClick={() => onClick(category, subCategory, parentItem.idBrand)}
-  
-                >
-                  <div
-                    className={`flex w-[60px] h-[60px] rounded-full overflow-hidden border-2
-                    ${isActiveBorder ? "border-green-400" : "border-gray-500"}`}
-                  >
-                    <img className="w-full h-full object-cover" src={subCategory.image || "https://via.placeholder.com/60"} alt={subCategory.name} />
-                  </div>
-                  <span className="text-center whitespace-nowrap">{subCategory.name}</span>
+                    return (
+                      <div
+                        key={subIndex}
+                        className="text-sm w-fit flex flex-row items-center justify-center cursor-pointer"
+                        onClick={() => onClick(category, subCategory, parentItem.idBrand)}
+                      >
+                        <div
+                          className={`flex px-3 h-[32px] w-full gap-2 justify-center items-center border-[1.5px]
+                          ${isActiveBorder ? "border-red-600" : "border-none"} bg-gray-100`}
+                          style={{ borderRadius: '16px' }}
+                        >
+                          <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0 image-container relative flex items-center justify-center'>
+                            {showImage ? (
+                              <>
+                                <img
+                                  className="w-[20px] h-[20px] object-cover rounded-full"
+                                  src={subCategory.image}
+                                  alt={subCategory.name}
+                                  onError={(e) => handleImageError(e, subCategory.name)}
+                                  style={{ display: 'block' }}
+                                />
+                                <div className="fallback-icon w-[20px] h-[20px] bg-white rounded-full items-center justify-center absolute inset-0" style={{ display: 'none' }}>
+                                  <SubCategoryIcon />
+                                </div>
+                              </>
+                            ) : (
+                              <SubCategoryIcon />
+                            )}
+                          </div>
+                          <span className="text-center text-[10px] font-medium leading-tight break-words">
+                            {subCategory.name}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                )
-
-              }
-              )}
-            </div>
-            <div className='flex flex-row items-center gap-4'>
-              <div className=''>
-                <span>برند: {parentItem.title}</span>
               </div>
-              <div>
-                <span>دسته بندی: {category.title}</span>
-              </div>
-              <br />
-            </div>
-          </div>
-          )
-
-        )
-
-      })
-      
-      }
-    </div>
-    
-    }
-
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }
-
 
 export default SliderComponentSubCategories;
