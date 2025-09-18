@@ -41,6 +41,7 @@ import DelayedFullScreenLoader from "../../../components/centerloading";
 import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
+import RotateModal from "../../../components/rotatemodal";
 
 const FastOrderContext = createContext();
 
@@ -420,31 +421,54 @@ function FastEdit() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (!user || user.role !== "supplier") {
-    return (
-      <Modal
-        opened={true}
-        onClose={() => {}}
-        title="ورود به حساب کاربری"
-        centered
-        withCloseButton={false}
-        closeOnClickOutside={false}
-        zIndex={50}
-      >
-        <Stack>
-          <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>
-          <Button
-            onClick={() => navigate("/login")}
-            variant="filled"
-            color="blue"
-            fullWidth
-          >
-            ورود به حساب کاربری
-          </Button>
-        </Stack>
-      </Modal>
-    );
-  }
+// Add this before the main return statement, after all the useEffects
+
+// Show loading while authentication is being verified
+if (authLoading) {
+  return <DelayedFullScreenLoader />;
+}
+
+// Show error if authentication verification failed
+if (authError) {
+  return (
+    <Center style={{ minHeight: '200px' }}>
+      <Stack align="center">
+        <Text color="red">خطا در بررسی احراز هویت</Text>
+        <Button onClick={() => dispatch(verifyToken())}>تلاش مجدد</Button>
+      </Stack>
+    </Center>
+  );
+}
+
+// Only show access denied modal after we've confirmed the user's status
+if (!user || user.role !== "supplier") {
+  return (
+    <Modal
+      opened={true}
+      onClose={() => {}}
+      title="ورود به حساب کاربری"
+      centered
+      withCloseButton={false}
+      closeOnClickOutside={false}
+      zIndex={50}
+    >
+      <Stack>
+        <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>
+        <Button
+          onClick={() => navigate("/login")}
+          variant="filled"
+          color="blue"
+          fullWidth
+        >
+          ورود به حساب کاربری
+        </Button>
+      </Stack>
+    </Modal>
+  );
+}
+
+// Remove the redundant check at the bottom
+// if (user.role === "supplier") { ... }
   
   if (user.role === "supplier") {
 
@@ -554,8 +578,10 @@ function FastEdit() {
             >
               نمایش ستون‌ها
             </Button>
+                    
+            <RotateModal isPortrait={isPortrait} />
 
-            {isPortrait && (
+            {/* {isPortrait && (
               <Button 
                 leftSection={<FaRotate 
                 size={12} />} 
@@ -566,7 +592,7 @@ function FastEdit() {
                 >
                 <Text style={{ fontSize: "10px" }}>برای تجربه بهتر لطفا از حالت صفحه نمایش افقی استفاده کنید</Text>
               </Button>
-            )}
+            )} */}
 
           </Group>
 

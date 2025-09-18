@@ -47,41 +47,31 @@ function OrderRow({ id = 0, attributes, inventory = 2,seller, onReplace }) {
   );
 }
 
-// Default SVG component for when no attributes exist
+// Minimized SVG component with reduced size and no text
 const DefaultAttributesSVG = () => (
   <svg 
-    width="40" 
-    height="40" 
-    viewBox="0 0 80 80" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    style={{ opacity: 1 }}
+    style={{ opacity: 0.5 }}
   >
     <circle 
-      cx="40" 
-      cy="40" 
-      r="30" 
-      stroke="#000000" 
-      strokeWidth="2" 
-      strokeDasharray="4,4"
+      cx="12" 
+      cy="12" 
+      r="8" 
+      stroke="#adb5bd" 
+      strokeWidth="1" 
+      strokeDasharray="2,2"
       fill="none"
     />
     <path 
-      d="M30 40h20M40 30v20" 
-      stroke="#000000" 
-      strokeWidth="2" 
+      d="M8 12h8M12 8v8" 
+      stroke="#adb5bd" 
+      strokeWidth="1" 
       strokeLinecap="round"
     />
-    {/* <text 
-      x="40" 
-      y="60" 
-      textAnchor="middle" 
-      fill="#adb5bd" 
-      fontSize="10" 
-      fontFamily="system-ui"
-    >
-      هیچ ویژگی‌ای وجود ندارد
-    </text> */}
   </svg>
 );
 
@@ -90,20 +80,21 @@ export function Attributes({items}){
   const hasAttributes = items && items.length > 0;
 
   return (
-    <Center style={{ minHeight: '' }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center',
+      minHeight: '24px',
+      padding: 0,
+      margin: 0,
+      gap: '1px'
+    }}>
       {hasAttributes ? (
-        <Stack gap="" align="center">
-          {items.map((it,index) => <Attribute key={index} {...it} />)}
-        </Stack>
+        items.map((it,index) => <Attribute key={index} {...it} />)
       ) : (
-        <Stack gap="" align="center">
-          <DefaultAttributesSVG />
-          {/* <Text size="sm" c="dimmed" ta="center">
-            هیچ ویژگی‌ای برای نمایش وجود ندارد
-          </Text> */}
-        </Stack>
+        <DefaultAttributesSVG />
       )}
-    </Center>
+    </div>
   )
 }
 
@@ -114,41 +105,47 @@ function Attribute (props){
     switch (type) {
       case 'color':
         return (
-          <Group gap={0} justify="center" style={{ padding: 0, margin: 0 }}>
-            <Tooltip label={attribute_name}>
-              <ColorSwatch size="20" color={value} />
-            </Tooltip>
-          </Group>
+          <Tooltip label={attribute_name} withArrow={false} position="top" offset={2}>
+            <ColorSwatch size={16} color={value} style={{ margin: 0 }} />
+          </Tooltip>
         );
       case 'warranty':
         return (
-          <Group gap={0} justify="center" style={{ padding: 0, margin: 0 }}>
-            <Tooltip label={attribute_name}>
-              <IconShieldCheck size={18} />
-            </Tooltip>
-          </Group>
+          <Tooltip label={attribute_name} withArrow={false} position="top" offset={2}>
+            <IconShieldCheck size={16} style={{ margin: 0 }} />
+          </Tooltip>
         );
       case 'material':
         return (
-          <Group gap={0} justify="center" style={{ padding: 0, margin: 0 }}>
-            <Tooltip label={attribute_name}>
-              <IconKeyframeAlignCenter size={18} />
-            </Tooltip>
-          </Group>
+          <Tooltip label={attribute_name} withArrow={false} position="top" offset={2}>
+            <IconKeyframeAlignCenter size={16} style={{ margin: 0 }} />
+          </Tooltip>
         );
       default:
-        // For any other type, show a generic attribute
+        // For any other type, show a generic attribute with minimal styling
         return (
-          <Group gap={0} justify="center" style={{ padding: 0, margin: 0 }}>
-            <Badge size="sm" variant="light" style={{ padding: 0, margin: 0 }}>
-              {attribute_name}: {value}
-            </Badge>
-          </Group>
+          <Badge 
+            size="xs" 
+            variant="light" 
+            style={{ 
+              padding: '1px 4px', 
+              margin: 0, 
+              fontSize: '9px',
+              height: '16px',
+              lineHeight: '14px'
+            }}
+          >
+            {value}
+          </Badge>
         );
     }
   };
 
-  return renderAttribute();
+  return (
+    <div style={{ padding: 0, margin: 0, lineHeight: 1 }}>
+      {renderAttribute()}
+    </div>
+  );
 }
 
 export default OrderRow;

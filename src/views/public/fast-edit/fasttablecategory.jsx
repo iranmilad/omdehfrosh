@@ -621,17 +621,21 @@ const FastTableCategory = ({
     // Mobile view columns
     if (isMobile) {
       newVisibleColumns = [
-        "name", "image", "minOrder", "deliveryTime", "discount", "attributes",
-        "minOrder", "maxOrder", "seller", "deliveryTime", "payment_type", "delivery",
+         "image", "minOrder", "deliveryTime", "discount", "attributes", "psid",
+        "minOrder", "maxOrder", "seller", "deliveryTime", "payment_type", "delivery", "psid"
       ];
     } 
     // Tablet view columns
     else if (isTablet) {
-      newVisibleColumns = ["image", "stock", "minOrder"];
+      newVisibleColumns = ["image", "maxOrder", "deliveryTime", "stock", "minOrder"];
     } 
     // For non-mobile and non-tablet views (desktop)
     else {
-      newVisibleColumns = [];
+      newVisibleColumns = [
+         "image", "deliveryTime", "discount",
+        "minOrder", "maxOrder", "seller", "delivery"
+      ];
+    
     }
 
     // Add columns for printing
