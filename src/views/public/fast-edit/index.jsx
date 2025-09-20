@@ -42,6 +42,8 @@ import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import RotateModal from "../../../components/rotatemodal";
+import { BrandRowSelectionProvider } from "./BrandRowSelectionContext";
+import { CategoryRowSelectionProvider } from "./CategoryRowSelectionContext";
 
 const FastOrderContext = createContext();
 
@@ -495,33 +497,36 @@ if (!user || user.role !== "supplier") {
             
             <FilterProvider>
 
-          {
-            searchType === "brand" ? 
-            <div>
-            <SearchComponentBrand
-              filters={filters_brand_mode} 
-              setFilters={setFilters_brand_mode}
-              setNodesSubCategories={setNodesSubCategoriesData} 
-              setNodes={setNodes} 
-              setAvailableLocations={setAvailableLocations}
-              searchType={searchType} 
-              setSearchType={setSearchType} 
-              
-              />
-            </div>
-            :
-            <div>
-                <SearchComponentCategory 
-                  filters={filters_category_mode} 
-                  setFilters={setFilters_category_mode}
-                  setNodesSubCategories={setNodesSubCategoriesData} 
-                  setNodes={setNodes} 
-                  setAvailableLocations={setAvailableLocations}
-                  searchType={searchType} 
-                  setSearchType={setSearchType} 
+              {
+                searchType === "brand" ? 
+                <BrandRowSelectionProvider>
+                  <div>
+                    <SearchComponentBrand
+                      filters={filters_brand_mode} 
+                      setFilters={setFilters_brand_mode}
+                      setNodesSubCategories={setNodesSubCategoriesData} 
+                      setNodes={setNodes} 
+                      setAvailableLocations={setAvailableLocations}
+                      searchType={searchType} 
+                      setSearchType={setSearchType} 
+                    />
+                  </div>
+                </BrandRowSelectionProvider>
+                :
+                <CategoryRowSelectionProvider>
+                  <div>
+                    <SearchComponentCategory 
+                      filters={filters_category_mode} 
+                      setFilters={setFilters_category_mode}
+                      setNodesSubCategories={setNodesSubCategoriesData} 
+                      setNodes={setNodes} 
+                      setAvailableLocations={setAvailableLocations}
+                      searchType={searchType} 
+                      setSearchType={setSearchType} 
                   />
-            </div>
-          }
+                  </div>
+                </CategoryRowSelectionProvider>
+              }
 
           {/* ✅ Apply sticky behavior to filters (same as FastOrder) */}
           <div

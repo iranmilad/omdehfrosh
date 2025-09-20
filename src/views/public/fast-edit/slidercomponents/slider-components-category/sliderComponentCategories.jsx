@@ -1,6 +1,7 @@
 import { FreeMode } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useEffect } from 'react';
+import { useCategoryRowSelection } from '../../CategoryRowSelectionContext';
 
 // Default SVG image for categories when image is null or empty
 const DEFAULT_CATEGORY_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
@@ -32,7 +33,8 @@ const SliderComponentCategoriesCM = ({
   setFilterCategorySubCategoryBrandsStorage,
 }) => {
 
-
+  const { checkedRows } = useCategoryRowSelection();
+  const isSlideSelectionActive = checkedRows.size > 0;
 
   // Early return with helpful message
   if (!items) {
@@ -74,6 +76,7 @@ const SliderComponentCategoriesCM = ({
       modules={[FreeMode]} 
       slidesPerView="auto" 
       spaceBetween={6}            // ✅ Gap between boxes
+      className="mt-2"            // Add margin top for spacing
       style={{ width: "100%" }}
     >
       {/* Category items */}
@@ -94,6 +97,7 @@ const SliderComponentCategoriesCM = ({
               setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
               filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
               setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+              isDisabled={isSlideSelectionActive} 
             />
           </SwiperSlide>
         );
@@ -102,11 +106,14 @@ const SliderComponentCategoriesCM = ({
       {/* Select All Button */}
       <SwiperSlide style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}>
         <button
-          className={`flex h-[35px] px-4 gap-2 justify-center items-center border-2 
+          className={`flex h-[35px] px-4 gap-2 justify-center items-center border-[1.5px] 
             ${allSelected ? "border-green-400 bg-green-50" : "border-transparent bg-gray-100"} 
-            cursor-pointer`}
+            ${isSlideSelectionActive ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           style={{ borderRadius: '18px' }}
-          onClick={handleSelectAll}
+          onClick={() => {
+            if (!isSlideSelectionActive) handleSelectAll();
+          }}
+          disabled={isSlideSelectionActive}
         >
           <span className="text-[9px] font-medium whitespace-nowrap">
             انتخاب همه
@@ -128,15 +135,15 @@ export function SingleCategoryGroupCM({
   setFilterCategorySubCategoryStorage,
   filterCategorySubCategoryBrandsStorage,
   setFilterCategorySubCategoryBrandsStorage,
+  isDisabled
 }) {
-
-
 
   if (!parentItem) {
     return null;
   }
 
   const onClick = (item) => {
+    if (isDisabled) return;
 
     if (clickType === "categories") {
       const isActive = filterCategoryStorage?.includes(item.idCategory) ?? false;
@@ -176,12 +183,13 @@ export function SingleCategoryGroupCM({
     <div className="flex flex-col">
       <div className="w-full">
         <div
-          className={`flex flex-col items-center justify-center flex-shrink-0 cursor-pointer`}
+          className={`flex flex-col items-center justify-center flex-shrink-0
+            ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
           onClick={() => onClick(parentItem)}
         >
           <div
             className={`flex w-fit h-[35px] px-4 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100
-              ${isActive ? "border-red-600" : "border-transparent"}`}
+              ${!isDisabled && isActive ? "border-red-600" : "border-transparent"}`}
             style={{ borderRadius: '18px' }}
           >
             <div className='w-full h-[25px] bg-white rounded-full'>

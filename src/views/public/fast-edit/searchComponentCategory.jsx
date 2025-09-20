@@ -37,6 +37,7 @@ import { deleteFilterSettings } from "../../../redux/savefiltersettings/deleteFi
 import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import { notifications } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
+import { useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import isEqual from "lodash/isEqual";
 
 const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocations, filters, setFilters, setNodes, setNodesSubCategories }) => {
@@ -52,9 +53,15 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
   const isMobile = useMediaQuery("(max-width: 480px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
-  // Filter selection state
-  const [checkedRows, setCheckedRows] = useState(new Set());
-  const [selectedRow, setSelectedRow] = useState(null);
+  // Category-specific context for Fast Edit
+  const { 
+    checkedRows, 
+    selectedRow, 
+    setSelectedRow, 
+    toggleCheck, 
+    isChecked, 
+    clearAll 
+  } = useCategoryRowSelection();
 
   // Modal states
   const [openedAddModal, setOpenedAddModal] = useState(false);
@@ -79,6 +86,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
       try {
         return JSON.parse(storedFilters);
       } catch (error) {
+        console.error('Error parsing stored filters:', error);
       }
     }
     return {
@@ -132,7 +140,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     },
   });
 
-  // 🔥 NEW: Helper functions to build filter arrays
+  // Helper functions to build filter arrays
   const buildCurrentFilterArray = useCallback(() => {
     return [{
       searchType,
@@ -164,28 +172,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     }];
   }, [getInitialFilters]);
 
-  // Filter selection handlers
-  const toggleCheck = useCallback((filterId) => {
-    setCheckedRows(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(filterId)) {
-        newSet.delete(filterId);
-      } else {
-        newSet.add(filterId);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const isChecked = useCallback((filterId) => {
-    return checkedRows.has(filterId);
-  }, [checkedRows]);
-
-  const clearAll = useCallback(() => {
-    setCheckedRows(new Set());
-  }, []);
-
-  // 🔥 MODIFIED: Edit filter handler to use array format
+  // Edit filter handler - Modified to use array format
   const handleEditFilter = useCallback((filter) => {
     setEditingFilterId(filter.id);
     setEditingFilterName(filter.filterName || 'بدون نام');
@@ -216,7 +203,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     setSelectedRow(filter.id);
     setMenuOpened(false);
 
-    // 🔥 NEW: Send single filter as array to API
+    // Send single filter as array to API
     const filterArray = [{
       searchType: 'category',
       uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
@@ -224,7 +211,6 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
       uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || []
     }];
 
-    console.log('🔥 Fast Edit Category Edit - Sending filterArray to API:', filterArray);
     dispatch(fetchFastEditCategoryModeTableData(filterArray));
 
     notifications.show({
@@ -233,7 +219,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
       color: 'blue',
       autoClose: 4000,
     });
-  }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
+  }, [COOKIE_NAME, setFilters, setSearchType, setSelectedRow, dispatch]);
 
   // Save edited filter
   const saveEditedFilter = useCallback(() => {
@@ -271,7 +257,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     });
   }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch]);
 
-  // 🔥 MODIFIED: Cancel edit mode to use array format
+  // Cancel edit mode - Modified to use array format
   const cancelEditMode = useCallback(() => {
     setIsEditMode(false);
     setEditingFilterId(null);
@@ -290,10 +276,8 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
     setSelectedRow(null);
 
-    // 🔥 NEW: Send initial filter as array to API
-    const filterArray = buildInitialFilterArray();
-    console.log('🔥 Fast Edit Category Cancel Edit - Sending filterArray to API:', filterArray);
-    dispatch(fetchFastEditCategoryModeTableData(filterArray));
+    // Send initial filter as array to API
+    dispatch(fetchFastEditCategoryModeTableData(buildInitialFilterArray()));
     
     notifications.show({
       title: 'لغو ویرایش',
@@ -301,9 +285,9 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
       color: 'gray',
       autoClose: 2000,
     });
-  }, [getInitialFilters, setFilters, COOKIE_NAME, dispatch, buildInitialFilterArray]);
+  }, [getInitialFilters, setFilters, setSelectedRow, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
-  // 🔥 MODIFIED: Handle checkbox change to use array format
+  // Handle checkbox change - Modified to use array format
   const handleFilterCheckboxChange = useCallback((filterId, checked) => {
     if (checked) {
       // Check the checkbox in the context
@@ -323,26 +307,21 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
         };
 
         Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-        
+
         setFilterCategoryStorage(selectedFilter.uniqueIDClickedCategories || []);
         setFilterCategorySubCategoryStorage(selectedFilter.uniqueIDClickedSubCategories || []);
         setFilterCategorySubCategoryBrandsStorage(selectedFilter.uniqueIDClickedSubCategoriesBrands || []);
         setLocalFilters(selectedFilter.filters || {});
-        
-        if (setFilters) {
-          setFilters(selectedFilter.filters || {});
-        }
-        if (setSearchType) {
-          setSearchType('category');
-        }
 
-        // 🔥 NEW: Build array of all checked filters (including the one just checked)
+        if (setFilters) setFilters(selectedFilter.filters || {});
+        if (setSearchType) setSearchType('category');
+
+        // Build array of all checked filters (including the one just checked)
         setTimeout(() => {
           const newCheckedRows = new Set(checkedRows);
           newCheckedRows.add(filterId);
           
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
-          console.log('🔥 Fast Edit Category Checkbox Check - Sending filterArray to API:', checkedFiltersArray);
           dispatch(fetchFastEditCategoryModeTableData(checkedFiltersArray));
         }, 0);
       }
@@ -352,7 +331,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
         toggleCheck(filterId);
       }
       
-      // 🔥 NEW: Build array of remaining checked filters
+      // Build array of remaining checked filters
       setTimeout(() => {
         const newCheckedRows = new Set(checkedRows);
         newCheckedRows.delete(filterId);
@@ -360,7 +339,6 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
         if (newCheckedRows.size > 0) {
           // If there are still checked filters, send them as array
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
-          console.log('🔥 Fast Edit Category Checkbox Uncheck (with remaining) - Sending filterArray to API:', checkedFiltersArray);
           dispatch(fetchFastEditCategoryModeTableData(checkedFiltersArray));
         } else {
           // If no filters are checked, reset to initial filters
@@ -376,15 +354,13 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
           Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
 
           // Send initial filter as array
-          const filterArray = buildInitialFilterArray();
-          console.log('🔥 Fast Edit Category Checkbox Uncheck (reset to initial) - Sending filterArray to API:', filterArray);
-          dispatch(fetchFastEditCategoryModeTableData(filterArray));
+          dispatch(fetchFastEditCategoryModeTableData(buildInitialFilterArray()));
         }
       }, 0);
     }
   }, [savedFilters, COOKIE_NAME, setFilters, setSearchType, getInitialFilters, dispatch, isChecked, toggleCheck, checkedRows, buildCheckedFiltersArray, buildInitialFilterArray]);
 
-  // 🔥 MODIFIED: Clear selected filters to use array format
+  // Clear selected filters
   const clearSelectedFilters = useCallback(() => {
     clearAll();
     
@@ -400,10 +376,8 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
 
     Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
 
-    // 🔥 NEW: Send initial filter as array to API
-    const filterArray = buildInitialFilterArray();
-    console.log('🔥 Fast Edit Category Clear All - Sending filterArray to API:', filterArray);
-    dispatch(fetchFastEditCategoryModeTableData(filterArray));
+    // Send initial filter as array to API
+    dispatch(fetchFastEditCategoryModeTableData(buildInitialFilterArray()));
   }, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
   // Save filter function
@@ -494,6 +468,59 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     COOKIE_NAME
   ]);
 
+  // Modified useEffect for checked rows - now uses array format
+  useEffect(() => {
+    if (checkedRows.size > 0) {
+      const checkedFiltersArray = buildCheckedFiltersArray();
+      if (checkedFiltersArray.length > 0) {
+        dispatch(fetchFastEditCategoryModeTableData(checkedFiltersArray));
+      }
+    }
+  }, [checkedRows, dispatch, buildCheckedFiltersArray]);
+
+  // OPTIMIZED: Combined data fetching effect with duplicate prevention - Modified to use array format
+  useEffect(() => {
+    const currentParams = {
+      searchType,
+      filterCategoryStorage,
+      filterCategorySubCategoryStorage,
+      filterCategorySubCategoryBrandsStorage,
+      checkedRowsSize: checkedRows.size,
+      checkedRowIds: Array.from(checkedRows).sort().join(','),
+      hasCheckedRows: checkedRows.size > 0
+    };
+
+    // Skip if parameters haven't changed AND we're not dealing with checkbox changes
+    if (isEqual(lastFetchParams.current, currentParams)) {
+      return;
+    }
+
+    lastFetchParams.current = currentParams;
+
+    // Always make an API request when there are changes
+    if (checkedRows.size > 0) {
+      // When checkboxes are selected, fetch data based on checked rows
+      const checkedFiltersArray = buildCheckedFiltersArray();
+      if (checkedFiltersArray.length > 0) {
+        dispatch(fetchFastEditCategoryModeTableData(checkedFiltersArray));
+      }
+    } else {
+      // When no checkboxes are selected, fetch normal filtered data as array
+      const currentFiltersArray = buildCurrentFilterArray();
+      dispatch(fetchFastEditCategoryModeTableData(currentFiltersArray));
+    }
+  }, [
+    dispatch, 
+    searchType,
+    filterCategoryStorage,
+    filterCategorySubCategoryStorage,
+    filterCategorySubCategoryBrandsStorage,
+    checkedRows,
+    checkedRows.size,
+    buildCheckedFiltersArray,
+    buildCurrentFilterArray
+  ]);
+
   // OPTIMIZED: Load saved filters only once when user is available
   useEffect(() => {
     if (user && !hasLoadedInitialFilters.current) {
@@ -522,8 +549,8 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     localFilters,
     COOKIE_NAME
   ]);
-  
-  // 🔥 MODIFIED: Load filters from cookies on component mount to use array format
+
+  // Load filters from cookies on component mount - Modified to use array format
   useEffect(() => {
     const storedFilters = Cookies.get(COOKIE_NAME);
   
@@ -534,17 +561,17 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
         setFilterCategoryStorage(parsedFilters.uniqueIDClickedCategories || []);
         setFilterCategorySubCategoryStorage(parsedFilters.uniqueIDClickedSubCategories || []);
         setFilterCategorySubCategoryBrandsStorage(parsedFilters.uniqueIDClickedSubCategoriesBrands || []);
-
         setLocalFilters(parsedFilters.filters || {});
+        
         if (setFilters) {
           setFilters(parsedFilters.filters || {});
         }
-
-        if (setSearchType) {
-          setSearchType(parsedFilters.searchType || "category");
+        
+        if (setSearchType && parsedFilters.searchType) {
+          setSearchType(parsedFilters.searchType);
         }
 
-        // 🔥 NEW: Send loaded filters as array to API
+        // Send loaded filters as array to API
         setTimeout(() => {
           const filterArray = [{
             searchType: parsedFilters.searchType || 'category',
@@ -552,7 +579,6 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
             uniqueIDClickedSubCategories: parsedFilters.uniqueIDClickedSubCategories || [],
             uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || []
           }];
-          console.log('🔥 Fast Edit Category Load from Cookie - Sending filterArray to API:', filterArray);
           dispatch(fetchFastEditCategoryModeTableData(filterArray));
         }, 0);
       } catch (error) {
@@ -561,62 +587,24 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     }
   }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
 
-  // 🔥 MODIFIED: Combined data fetching effect to use array format
+  // Sync localFilters with parent filters
   useEffect(() => {
-    const currentParams = {
-      searchType,
-      filterCategoryStorage,
-      filterCategorySubCategoryStorage,
-      filterCategorySubCategoryBrandsStorage,
-      checkedRowsSize: checkedRows.size,
-      checkedRowIds: Array.from(checkedRows).sort().join(','),
-      hasCheckedRows: checkedRows.size > 0
-    };
-
-    // Skip if parameters haven't changed
-    if (isEqual(lastFetchParams.current, currentParams)) {
-      return;
+    if (filters && JSON.stringify(filters) !== JSON.stringify(localFilters)) {
+      setLocalFilters(filters);
     }
-
-    lastFetchParams.current = currentParams;
-
-    // Always make an API request when there are changes
-    if (checkedRows.size > 0) {
-      // When checkboxes are selected, fetch data based on checked rows
-      const checkedFiltersArray = buildCheckedFiltersArray();
-      if (checkedFiltersArray.length > 0) {
-        console.log('🔥 Fast Edit Category useEffect (checked rows) - Sending filterArray to API:', checkedFiltersArray);
-        dispatch(fetchFastEditCategoryModeTableData(checkedFiltersArray));
-      }
-    } else {
-      // When no checkboxes are selected, fetch normal filtered data as array
-      const currentFiltersArray = buildCurrentFilterArray();
-      console.log('🔥 Fast Edit Category useEffect (normal filters) - Sending filterArray to API:', currentFiltersArray);
-      dispatch(fetchFastEditCategoryModeTableData(currentFiltersArray));
-    }
-  }, [
-    dispatch, 
-    searchType,
-    filterCategoryStorage,
-    filterCategorySubCategoryStorage,
-    filterCategorySubCategoryBrandsStorage,
-    checkedRows,
-    checkedRows.size,
-    buildCheckedFiltersArray,
-    buildCurrentFilterArray
-  ]);
+  }, [filters, localFilters]);
 
   // Handle table data updates
   useEffect(() => {
     if (tableData) {
       setNodes(tableData?.products || []);
-      setNodesSubCategories(tableData?.products || []);
+      setNodesSubCategories(tableData?.subCategoriesData || []);
       setFilterValues(tableData?.filters || {});
-      setAvailableLocations(tableData?.supplierLocations || [])
+      setAvailableLocations(tableData?.supplierLocations || []);
     }
-  }, [tableData, filterBrandStorage, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]); 
+  }, [tableData, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
 
-  // Clear filters when checkboxes are active
+  // Clear filters when checkboxes are active - Modified to use array format
   useEffect(() => {
     if (checkedRows.size > 0) {
       setFilterCategoryStorage([]);
@@ -636,7 +624,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
-  console.log("filters", filters);
+  console.log("render SearchComponentCategory Fast Edit", tableData);
 
   return (
     <>
@@ -683,10 +671,11 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
 
       <Paper 
         mt={{ base: "xs", md: "xs" }} 
-        mb={isTablet ? "sm" : ""} 
         id="fastorder-search"
         p={isMobile ? "sm" : "md"}
-        style={{ overflow: 'hidden' }}
+        style={{ 
+          overflow: 'hidden'
+        }}
       >
         {/* Header */}
         <Flex
@@ -694,7 +683,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
           justify={isMobile ? "flex-start" : "space-between"}
           align={isMobile ? "stretch" : "center"}
           gap={isMobile ? "" : "md"}
-          mb={isTablet ? "sm" : "md"}
+          mb={isTablet ? "sm" : ""}
         >
           <div>
             <XTitle>ویرایش سریع</XTitle>
@@ -734,225 +723,234 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
             align={isMobile ? "stretch" : "center"}
           >
             {/* Filter Settings Menu */}
-            {user && (
-              <Menu 
-                shadow="md" 
-                width={isMobile ? "90vw" : isTablet ? 350 : 400} 
-                position={isMobile ? "bottom" : "bottom-end"}
-                offset={isMobile ? 5 : 10}
-                opened={menuOpened}
-                onChange={setMenuOpened}
-              >
-                <Menu.Target>
-                  <Button 
-                    variant="light" 
-                    leftSection={!isMobile && <IconFilter size={16} />}
-                    size={isMobile ? "sm" : "md"}
-                    fullWidth={isMobile}
-                    compact={isMobile}
-                    styles={{
-                      root: {
-                        height: isMobile ? '32px' : '36px',
-                        fontSize: isMobile ? '11px' : '13px'
-                      }
-                    }}
-                  >
-                    {isMobile ? "تنظیمات جستجو" : "تنظیمات جستجو"}
-                    {checkedRows.size > 0 && ` (${checkedRows.size})`}
-                  </Button>
-                </Menu.Target>
+            {user && 
+            <Menu 
+              shadow="md" 
+              width={isMobile ? "90vw" : isTablet ? 350 : 400} 
+              position={isMobile ? "bottom" : "bottom-end"}
+              offset={isMobile ? 5 : 10}
+              opened={menuOpened}
+              onChange={setMenuOpened}
+            >
+              <Menu.Target>
+                <Button 
+                  variant="light" 
+                  leftSection={!isMobile && <IconFilter size={16} />}
+                  size={isMobile ? "sm" : "md"}
+                  fullWidth={isMobile}
+                  compact={isMobile}
+                  styles={{
+                    root: {
+                      height: isMobile ? '32px' : '36px',
+                      fontSize: isMobile ? '11px' : '13px'
+                    }
+                  }}
+                >
+                  {isMobile ? "تنظیمات جستجو" : "تنظیمات جستجو"}
+                  {checkedRows.size > 0 && ` (${checkedRows.size})`}
+                </Button>
+              </Menu.Target>
 
-                <Menu.Dropdown>
-                  <Menu.Label>فیلترهای ذخیره شده</Menu.Label>
-                  
-                  <Menu.Item
-                    leftSection={<IconPlus size={16} />}
-                    onClick={() => setOpenedAddModal(true)}
-                  >
-                    افزودن فیلتر جدید
-                  </Menu.Item>
+              <Menu.Dropdown>
+                <Menu.Label>فیلترهای ذخیره شده</Menu.Label>
+                
+                <Menu.Item
+                  leftSection={<IconPlus size={16} />}
+                  onClick={() => setOpenedAddModal(true)}
+                >
+                  افزودن فیلتر جدید
+                </Menu.Item>
 
-                  {savedFilters && savedFilters.length > 0 && (
-                    <>
-                      <Menu.Divider />
-                      
-                      {checkedRows.size > 0 && (
-                        <>
-                          <Group p="xs" gap="xs" justify={isMobile ? "center" : "flex-start"}>
-                            <Button 
-                              size="xs" 
-                              variant="subtle" 
-                              color="gray"
-                              onClick={clearSelectedFilters}
-                              fullWidth={isMobile}
-                              disabled={isEditMode}
-                              style={{
-                                opacity: isEditMode ? 0.5 : 1
-                              }}
-                            >
-                              پاک کردن انتخاب
-                            </Button>
-                          </Group>
-                          <Menu.Divider />
-                        </>
-                      )}
-                      
-                      <Box style={{ 
-                        maxHeight: isMobile ? '250px' : '300px', 
-                        overflowY: 'auto',
-                        overflowX: 'hidden'
-                      }}>
-                        {savedFilters.map((filter, index) => (
-                          <React.Fragment key={filter.id}>
-                            <Menu.Item>
-                              <Group justify="space-between" w="100%" wrap="nowrap">
-                                <Group gap="xs" flex={1} maw="calc(100% - 60px)">
-                                  <Checkbox
-                                    checked={isChecked(filter.id)}
-                                    onChange={(event) => {
-                                      event.stopPropagation();
-                                      if (isEditMode) return;
-                                      handleFilterCheckboxChange(filter.id, event.currentTarget.checked);
-                                    }}
-                                    onClick={(e) => e.stopPropagation()}
-                                    size={isMobile ? "sm" : "md"}
-                                    disabled={isEditMode}
-                                    style={{
-                                      opacity: isEditMode ? 0.5 : 1,
-                                      cursor: isEditMode ? 'not-allowed' : 'pointer'
-                                    }}
-                                  />
-                                  <Text 
-                                    size={isMobile ? "xs" : "sm"}
-                                    fw={editingFilterId === filter.id ? 600 : 500}
-                                    c={editingFilterId === filter.id ? "blue" : undefined}
-                                    style={{ 
-                                      cursor: 'pointer',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                      flex: 1,
-                                      opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      
-                                      if (isEditMode && editingFilterId !== filter.id) {
-                                        notifications.show({
-                                          title: 'در حال ویرایش',
-                                          message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
-                                          color: 'orange',
-                                          autoClose: 3000,
-                                        });
-                                        return;
-                                      }
+                {savedFilters && savedFilters.length > 0 && (
+                  <>
+                    <Menu.Divider />
+                    
+                    {checkedRows.size > 0 && (
+                      <>
+                        <Group p="xs" gap="xs" justify={isMobile ? "center" : "flex-start"}>
+                          <Button 
+                            size="xs" 
+                            variant="subtle" 
+                            color="gray"
+                            onClick={clearSelectedFilters}
+                            fullWidth={isMobile}
+                            disabled={isEditMode}
+                            style={{
+                              opacity: isEditMode ? 0.5 : 1
+                            }}
+                          >
+                            پاک کردن انتخاب
+                          </Button>
+                        </Group>
+                        <Menu.Divider />
+                      </>
+                    )}
+                    
+                    <Box style={{ 
+                      maxHeight: isMobile ? '250px' : '300px', 
+                      overflowY: 'auto',
+                      overflowX: 'hidden'
+                    }}>
+                      {savedFilters.map((filter, index) => (
+                        <React.Fragment key={filter.id}>
+                          <Menu.Item>
+                            <Group justify="space-between" w="100%" wrap="nowrap">
+                              <Group gap="xs" flex={1} maw="calc(100% - 60px)">
+                                <Checkbox
+                                  checked={isChecked(filter.id)}
+                                  onChange={(event) => {
+                                    event.stopPropagation();
+                                    if (isEditMode) return;
+                                    
+                                    const isCurrentlyChecked = event.currentTarget.checked;
+                                    handleFilterCheckboxChange(filter.id, isCurrentlyChecked);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  size={isMobile ? "sm" : "md"}
+                                  disabled={isEditMode}
+                                  style={{
+                                    opacity: isEditMode ? 0.5 : 1,
+                                    cursor: isEditMode ? 'not-allowed' : 'pointer'
+                                  }}
+                                />
+                                <Text 
+                                  size={isMobile ? "xs" : "sm"}
+                                  fw={editingFilterId === filter.id ? 600 : 500}
+                                  c={editingFilterId === filter.id ? "blue" : undefined}
+                                  style={{ 
+                                    cursor: 'pointer',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    flex: 1,
+                                    opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    
+                                    if (isEditMode && editingFilterId !== filter.id) {
+                                      notifications.show({
+                                        title: 'در حال ویرایش',
+                                        message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
+                                        color: 'orange',
+                                        autoClose: 3000,
+                                      });
+                                      return;
+                                    }
 
-                                      const cookieValue = {
-                                        searchType: 'category',
-                                        uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
-                                        uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
-                                        uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
-                                        filters: filter.filters || {},
-                                      };
+                                    const cookieValue = {
+                                      searchType: 'category',
+                                      filters: filter.filters || {},
+                                      uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
+                                      uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
+                                      uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
+                                    };
 
-                                      Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-                                      
-                                      setFilterCategoryStorage(filter.uniqueIDClickedCategories || []);
-                                      setFilterCategorySubCategoryStorage(filter.uniqueIDClickedSubCategories || []);
-                                      setFilterCategorySubCategoryBrandsStorage(filter.uniqueIDClickedSubCategoriesBrands || []);
-                                      setLocalFilters(filter.filters || {});
-                                      
-                                      if (setFilters) {
-                                        setFilters(filter.filters || {});
-                                      }
-                                      if (setSearchType) {
-                                        setSearchType('category');
-                                      }
+                                    Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+                                    
+                                    setFilterCategoryStorage(filter.uniqueIDClickedCategories || []);
+                                    setFilterCategorySubCategoryStorage(filter.uniqueIDClickedSubCategories || []);
+                                    setFilterCategorySubCategoryBrandsStorage(filter.uniqueIDClickedSubCategoriesBrands || []);
+                                    setLocalFilters(filter.filters || {});
+                                    
+                                    if (setFilters) {
+                                      setFilters(filter.filters || {});
+                                    }
+                                    if (setSearchType) {
+                                      setSearchType('category');
+                                    }
 
-                                      setSelectedRow(filter.id);
+                                    setSelectedRow(filter.id);
 
-                                      // 🔥 NEW: Send filter as array to API
-                                      const filterArray = [{
-                                        searchType: 'category',
-                                        uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
-                                        uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
-                                        uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || []
-                                      }];
-                                      console.log('🔥 Fast Edit Category Text Click - Sending filterArray to API:', filterArray);
-                                      dispatch(fetchFastEditCategoryModeTableData(filterArray));
-                                    }}
-                                    title={filter.filterName || 'بدون نام'}
-                                  >
-                                    {filter.filterName || 'بدون نام'}
-                                  </Text>
-                                </Group>
-                                
-                                <Group gap="xs" style={{ flexShrink: 0 }}>
-                                  <ActionIcon
-                                    variant="subtle"
-                                    color="blue"
-                                    size={isMobile ? "sm" : "md"}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditFilter(filter);
-                                    }}
-                                    title="ویرایش"
-                                    disabled={isEditMode && editingFilterId !== filter.id}
-                                  >
-                                    <IconEdit size={isMobile ? 12 : 14} />
-                                  </ActionIcon>
-                                  
-                                  <ActionIcon
-                                    variant="subtle"
-                                    color="red"
-                                    size={isMobile ? "sm" : "md"}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (isEditMode && editingFilterId !== filter.id) {
-                                        notifications.show({
-                                          title: 'در حال ویرایش',
-                                          message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
-                                          color: 'orange',
-                                          autoClose: 3000,
-                                        });
-                                        return;
-                                      }
-                                      handleDeleteSavedFilter(filter.id);
-                                    }}
-                                    disabled={deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id)}
-                                    title="حذف"
-                                  >
-                                    <IconTrash size={isMobile ? 12 : 14} />
-                                  </ActionIcon>
-                                </Group>
+                                    // Send filter as array to API
+                                    const filterArray = [{
+                                      searchType: 'category',
+                                      uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
+                                      uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
+                                      uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || []
+                                    }];
+                                    dispatch(fetchFastEditCategoryModeTableData(filterArray));
+                                  }}
+                                  title={filter.filterName || 'بدون نام'}
+                                >
+                                  {filter.filterName || 'بدون نام'}
+                                </Text>
                               </Group>
-                            </Menu.Item>
-                            {index < savedFilters.length - 1 && <Menu.Divider />}
-                          </React.Fragment>
-                        ))}
-                      </Box>
-                    </>
-                  )}
+                              
+                              <Group gap="xs" style={{ flexShrink: 0 }}>
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="blue"
+                                  size={isMobile ? "sm" : "md"}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditFilter(filter);
+                                  }}
+                                  title="ویرایش"
+                                  disabled={isEditMode && editingFilterId !== filter.id}
+                                >
+                                  <IconEdit size={isMobile ? 12 : 14} />
+                                </ActionIcon>
+                                
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="red"
+                                  size={isMobile ? "sm" : "md"}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isEditMode && editingFilterId !== filter.id) {
+                                      notifications.show({
+                                        title: 'در حال ویرایش',
+                                        message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
+                                        color: 'orange',
+                                        autoClose: 3000,
+                                      });
+                                      return;
+                                    }
+                                    handleDeleteSavedFilter(filter.id);
+                                  }}
+                                  disabled={deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id)}
+                                  title="حذف"
+                                >
+                                  <IconTrash size={isMobile ? 12 : 14} />
+                                </ActionIcon>
+                              </Group>
+                            </Group>
+                          </Menu.Item>
+                          {index < savedFilters.length - 1 && <Menu.Divider />}
+                        </React.Fragment>
+                      ))}
+                    </Box>
+                  </>
+                )}
 
-                  {(!savedFilters || savedFilters.length === 0) && (
-                    <>
-                      <Menu.Divider />
-                      <Menu.Item disabled>
-                        <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
-                          فیلتری ذخیره نشده است
-                        </Text>
-                      </Menu.Item>
-                    </>
-                  )}
-                </Menu.Dropdown>
-              </Menu>
-            )}
+                {(!savedFilters || savedFilters.length === 0) && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item disabled>
+                      <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
+                        فیلتری ذخیره نشده است
+                      </Text>
+                    </Menu.Item>
+                  </>
+                )}
+              </Menu.Dropdown>
+            </Menu>
+            }
 
-            <ShareModal filters={updateFiltersAndStore().thisFilter} />
+            <ShareModal 
+              filters={updateFiltersAndStore().thisFilter} 
+              isMobile={isMobile}
+            />
           </Flex>
         </Flex>
 
-        <LoadingOverlay pos="fixed" visible={loading} zIndex={1000} h="100%" />
+        <LoadingOverlay 
+          pos="fixed" 
+          visible={loading} 
+          zIndex={1000} 
+          h="100%" 
+        />
 
         {/* Tabs */}
         <Tabs 
@@ -989,33 +987,21 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
           </Tabs.List>
           
           <Tabs.Panel value="category">
-            {searchType === "category" && (
-              loading ? (
-                <Center>
-                  <Loader />
-                </Center>
-              ) : (
-                tableData?.category ? (
-                  <SlideCategory
-                    tab={category}
-                    items={tableData.category}
-                    searchType={searchType}
-                    click={setCategory}
-                    filterCategoryStorage={filterCategoryStorage}
-                    setFilterCategoryStorage={setFilterCategoryStorage}
-                    filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                    setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                    filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                    setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                    isMobile={isMobile}
-                    isTablet={isTablet}
-                  />
-                ) : (
-                  <Center>
-                    <Text>No categories available</Text>
-                  </Center>
-                )
-              )
+            {!loading && searchType === "category" && tableData && (
+              <SlideCategory 
+                tab={category} 
+                items={tableData?.category} 
+                searchType={searchType}
+                click={setCategory} 
+                filterCategoryStorage={filterCategoryStorage}
+                setFilterCategoryStorage={setFilterCategoryStorage}
+                filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                isMobile={isMobile}
+                isTablet={isTablet}
+              />
             )}
           </Tabs.Panel>
         </Tabs>

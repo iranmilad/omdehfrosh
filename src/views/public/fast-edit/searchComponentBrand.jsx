@@ -39,6 +39,7 @@ import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefi
 import { notifications } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import isEqual from "lodash/isEqual";
+import { useBrandRowSelection } from "./BrandRowSelectionContext";
 
 const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations, filters, setFilters, setNodes, setNodesSubCategories }) => {
   
@@ -52,9 +53,15 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
   const isMobile = useMediaQuery("(max-width: 480px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
-  // Filter selection state
-  const [checkedRows, setCheckedRows] = useState(new Set());
-  const [selectedRow, setSelectedRow] = useState(null);
+  // Brand-specific context for Fast Edit
+  const { 
+    checkedRows, 
+    selectedRow, 
+    setSelectedRow, 
+    toggleCheck, 
+    isChecked, 
+    clearAll 
+  } = useBrandRowSelection();
 
   // Modal states
   const [openedAddModal, setOpenedAddModal] = useState(false);
@@ -84,6 +91,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
       try {
         return JSON.parse(storedFilters);
       } catch (error) {
+        console.error('Error parsing stored filters:', error);
       }
     }
     return {
@@ -137,7 +145,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     },
   });
 
-  // 🔥 NEW: Helper functions to build filter arrays
+  // Helper functions to build filter arrays
   const buildCurrentFilterArray = useCallback(() => {
     return [{
       searchType,
@@ -169,28 +177,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     }];
   }, [getInitialFilters]);
 
-  // Filter selection handlers
-  const toggleCheck = useCallback((filterId) => {
-    setCheckedRows(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(filterId)) {
-        newSet.delete(filterId);
-      } else {
-        newSet.add(filterId);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const isChecked = useCallback((filterId) => {
-    return checkedRows.has(filterId);
-  }, [checkedRows]);
-
-  const clearAll = useCallback(() => {
-    setCheckedRows(new Set());
-  }, []);
-
-  // 🔥 MODIFIED: Edit filter handler to use array format
+  // Edit filter handler - Modified to use array format
   const handleEditFilter = useCallback((filter) => {
     setEditingFilterId(filter.id);
     setEditingFilterName(filter.filterName || 'بدون نام');
@@ -221,7 +208,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     setSelectedRow(filter.id);
     setMenuOpened(false);
 
-    // 🔥 NEW: Send single filter as array to API
+    // Send single filter as array to API
     const filterArray = [{
       searchType: 'brand',
       uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
@@ -229,7 +216,6 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
       filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
     }];
 
-    console.log('🔥 Fast Edit Brand Edit - Sending filterArray to API:', filterArray);
     dispatch(fetchFastEditBrandModeTableData(filterArray));
 
     notifications.show({
@@ -238,7 +224,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
       color: 'blue',
       autoClose: 4000,
     });
-  }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
+  }, [COOKIE_NAME, setFilters, setSearchType, setSelectedRow, dispatch]);
 
   // Save edited filter
   const saveEditedFilter = useCallback(() => {
@@ -276,7 +262,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     });
   }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch]);
 
-  // 🔥 MODIFIED: Cancel edit mode to use array format
+  // Cancel edit mode - Modified to use array format
   const cancelEditMode = useCallback(() => {
     setIsEditMode(false);
     setEditingFilterId(null);
@@ -295,10 +281,8 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
     setSelectedRow(null);
 
-    // 🔥 NEW: Send initial filter as array to API
-    const filterArray = buildInitialFilterArray();
-    console.log('🔥 Fast Edit Brand Cancel Edit - Sending filterArray to API:', filterArray);
-    dispatch(fetchFastEditBrandModeTableData(filterArray));
+    // Send initial filter as array to API
+    dispatch(fetchFastEditBrandModeTableData(buildInitialFilterArray()));
     
     notifications.show({
       title: 'لغو ویرایش',
@@ -306,9 +290,9 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
       color: 'gray',
       autoClose: 2000,
     });
-  }, [getInitialFilters, setFilters, COOKIE_NAME, dispatch, buildInitialFilterArray]);
+  }, [getInitialFilters, setFilters, setSelectedRow, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
-  // 🔥 MODIFIED: Handle checkbox change to use array format
+  // Handle checkbox change - Modified to use array format
   const handleFilterCheckboxChange = useCallback((filterId, checked) => {
     if (checked) {
       // Check the checkbox in the context
@@ -328,26 +312,21 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
         };
 
         Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-        
+
         setFilterBrandStorage(selectedFilter.uniqueIDClickedBrands || []);
         setFilterBrandsCategoryStorage(selectedFilter.uniqueIDClickedBrandsCategories || []);
         setFilterBrandsCategorySubCategoryStorage(selectedFilter.filterBrandsCategorySubCategoryStorage || []);
         setLocalFilters(selectedFilter.filters || {});
-        
-        if (setFilters) {
-          setFilters(selectedFilter.filters || {});
-        }
-        if (setSearchType) {
-          setSearchType('brand');
-        }
 
-        // 🔥 NEW: Build array of all checked filters (including the one just checked)
+        if (setFilters) setFilters(selectedFilter.filters || {});
+        if (setSearchType) setSearchType('brand');
+
+        // Build array of all checked filters (including the one just checked)
         setTimeout(() => {
           const newCheckedRows = new Set(checkedRows);
           newCheckedRows.add(filterId);
           
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
-          console.log('🔥 Fast Edit Brand Checkbox Check - Sending filterArray to API:', checkedFiltersArray);
           dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
         }, 0);
       }
@@ -357,7 +336,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
         toggleCheck(filterId);
       }
       
-      // 🔥 NEW: Build array of remaining checked filters
+      // Build array of remaining checked filters
       setTimeout(() => {
         const newCheckedRows = new Set(checkedRows);
         newCheckedRows.delete(filterId);
@@ -365,7 +344,6 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
         if (newCheckedRows.size > 0) {
           // If there are still checked filters, send them as array
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
-          console.log('🔥 Fast Edit Brand Checkbox Uncheck (with remaining) - Sending filterArray to API:', checkedFiltersArray);
           dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
         } else {
           // If no filters are checked, reset to initial filters
@@ -381,15 +359,13 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
           Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
 
           // Send initial filter as array
-          const filterArray = buildInitialFilterArray();
-          console.log('🔥 Fast Edit Brand Checkbox Uncheck (reset to initial) - Sending filterArray to API:', filterArray);
-          dispatch(fetchFastEditBrandModeTableData(filterArray));
+          dispatch(fetchFastEditBrandModeTableData(buildInitialFilterArray()));
         }
       }, 0);
     }
   }, [savedFilters, COOKIE_NAME, setFilters, setSearchType, getInitialFilters, dispatch, isChecked, toggleCheck, checkedRows, buildCheckedFiltersArray, buildInitialFilterArray]);
 
-  // 🔥 MODIFIED: Clear selected filters to use array format
+  // Clear selected filters
   const clearSelectedFilters = useCallback(() => {
     clearAll();
     
@@ -405,10 +381,8 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
     Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
 
-    // 🔥 NEW: Send initial filter as array to API
-    const filterArray = buildInitialFilterArray();
-    console.log('🔥 Fast Edit Brand Clear All - Sending filterArray to API:', filterArray);
-    dispatch(fetchFastEditBrandModeTableData(filterArray));
+    // Send initial filter as array to API
+    dispatch(fetchFastEditBrandModeTableData(buildInitialFilterArray()));
   }, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
   // Save filter settings
@@ -500,6 +474,68 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     COOKIE_NAME
   ]);
 
+  // Modified useEffect for checked rows - now uses array format
+  useEffect(() => {
+    if (checkedRows.size > 0) {
+      const checkedFiltersArray = buildCheckedFiltersArray();
+      if (checkedFiltersArray.length > 0) {
+        dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
+      }
+    }
+  }, [checkedRows, dispatch, buildCheckedFiltersArray]);
+
+  // OPTIMIZED: Combined data fetching effect with duplicate prevention - Modified to use array format
+  useEffect(() => {
+    const currentParams = {
+      searchType,
+      filterBrandStorage,
+      filterBrandsCategoryStorage,
+      filterBrandsCategorySubCategoryStorage,
+      checkedRowsSize: checkedRows.size,
+      checkedRowIds: Array.from(checkedRows).sort().join(','),
+      hasCheckedRows: checkedRows.size > 0
+    };
+
+    // Skip if parameters haven't changed AND we're not dealing with checkbox changes
+    if (isEqual(lastFetchParams.current, currentParams)) {
+      return;
+    }
+
+    lastFetchParams.current = currentParams;
+
+    // Always make an API request when there are changes
+    if (checkedRows.size > 0) {
+      // When checkboxes are selected, fetch data based on checked rows
+      const checkedFiltersArray = buildCheckedFiltersArray();
+      if (checkedFiltersArray.length > 0) {
+        dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
+      }
+    } else {
+      // When no checkboxes are selected, fetch normal filtered data as array
+      const currentFiltersArray = buildCurrentFilterArray();
+      dispatch(fetchFastEditBrandModeTableData(currentFiltersArray));
+    }
+  }, [
+    dispatch, 
+    searchType,
+    filterBrandStorage,
+    filterBrandsCategoryStorage,
+    filterBrandsCategorySubCategoryStorage,
+    checkedRows,
+    checkedRows.size,
+    buildCheckedFiltersArray,
+    buildCurrentFilterArray
+  ]);
+
+  // OPTIMIZED: Load saved filters only once when user is available
+  useEffect(() => {
+    if (user && !hasLoadedInitialFilters.current) {
+      const slug = "brand-fast-edit";
+      dispatch(getFilterSettings(slug));
+      hasLoadedInitialFilters.current = true;
+    }
+  }, [dispatch, user]);
+
   // Save to cookies whenever relevant state changes
   useEffect(() => {
     const dataToSave = {
@@ -520,16 +556,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     COOKIE_NAME
   ]);
 
-  // OPTIMIZED: Load saved filters only once when user is available
-  useEffect(() => {
-    if (user && !hasLoadedInitialFilters.current) {
-      const slug = "brand-fast-edit";
-      dispatch(getFilterSettings(slug));
-      hasLoadedInitialFilters.current = true;
-    }
-  }, [dispatch, user]);
-
-  // 🔥 MODIFIED: Load filters from cookies on component mount to use array format
+  // Load filters from cookies on component mount - Modified to use array format
   useEffect(() => {
     const storedFilters = Cookies.get(COOKIE_NAME);
   
@@ -540,17 +567,17 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
         setFilterBrandStorage(parsedFilters.uniqueIDClickedBrands || []);
         setFilterBrandsCategoryStorage(parsedFilters.uniqueIDClickedBrandsCategories || []);
         setFilterBrandsCategorySubCategoryStorage(parsedFilters.filterBrandsCategorySubCategoryStorage || []);
-
         setLocalFilters(parsedFilters.filters || {});
+        
         if (setFilters) {
           setFilters(parsedFilters.filters || {});
         }
-
-        if (setSearchType) {
-          setSearchType(parsedFilters.searchType || "brand");
+        
+        if (setSearchType && parsedFilters.searchType) {
+          setSearchType(parsedFilters.searchType);
         }
 
-        // 🔥 NEW: Send loaded filters as array to API
+        // Send loaded filters as array to API
         setTimeout(() => {
           const filterArray = [{
             searchType: parsedFilters.searchType || 'brand',
@@ -558,7 +585,6 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
             uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
             filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || []
           }];
-          console.log('🔥 Fast Edit Brand Load from Cookie - Sending filterArray to API:', filterArray);
           dispatch(fetchFastEditBrandModeTableData(filterArray));
         }, 0);
       } catch (error) {
@@ -567,62 +593,44 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     }
   }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
 
-  // 🔥 MODIFIED: Combined data fetching effect to use array format
+  // Sync localFilters with parent filters
   useEffect(() => {
-    const currentParams = {
-      searchType,
-      filterBrandStorage,
-      filterBrandsCategoryStorage,
-      filterBrandsCategorySubCategoryStorage,
-      checkedRowsSize: checkedRows.size,
-      checkedRowIds: Array.from(checkedRows).sort().join(','),
-      hasCheckedRows: checkedRows.size > 0
-    };
-
-    // Skip if parameters haven't changed
-    if (isEqual(lastFetchParams.current, currentParams)) {
-      return;
+    if (filters && JSON.stringify(filters) !== JSON.stringify(localFilters)) {
+      setLocalFilters(filters);
     }
+  }, [filters, localFilters]);
 
-    lastFetchParams.current = currentParams;
-
-    // Always make an API request when there are changes
-    if (checkedRows.size > 0) {
-      // When checkboxes are selected, fetch data based on checked rows
-      const checkedFiltersArray = buildCheckedFiltersArray();
-      if (checkedFiltersArray.length > 0) {
-        console.log('🔥 Fast Edit Brand useEffect (checked rows) - Sending filterArray to API:', checkedFiltersArray);
-        dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
-      }
-    } else {
-      // When no checkboxes are selected, fetch normal filtered data as array
-      const currentFiltersArray = buildCurrentFilterArray();
-      console.log('🔥 Fast Edit Brand useEffect (normal filters) - Sending filterArray to API:', currentFiltersArray);
-      dispatch(fetchFastEditBrandModeTableData(currentFiltersArray));
-    }
-  }, [
-    dispatch, 
-    searchType,
-    filterBrandStorage,
-    filterBrandsCategoryStorage,
-    filterBrandsCategorySubCategoryStorage,
-    checkedRows,
-    checkedRows.size,
-    buildCheckedFiltersArray,
-    buildCurrentFilterArray
-  ]);
-  
   // Handle table data updates
   useEffect(() => {
     if (tableData) {
       setNodes(tableData?.products || []);
       setNodesSubCategories(tableData?.subCategoriesData || []);
       setFilterValues(tableData?.filters || {});
-      setAvailableLocations(tableData?.supplierLocations || [])
+      setAvailableLocations(tableData?.supplierLocations || []);
     }
-  }, [tableData, filterBrandStorage, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]); 
+  }, [tableData, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
 
-  console.log("tableData", filters);
+  // Clear filters when checkboxes are active - Modified to use array format
+  useEffect(() => {
+    if (checkedRows.size > 0) {
+      setFilterBrandStorage([]);
+      setFilterBrandsCategoryStorage([]);
+      setFilterBrandsCategorySubCategoryStorage([]);
+      setLocalFilters({ ...initialFilters.filters });
+
+      if (setFilters) {
+        setFilters({ ...initialFilters.filters });
+      }
+
+      if (setSearchType) {
+        setSearchType("brand");
+      }
+
+      Cookies.set(COOKIE_NAME, JSON.stringify(initialFilters), { expires: 7 });
+    }
+  }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
+
+  console.log("render SearchComponentBrand Fast Edit", tableData);
 
   return (
     <>
@@ -669,10 +677,11 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
       <Paper 
         mt={{ base: "xs", md: "xs" }} 
-        mb={isTablet ? "sm" : ""} 
         id="fastorder-search"
         p={isMobile ? "sm" : "md"}
-        style={{ overflow: 'hidden' }}
+        style={{ 
+          overflow: 'hidden'
+        }}
       >
         {/* Header */}
         <Flex
@@ -680,7 +689,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
           justify={isMobile ? "flex-start" : "space-between"}
           align={isMobile ? "stretch" : "center"}
           gap={isMobile ? "" : "md"}
-          mb={isTablet ? "sm" : "md"}
+          mb={isTablet ? "sm" : ""}
         >
           <div>
             <XTitle>ویرایش سریع</XTitle>
@@ -798,7 +807,9 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
                                   onChange={(event) => {
                                     event.stopPropagation();
                                     if (isEditMode) return;
-                                    handleFilterCheckboxChange(filter.id, event.currentTarget.checked);
+                                    
+                                    const isCurrentlyChecked = event.currentTarget.checked;
+                                    handleFilterCheckboxChange(filter.id, isCurrentlyChecked);
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                   size={isMobile ? "sm" : "md"}
@@ -857,14 +868,13 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
                                     setSelectedRow(filter.id);
 
-                                    // 🔥 NEW: Send filter as array to API
+                                    // Send filter as array to API
                                     const filterArray = [{
                                       searchType: 'brand',
                                       uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
                                       uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
                                       filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
                                     }];
-                                    console.log('🔥 Fast Edit Brand Text Click - Sending filterArray to API:', filterArray);
                                     dispatch(fetchFastEditBrandModeTableData(filterArray));
                                   }}
                                   title={filter.filterName || 'بدون نام'}
@@ -934,12 +944,21 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
             </Menu>
             }
 
-            <ShareModal filters={updateFiltersAndStore().thisFilter} />
+            <ShareModal 
+              filters={updateFiltersAndStore().thisFilter} 
+              isMobile={isMobile}
+            />
           </Flex>
         </Flex>
 
-        <LoadingOverlay pos="fixed" visible={loading} zIndex={1000} h="100%" />
+        <LoadingOverlay 
+          pos="fixed" 
+          visible={loading} 
+          zIndex={1000} 
+          h="100%" 
+        />
 
+        {/* Tabs */}
         <Tabs 
           styles={{ 
             panel: { marginTop: isMobile ? "15px" : "20px" },
@@ -962,8 +981,9 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
           defaultValue="brand" 
           value={searchType} 
           onChange={setSearchType}
+          orientation="horizontal"
         >
-          <Tabs.List>
+          <Tabs.List grow={false}>
             <Tabs.Tab value="brand">
               {isMobile ? "برند" : "جستجو بر اساس برند"}
             </Tabs.Tab>
@@ -973,8 +993,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
           </Tabs.List>
           
           <Tabs.Panel value="brand">
-            {searchType === "brand" ? (
-              tableData ? 
+            {!loading && searchType === "brand" && tableData && (
               <SlideCategory 
                 tab={brands} 
                 items={tableData?.brands} 
@@ -988,8 +1007,8 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
                 setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
                 isMobile={isMobile}
                 isTablet={isTablet}
-              /> : null
-            ) : null}
+              />
+            )}
           </Tabs.Panel>
         </Tabs>
 
