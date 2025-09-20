@@ -107,19 +107,9 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
             }
         });
 
-        console.log("Processed filters:", {
-            searchType: primarySearchType,
-            totalFilterObjects: req.body.length,
-            finalCategoryIds,
-            finalSubCategoryIdsCount: finalSubCategoryIds.length,
-            finalSubCategoryBrandsCount: finalSubCategoryBrands.length,
-            combinedFilters,
-            supplierId: user_id
-        });
 
         // If no valid category IDs found, return empty results
         if (finalCategoryIds.length === 0 && finalSubCategoryIds.length === 0) {
-            console.log("No valid category or sub-category IDs found, returning empty results");
             
             // Still return categories, brands and filters for UI
             const allLocations = await FastOrderLocation.find({idSupplier: String(user_id)});
@@ -190,12 +180,10 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
             productQuery["combinations.suppliers.id"] = combinedFilters.supplier;
         }
 
-        console.log("Final product query:", JSON.stringify(productQuery, null, 2));
 
         // Find products using the built query
         const products = await SingleProduct.find(productQuery).select('-_id').lean();
 
-        console.log(`Found ${products.length} products for the applied filters`);
 
         // Group by category
         const sortedProductsMap = new Map();
@@ -329,5 +317,7 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
             message: "Failed to fetch fast edit category mode table data",
             error: error.message 
         });
+
+
     }
 };
