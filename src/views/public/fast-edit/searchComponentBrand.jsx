@@ -128,7 +128,6 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
   const { setFilterValues } = useFastOrder();
   
-  const url = "/fastorder";
   const { id } = useParams();
 
   // Refs for preventing duplicate API calls
@@ -151,31 +150,34 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
       searchType,
       uniqueIDClickedBrands: filterBrandStorage,
       uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage,
-      filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage
+      filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage,
+      filters: filters || localFilters // Include current filters
     }];
-  }, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage]);
+  }, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage, filters, localFilters]);
 
-  const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
-    return Array.from(checkedRowIds)
-      .map(id => savedFilters?.find(f => f.id === id))
-      .filter(Boolean)
-      .map(filter => ({
-        searchType: 'brand',
-        uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
-        uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
-        filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
-      }));
-  }, [savedFilters, checkedRows]);
-
-  const buildInitialFilterArray = useCallback(() => {
-    const initialData = getInitialFilters();
-    return [{
+const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
+  return Array.from(checkedRowIds)
+    .map(id => savedFilters?.find(f => f.id === id))
+    .filter(Boolean)
+    .map(filter => ({
       searchType: 'brand',
-      uniqueIDClickedBrands: initialData.uniqueIDClickedBrands,
-      uniqueIDClickedBrandsCategories: initialData.uniqueIDClickedBrandsCategories,
-      filterBrandsCategorySubCategoryStorage: initialData.filterBrandsCategorySubCategoryStorage
-    }];
-  }, [getInitialFilters]);
+      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+      filters: filter.filters || filters || localFilters // Include saved filters or current filters
+    }));
+}, [savedFilters, checkedRows, filters, localFilters]);
+
+const buildInitialFilterArray = useCallback(() => {
+  const initialData = getInitialFilters();
+  return [{
+    searchType: 'brand',
+    uniqueIDClickedBrands: initialData.uniqueIDClickedBrands,
+    uniqueIDClickedBrandsCategories: initialData.uniqueIDClickedBrandsCategories,
+    filterBrandsCategorySubCategoryStorage: initialData.filterBrandsCategorySubCategoryStorage,
+    filters: initialData.filters || filters || localFilters // Include initial filters
+  }];
+}, [getInitialFilters, filters, localFilters]);
 
   // Edit filter handler - Modified to use array format
   const handleEditFilter = useCallback((filter) => {
@@ -208,12 +210,13 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     setSelectedRow(filter.id);
     setMenuOpened(false);
 
-    // Send single filter as array to API
+    // 🔥 MODIFIED: Send single filter as array with filters to API
     const filterArray = [{
       searchType: 'brand',
       uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
       uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
-      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
+      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+      filters: filter.filters || {} // Include the filter's own filters
     }];
 
     dispatch(fetchFastEditBrandModeTableData(filterArray));
@@ -225,7 +228,6 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
       autoClose: 4000,
     });
   }, [COOKIE_NAME, setFilters, setSearchType, setSelectedRow, dispatch]);
-
   // Save edited filter
   const saveEditedFilter = useCallback(() => {
     if (!editingFilterId || !editingFilterName.trim()) return;
@@ -281,8 +283,9 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
     setSelectedRow(null);
 
-    // Send initial filter as array to API
-    dispatch(fetchFastEditBrandModeTableData(buildInitialFilterArray()));
+    // 🔥 MODIFIED: Send initial filter as array with filters to API
+    const filterArray = buildInitialFilterArray();
+    dispatch(fetchFastEditBrandModeTableData(filterArray));
     
     notifications.show({
       title: 'لغو ویرایش',
@@ -321,7 +324,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
         if (setFilters) setFilters(selectedFilter.filters || {});
         if (setSearchType) setSearchType('brand');
 
-        // Build array of all checked filters (including the one just checked)
+        // 🔥 MODIFIED: Build array of all checked filters with their filters
         setTimeout(() => {
           const newCheckedRows = new Set(checkedRows);
           newCheckedRows.add(filterId);
@@ -336,13 +339,13 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
         toggleCheck(filterId);
       }
       
-      // Build array of remaining checked filters
+      // 🔥 MODIFIED: Build array of remaining checked filters with their filters
       setTimeout(() => {
         const newCheckedRows = new Set(checkedRows);
         newCheckedRows.delete(filterId);
         
         if (newCheckedRows.size > 0) {
-          // If there are still checked filters, send them as array
+          // If there are still checked filters, send them as array with filters
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
           dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
         } else {
@@ -358,32 +361,34 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
           Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
 
-          // Send initial filter as array
-          dispatch(fetchFastEditBrandModeTableData(buildInitialFilterArray()));
+          // Send initial filter as array with filters
+          const filterArray = buildInitialFilterArray();
+          dispatch(fetchFastEditBrandModeTableData(filterArray));
         }
       }, 0);
     }
   }, [savedFilters, COOKIE_NAME, setFilters, setSearchType, getInitialFilters, dispatch, isChecked, toggleCheck, checkedRows, buildCheckedFiltersArray, buildInitialFilterArray]);
 
   // Clear selected filters
-  const clearSelectedFilters = useCallback(() => {
-    clearAll();
-    
-    // Reset to initial state and send to API
-    const initialData = getInitialFilters();
-    setFilterBrandStorage(initialData.uniqueIDClickedBrands);
-    setFilterBrandsCategoryStorage(initialData.uniqueIDClickedBrandsCategories);
-    setFilterBrandsCategorySubCategoryStorage(initialData.filterBrandsCategorySubCategoryStorage);
-    setLocalFilters(initialData.filters);
+const clearSelectedFilters = useCallback(() => {
+  clearAll();
+  
+  // Reset to initial state and send to API
+  const initialData = getInitialFilters();
+  setFilterBrandStorage(initialData.uniqueIDClickedBrands);
+  setFilterBrandsCategoryStorage(initialData.uniqueIDClickedBrandsCategories);
+  setFilterBrandsCategorySubCategoryStorage(initialData.filterBrandsCategorySubCategoryStorage);
+  setLocalFilters(initialData.filters);
 
-    if (setFilters) setFilters(initialData.filters);
-    if (setSearchType) setSearchType('brand');
+  if (setFilters) setFilters(initialData.filters);
+  if (setSearchType) setSearchType('brand');
 
-    Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
+  Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
 
-    // Send initial filter as array to API
-    dispatch(fetchFastEditBrandModeTableData(buildInitialFilterArray()));
-  }, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray]);
+  // 🔥 MODIFIED: Send initial filter as array with filters to API
+  const filterArray = buildInitialFilterArray();
+  dispatch(fetchFastEditBrandModeTableData(filterArray));
+}, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
   // Save filter settings
   const saveFiltersSettings = useCallback(() => {
@@ -485,47 +490,50 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
   }, [checkedRows, dispatch, buildCheckedFiltersArray]);
 
   // OPTIMIZED: Combined data fetching effect with duplicate prevention - Modified to use array format
-  useEffect(() => {
-    const currentParams = {
-      searchType,
-      filterBrandStorage,
-      filterBrandsCategoryStorage,
-      filterBrandsCategorySubCategoryStorage,
-      checkedRowsSize: checkedRows.size,
-      checkedRowIds: Array.from(checkedRows).sort().join(','),
-      hasCheckedRows: checkedRows.size > 0
-    };
-
-    // Skip if parameters haven't changed AND we're not dealing with checkbox changes
-    if (isEqual(lastFetchParams.current, currentParams)) {
-      return;
-    }
-
-    lastFetchParams.current = currentParams;
-
-    // Always make an API request when there are changes
-    if (checkedRows.size > 0) {
-      // When checkboxes are selected, fetch data based on checked rows
-      const checkedFiltersArray = buildCheckedFiltersArray();
-      if (checkedFiltersArray.length > 0) {
-        dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
-      }
-    } else {
-      // When no checkboxes are selected, fetch normal filtered data as array
-      const currentFiltersArray = buildCurrentFilterArray();
-      dispatch(fetchFastEditBrandModeTableData(currentFiltersArray));
-    }
-  }, [
-    dispatch, 
+useEffect(() => {
+  const currentParams = {
     searchType,
     filterBrandStorage,
     filterBrandsCategoryStorage,
     filterBrandsCategorySubCategoryStorage,
-    checkedRows,
-    checkedRows.size,
-    buildCheckedFiltersArray,
-    buildCurrentFilterArray
-  ]);
+    checkedRowsSize: checkedRows.size,
+    checkedRowIds: Array.from(checkedRows).sort().join(','),
+    hasCheckedRows: checkedRows.size > 0,
+    filters: JSON.stringify(filters || localFilters) // Add filters to comparison
+  };
+
+  // Skip if parameters haven't changed
+  if (isEqual(lastFetchParams.current, currentParams)) {
+    return;
+  }
+
+  lastFetchParams.current = currentParams;
+
+  // Always make an API request when there are changes
+  if (checkedRows.size > 0) {
+    // When checkboxes are selected, fetch data based on checked rows with filters
+    const checkedFiltersArray = buildCheckedFiltersArray();
+    if (checkedFiltersArray.length > 0) {
+      dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
+    }
+  } else {
+    // When no checkboxes are selected, fetch normal filtered data as array with filters
+    const currentFiltersArray = buildCurrentFilterArray();
+    dispatch(fetchFastEditBrandModeTableData(currentFiltersArray));
+  }
+}, [
+  dispatch, 
+  searchType,
+  filterBrandStorage,
+  filterBrandsCategoryStorage,
+  filterBrandsCategorySubCategoryStorage,
+  checkedRows,
+  checkedRows.size,
+  filters, // Add filters dependency
+  localFilters, // Add localFilters dependency
+  buildCheckedFiltersArray,
+  buildCurrentFilterArray
+]);
 
   // OPTIMIZED: Load saved filters only once when user is available
   useEffect(() => {
@@ -557,41 +565,42 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
   ]);
 
   // Load filters from cookies on component mount - Modified to use array format
-  useEffect(() => {
-    const storedFilters = Cookies.get(COOKIE_NAME);
-  
-    if (storedFilters) {
-      try {
-        const parsedFilters = JSON.parse(storedFilters);
+useEffect(() => {
+  const storedFilters = Cookies.get(COOKIE_NAME);
 
-        setFilterBrandStorage(parsedFilters.uniqueIDClickedBrands || []);
-        setFilterBrandsCategoryStorage(parsedFilters.uniqueIDClickedBrandsCategories || []);
-        setFilterBrandsCategorySubCategoryStorage(parsedFilters.filterBrandsCategorySubCategoryStorage || []);
-        setLocalFilters(parsedFilters.filters || {});
-        
-        if (setFilters) {
-          setFilters(parsedFilters.filters || {});
-        }
-        
-        if (setSearchType && parsedFilters.searchType) {
-          setSearchType(parsedFilters.searchType);
-        }
+  if (storedFilters) {
+    try {
+      const parsedFilters = JSON.parse(storedFilters);
 
-        // Send loaded filters as array to API
-        setTimeout(() => {
-          const filterArray = [{
-            searchType: parsedFilters.searchType || 'brand',
-            uniqueIDClickedBrands: parsedFilters.uniqueIDClickedBrands || [],
-            uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
-            filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || []
-          }];
-          dispatch(fetchFastEditBrandModeTableData(filterArray));
-        }, 0);
-      } catch (error) {
-        console.error('Error parsing stored filters:', error);
+      setFilterBrandStorage(parsedFilters.uniqueIDClickedBrands || []);
+      setFilterBrandsCategoryStorage(parsedFilters.uniqueIDClickedBrandsCategories || []);
+      setFilterBrandsCategorySubCategoryStorage(parsedFilters.filterBrandsCategorySubCategoryStorage || []);
+      setLocalFilters(parsedFilters.filters || {});
+      
+      if (setFilters) {
+        setFilters(parsedFilters.filters || {});
       }
+      
+      if (setSearchType && parsedFilters.searchType) {
+        setSearchType(parsedFilters.searchType);
+      }
+
+      // 🔥 MODIFIED: Send loaded filters as array with filters to API
+      setTimeout(() => {
+        const filterArray = [{
+          searchType: parsedFilters.searchType || 'brand',
+          uniqueIDClickedBrands: parsedFilters.uniqueIDClickedBrands || [],
+          uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
+          filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || [],
+          filters: parsedFilters.filters || {} // Include loaded filters
+        }];
+        dispatch(fetchFastEditBrandModeTableData(filterArray));
+      }, 0);
+    } catch (error) {
+      console.error('Error parsing stored filters:', error);
     }
-  }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
+  }
+}, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
 
   // Sync localFilters with parent filters
   useEffect(() => {
@@ -630,7 +639,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
-  console.log("render SearchComponentBrand Fast Edit", tableData);
+  console.log("render SearchComponentBrand Fast Edit", filters);
 
   return (
     <>
@@ -677,7 +686,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
 
       <Paper 
         mt={{ base: "xs", md: "xs" }} 
-        id="fastorder-search"
+        id="fastedit-search"
         p={isMobile ? "sm" : "md"}
         style={{ 
           overflow: 'hidden'
@@ -832,51 +841,52 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
                                     opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
                                   }}
                                   onClick={(e) => {
-                                    e.stopPropagation();
-                                    
-                                    if (isEditMode && editingFilterId !== filter.id) {
-                                      notifications.show({
-                                        title: 'در حال ویرایش',
-                                        message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
-                                        color: 'orange',
-                                        autoClose: 3000,
-                                      });
-                                      return;
-                                    }
+  e.stopPropagation();
+  
+  if (isEditMode && editingFilterId !== filter.id) {
+    notifications.show({
+      title: 'در حال ویرایش',
+      message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
+      color: 'orange',
+      autoClose: 3000,
+    });
+    return;
+  }
 
-                                    const cookieValue = {
-                                      searchType: 'brand',
-                                      filters: filter.filters || {},
-                                      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
-                                      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
-                                      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
-                                    };
+  const cookieValue = {
+    searchType: 'brand',
+    filters: filter.filters || {},
+    uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+    uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+    filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+  };
 
-                                    Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-                                    
-                                    setFilterBrandStorage(filter.uniqueIDClickedBrands || []);
-                                    setFilterBrandsCategoryStorage(filter.uniqueIDClickedBrandsCategories || []);
-                                    setFilterBrandsCategorySubCategoryStorage(filter.filterBrandsCategorySubCategoryStorage || []);
-                                    setLocalFilters(filter.filters || {});
-                                    
-                                    if (setFilters) {
-                                      setFilters(filter.filters || {});
-                                    }
-                                    if (setSearchType) {
-                                      setSearchType('brand');
-                                    }
+  Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+  
+  setFilterBrandStorage(filter.uniqueIDClickedBrands || []);
+  setFilterBrandsCategoryStorage(filter.uniqueIDClickedBrandsCategories || []);
+  setFilterBrandsCategorySubCategoryStorage(filter.filterBrandsCategorySubCategoryStorage || []);
+  setLocalFilters(filter.filters || {});
+  
+  if (setFilters) {
+    setFilters(filter.filters || {});
+  }
+  if (setSearchType) {
+    setSearchType('brand');
+  }
 
-                                    setSelectedRow(filter.id);
+  setSelectedRow(filter.id);
 
-                                    // Send filter as array to API
-                                    const filterArray = [{
-                                      searchType: 'brand',
-                                      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
-                                      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
-                                      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
-                                    }];
-                                    dispatch(fetchFastEditBrandModeTableData(filterArray));
-                                  }}
+  // 🔥 MODIFIED: Send filter as array with filters to API
+  const filterArray = [{
+    searchType: 'brand',
+    uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+    uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+    filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+    filters: filter.filters || {} // Include the filter's filters
+  }];
+  dispatch(fetchFastEditBrandModeTableData(filterArray));
+}}
                                   title={filter.filterName || 'بدون نام'}
                                 >
                                   {filter.filterName || 'بدون نام'}

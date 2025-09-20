@@ -1,26 +1,33 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getApiUrl } from "../../../../Libs/utils/apiutils/apiutils";
 
-
 export const fetchFastOrderBrandModeTableData = createAsyncThunk(
   "fastOrderBrandModeTableData/fetch",
-  async (payload, { rejectWithValue }) => {
+  async (payload, { rejectWithValue, getState }) => {
 
     console.log('🔥 Redux Action - Received payload:', payload);
+
+    // Get current filters from state (assuming they're stored in Redux)
+    const state = getState();
+    const currentFilters = state.filters || {};
 
     // Handle both array and object formats
     let requestBody;
     
     if (Array.isArray(payload)) {
-      // New array format
-      requestBody = payload;
+      // New array format - add filters to each item
+      requestBody = payload.map(item => ({
+        ...item,
+        filters: item.filters || currentFilters // Use item filters if provided, otherwise use current filters
+      }));
     } else {
-      // Old object format - convert to array
+      // Old object format - convert to array and add filters
       const {
         searchType, 
         uniqueIDClickedBrands, 
         uniqueIDClickedBrandsCategories, 
         filterBrandsCategorySubCategoryStorage,
+        filters, // Check if filters are already in payload
       } = payload;
       
       requestBody = [{
@@ -28,6 +35,7 @@ export const fetchFastOrderBrandModeTableData = createAsyncThunk(
         uniqueIDClickedBrands: uniqueIDClickedBrands, 
         uniqueIDClickedBrandsCategories: uniqueIDClickedBrandsCategories, 
         filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage,
+        filters: filters || currentFilters // Use payload filters or current filters
       }];
     }
 

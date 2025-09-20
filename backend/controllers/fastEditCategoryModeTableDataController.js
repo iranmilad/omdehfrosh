@@ -6,7 +6,6 @@ import FastOrderLocation from '../models/FastOrderLocation.js';
 import getUserFromToken from '../libs/verifyToken.js';
 
 
-
 export const getFastEditCategoryModeTableData = async (req, res) => {
     console.log("Received request body:", req.body);
 
@@ -30,6 +29,7 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
         const allUniqueSubCategoryIds = new Set();
         const allUniqueSubCategoryBrands = new Set();
         let primarySearchType = null;
+        let combinedFilters = {}; // To merge filters from all objects
 
         // Process each filter object
         req.body.forEach((filterObj, index) => {
@@ -37,7 +37,8 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
                 searchType,
                 uniqueIDClickedCategories,
                 uniqueIDClickedSubCategories,
-                uniqueIDClickedSubCategoriesBrands
+                uniqueIDClickedSubCategoriesBrands,
+                filters // Extract filters from each object
             } = filterObj;
 
             // Validate search type for each filter
@@ -51,20 +52,36 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
                 primarySearchType = searchType;
             }
 
+            // Merge filters - last filter wins if there are conflicts
+            if (filters && typeof filters === 'object') {
+                combinedFilters = { ...combinedFilters, ...filters };
+            }
+
             // Collect category IDs
             if (Array.isArray(uniqueIDClickedCategories)) {
                 uniqueIDClickedCategories.forEach(categoryId => {
-                    if (categoryId && categoryId.trim()) {
+                    if (categoryId && typeof categoryId === 'string' && categoryId.trim()) {
                         allUniqueCategoryIds.add(categoryId);
                     }
                 });
             }
 
-            // Collect sub-category IDs
+            // 🔥 FIXED: Collect sub-category IDs - handle both strings and objects
             if (Array.isArray(uniqueIDClickedSubCategories)) {
-                uniqueIDClickedSubCategories.forEach(subCategoryId => {
-                    if (subCategoryId && subCategoryId.trim()) {
-                        allUniqueSubCategoryIds.add(subCategoryId);
+                uniqueIDClickedSubCategories.forEach(subCategory => {
+                    if (subCategory) {
+                        // If it's a string, use it directly
+                        if (typeof subCategory === 'string' && subCategory.trim()) {
+                            allUniqueSubCategoryIds.add(subCategory);
+                        } 
+                        // If it's an object, extract the ID
+                        else if (typeof subCategory === 'object') {
+                            // Try different possible ID field names
+                            const id = subCategory.id || subCategory._id || subCategory.value || subCategory.key;
+                            if (id && typeof id === 'string' && id.trim()) {
+                                allUniqueSubCategoryIds.add(id);
+                            }
+                        }
                     }
                 });
             }
@@ -90,18 +107,19 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
             }
         });
 
-        // console.log("Processed filters:", {
-        //     searchType: primarySearchType,
-        //     totalFilterObjects: req.body.length,
-        //     finalCategoryIds,
-        //     finalSubCategoryIdsCount: finalSubCategoryIds.length,
-        //     finalSubCategoryBrandsCount: finalSubCategoryBrands.length,
-        //     supplierId: user_id
-        // });
+        console.log("Processed filters:", {
+            searchType: primarySearchType,
+            totalFilterObjects: req.body.length,
+            finalCategoryIds,
+            finalSubCategoryIdsCount: finalSubCategoryIds.length,
+            finalSubCategoryBrandsCount: finalSubCategoryBrands.length,
+            combinedFilters,
+            supplierId: user_id
+        });
 
         // If no valid category IDs found, return empty results
-        if (finalCategoryIds.length === 0) {
-            // console.log("No valid category IDs found, returning empty results");
+        if (finalCategoryIds.length === 0 && finalSubCategoryIds.length === 0) {
+            console.log("No valid category or sub-category IDs found, returning empty results");
             
             // Still return categories, brands and filters for UI
             const allLocations = await FastOrderLocation.find({idSupplier: String(user_id)});
@@ -125,17 +143,59 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
                 meta: {
                     totalFilters: req.body.length,
                     processedCategoryIds: finalCategoryIds,
+                    processedSubCategoryIds: finalSubCategoryIds,
+                    combinedFilters,
                     message: "No products found for the provided filters"
                 }
             });
         }
 
-        // Find products using the combined category IDs
-        const products = await SingleProduct.find({
-            "general.categoryId": { $in: finalCategoryIds }
-        }).select('-_id').lean();
+        // Build query conditions
+        let productQuery = {};
+        
+        // Add category conditions
+        if (finalCategoryIds.length > 0 && finalSubCategoryIds.length > 0) {
+            // If both categories and sub-categories are selected, use OR condition
+            productQuery.$or = [
+                { "general.categoryId": { $in: finalCategoryIds } },
+                { "general.subCategoryId": { $in: finalSubCategoryIds } }
+            ];
+        } else if (finalCategoryIds.length > 0) {
+            // Only categories
+            productQuery["general.categoryId"] = { $in: finalCategoryIds };
+        } else if (finalSubCategoryIds.length > 0) {
+            // Only sub-categories
+            productQuery["general.subCategoryId"] = { $in: finalSubCategoryIds };
+        }
 
-        // console.log(`Found ${products.length} products for category IDs:`, finalCategoryIds);
+        // Apply filters to the query based on combinedFilters
+        if (combinedFilters.color && combinedFilters.color !== 'all') {
+            productQuery["combinations.options.color"] = combinedFilters.color;
+        }
+
+        if (combinedFilters.stockStatus && combinedFilters.stockStatus !== 'all') {
+            const hasStock = combinedFilters.stockStatus === 'true' || combinedFilters.stockStatus === true;
+            if (hasStock) {
+                productQuery["combinations.suppliers.stock"] = { $gt: 0 };
+            }
+        }
+
+        if (combinedFilters.minStock && !isNaN(combinedFilters.minStock)) {
+            productQuery["combinations.suppliers.stock"] = { 
+                $gte: parseInt(combinedFilters.minStock) 
+            };
+        }
+
+        if (combinedFilters.supplier && combinedFilters.supplier !== 'all') {
+            productQuery["combinations.suppliers.id"] = combinedFilters.supplier;
+        }
+
+        console.log("Final product query:", JSON.stringify(productQuery, null, 2));
+
+        // Find products using the built query
+        const products = await SingleProduct.find(productQuery).select('-_id').lean();
+
+        console.log(`Found ${products.length} products for the applied filters`);
 
         // Group by category
         const sortedProductsMap = new Map();
@@ -155,15 +215,33 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
 
             // Get the first combination and first supplier
             const firstCombination = product.combinations[0];  
-            const firstSupplier = firstCombination.suppliers[0];  
-
+            if (!firstCombination || !firstCombination.suppliers || firstCombination.suppliers.length === 0) {
+                return; // Skip this product if no suppliers
+            }
+            
+            const firstSupplier = firstCombination.suppliers[0];
             const { id, name, ...restSupplierData } = firstSupplier;
 
             // Process product combinations and collect all suppliers
-            product.combinations.map(combination => {
+            product.combinations.forEach(combination => {
                 if (!combination.suppliers || combination.suppliers.length === 0) return;
 
-                combination.suppliers.map(item => {
+                combination.suppliers.forEach(item => {
+                    // Apply supplier-specific filters
+                    if (combinedFilters.supplier && combinedFilters.supplier !== 'all') {
+                        if (item.id !== combinedFilters.supplier) return;
+                    }
+
+                    if (combinedFilters.stockStatus && combinedFilters.stockStatus !== 'all') {
+                        const hasStock = combinedFilters.stockStatus === 'true' || combinedFilters.stockStatus === true;
+                        if (hasStock && (!item.stock || item.stock <= 0)) return;
+                    }
+
+                    if (combinedFilters.minStock && !isNaN(combinedFilters.minStock)) {
+                        const minStock = parseInt(combinedFilters.minStock);
+                        if (!item.stock || item.stock < minStock) return;
+                    }
+
                     allSuppliers.push({
                         ...item, // Spread supplier details
                         combinationsID: combination.id, // Attach combination ID
@@ -171,6 +249,9 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
                     });
                 });
             });
+
+            // If no suppliers pass the filters, skip this product
+            if (allSuppliers.length === 0) return;
 
             // Remove the first supplier from all suppliers
             allSuppliersF = allSuppliers.filter(supplier => supplier.psid !== firstSupplier.psid);
@@ -199,6 +280,17 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
 
         const sortedProducts = Array.from(sortedProductsMap.values());
 
+        // Apply sorting if specified
+        if (combinedFilters.sort) {
+            sortedProducts.forEach(category => {
+                if (combinedFilters.sort === 'bestPrice') {
+                    category.items.sort((a, b) => (a.price || 0) - (b.price || 0));
+                } else if (combinedFilters.sort === 'highestStock') {
+                    category.items.sort((a, b) => (b.stock || 0) - (a.stock || 0));
+                }
+            });
+        }
+
         // Get supplier locations
         const allLocations = await FastOrderLocation.find({idSupplier: String(user_id)});
         const sortedLocations = allLocations[0]?.locations || [];
@@ -223,6 +315,8 @@ export const getFastEditCategoryModeTableData = async (req, res) => {
             meta: {
                 totalFilters: req.body.length,
                 processedCategoryIds: finalCategoryIds,
+                processedSubCategoryIds: finalSubCategoryIds,
+                appliedFilters: combinedFilters,
                 totalProductsFound: products.length,
                 totalCategoriesWithProducts: sortedProducts.length,
                 supplierId: user_id

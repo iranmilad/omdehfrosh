@@ -152,14 +152,15 @@ const SearchComponentBrand = ({
   });
 
   // Helper function to build filter array from current state
-  const buildCurrentFilterArray = useCallback(() => {
-    return [{
-      searchType,
-      uniqueIDClickedBrands: filterBrandStorage,
-      uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage,
-      filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage
-    }];
-  }, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage]);
+const buildCurrentFilterArray = useCallback(() => {
+  return [{
+    searchType,
+    uniqueIDClickedBrands: filterBrandStorage,
+    uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage,
+    filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage,
+    filters: filters || localFilters // Include current filters
+  }];
+}, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage, filters, localFilters]);
 
   // Helper function to build filter array from checked rows
   const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
@@ -170,20 +171,23 @@ const SearchComponentBrand = ({
         searchType: 'brand',
         uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
         uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
-        filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
+        filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+        filters: filter.filters || filters || localFilters // Include filter's saved filters or current filters
       }));
-  }, [savedFilters, checkedRows]);
+  }, [savedFilters, checkedRows, filters, localFilters]);
+
 
   // Helper function to build initial filter array
-  const buildInitialFilterArray = useCallback(() => {
-    const initialData = getInitialFilters();
-    return [{
-      searchType: 'brand',
-      uniqueIDClickedBrands: initialData.uniqueIDClickedBrands,
-      uniqueIDClickedBrandsCategories: initialData.uniqueIDClickedBrandsCategories,
-      filterBrandsCategorySubCategoryStorage: initialData.filterBrandsCategorySubCategoryStorage
-    }];
-  }, [getInitialFilters]);
+    const buildInitialFilterArray = useCallback(() => {
+      const initialData = getInitialFilters();
+      return [{
+        searchType: 'brand',
+        uniqueIDClickedBrands: initialData.uniqueIDClickedBrands,
+        uniqueIDClickedBrandsCategories: initialData.uniqueIDClickedBrandsCategories,
+        filterBrandsCategorySubCategoryStorage: initialData.filterBrandsCategorySubCategoryStorage,
+        filters: initialData.filters || filters || localFilters // Include initial filters or current filters
+      }];
+    }, [getInitialFilters, filters, localFilters]);
 
   // Edit filter handler - Modified to use array format
   const handleEditFilter = useCallback((filter) => {
@@ -476,47 +480,50 @@ const SearchComponentBrand = ({
   }, [checkedRows, dispatch, buildCheckedFiltersArray]);
 
   // OPTIMIZED: Combined data fetching effect with duplicate prevention - Modified to use array format
-  useEffect(() => {
-    const currentParams = {
+    useEffect(() => {
+      const currentParams = {
+        searchType,
+        filterBrandStorage,
+        filterBrandsCategoryStorage,
+        filterBrandsCategorySubCategoryStorage,
+        checkedRowsSize: checkedRows.size,
+        checkedRowIds: Array.from(checkedRows).sort().join(','),
+        hasCheckedRows: checkedRows.size > 0,
+        filters: JSON.stringify(filters || localFilters) // Add filters to comparison
+      };
+
+      // Skip if parameters haven't changed
+      if (isEqual(lastFetchParams.current, currentParams)) {
+        return;
+      }
+
+      lastFetchParams.current = currentParams;
+
+      // Always make an API request when there are changes
+      if (checkedRows.size > 0) {
+        // When checkboxes are selected, fetch data based on checked rows
+        const checkedFiltersArray = buildCheckedFiltersArray();
+        if (checkedFiltersArray.length > 0) {
+          dispatch(fetchFastOrderBrandModeTableData(checkedFiltersArray));
+        }
+      } else {
+        // When no checkboxes are selected, fetch normal filtered data as array
+        const currentFiltersArray = buildCurrentFilterArray();
+        dispatch(fetchFastOrderBrandModeTableData(currentFiltersArray));
+      }
+    }, [
+      dispatch, 
       searchType,
       filterBrandStorage,
       filterBrandsCategoryStorage,
       filterBrandsCategorySubCategoryStorage,
-      checkedRowsSize: checkedRows.size,
-      checkedRowIds: Array.from(checkedRows).sort().join(','),
-      hasCheckedRows: checkedRows.size > 0
-    };
-
-    // Skip if parameters haven't changed AND we're not dealing with checkbox changes
-    if (isEqual(lastFetchParams.current, currentParams)) {
-      return;
-    }
-
-    lastFetchParams.current = currentParams;
-
-    // Always make an API request when there are changes
-    if (checkedRows.size > 0) {
-      // When checkboxes are selected, fetch data based on checked rows
-      const checkedFiltersArray = buildCheckedFiltersArray();
-      if (checkedFiltersArray.length > 0) {
-        dispatch(fetchFastOrderBrandModeTableData(checkedFiltersArray));
-      }
-    } else {
-      // When no checkboxes are selected, fetch normal filtered data as array
-      const currentFiltersArray = buildCurrentFilterArray();
-      dispatch(fetchFastOrderBrandModeTableData(currentFiltersArray));
-    }
-  }, [
-    dispatch, 
-    searchType,
-    filterBrandStorage,
-    filterBrandsCategoryStorage,
-    filterBrandsCategorySubCategoryStorage,
-    checkedRows,
-    checkedRows.size,
-    buildCheckedFiltersArray,
-    buildCurrentFilterArray
-  ]);
+      checkedRows,
+      checkedRows.size,
+      filters,
+      localFilters,
+      buildCheckedFiltersArray,
+      buildCurrentFilterArray
+    ]);
 
   // OPTIMIZED: Load saved filters only once when user is available
   useEffect(() => {
@@ -631,7 +638,7 @@ const SearchComponentBrand = ({
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
-  console.log("render SearchComponentBrand", tableData);
+  console.log("render SearchComponentBrand Fast Edit", filters);
 
   return (
     <>

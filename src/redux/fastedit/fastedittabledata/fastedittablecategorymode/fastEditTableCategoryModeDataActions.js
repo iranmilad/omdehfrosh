@@ -4,11 +4,43 @@ import { getApiUrl } from "../../../../Libs/utils/apiutils/apiutils";
 // Action to fetch fast Edit category mode table data
 export const fetchFastEditCategoryModeTableData = createAsyncThunk(
   "fastEditCategoryModeTableData/fetch",
-  async (filtersArray, { rejectWithValue }) => {
+  async (payload, { rejectWithValue, getState }) => {
 
-    console.log('🔥 Fast Edit Category Redux Action - Received filtersArray:', filtersArray);
+    console.log('🔥 Fast Edit Category Redux Action - Received payload:', payload);
+
+    // Get current filters from state (if needed as fallback)
+    const state = getState();
+    const currentFilters = state.filters || {};
 
     const token = localStorage.getItem("user");
+
+    // Handle both array and object formats
+    let requestBody;
+    
+    if (Array.isArray(payload)) {
+      // New array format - ensure each item has filters
+      requestBody = payload.map(item => ({
+        ...item,
+        filters: item.filters || currentFilters // Use item filters if provided, otherwise use current filters
+      }));
+    } else {
+      // Old object format - convert to array and add filters
+      const {
+        searchType, 
+        uniqueIDClickedCategories, 
+        uniqueIDClickedSubCategories, 
+        uniqueIDClickedSubCategoriesBrands,
+        filters, // Check if filters are already in payload
+      } = payload;
+      
+      requestBody = [{
+        searchType: searchType || 'category', 
+        uniqueIDClickedCategories: uniqueIDClickedCategories || [], 
+        uniqueIDClickedSubCategories: uniqueIDClickedSubCategories || [], 
+        uniqueIDClickedSubCategoriesBrands: uniqueIDClickedSubCategoriesBrands || [],
+        filters: filters || currentFilters // Use payload filters or current filters
+      }];
+    }
 
     try {
       const response = await fetch(getApiUrl("/fast-edit-category-mode"), {
@@ -17,14 +49,14 @@ export const fetchFastEditCategoryModeTableData = createAsyncThunk(
           'Authorization': `Bearer ${token}`, 
           "Content-Type": "application/json"      
         }),
-        body: JSON.stringify(filtersArray) // Send the array directly
+        body: JSON.stringify(requestBody) // Send the processed array
       });
 
-      console.log('🔥 Fast Edit Category Redux Action - Sending to API:', filtersArray);
+      console.log('🔥 Fast Edit Category Redux Action - Sending to API:', requestBody);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        return rejectWithValue(errorData?.message || "Failed to fetch table data");
+        return rejectWithValue(errorData?.message || "Failed to fetch fast edit category table data");
       }
 
       const data = await response.json();
