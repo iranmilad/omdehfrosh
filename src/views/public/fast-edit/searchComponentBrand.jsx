@@ -9,7 +9,18 @@ import {
   Paper, 
   Space, 
   Stack, 
-  Tabs 
+  Tabs,
+  Modal,
+  TextInput,
+  Button,
+  Flex,
+  Text,
+  ActionIcon,
+  Menu,
+  Divider,
+  Box,
+  Checkbox,
+  Badge,
 } from "@mantine/core";
 import qs from "qs";
 import { useParams } from "react-router";
@@ -20,28 +31,54 @@ import { fetchFastEditBrandModeTableData } from "../../../redux/fastedit/fastedi
 import { useDispatch, useSelector } from "react-redux";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { useMediaQuery } from "@mantine/hooks";
-
+import { IconPlus, IconTrash, IconFilter, IconEdit, IconDeviceFloppy } from '@tabler/icons-react';
+import { saveFilterSettings } from "../../../redux/savefiltersettings/saveFilterSettingsActions";
+import { getFilterSettings } from "../../../redux/savefiltersettings/getFilterSettings/getFilterSettingsActions";
+import { deleteFilterSettings } from "../../../redux/savefiltersettings/deleteFilterSettings/deleteFilterSettingsActions";
+import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
+import { notifications } from "@mantine/notifications";
+import { useForm } from "@mantine/form";
+import isEqual from "lodash/isEqual";
 
 const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations, filters, setFilters, setNodes, setNodesSubCategories }) => {
   
   const dispatch = useDispatch();
 
-  // const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
+  const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
+  const { savedFilters, deleteLoadingId } = useSelector((state) => state.getFilterSettings || {});
+  const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings || {});
+
+  // Responsive breakpoints
+  const isMobile = useMediaQuery("(max-width: 480px)");
+  const isTablet = useMediaQuery("(max-width: 1024px)");
+
+  // Filter selection state
+  const [checkedRows, setCheckedRows] = useState(new Set());
+  const [selectedRow, setSelectedRow] = useState(null);
+
+  // Modal states
+  const [openedAddModal, setOpenedAddModal] = useState(false);
+  const [filterName, setFilterName] = useState('');
+  
+  // Edit mode states
+  const [editingFilterId, setEditingFilterId] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingFilterName, setEditingFilterName] = useState('');
+
+  // Menu control state
+  const [menuOpened, setMenuOpened] = useState(false);
 
   const [brands, setBrands] = useState({ parent: [], clickedBrands: [], categories: [] });
   
   const [category, setCategory] = useState({ parent: [], clickedCategories: [], subCategory: [], brands: [] });
   
-  
   const { tableData, loading } = useSelector(
-    (state) => state.fastEditBrandModeData || {} // Ensure it's never undefined
+    (state) => state.fastEditBrandModeData || {}
   );
   
-
   const COOKIE_NAME = "search_filters_brand_fast_edit";
 
-
-  const getInitialFilters = () => {
+  const getInitialFilters = useCallback(() => {
     const storedFilters = Cookies.get(COOKIE_NAME);
     if (storedFilters) {
       try {
@@ -66,9 +103,9 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
         priceFormat: "hezar",
       },
     };
-  };
+  }, [COOKIE_NAME]);
 
-  const initialFilters = getInitialFilters();
+  const initialFilters = useMemo(() => getInitialFilters(), [getInitialFilters]);
 
   const [filterBrandStorage, setFilterBrandStorage] = useState(initialFilters.uniqueIDClickedBrands);
   const [filterBrandsCategoryStorage, setFilterBrandsCategoryStorage] = useState(initialFilters.uniqueIDClickedBrandsCategories);
@@ -86,55 +123,342 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
   const url = "/fastorder";
   const { id } = useParams();
 
+  // Refs for preventing duplicate API calls
+  const lastFetchParams = useRef(null);
+  const hasLoadedInitialFilters = useRef(false);
 
-  useEffect(() => {
+  // Form validation
+  const form = useForm({
+    initialValues: {
+      inputBox: "",
+    },
+    validate: {
+      title: (value) => (value?.trim() ? null : "نام الزامی است"),
+    },
+  });
 
-    Cookies.set(COOKIE_NAME, JSON.stringify({
-      searchType: searchType,
+  // 🔥 NEW: Helper functions to build filter arrays
+  const buildCurrentFilterArray = useCallback(() => {
+    return [{
+      searchType,
       uniqueIDClickedBrands: filterBrandStorage,
       uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage,
-      filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage,
-      filters: localFilters,
+      filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage
+    }];
+  }, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage]);
 
-    }), { expires: 7 });
-  }, [
-    searchType, 
-    filterBrandStorage, 
-    filterBrandsCategoryStorage, 
-    filterBrandsCategorySubCategoryStorage, 
-    filters, 
-    localFilters
-  ]);
-  
-  
-  useEffect(() => {
-    const storedFilters = Cookies.get(COOKIE_NAME);
-  
-    if (storedFilters) {
-      try {
-        const parsedFilters = JSON.parse(storedFilters);
+  const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
+    return Array.from(checkedRowIds)
+      .map(id => savedFilters?.find(f => f.id === id))
+      .filter(Boolean)
+      .map(filter => ({
+        searchType: 'brand',
+        uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+        uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+        filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
+      }));
+  }, [savedFilters, checkedRows]);
 
-        setFilterBrandStorage(parsedFilters.uniqueIDClickedBrands || []);
-        setFilterBrandsCategoryStorage(parsedFilters.uniqueIDClickedBrandsCategories || []);
-        setFilterBrandsCategorySubCategoryStorage(parsedFilters.filterBrandsCategorySubCategoryStorage || []);
+  const buildInitialFilterArray = useCallback(() => {
+    const initialData = getInitialFilters();
+    return [{
+      searchType: 'brand',
+      uniqueIDClickedBrands: initialData.uniqueIDClickedBrands,
+      uniqueIDClickedBrandsCategories: initialData.uniqueIDClickedBrandsCategories,
+      filterBrandsCategorySubCategoryStorage: initialData.filterBrandsCategorySubCategoryStorage
+    }];
+  }, [getInitialFilters]);
 
-        setLocalFilters(parsedFilters.filters || {});
-        setFilters(parsedFilters.filters || {});  
-
-        setSearchType(parsedFilters.searchType || "brand");
-      } catch (error) {
+  // Filter selection handlers
+  const toggleCheck = useCallback((filterId) => {
+    setCheckedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(filterId)) {
+        newSet.delete(filterId);
+      } else {
+        newSet.add(filterId);
       }
-    } else {
-    }
+      return newSet;
+    });
   }, []);
 
-  
+  const isChecked = useCallback((filterId) => {
+    return checkedRows.has(filterId);
+  }, [checkedRows]);
+
+  const clearAll = useCallback(() => {
+    setCheckedRows(new Set());
+  }, []);
+
+  // 🔥 MODIFIED: Edit filter handler to use array format
+  const handleEditFilter = useCallback((filter) => {
+    setEditingFilterId(filter.id);
+    setEditingFilterName(filter.filterName || 'بدون نام');
+    setIsEditMode(true);
+    
+    const cookieValue = {
+      searchType: 'brand',
+      filters: filter.filters || {},
+      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+    };
+
+    Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+    
+    setFilterBrandStorage(filter.uniqueIDClickedBrands || []);
+    setFilterBrandsCategoryStorage(filter.uniqueIDClickedBrandsCategories || []);
+    setFilterBrandsCategorySubCategoryStorage(filter.filterBrandsCategorySubCategoryStorage || []);
+    setLocalFilters(filter.filters || {});
+    
+    if (setFilters) {
+      setFilters(filter.filters || {});
+    }
+    if (setSearchType) {
+      setSearchType('brand');
+    }
+
+    setSelectedRow(filter.id);
+    setMenuOpened(false);
+
+    // 🔥 NEW: Send single filter as array to API
+    const filterArray = [{
+      searchType: 'brand',
+      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
+    }];
+
+    console.log('🔥 Fast Edit Brand Edit - Sending filterArray to API:', filterArray);
+    dispatch(fetchFastEditBrandModeTableData(filterArray));
+
+    notifications.show({
+      title: 'حالت ویرایش',
+      message: `فیلتر "${filter.filterName || 'بدون نام'}" بارگذاری شد. تغییرات را اعمال کنید و سپس ذخیره کنید.`,
+      color: 'blue',
+      autoClose: 4000,
+    });
+  }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
+
+  // Save edited filter
+  const saveEditedFilter = useCallback(() => {
+    if (!editingFilterId || !editingFilterName.trim()) return;
+
+    const slug = "brand-fast-edit";
+    const cookieRaw = Cookies.get(COOKIE_NAME);
+    let fullCookieData;
+
+    try {
+      fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
+    } catch (error) {
+      fullCookieData = {};
+    }
+
+    dispatch(
+      updateFilterSettings({
+        slug,
+        id: editingFilterId,
+        filterName: editingFilterName.trim(),
+        ...fullCookieData,
+      })
+    ).then(() => {
+      dispatch(getFilterSettings(slug));
+      setIsEditMode(false);
+      setEditingFilterId(null);
+      setEditingFilterName('');
+      
+      notifications.show({
+        title: 'ذخیره شد',
+        message: `فیلتر "${editingFilterName.trim()}" با موفقیت به‌روزرسانی شد.`,
+        color: 'green',
+        autoClose: 3000,
+      });
+    });
+  }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch]);
+
+  // 🔥 MODIFIED: Cancel edit mode to use array format
+  const cancelEditMode = useCallback(() => {
+    setIsEditMode(false);
+    setEditingFilterId(null);
+    setEditingFilterName('');
+    
+    const initialData = getInitialFilters();
+    setFilterBrandStorage(initialData.uniqueIDClickedBrands);
+    setFilterBrandsCategoryStorage(initialData.uniqueIDClickedBrandsCategories);
+    setFilterBrandsCategorySubCategoryStorage(initialData.filterBrandsCategorySubCategoryStorage);
+    setLocalFilters(initialData.filters);
+    
+    if (setFilters) {
+      setFilters(initialData.filters);
+    }
+    
+    Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
+    setSelectedRow(null);
+
+    // 🔥 NEW: Send initial filter as array to API
+    const filterArray = buildInitialFilterArray();
+    console.log('🔥 Fast Edit Brand Cancel Edit - Sending filterArray to API:', filterArray);
+    dispatch(fetchFastEditBrandModeTableData(filterArray));
+    
+    notifications.show({
+      title: 'لغو ویرایش',
+      message: 'تغییرات لغو شد و فیلترها به حالت اولیه بازگشتند.',
+      color: 'gray',
+      autoClose: 2000,
+    });
+  }, [getInitialFilters, setFilters, COOKIE_NAME, dispatch, buildInitialFilterArray]);
+
+  // 🔥 MODIFIED: Handle checkbox change to use array format
+  const handleFilterCheckboxChange = useCallback((filterId, checked) => {
+    if (checked) {
+      // Check the checkbox in the context
+      if (!isChecked(filterId)) {
+        toggleCheck(filterId);
+      }
+      
+      // Apply this filter immediately
+      const selectedFilter = savedFilters?.find(f => f.id === filterId);
+      if (selectedFilter) {
+        const cookieValue = {
+          searchType: 'brand',
+          filters: selectedFilter.filters || {},
+          uniqueIDClickedBrands: selectedFilter.uniqueIDClickedBrands || [],
+          uniqueIDClickedBrandsCategories: selectedFilter.uniqueIDClickedBrandsCategories || [],
+          filterBrandsCategorySubCategoryStorage: selectedFilter.filterBrandsCategorySubCategoryStorage || [],
+        };
+
+        Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+        
+        setFilterBrandStorage(selectedFilter.uniqueIDClickedBrands || []);
+        setFilterBrandsCategoryStorage(selectedFilter.uniqueIDClickedBrandsCategories || []);
+        setFilterBrandsCategorySubCategoryStorage(selectedFilter.filterBrandsCategorySubCategoryStorage || []);
+        setLocalFilters(selectedFilter.filters || {});
+        
+        if (setFilters) {
+          setFilters(selectedFilter.filters || {});
+        }
+        if (setSearchType) {
+          setSearchType('brand');
+        }
+
+        // 🔥 NEW: Build array of all checked filters (including the one just checked)
+        setTimeout(() => {
+          const newCheckedRows = new Set(checkedRows);
+          newCheckedRows.add(filterId);
+          
+          const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
+          console.log('🔥 Fast Edit Brand Checkbox Check - Sending filterArray to API:', checkedFiltersArray);
+          dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
+        }, 0);
+      }
+    } else {
+      // Uncheck the checkbox in the context
+      if (isChecked(filterId)) {
+        toggleCheck(filterId);
+      }
+      
+      // 🔥 NEW: Build array of remaining checked filters
+      setTimeout(() => {
+        const newCheckedRows = new Set(checkedRows);
+        newCheckedRows.delete(filterId);
+        
+        if (newCheckedRows.size > 0) {
+          // If there are still checked filters, send them as array
+          const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
+          console.log('🔥 Fast Edit Brand Checkbox Uncheck (with remaining) - Sending filterArray to API:', checkedFiltersArray);
+          dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
+        } else {
+          // If no filters are checked, reset to initial filters
+          const initialData = getInitialFilters();
+          setFilterBrandStorage(initialData.uniqueIDClickedBrands);
+          setFilterBrandsCategoryStorage(initialData.uniqueIDClickedBrandsCategories);
+          setFilterBrandsCategorySubCategoryStorage(initialData.filterBrandsCategorySubCategoryStorage);
+          setLocalFilters(initialData.filters);
+
+          if (setFilters) setFilters(initialData.filters);
+          if (setSearchType) setSearchType('brand');
+
+          Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
+
+          // Send initial filter as array
+          const filterArray = buildInitialFilterArray();
+          console.log('🔥 Fast Edit Brand Checkbox Uncheck (reset to initial) - Sending filterArray to API:', filterArray);
+          dispatch(fetchFastEditBrandModeTableData(filterArray));
+        }
+      }, 0);
+    }
+  }, [savedFilters, COOKIE_NAME, setFilters, setSearchType, getInitialFilters, dispatch, isChecked, toggleCheck, checkedRows, buildCheckedFiltersArray, buildInitialFilterArray]);
+
+  // 🔥 MODIFIED: Clear selected filters to use array format
+  const clearSelectedFilters = useCallback(() => {
+    clearAll();
+    
+    // Reset to initial state and send to API
+    const initialData = getInitialFilters();
+    setFilterBrandStorage(initialData.uniqueIDClickedBrands);
+    setFilterBrandsCategoryStorage(initialData.uniqueIDClickedBrandsCategories);
+    setFilterBrandsCategorySubCategoryStorage(initialData.filterBrandsCategorySubCategoryStorage);
+    setLocalFilters(initialData.filters);
+
+    if (setFilters) setFilters(initialData.filters);
+    if (setSearchType) setSearchType('brand');
+
+    Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
+
+    // 🔥 NEW: Send initial filter as array to API
+    const filterArray = buildInitialFilterArray();
+    console.log('🔥 Fast Edit Brand Clear All - Sending filterArray to API:', filterArray);
+    dispatch(fetchFastEditBrandModeTableData(filterArray));
+  }, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray]);
+
+  // Save filter settings
+  const saveFiltersSettings = useCallback(() => {
+    if (!filterName.trim()) return;
+
+    const slug = "brand-fast-edit";
+    const cookieRaw = Cookies.get(COOKIE_NAME);
+    let fullCookieData;
+
+    try {
+      fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
+    } catch (error) {
+      fullCookieData = {};
+    }
+
+    dispatch(
+      saveFilterSettings({
+        slug,
+        filters: fullCookieData,
+        filterName: filterName.trim(),
+      })
+    ).then(() => {
+      dispatch(getFilterSettings(slug));
+      if (saveStatus?.state === "ok") {
+        setOpenedAddModal(false);
+      }
+      setFilterName("");
+    });
+  }, [filterName, COOKIE_NAME, dispatch, saveStatus]);
+
+  // Delete filter handler
+  const handleDeleteSavedFilter = useCallback((id) => {
+    const slug = "brand-fast-edit";
+    dispatch(deleteFilterSettings({ slug, id }))
+      .then(() => {
+        dispatch(getFilterSettings(slug));
+        if (isChecked(id)) {
+          toggleCheck(id);
+        }
+        if (editingFilterId === id) {
+          cancelEditMode();
+        }
+      });
+  }, [dispatch, isChecked, toggleCheck, editingFilterId, cancelEditMode]);
+
   const updateFiltersAndStore = useCallback(() => {
     let thisFilter = {};
 
     if (searchType === "brand") {
-      
-      // thisFilter.filters = filters;
       thisFilter.searchType = searchType;
       thisFilter.uniqueIDClickedBrands = filterBrandStorage;
       thisFilter.uniqueIDClickedBrandsCategories = filterBrandsCategoryStorage;
@@ -152,7 +476,6 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     thisFilter.filters = filters;
     if (id) thisFilter.userId = id;
 
-    // ✅ Store in cookie (valid for 7 days)
     Cookies.set(COOKIE_NAME, JSON.stringify(thisFilter), { expires: 7 });
 
     return {
@@ -173,38 +496,123 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
     filterCategoryStorage,
     filterCategorySubCategoryStorage,
     filterCategorySubCategoryBrandsStorage,
-    id
+    id,
+    COOKIE_NAME
   ]);
 
-  const queryKey = updateFiltersAndStore().query;
-
-
-
+  // Save to cookies whenever relevant state changes
   useEffect(() => {
+    const dataToSave = {
+      searchType: searchType,
+      uniqueIDClickedBrands: filterBrandStorage,
+      uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage,
+      filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage,
+      filters: localFilters,
+    };
+    
+    Cookies.set(COOKIE_NAME, JSON.stringify(dataToSave), { expires: 7 });
+  }, [
+    searchType, 
+    filterBrandStorage, 
+    filterBrandsCategoryStorage, 
+    filterBrandsCategorySubCategoryStorage, 
+    localFilters,
+    COOKIE_NAME
+  ]);
 
-    // if(user?.id) {
+  // OPTIMIZED: Load saved filters only once when user is available
+  useEffect(() => {
+    if (user && !hasLoadedInitialFilters.current) {
+      const slug = "brand-fast-edit";
+      dispatch(getFilterSettings(slug));
+      hasLoadedInitialFilters.current = true;
+    }
+  }, [dispatch, user]);
 
-      dispatch(fetchFastEditBrandModeTableData({
-        searchType,
-        // supplierId: user?.id,
-        uniqueIDClickedBrands: updateFiltersAndStore().thisFilter.uniqueIDClickedBrands,
-        uniqueIDClickedBrandsCategories: updateFiltersAndStore().thisFilter.uniqueIDClickedBrandsCategories,
-        filterBrandsCategorySubCategoryStorage: updateFiltersAndStore().thisFilter.filterBrandsCategorySubCategoryStorage
-      }));
-      
-    // }
+  // 🔥 MODIFIED: Load filters from cookies on component mount to use array format
+  useEffect(() => {
+    const storedFilters = Cookies.get(COOKIE_NAME);
+  
+    if (storedFilters) {
+      try {
+        const parsedFilters = JSON.parse(storedFilters);
 
+        setFilterBrandStorage(parsedFilters.uniqueIDClickedBrands || []);
+        setFilterBrandsCategoryStorage(parsedFilters.uniqueIDClickedBrandsCategories || []);
+        setFilterBrandsCategorySubCategoryStorage(parsedFilters.filterBrandsCategorySubCategoryStorage || []);
+
+        setLocalFilters(parsedFilters.filters || {});
+        if (setFilters) {
+          setFilters(parsedFilters.filters || {});
+        }
+
+        if (setSearchType) {
+          setSearchType(parsedFilters.searchType || "brand");
+        }
+
+        // 🔥 NEW: Send loaded filters as array to API
+        setTimeout(() => {
+          const filterArray = [{
+            searchType: parsedFilters.searchType || 'brand',
+            uniqueIDClickedBrands: parsedFilters.uniqueIDClickedBrands || [],
+            uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
+            filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || []
+          }];
+          console.log('🔥 Fast Edit Brand Load from Cookie - Sending filterArray to API:', filterArray);
+          dispatch(fetchFastEditBrandModeTableData(filterArray));
+        }, 0);
+      } catch (error) {
+        console.error('Error parsing stored filters:', error);
+      }
+    }
+  }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
+
+  // 🔥 MODIFIED: Combined data fetching effect to use array format
+  useEffect(() => {
+    const currentParams = {
+      searchType,
+      filterBrandStorage,
+      filterBrandsCategoryStorage,
+      filterBrandsCategorySubCategoryStorage,
+      checkedRowsSize: checkedRows.size,
+      checkedRowIds: Array.from(checkedRows).sort().join(','),
+      hasCheckedRows: checkedRows.size > 0
+    };
+
+    // Skip if parameters haven't changed
+    if (isEqual(lastFetchParams.current, currentParams)) {
+      return;
+    }
+
+    lastFetchParams.current = currentParams;
+
+    // Always make an API request when there are changes
+    if (checkedRows.size > 0) {
+      // When checkboxes are selected, fetch data based on checked rows
+      const checkedFiltersArray = buildCheckedFiltersArray();
+      if (checkedFiltersArray.length > 0) {
+        console.log('🔥 Fast Edit Brand useEffect (checked rows) - Sending filterArray to API:', checkedFiltersArray);
+        dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
+      }
+    } else {
+      // When no checkboxes are selected, fetch normal filtered data as array
+      const currentFiltersArray = buildCurrentFilterArray();
+      console.log('🔥 Fast Edit Brand useEffect (normal filters) - Sending filterArray to API:', currentFiltersArray);
+      dispatch(fetchFastEditBrandModeTableData(currentFiltersArray));
+    }
   }, [
     dispatch, 
-    // user?.id,
-    updateFiltersAndStore().thisFilter.uniqueIDClickedBrands,
-    updateFiltersAndStore().thisFilter.uniqueIDClickedBrandsCategories,
-    updateFiltersAndStore().thisFilter.filterBrandsCategorySubCategoryStorage,
-    filterBrandStorage
-  ]); // Only trigger when parent brands change
+    searchType,
+    filterBrandStorage,
+    filterBrandsCategoryStorage,
+    filterBrandsCategorySubCategoryStorage,
+    checkedRows,
+    checkedRows.size,
+    buildCheckedFiltersArray,
+    buildCurrentFilterArray
+  ]);
   
-
-
+  // Handle table data updates
   useEffect(() => {
     if (tableData) {
       setNodes(tableData?.products || []);
@@ -212,35 +620,358 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
       setFilterValues(tableData?.filters || {});
       setAvailableLocations(tableData?.supplierLocations || [])
     }
-  }, [tableData, filterBrandStorage]); 
+  }, [tableData, filterBrandStorage, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]); 
 
-
-    const isMobile = useMediaQuery("(max-width: 768px)");
-    const isTablet = useMediaQuery("(max-width: 1024px)");
-
-    console.log("tableData", filters);
-
+  console.log("tableData", filters);
 
   return (
     <>
-      <Paper mt={{ base: "xs", md: "xs" }} mb={isTablet ? "sm" : ""} id="fastorder-search">
+      {/* Add Filter Modal */}
+      <Modal
+        opened={openedAddModal}
+        onClose={() => {
+          setOpenedAddModal(false);
+          setFilterName('');
+        }}
+        title="افزودن فیلتر جدید - ویرایش سریع"
+        centered
+        size={isMobile ? "sm" : "md"}
+        padding={isMobile ? "sm" : "md"}
+      >
+        <TextInput
+          label="نام فیلتر"
+          placeholder="نام را وارد کنید"
+          {...form.getInputProps("inputBox")} 
+          value={filterName}
+          onChange={(event) => setFilterName(event.currentTarget.value)}
+          size={isMobile ? "sm" : "md"}
+          error={
+            (saveStatus?.state === "error" && saveStatus?.error?.inputBox) || form.errors.inputBox ? (
+              <div>
+                {saveStatus?.state === "error" && saveStatus?.error?.inputBox && (
+                  <div>{saveStatus.error.inputBox}</div>
+                )}
+                {form.errors.inputBox && <div>{form.errors.inputBox}</div>}
+              </div>
+            ) : null
+          }
+        />
+        <Button 
+          mt="md" 
+          onClick={saveFiltersSettings}
+          disabled={!filterName.trim()}
+          size={isMobile ? "sm" : "md"}
+          fullWidth={isMobile}
+        >
+          ذخیره
+        </Button>
+      </Modal>
 
-        <div className="flex flex-row justify-between mb-4">
-          <div className="flex">
+      <Paper 
+        mt={{ base: "xs", md: "xs" }} 
+        mb={isTablet ? "sm" : ""} 
+        id="fastorder-search"
+        p={isMobile ? "sm" : "md"}
+        style={{ overflow: 'hidden' }}
+      >
+        {/* Header */}
+        <Flex
+          direction={isMobile ? "column" : "row"}
+          justify={isMobile ? "flex-start" : "space-between"}
+          align={isMobile ? "stretch" : "center"}
+          gap={isMobile ? "" : "md"}
+          mb={isTablet ? "sm" : "md"}
+        >
+          <div>
             <XTitle>ویرایش سریع</XTitle>
+            {isEditMode && (
+              <Group gap="xs" mt="xs">
+                <Badge color="blue" variant="light" size="sm">
+                  حالت ویرایش: {editingFilterName}
+                </Badge>
+                <Group gap="xs">
+                  <ActionIcon
+                    variant="filled"
+                    color="green"
+                    size="sm"
+                    onClick={saveEditedFilter}
+                    title="ذخیره تغییرات"
+                  >
+                    <IconDeviceFloppy size={14} />
+                  </ActionIcon>
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    onClick={cancelEditMode}
+                    title="لغو ویرایش"
+                  >
+                    <IconTrash size={14} />
+                  </ActionIcon>
+                </Group>
+              </Group>
+            )}
           </div>
-          <div className="flex">
+          
+          {/* Action Buttons */}
+          <Flex 
+            direction={isMobile ? "column" : "row"}
+            gap={isMobile ? "xs" : "sm"}
+            align={isMobile ? "stretch" : "center"}
+          >
+            {/* Filter Settings Menu */}
+            {user && 
+            <Menu 
+              shadow="md" 
+              width={isMobile ? "90vw" : isTablet ? 350 : 400} 
+              position={isMobile ? "bottom" : "bottom-end"}
+              offset={isMobile ? 5 : 10}
+              opened={menuOpened}
+              onChange={setMenuOpened}
+            >
+              <Menu.Target>
+                <Button 
+                  variant="light" 
+                  leftSection={!isMobile && <IconFilter size={16} />}
+                  size={isMobile ? "sm" : "md"}
+                  fullWidth={isMobile}
+                  compact={isMobile}
+                  styles={{
+                    root: {
+                      height: isMobile ? '32px' : '36px',
+                      fontSize: isMobile ? '11px' : '13px'
+                    }
+                  }}
+                >
+                  {isMobile ? "تنظیمات جستجو" : "تنظیمات جستجو"}
+                  {checkedRows.size > 0 && ` (${checkedRows.size})`}
+                </Button>
+              </Menu.Target>
+
+              <Menu.Dropdown>
+                <Menu.Label>فیلترهای ذخیره شده</Menu.Label>
+                
+                <Menu.Item
+                  leftSection={<IconPlus size={16} />}
+                  onClick={() => setOpenedAddModal(true)}
+                >
+                  افزودن فیلتر جدید
+                </Menu.Item>
+
+                {savedFilters && savedFilters.length > 0 && (
+                  <>
+                    <Menu.Divider />
+                    
+                    {checkedRows.size > 0 && (
+                      <>
+                        <Group p="xs" gap="xs" justify={isMobile ? "center" : "flex-start"}>
+                          <Button 
+                            size="xs" 
+                            variant="subtle" 
+                            color="gray"
+                            onClick={clearSelectedFilters}
+                            fullWidth={isMobile}
+                            disabled={isEditMode}
+                            style={{
+                              opacity: isEditMode ? 0.5 : 1
+                            }}
+                          >
+                            پاک کردن انتخاب
+                          </Button>
+                        </Group>
+                        <Menu.Divider />
+                      </>
+                    )}
+                    
+                    <Box style={{ 
+                      maxHeight: isMobile ? '250px' : '300px', 
+                      overflowY: 'auto',
+                      overflowX: 'hidden'
+                    }}>
+                      {savedFilters.map((filter, index) => (
+                        <React.Fragment key={filter.id}>
+                          <Menu.Item>
+                            <Group justify="space-between" w="100%" wrap="nowrap">
+                              <Group gap="xs" flex={1} maw="calc(100% - 60px)">
+                                <Checkbox
+                                  checked={isChecked(filter.id)}
+                                  onChange={(event) => {
+                                    event.stopPropagation();
+                                    if (isEditMode) return;
+                                    handleFilterCheckboxChange(filter.id, event.currentTarget.checked);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  size={isMobile ? "sm" : "md"}
+                                  disabled={isEditMode}
+                                  style={{
+                                    opacity: isEditMode ? 0.5 : 1,
+                                    cursor: isEditMode ? 'not-allowed' : 'pointer'
+                                  }}
+                                />
+                                <Text 
+                                  size={isMobile ? "xs" : "sm"}
+                                  fw={editingFilterId === filter.id ? 600 : 500}
+                                  c={editingFilterId === filter.id ? "blue" : undefined}
+                                  style={{ 
+                                    cursor: 'pointer',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    flex: 1,
+                                    opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    
+                                    if (isEditMode && editingFilterId !== filter.id) {
+                                      notifications.show({
+                                        title: 'در حال ویرایش',
+                                        message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
+                                        color: 'orange',
+                                        autoClose: 3000,
+                                      });
+                                      return;
+                                    }
+
+                                    const cookieValue = {
+                                      searchType: 'brand',
+                                      filters: filter.filters || {},
+                                      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+                                      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+                                      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+                                    };
+
+                                    Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+                                    
+                                    setFilterBrandStorage(filter.uniqueIDClickedBrands || []);
+                                    setFilterBrandsCategoryStorage(filter.uniqueIDClickedBrandsCategories || []);
+                                    setFilterBrandsCategorySubCategoryStorage(filter.filterBrandsCategorySubCategoryStorage || []);
+                                    setLocalFilters(filter.filters || {});
+                                    
+                                    if (setFilters) {
+                                      setFilters(filter.filters || {});
+                                    }
+                                    if (setSearchType) {
+                                      setSearchType('brand');
+                                    }
+
+                                    setSelectedRow(filter.id);
+
+                                    // 🔥 NEW: Send filter as array to API
+                                    const filterArray = [{
+                                      searchType: 'brand',
+                                      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+                                      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+                                      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
+                                    }];
+                                    console.log('🔥 Fast Edit Brand Text Click - Sending filterArray to API:', filterArray);
+                                    dispatch(fetchFastEditBrandModeTableData(filterArray));
+                                  }}
+                                  title={filter.filterName || 'بدون نام'}
+                                >
+                                  {filter.filterName || 'بدون نام'}
+                                </Text>
+                              </Group>
+                              
+                              <Group gap="xs" style={{ flexShrink: 0 }}>
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="blue"
+                                  size={isMobile ? "sm" : "md"}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditFilter(filter);
+                                  }}
+                                  title="ویرایش"
+                                  disabled={isEditMode && editingFilterId !== filter.id}
+                                >
+                                  <IconEdit size={isMobile ? 12 : 14} />
+                                </ActionIcon>
+                                
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="red"
+                                  size={isMobile ? "sm" : "md"}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isEditMode && editingFilterId !== filter.id) {
+                                      notifications.show({
+                                        title: 'در حال ویرایش',
+                                        message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
+                                        color: 'orange',
+                                        autoClose: 3000,
+                                      });
+                                      return;
+                                    }
+                                    handleDeleteSavedFilter(filter.id);
+                                  }}
+                                  disabled={deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id)}
+                                  title="حذف"
+                                >
+                                  <IconTrash size={isMobile ? 12 : 14} />
+                                </ActionIcon>
+                              </Group>
+                            </Group>
+                          </Menu.Item>
+                          {index < savedFilters.length - 1 && <Menu.Divider />}
+                        </React.Fragment>
+                      ))}
+                    </Box>
+                  </>
+                )}
+
+                {(!savedFilters || savedFilters.length === 0) && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item disabled>
+                      <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
+                        فیلتری ذخیره نشده است
+                      </Text>
+                    </Menu.Item>
+                  </>
+                )}
+              </Menu.Dropdown>
+            </Menu>
+            }
+
             <ShareModal filters={updateFiltersAndStore().thisFilter} />
-          </div>
-        </div>
+          </Flex>
+        </Flex>
 
         <LoadingOverlay pos="fixed" visible={loading} zIndex={1000} h="100%" />
 
-        <Tabs styles={{ panel: { marginTop: "20px" } }} variant="pills" defaultValue="brand" value={searchType} onChange={setSearchType}>
+        <Tabs 
+          styles={{ 
+            panel: { marginTop: isMobile ? "15px" : "20px" },
+            list: {
+              overflowX: 'auto',
+              flexWrap: 'nowrap',
+              justifyContent: 'center',
+              display: 'flex',
+              width: '100%'
+            },
+            tab: {
+              fontSize: isMobile ? '12px' : '14px',
+              padding: isMobile ? '8px 12px' : '10px 16px',
+              whiteSpace: 'nowrap',
+              flex: '1 1 50%',
+              textAlign: 'center'
+            }
+          }} 
+          variant="pills" 
+          defaultValue="brand" 
+          value={searchType} 
+          onChange={setSearchType}
+        >
           <Tabs.List>
-            <Tabs.Tab value="brand">جستجو بر اساس برند</Tabs.Tab>
-            <Tabs.Tab value="category">جستجو بر اساس دسته بندی</Tabs.Tab>
+            <Tabs.Tab value="brand">
+              {isMobile ? "برند" : "جستجو بر اساس برند"}
+            </Tabs.Tab>
+            <Tabs.Tab value="category">
+              {isMobile ? "دسته‌بندی" : "جستجو بر اساس دسته بندی"}
+            </Tabs.Tab>
           </Tabs.List>
+          
           <Tabs.Panel value="brand">
             {searchType === "brand" ? (
               tableData ? 
@@ -255,6 +986,8 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
                 setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
                 filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
                 setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+                isMobile={isMobile}
+                isTablet={isTablet}
               /> : null
             ) : null}
           </Tabs.Panel>

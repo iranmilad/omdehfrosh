@@ -4,31 +4,23 @@ import { getApiUrl } from "../../../../Libs/utils/apiutils/apiutils";
 // Action to fetch fast Edit category mode table data
 export const fetchFastEditCategoryModeTableData = createAsyncThunk(
   "fastEditCategoryModeTableData/fetch",
-  async ({
-    searchType,
-    supplierId,
-    uniqueIDClickedCategories,
-    uniqueIDClickedSubCategories,
-    uniqueIDClickedSubCategoriesBrands
-  }, { rejectWithValue }) => {
+  async (filtersArray, { rejectWithValue }) => {
+
+    console.log('🔥 Fast Edit Category Redux Action - Received filtersArray:', filtersArray);
 
     const token = localStorage.getItem("user");
 
     try {
       const response = await fetch(getApiUrl("/fast-edit-category-mode"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         headers: new Headers({
           'Authorization': `Bearer ${token}`, 
           "Content-Type": "application/json"      
-        }), 
-        body: JSON.stringify({
-          searchType,
-          uniqueIDClickedCategories,
-          uniqueIDClickedSubCategories,
-          uniqueIDClickedSubCategoriesBrands
-        })
+        }),
+        body: JSON.stringify(filtersArray) // Send the array directly
       });
+
+      console.log('🔥 Fast Edit Category Redux Action - Sending to API:', filtersArray);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -38,7 +30,7 @@ export const fetchFastEditCategoryModeTableData = createAsyncThunk(
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error("Network error:", error);
+      console.error('🔥 Fast Edit Category Redux Action - Error:', error);
       return rejectWithValue("Network error or server not responding");
     }
   }
