@@ -23,7 +23,7 @@ import {
   Badge
 } from "@mantine/core";
 import qs from "qs";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router"; // Add useNavigate
 import { useFastOrder } from ".";
 import ShareModal from "./shareModal";
 import XTitle from "../../../components/title";
@@ -40,16 +40,20 @@ import { useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import { useMediaQuery } from "@mantine/hooks";
 import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import isEqual from "lodash/isEqual";
+import { logout, verifyTokenSilent } from "../../../redux/auth/authusers/auth"; // Add auth actions
+import { clearCart } from "../../../redux/cart"; // Add clearCart import
+import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils"; // Add API utils
 
 const SearchComponentCategory = ({ searchType, setSearchType, filters, setFilters, setNodes, setNodesSubCategories }) => {
 
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // Add navigate hook
 
   // Redux selectors
   const { savedFilters, deleteLoadingId } = useSelector((state) => state.getFilterSettings);
   const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings);
   const { tableData, loading } = useSelector((state) => state.fastOrderCategoryModeData);
-  const { user } = useSelector((state) => state.auth);
+  const { user, isVerified } = useSelector((state) => state.auth);
 
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width: 480px)");
@@ -86,10 +90,108 @@ const SearchComponentCategory = ({ searchType, setSearchType, filters, setFilter
   // Menu control state
   const [menuOpened, setMenuOpened] = useState(false);
 
+  // Auth modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [menuLoading, setMenuLoading] = useState(false);
+
   const [brands, setBrands] = useState({ parent: [], clickedBrands: [], categories: [] });
   const [category, setCategory] = useState({ parent: [], clickedCategories: [], subCategory: [], brands: [] });
 
   const COOKIE_NAME = "search_filters_category_fast_edit";
+
+  // Enhanced helper function to handle token expiration and update global auth state
+  const handleTokenExpiration = async (error) => {
+    // Check if the error is related to token expiration
+    if (error.message.includes('توکن نامعتبر است') || 
+        error.message.includes('Unauthorized') || 
+        error.status === 401) {
+      
+      try {
+        // Clear localStorage
+        localStorage.removeItem("user");
+        
+        // Clear Redux auth state
+        dispatch(logout());
+        
+        // Clear cart state
+        dispatch(clearCart());
+        
+        // Silent re-verification to update auth state across all components
+        await dispatch(verifyTokenSilent());
+        
+        // Show auth modal
+        setShowAuthModal(true);
+        
+        return true;
+      } catch (authError) {
+        console.error("Error during token expiration handling:", authError);
+        // Even if there's an error, ensure user is logged out
+        setShowAuthModal(true);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Verify token function
+  const verifyToken = async () => {
+    const token = localStorage.getItem("user");
+    
+    if (!token) {
+      setShowAuthModal(true);
+      return false;
+    }
+
+    try {
+      setMenuLoading(true);
+      const response = await fetch(getApiUrl("/auth/verify-user"), {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await handleTokenExpiration({ status: 401, message: 'Unauthorized' });
+          return false;
+        }
+        throw new Error("Failed to verify token");
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error verifying token:", error);
+      const tokenExpired = await handleTokenExpiration(error);
+      return false;
+    } finally {
+      setMenuLoading(false);
+    }
+  };
+
+  // Handle menu toggle with token verification
+  const handleMenuToggle = async (opened) => {
+    if (opened && user) {
+      // Verify token when opening menu
+      const isValid = await verifyToken();
+      if (isValid) {
+        setMenuOpened(true);
+      }
+    } else if (opened && !user) {
+      // Show auth modal if no user
+      setShowAuthModal(true);
+    } else {
+      // Close menu normally
+      setMenuOpened(false);
+    }
+  };
+
+  // Handle login redirect
+  const handleLoginRedirect = () => {
+    setShowAuthModal(false);
+    navigate('/login');
+  };
 
   const getInitialFilters = useCallback(() => {
     const storedFilters = Cookies.get(COOKIE_NAME);
@@ -220,7 +322,6 @@ const buildInitialFilterArray = useCallback(() => {
       filters: filter.filters || {} // Include the filter's own filters
     }];
 
-    console.log('🔥 Category Edit - Sending filterArray with filters to API:', filterArray);
     dispatch(fetchFastOrderCategoryModeTableData(filterArray));
 
     notifications.show({
@@ -289,7 +390,6 @@ const buildInitialFilterArray = useCallback(() => {
 
     // 🔥 MODIFIED: Send initial filter as array with filters to API
     const filterArray = buildInitialFilterArray();
-    console.log('🔥 Category Cancel Edit - Sending filterArray with filters to API:', filterArray);
     dispatch(fetchFastOrderCategoryModeTableData(filterArray));
     
     notifications.show({
@@ -335,7 +435,6 @@ const buildInitialFilterArray = useCallback(() => {
           newCheckedRows.add(filterId);
           
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
-          console.log('🔥 Category Checkbox Check - Sending filterArray with filters to API:', checkedFiltersArray);
           dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
         }, 0);
       }
@@ -353,7 +452,6 @@ const buildInitialFilterArray = useCallback(() => {
         if (newCheckedRows.size > 0) {
           // If there are still checked filters, send them as array with filters
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
-          console.log('🔥 Category Checkbox Uncheck (with remaining) - Sending filterArray with filters to API:', checkedFiltersArray);
           dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
         } else {
           // If no filters are checked, reset to initial filters
@@ -370,7 +468,6 @@ const buildInitialFilterArray = useCallback(() => {
 
           // Send initial filter as array with filters
           const filterArray = buildInitialFilterArray();
-          console.log('🔥 Category Checkbox Uncheck (reset to initial) - Sending filterArray with filters to API:', filterArray);
           dispatch(fetchFastOrderCategoryModeTableData(filterArray));
         }
       }, 0);
@@ -395,7 +492,6 @@ const buildInitialFilterArray = useCallback(() => {
 
     // 🔥 MODIFIED: Send initial filter as array with filters to API
     const filterArray = buildInitialFilterArray();
-    console.log('🔥 Category Clear All - Sending filterArray with filters to API:', filterArray);
     dispatch(fetchFastOrderCategoryModeTableData(filterArray));
   }, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
@@ -501,13 +597,11 @@ const buildInitialFilterArray = useCallback(() => {
         // When checkboxes are selected, fetch data based on checked rows with filters
         const checkedFiltersArray = buildCheckedFiltersArray();
         if (checkedFiltersArray.length > 0) {
-          console.log('🔥 Category useEffect (checked rows) - Sending filterArray with filters to API:', checkedFiltersArray);
           dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
         }
       } else {
         // When no checkboxes are selected, fetch normal filtered data as array with filters
         const currentFiltersArray = buildCurrentFilterArray();
-        console.log('🔥 Category useEffect (normal filters) - Sending filterArray with filters to API:', currentFiltersArray);
         dispatch(fetchFastOrderCategoryModeTableData(currentFiltersArray));
       }
     }, [
@@ -583,11 +677,9 @@ const buildInitialFilterArray = useCallback(() => {
             uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || [],
             filters: parsedFilters.filters || {} // Include loaded filters
           }];
-          console.log('🔥 Category Load from Cookie - Sending filterArray with filters to API:', filterArray);
           dispatch(fetchFastOrderCategoryModeTableData(filterArray));
         }, 0);
       } catch (error) {
-        console.error('Error parsing stored filters:', error);
       }
     }
   }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
@@ -640,6 +732,39 @@ const buildInitialFilterArray = useCallback(() => {
 
   return (
     <>
+      {/* Authentication Modal */}
+      <Modal
+        opened={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="ورود به حساب کاربری"
+        centered
+        closeOnClickOutside={false}
+        closeOnEscape={false}
+        overlayProps={{
+          backgroundOpacity: 0,
+          blur: 0,
+        }}
+      >
+        <Text mb="md">
+          زمان حضور شما منقضی شده است
+          <br />
+          لطفا وارد حساب کاربری شوید
+        </Text>
+        <Flex gap="sm" justify="flex-end">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAuthModal(false)}
+          >
+            انصراف
+          </Button>
+          <Button 
+            onClick={handleLoginRedirect}
+          >
+            ورود به حساب کاربری
+          </Button>
+        </Flex>
+      </Modal>
+
       {/* Add Filter Modal - Responsive */}
       <Modal
         opened={openedAddModal}
@@ -734,7 +859,7 @@ const buildInitialFilterArray = useCallback(() => {
             gap={isMobile ? "xs" : "sm"}
             align={isMobile ? "stretch" : "center"}
           >
-            {/* Filter Settings Menu */}
+            {/* Filter Settings Menu with Token Verification */}
             {user && (
               <Menu 
                 shadow="md" 
@@ -742,7 +867,7 @@ const buildInitialFilterArray = useCallback(() => {
                 position={isMobile ? "bottom" : "bottom-end"}
                 offset={isMobile ? 5 : 10}
                 opened={menuOpened}
-                onChange={setMenuOpened}
+                onChange={handleMenuToggle}
               >
                 <Menu.Target>
                   <Button 
@@ -751,6 +876,7 @@ const buildInitialFilterArray = useCallback(() => {
                     size={isMobile ? "sm" : "md"}
                     fullWidth={isMobile}
                     compact={isMobile}
+                    loading={menuLoading}
                     styles={{
                       root: {
                         height: isMobile ? '32px' : '36px',
@@ -883,7 +1009,6 @@ const buildInitialFilterArray = useCallback(() => {
                                         uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
                                         filters: filter.filters || {} // Include the filter's filters
                                       }];
-                                      console.log('🔥 Category Text Click - Sending filterArray with filters to API:', filterArray);
                                       dispatch(fetchFastOrderCategoryModeTableData(filterArray));
                                     }}
                                     title={filter.filterName || 'بدون نام'}

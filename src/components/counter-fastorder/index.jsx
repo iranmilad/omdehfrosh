@@ -35,7 +35,6 @@ const CounterFastOrder = (props) => {
   // Use Redux items as the single source of truth
   const items = useSelector((state) => state.cart?.items || []);
 
-  console.log("itemsitemsitem", items);
 
   // Enhanced helper function to handle token expiration and update global auth state
   const handleTokenExpiration = async (error) => {
@@ -230,19 +229,7 @@ const CounterFastOrder = (props) => {
   // Calculate current item count using Redux items
   const itemCount = getItemCount(items, item);
 
-  const extractAttributes = (attributes) => {
-    let result = [{}];
 
-    attributes?.forEach(attr => {
-      if (attr.type === "color") {
-        result[0].color = attr.label || "";
-      } else if (attr.type === "warranty") {
-        result[0].warranty = attr.label || "";
-      }
-    });
-
-    return result;
-  };
 
   // Load cart data on component mount and when user changes
   useEffect(() => {

@@ -26,9 +26,11 @@ router.post("/brand-fast-order/create", createFilterSettingBrandMode); // Create
 router.post("/category-fast-order/create", createFilterSettingCategoryMode); // Create new filter setting
 router.delete("/brand-fast-order/delete", deleteFilterSettingBrandMode);
 router.delete("/category-fast-order/delete", deleteFilterSettingCategoryMode);
-router.put("/brand-fast-order/update/", updateFilterSettingBrandMode); // Update brand filter
 router.put("/category-fast-order/update/", updateFilterSettingCategoryMode); // Update category filter
+
+router.put("/brand-fast-order/update/", updateFilterSettingBrandMode); // Update brand filter
 router.get("/brand-fast-order", getAllBrandFilterSettings);
+
 router.get("/category-fast-order", getAllCategoryFilterSettings);
 
 

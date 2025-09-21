@@ -732,7 +732,17 @@ export const removeFromCart = async (req, res) => {
 };
 export const updateCart = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    // Handle token validation properly
+    const tokenResult = getUserFromToken(req, res);
+    
+    if (!tokenResult || !tokenResult.user_id) {
+      return res.status(401).json({
+        success: false,
+        message: "توکن نامعتبر است", // Invalid token
+      });
+    }
+
+    const { user_id } = tokenResult;
     
     const userIdStr = user_id.toString();
     const userIdNum = Number(user_id);
@@ -953,6 +963,17 @@ export const updateCart = async (req, res) => {
 
   } catch (error) {
     console.error("Cart update error:", error);
+    
+    // Check if it's a token-related error
+    if (error.message && (error.message.includes('token') || 
+        error.message.includes('jwt') || 
+        error.message.includes('unauthorized'))) {
+      return res.status(401).json({
+        success: false,
+        message: "توکن نامعتبر است", // Invalid token
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -960,7 +981,6 @@ export const updateCart = async (req, res) => {
     });
   }
 };
-
 
 
 

@@ -1,51 +1,43 @@
-// src/redux/savefiltersettings/getFilterSettings/getFilterSettingsSlice.js
-import { createSlice } from "@reduxjs/toolkit";
-import { getFilterSettings } from "../getFilterSettings/getFilterSettingsActions";
-import { deleteFilterSettings } from "./deleteFilterSettingsActions";
+// src/redux/savefiltersettings/deleteFilterSettings/deleteFilterSettingsSlice.js
 
-const getFilterSettingsSlice = createSlice({
-  name: "getFilterSettings",
+import { createSlice } from "@reduxjs/toolkit";
+import { deleteFilterSettings } from "./deleteFilterSettingsActions.js";
+
+const deleteFilterSettingsSlice = createSlice({
+  name: "deleteFilterSettings",
   initialState: {
-    savedFilters: [],
-    loading: false,
-    error: null,
+    deleteStatus: null,
+    deleteLoading: false,
+    deleteError: null,
     deleteLoadingId: null,
   },
-  reducers: {},
+  reducers: {
+    clearDeleteFilterState: (state) => {
+      state.deleteStatus = null;
+      state.deleteLoading = false;
+      state.deleteError = null;
+      state.deleteLoadingId = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // Load list
-      .addCase(getFilterSettings.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getFilterSettings.fulfilled, (state, action) => {
-        state.loading = false;
-        // Adjust to your payload shape
-        state.savedFilters = Array.isArray(action.payload) 
-          ? action.payload 
-          : action.payload?.data || [];
-      })
-      .addCase(getFilterSettings.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || "Failed to load filters";
-      })
-
-      // Delete
       .addCase(deleteFilterSettings.pending, (state, action) => {
+        state.deleteLoading = true;
+        state.deleteError = null;
         state.deleteLoadingId = action.meta?.arg?.id ?? null;
       })
       .addCase(deleteFilterSettings.fulfilled, (state, action) => {
-        const id = action.payload?.id;
-        if (id) {
-          state.savedFilters = state.savedFilters.filter((f) => f._id !== id);
-        }
+        state.deleteLoading = false;
+        state.deleteStatus = action.payload;
         state.deleteLoadingId = null;
       })
-      .addCase(deleteFilterSettings.rejected, (state) => {
+      .addCase(deleteFilterSettings.rejected, (state, action) => {
+        state.deleteLoading = false;
+        state.deleteError = action.payload;
         state.deleteLoadingId = null;
       });
   },
 });
 
-export default getFilterSettingsSlice.reducer;
+export const { clearDeleteFilterState } = deleteFilterSettingsSlice.actions;
+export default deleteFilterSettingsSlice.reducer;

@@ -45,14 +45,14 @@ export const createFilterSettingBrandMode = async (req, res) => {
 
     await userFilters.save();
 
-    // res.status(400).json({message: "با موفقیت ایجاد شد"});
+    // res.status(403).json({message: "با xc ایجاد شد"});
 
 
     // res.status(201).json({ 
     //   message: "خطا رخ داده است",
-    //   state: "ok",
+    //   state: "error",
     //   error: {
-    //     "inputBox": "حروف را به فارسی وارد کنید"
+    //     "inputBox": "حروف راd بfه فارسی وارد sdsd"
     //   } 
     // });
     
@@ -110,7 +110,7 @@ export const createFilterSettingCategoryMode = async (req, res) => {
 
     // res.status(201).json({ 
     //   message: "خطا رخ داده است",
-    //   state: "ok",
+    //   state: "error",
     //   error: {
     //     "inputBox": "حروف را به فارسی وارد کنید"
     //   } 
@@ -131,12 +131,21 @@ export const createFilterSettingCategoryMode = async (req, res) => {
 
 export const updateFilterSettingBrandMode = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-    if (!user_id) return res.status(401).json({ message: "Unauthorized" });
+    // Handle token validation separately to catch auth errors
+    let user_id;
+    try {
+      const tokenResult = getUserFromToken(req, res);
+      user_id = tokenResult?.user_id;
+    } catch (tokenError) {
+      console.error("Token validation error:", tokenError);
+      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+    }
+
+    if (!user_id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const { id, filterName, ...filterData } = req.body;
-
-
 
     const userFilters = await FiltersSettingsBrand.findOne({ user_id });
     if (!userFilters) {
@@ -160,17 +169,65 @@ export const updateFilterSettingBrandMode = async (req, res) => {
 
     await userFilters.save();
 
-
+    
 
     return res.status(200).json({
-      message: "بروزرسانی موفق",
+      message: "بروزرساerrorنی موفق",
       state: "ok",
       data: userFilters,
     });
 
   } catch (error) {
     console.error("Error updating brand filter setting:", error);
+    
+    // Check if the error is authentication-related
+    if (error.message && (
+        error.message.includes('jwt') || 
+        error.message.includes('token') || 
+        error.message.includes('Unauthorized') ||
+        error.message.includes('توکن نامعتبر است')
+    )) {
+      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+    }
+    
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getAllBrandFilterSettings = async (req, res) => {
+  try {
+    // Handle token validation separately to catch auth errors
+    let user_id;
+    try {
+      const tokenResult = getUserFromToken(req, res);
+      user_id = tokenResult?.user_id;
+    } catch (tokenError) {
+      console.error("Token validation error:", tokenError);
+      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+    }
+
+    if (!user_id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const userFilters = await FiltersSettingsBrand.findOne({ user_id });
+
+    res.status(200).json({ data: userFilters?.searches || [] });
+    
+  } catch (error) {
+    console.error("Error fetching brand filters:", error);
+    
+    // Check if the error is authentication-related
+    if (error.message && (
+        error.message.includes('jwt') || 
+        error.message.includes('token') || 
+        error.message.includes('Unauthorized') ||
+        error.message.includes('توکن نامعتبر است')
+    )) {
+      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+    }
+    
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -214,21 +271,7 @@ const jsonString = JSON.stringify({ id, filterName, ...filterData });
   }
 };
 
-export const getAllBrandFilterSettings = async (req, res) => {
-  try {
-    const { user_id } = getUserFromToken(req, res);
-    if (!user_id) return res.status(401).json({ message: "Unauthorized" });
 
-    const userFilters = await FiltersSettingsBrand.findOne({ user_id });
-
-
-
-    res.status(200).json({ data: userFilters?.searches || [] });
-  } catch (error) {
-    console.error("Error fetching brand filters:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
 
 export const getAllCategoryFilterSettings = async (req, res) => {
   try {
@@ -262,8 +305,8 @@ export const deleteFilterSettingBrandMode = async (req, res) => {
       return res.status(404).json({ message: "Brand filter not found" });
     }
 
-      res.status(201).json({ 
-      message: "عملیات ناموفق",
+    res.status(201).json({ 
+      message: "عملیات dddناموفق",
       state: "error",
     });
 

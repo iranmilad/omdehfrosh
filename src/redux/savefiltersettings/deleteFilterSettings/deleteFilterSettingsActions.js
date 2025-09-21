@@ -1,6 +1,7 @@
 // src/redux/savefiltersettings/deleteFilterSettingsActions.js
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
 
 /**
  * Delete a saved filter by id.
@@ -22,9 +23,16 @@ export const deleteFilterSettings = createAsyncThunk(
         }),
       });
 
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        return rejectWithValue(errorData?.message || "Failed to delete filter");
+      
+        const error = {
+          status: response.status,
+          message: errorData?.message || getHttpCodeMessage(response.status),
+        };
+      
+        return rejectWithValue(error);
       }
 
       return { id };
