@@ -596,21 +596,35 @@ const saveFiltersSettings = useCallback(async () => {
     );
 
     // Wait for the result and check if it was successful
-    if (result?.type === 'category/saveFilterSettings/fulfilled' || result?.payload?.status === "ok") {
+    if (result?.type === 'brand/saveFilterSettings/fulfilled') {
+      // Check if the payload indicates an error state
+      if (result?.payload?.state === "error") {
+        // Server returned success action but with error state - keep modal open
+        console.log("Server validation error:", result.payload);
+        return; // Don't close modal, let validation errors show
+      }
+      
+      // True success case - close modal
+      console.log("Save successful, closing modal");
       setOpenedAddModal(false);
       setFilterName("");
       
-      // Add a small delay before fetching updated data to ensure server has processed the save
+      // Add a small delay before fetching updated data
       setTimeout(() => {
         dispatch(getFilterSettings(slug));
       }, 500);
       
-      notifications.show({
-        title: 'موفق',
-        message: 'فیلتر با موفقیت ذخیره شد',
-        color: 'green',
-        autoClose: 3000,
-      });
+      // Clear the save state
+      setTimeout(() => {
+        dispatch(clearSaveFilterState());
+      }, 1000);
+      
+      // notifications.show({
+      //   title: 'موفق',
+      //   message: 'فیلتر با موفقیت ذخیره شد',
+      //   color: 'green',
+      //   autoClose: 3000,
+      // });
     } else if (result?.payload?.status === "error") {
       // Handle validation errors - keep modal open
       // The form will show the validation errors from saveStatus
@@ -740,9 +754,11 @@ const saveFiltersSettings = useCallback(async () => {
       buildCurrentFilterArray
     ]);
 
+    console.log("saveStatus", saveStatus);
+
   // OPTIMIZED: Load saved filters only once when user is available
 useEffect(() => {
-  if (saveStatus?.state === "ok") {
+  if (saveStatus?.state == "ok") {
     setOpenedAddModal(false);
     setFilterName("");
     
@@ -754,6 +770,18 @@ useEffect(() => {
   }
 }, [saveStatus, dispatch]);
 
+useEffect(() => {
+  if (saveStatus?.state == "error") {
+    setOpenedAddModal(true);
+    setFilterName("");
+    
+    // Refresh the filter list after successful save
+    const slug = "brand-fast-order";
+    setTimeout(() => {
+      dispatch(getFilterSettings(slug));
+    }, 500);
+  }
+}, [saveStatus, dispatch]);
   // Save to cookies whenever relevant state changes
   useEffect(() => {
     const dataToSave = {

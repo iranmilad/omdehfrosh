@@ -43,85 +43,27 @@ export const createFilterSettingBrandMode = async (req, res) => {
       userFilters.searches.push(newSearch);
     }
 
+
     await userFilters.save();
 
     // res.status(403).json({message: "با xc ایجاد شد"});
 
 
-    // res.status(201).json({ 
-    //   message: "خطا رخ داده است",
-    //   state: "error",
-    //   error: {
-    //     "inputBox": "حروف راd بfه فارسی وارد sdsd"
-    //   } 
-    // });
-    
-
-      res.status(201).json({ 
-      message: "ثبت موفق",
-      state: "ok",
-      data: userFilters
+    res.status(201).json({ 
+      message: "خطا رخ داده است",
+      state: "error",
+      error: {
+        "inputBox": "حروف راd بfه فارسی وارد sdsd"
+      } 
     });
     
 
-  } catch (error) {
-    console.error("Error creating filter setting:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-export const createFilterSettingCategoryMode = async (req, res) => {
-  try {
-    const { user_id } = getUserFromToken(req, res);
-    if (!user_id) return res.status(401).json({ message: "Unauthorized" });
-
-    const { filterName, ...filterData } = req.body;
-    
-
-    // Create the search object with filterName and random ID
-    const newSearch = {
-      id: uuidv4(), // Use 'id' instead of '_id'
-      ...filterData,
-      filterName
-    };
-
-    let userFilters = await FiltersSettingsCategory.findOne({ user_id });
-
-    if (!userFilters) {
-      userFilters = new FiltersSettingsCategory({
-        user_id,
-        searches: [newSearch]
-      });
-    } else {
-      if (userFilters.searches.length >= 5) {
-        return res.status(400).json({ message: "You can only save up to 5 filter settings." });
-      }
-
-      userFilters.searches.push(newSearch);
-    }
-
-    await userFilters.save();
-
-      res.status(201).json({ 
-      message: "ثبت موفق",
-      state: "ok",
-      data: userFilters
-    });
-
-    // res.status(201).json({ 
-    //   message: "خطا رخ داده است",
-    //   state: "error",
-    //   error: {
-    //     "inputBox": "حروف را به فارسی وارد کنید"
-    //   } 
-    // });
-
-
-    // res.status(400).json({ 
-    //   message: "با موفقیت ایجاد شد",
+    //   res.status(201).json({ 
+    //   message: "ثبت موفق",
     //   state: "ok",
-    //   data: userFilters 
+    //   data: userFilters
     // });
+    
 
   } catch (error) {
     console.error("Error creating filter setting:", error);
@@ -271,7 +213,64 @@ const jsonString = JSON.stringify({ id, filterName, ...filterData });
   }
 };
 
+export const createFilterSettingCategoryMode = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    if (!user_id) return res.status(401).json({ message: "Unauthorized" });
 
+    const { filterName, ...filterData } = req.body;
+    
+
+    // Create the search object with filterName and random ID
+    const newSearch = {
+      id: uuidv4(), // Use 'id' instead of '_id'
+      ...filterData,
+      filterName
+    };
+
+    let userFilters = await FiltersSettingsCategory.findOne({ user_id });
+
+    if (!userFilters) {
+      userFilters = new FiltersSettingsCategory({
+        user_id,
+        searches: [newSearch]
+      });
+    } else {
+      if (userFilters.searches.length >= 5) {
+        return res.status(400).json({ message: "You can only save up to 5 filter settings." });
+      }
+
+      userFilters.searches.push(newSearch);
+    }
+
+    await userFilters.save();
+
+    //   res.status(201).json({ 
+    //   message: "ثبت موفق",
+    //   state: "ok",
+    //   data: userFilters
+    // });
+
+    res.status(201).json({ 
+      message: "خطا رخ داده است",
+      state: "error",
+      error: {
+        "inputBox": "حروف را به فارسی وارد کنید"
+      } 
+    });
+
+
+    // res.status(400).json({ 
+    //   message: "با موفقیت ایجاد شد",
+    //   state: "ok",
+    //   data: userFilters 
+    // });
+
+  } catch (error) {
+    console.error("Error creating filter setting:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 export const getAllCategoryFilterSettings = async (req, res) => {
   try {
