@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
 
 export const getFilterSettings = createAsyncThunk(
   "category/getFilterSettings",
@@ -14,9 +15,16 @@ export const getFilterSettings = createAsyncThunk(
         }),
       });
 
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        return rejectWithValue(errorData?.message || "Failed to fetch filters");
+      
+        const error = {
+          status: response.status,
+          message: errorData?.message || getHttpCodeMessage(response.status),
+        };
+      
+        return rejectWithValue(error);
       }
 
       const data = await response.json();

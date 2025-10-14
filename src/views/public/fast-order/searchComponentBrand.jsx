@@ -40,6 +40,14 @@ import { fetchCheckedRowsTableData } from "../../../redux/fastorder/fastordertab
 import { useMediaQuery } from "@mantine/hooks";
 import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import isEqual from "lodash/isEqual";
+import { logout, verifyTokenSilent } from "../../../redux/auth/authusers/auth"; // Add auth actions
+import { clearCart } from "../../../redux/cart"; // Add clearCart import
+import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils"; // Add API utils
+import { useNavigate } from "react-router-dom"; // Add navigation
+import { clearSaveFilterState } from "../../../redux/savefiltersettings/saveFilterSettingsSlice";
+import { clearUpdateFilterState } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsSlice";
+import { clearDeleteFilterState } from "../../../redux/savefiltersettings/deleteFilterSettings/deleteFilterSettingsSlice";
+import ErrorMessageModal from "../../../components/errormessagemodal";
 
 const SearchComponentBrand = ({ 
   searchType, 
@@ -52,9 +60,14 @@ const SearchComponentBrand = ({
 }) => {
   
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // Add navigation hook
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
   const { savedFilters, deleteLoadingId } = useSelector((state) => state.getFilterSettings || {});
   const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings || {});
+  const { updateStatus, updateLoading, updateError } = useSelector((state) => state.updateFilterSettings || {});
+  const { deleteStatus, deleteLoading, deleteError } = useSelector((state) => state.deleteFilterSettings || {});
+
+  console.log(savedFilters, saveLoading, saveError);
 
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width: 480px)");
@@ -73,7 +86,9 @@ const SearchComponentBrand = ({
   // Modal states
   const [openedAddModal, setOpenedAddModal] = useState(false);
   const [filterName, setFilterName] = useState('');
-  
+
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
   // Edit mode states
   const [editingFilterId, setEditingFilterId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -81,6 +96,10 @@ const SearchComponentBrand = ({
 
   // Menu control state
   const [menuOpened, setMenuOpened] = useState(false);
+
+  // Auth modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authVerificationLoading, setAuthVerificationLoading] = useState(false);
 
   // Component state
   const [brands, setBrands] = useState({ parent: [], clickedBrands: [], categories: [] });
@@ -96,6 +115,135 @@ const SearchComponentBrand = ({
   
   const COOKIE_NAME = "search_filters_brand_fast_edit";
 
+  // Enhanced helper function to handle token expiration and update global auth state
+  const handleTokenExpiration = async (error) => {
+    // Check if the error is related to token expiration
+    if (error.message.includes('توکن نامعتبر است') || 
+        error.message.includes('Unauthorized') || 
+        error.status === 401) {
+      
+      try {
+        // Clear localStorage
+        localStorage.removeItem("user");
+        
+        // Clear Redux auth state
+        dispatch(logout());
+        
+        // Clear cart state
+        dispatch(clearCart());
+        
+        // Silent re-verification to update auth state across all components
+        await dispatch(verifyTokenSilent());
+        
+        // Show auth modal
+        setShowAuthModal(true);
+        
+        return true;
+      } catch (authError) {
+        console.error("Error during token expiration handling:", authError);
+        // Even if there's an error, ensure user is logged out
+        setShowAuthModal(true);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Enhanced helper function to handle different error types
+  const handleApiError = async (error, context = '') => {
+    const status = error?.status || error?.response?.status;
+    const message = error?.message || 'خطای ناشناخته رخ داده است';
+    
+    console.error(`API Error in ${context}:`, error);
+    
+    if (status === 401) {
+      // Handle authentication errors
+      return await handleTokenExpiration(error);
+    } else if (status >= 400 && status < 500) {
+      // Handle client errors (400-499) with modal
+      setErrorModalMessage(message);
+      setShowErrorModal(true);
+      return false;
+    } else if (status >= 500) {
+      // Handle server errors (500+) with red notification
+      notifications.show({
+        title: 'خطای سرور',
+        message: message || 'خطای داخلی سرور رخ داده است. لطفا بعداً تلاش کنید.',
+        color: 'red',
+        autoClose: 5000,
+        position: 'top-right',
+      });
+      return false;
+    }
+    
+    // Handle other errors with general notification
+    notifications.show({
+      title: 'خطا',
+      message: message,
+      color: 'red', 
+      autoClose: 4000,
+    });
+    return false;
+  };
+
+  // Server authentication verification function using Redux action
+  const verifyAuthFromServer = async () => {
+    const token = localStorage.getItem("user");
+    
+    if (!token) {
+      setShowAuthModal(true);
+      return false;
+    }
+
+    try {
+      setAuthVerificationLoading(true);
+      
+      // Use the existing Redux action for token verification
+      const result = await dispatch(verifyTokenSilent());
+      
+      // Check if verification was successful
+      if (result.type.includes('rejected') || result.error) {
+        // Token is invalid or expired
+        await handleTokenExpiration({ status: 401, message: 'Unauthorized' });
+        return false;
+      }
+      
+      // If we get here, token is valid
+      return true;
+      
+    } catch (error) {
+      console.error("Error verifying auth:", error);
+      await handleTokenExpiration(error);
+      return false;
+    } finally {
+      setAuthVerificationLoading(false);
+    }
+  };
+
+  // Handle login redirect
+  const handleLoginRedirect = () => {
+    setShowAuthModal(false);
+    navigate('/login');
+  };
+
+  // Enhanced menu click handler with server verification
+  const handleMenuClick = async () => {
+    // First check local auth state
+    if (!user || !isVerified) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    // If local state shows authenticated, verify with server
+    const isServerAuthenticated = await verifyAuthFromServer();
+    
+    if (isServerAuthenticated) {
+      // If server confirms authentication, open the menu
+      setMenuOpened(!menuOpened);
+    }
+    // If server auth fails, modal will be shown by verifyAuthFromServer
+  };
+
   // Initial filters configuration
   const getInitialFilters = useCallback(() => {
     const storedFilters = Cookies.get(COOKIE_NAME);
@@ -103,6 +251,7 @@ const SearchComponentBrand = ({
       try {
         return JSON.parse(storedFilters);
       } catch (error) {
+        console.error('Error parsing stored filters:', error);
       }
     }
     return {
@@ -150,7 +299,45 @@ const SearchComponentBrand = ({
     },
   });
 
-  // Edit filter handler
+  // Helper function to build filter array from current state
+const buildCurrentFilterArray = useCallback(() => {
+  return [{
+    searchType,
+    uniqueIDClickedBrands: filterBrandStorage,
+    uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage,
+    filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage,
+    filters: filters || localFilters // Include current filters
+  }];
+}, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage, filters, localFilters]);
+
+  // Helper function to build filter array from checked rows
+  const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
+    return Array.from(checkedRowIds)
+      .map(id => savedFilters?.find(f => f.id === id))
+      .filter(Boolean)
+      .map(filter => ({
+        searchType: 'brand',
+        uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+        uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+        filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+        filters: filter.filters || filters || localFilters // Include filter's saved filters or current filters
+      }));
+  }, [savedFilters, checkedRows, filters, localFilters]);
+
+
+  // Helper function to build initial filter array
+    const buildInitialFilterArray = useCallback(() => {
+      const initialData = getInitialFilters();
+      return [{
+        searchType: 'brand',
+        uniqueIDClickedBrands: initialData.uniqueIDClickedBrands,
+        uniqueIDClickedBrandsCategories: initialData.uniqueIDClickedBrandsCategories,
+        filterBrandsCategorySubCategoryStorage: initialData.filterBrandsCategorySubCategoryStorage,
+        filters: initialData.filters || filters || localFilters // Include initial filters or current filters
+      }];
+    }, [getInitialFilters, filters, localFilters]);
+
+  // Edit filter handler - Modified to use array format
   const handleEditFilter = useCallback((filter) => {
     setEditingFilterId(filter.id);
     setEditingFilterName(filter.filterName || 'بدون نام');
@@ -181,36 +368,66 @@ const SearchComponentBrand = ({
     setSelectedRow(filter.id);
     setMenuOpened(false);
 
+    // Send single filter as array to API
+    const filterArray = [{
+      searchType: 'brand',
+      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
+    }];
+
+    dispatch(fetchFastOrderBrandModeTableData(filterArray));
+
     notifications.show({
       title: 'حالت ویرایش',
       message: `فیلتر "${filter.filterName || 'بدون نام'}" بارگذاری شد. تغییرات را اعمال کنید و سپس ذخیره کنید.`,
       color: 'blue',
       autoClose: 4000,
     });
-  }, [COOKIE_NAME, setFilters, setSearchType, setSelectedRow]);
+  }, [COOKIE_NAME, setFilters, setSearchType, setSelectedRow, dispatch]);
 
-  // Save edited filter
-  const saveEditedFilter = useCallback(() => {
-    if (!editingFilterId || !editingFilterName.trim()) return;
 
-    const slug = "brand-fast-order";
-    const cookieRaw = Cookies.get(COOKIE_NAME);
-    let fullCookieData;
+  console.log("updateStatus", updateStatus)
 
-    try {
-      fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
-    } catch (error) {
-      fullCookieData = {};
-    }
+// Fixed version of the saveEditedFilter function
+const saveEditedFilter = useCallback(async () => {
+  if (!editingFilterId || !editingFilterName.trim()) return;
 
-    dispatch(
+  const slug = "brand-fast-order";
+  const cookieRaw = Cookies.get(COOKIE_NAME);
+  let fullCookieData;
+
+  try {
+    fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
+  } catch (error) {
+    fullCookieData = {};
+  }
+
+  try {
+    const result = await dispatch(
       updateFilterSettings({
         slug,
         id: editingFilterId,
         filterName: editingFilterName.trim(),
         ...fullCookieData,
       })
-    ).then(() => {
+    );
+
+    // Check if the update was successful
+    if (result?.type === 'category/updateFilterSettings/fulfilled') {
+      // Check if the payload indicates an error state
+      if (result?.payload?.state === "error") {
+        // Server returned success action but with error state - show the error message
+        notifications.show({
+          title: 'خطا در به‌روزرسانی',
+          message: result.payload.message,
+          color: 'red',
+          autoClose: 4000,
+        });
+        return;
+      }
+      
+      // True success case
       dispatch(getFilterSettings(slug));
       setIsEditMode(false);
       setEditingFilterId(null);
@@ -222,10 +439,18 @@ const SearchComponentBrand = ({
         color: 'green',
         autoClose: 3000,
       });
-    });
-  }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch]);
+    } else if (result?.type === 'category/updateFilterSettings/rejected') {
+      // Handle rejected case - let the error handling useEffect handle it
+      console.error("Update filter was rejected:", result.error);
+      // Don't show notification here, let the useEffect handle it
+    }
+  } catch (error) {
+    console.error("Update filter error:", error);
+    // Let the useEffect handle the error display
+  }
+}, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch]);
 
-  // Cancel edit mode
+  // Cancel edit mode - Modified to use array format
   const cancelEditMode = useCallback(() => {
     setIsEditMode(false);
     setEditingFilterId(null);
@@ -243,6 +468,9 @@ const SearchComponentBrand = ({
     
     Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
     setSelectedRow(null);
+
+    // Send initial filter as array to API
+    dispatch(fetchFastOrderBrandModeTableData(buildInitialFilterArray()));
     
     notifications.show({
       title: 'لغو ویرایش',
@@ -250,52 +478,174 @@ const SearchComponentBrand = ({
       color: 'gray',
       autoClose: 2000,
     });
-  }, [getInitialFilters, setFilters, setSelectedRow, COOKIE_NAME]);
+  }, [getInitialFilters, setFilters, setSelectedRow, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
-  // Handle checkbox change
+  // Handle checkbox change - Modified to use array format
   const handleFilterCheckboxChange = useCallback((filterId, checked) => {
-    toggleCheck(filterId);
-  }, [toggleCheck]);
+    if (checked) {
+      // Check the checkbox in the context
+      if (!isChecked(filterId)) {
+        toggleCheck(filterId);
+      }
+      
+      // Apply this filter immediately
+      const selectedFilter = savedFilters?.find(f => f.id === filterId);
+      if (selectedFilter) {
+        const cookieValue = {
+          searchType: 'brand',
+          filters: selectedFilter.filters || {},
+          uniqueIDClickedBrands: selectedFilter.uniqueIDClickedBrands || [],
+          uniqueIDClickedBrandsCategories: selectedFilter.uniqueIDClickedBrandsCategories || [],
+          filterBrandsCategorySubCategoryStorage: selectedFilter.filterBrandsCategorySubCategoryStorage || [],
+        };
+
+        Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+
+        setFilterBrandStorage(selectedFilter.uniqueIDClickedBrands || []);
+        setFilterBrandsCategoryStorage(selectedFilter.uniqueIDClickedBrandsCategories || []);
+        setFilterBrandsCategorySubCategoryStorage(selectedFilter.filterBrandsCategorySubCategoryStorage || []);
+        setLocalFilters(selectedFilter.filters || {});
+
+        if (setFilters) setFilters(selectedFilter.filters || {});
+        if (setSearchType) setSearchType('brand');
+
+        // Build array of all checked filters (including the one just checked)
+        setTimeout(() => {
+          const newCheckedRows = new Set(checkedRows);
+          newCheckedRows.add(filterId);
+          
+          const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
+          dispatch(fetchFastOrderBrandModeTableData(checkedFiltersArray));
+        }, 0);
+      }
+    } else {
+      // Uncheck the checkbox in the context
+      if (isChecked(filterId)) {
+        toggleCheck(filterId);
+      }
+      
+      // Build array of remaining checked filters
+      setTimeout(() => {
+        const newCheckedRows = new Set(checkedRows);
+        newCheckedRows.delete(filterId);
+        
+        if (newCheckedRows.size > 0) {
+          // If there are still checked filters, send them as array
+          const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
+          dispatch(fetchFastOrderBrandModeTableData(checkedFiltersArray));
+        } else {
+          // If no filters are checked, reset to initial filters
+          const initialData = getInitialFilters();
+          setFilterBrandStorage(initialData.uniqueIDClickedBrands);
+          setFilterBrandsCategoryStorage(initialData.uniqueIDClickedBrandsCategories);
+          setFilterBrandsCategorySubCategoryStorage(initialData.filterBrandsCategorySubCategoryStorage);
+          setLocalFilters(initialData.filters);
+
+          if (setFilters) setFilters(initialData.filters);
+          if (setSearchType) setSearchType('brand');
+
+          Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
+
+          // Send initial filter as array
+          dispatch(fetchFastOrderBrandModeTableData(buildInitialFilterArray()));
+        }
+      }, 0);
+    }
+  }, [savedFilters, COOKIE_NAME, setFilters, setSearchType, getInitialFilters, dispatch, isChecked, toggleCheck, checkedRows, buildCheckedFiltersArray, buildInitialFilterArray]);
 
   // Clear selected filters
   const clearSelectedFilters = useCallback(() => {
     clearAll();
-  }, [clearAll]);
+    
+    // Reset to initial state and send to API
+    const initialData = getInitialFilters();
+    setFilterBrandStorage(initialData.uniqueIDClickedBrands);
+    setFilterBrandsCategoryStorage(initialData.uniqueIDClickedBrandsCategories);
+    setFilterBrandsCategorySubCategoryStorage(initialData.filterBrandsCategorySubCategoryStorage);
+    setLocalFilters(initialData.filters);
 
-  // Save filter settings
-  const saveFiltersSettings = useCallback(() => {
-    if (!filterName.trim()) return;
+    if (setFilters) setFilters(initialData.filters);
+    if (setSearchType) setSearchType('brand');
 
-    const slug = "brand-fast-order";
-    const cookieRaw = Cookies.get(COOKIE_NAME);
-    let fullCookieData;
+    Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
 
-    try {
-      fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
-    } catch (error) {
-      fullCookieData = {};
-    }
+    // Send initial filter as array to API
+    dispatch(fetchFastOrderBrandModeTableData(buildInitialFilterArray()));
+  }, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
-    dispatch(
+const saveFiltersSettings = useCallback(async () => {
+  if (!filterName.trim()) return;
+
+  const slug = "brand-fast-order";
+  const cookieRaw = Cookies.get(COOKIE_NAME);
+  let fullCookieData;
+
+  try {
+    fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
+  } catch (error) {
+    fullCookieData = {};
+  }
+
+  try {
+    const result = await dispatch(
       saveFilterSettings({
         slug,
         filters: fullCookieData,
         filterName: filterName.trim(),
       })
-    ).then(() => {
-      dispatch(getFilterSettings(slug));
-      if (saveStatus?.state === "ok") {
-        setOpenedAddModal(false);
+    );
+
+    // Wait for the result and check if it was successful
+    if (result?.type === 'brand/saveFilterSettings/fulfilled') {
+      // Check if the payload indicates an error state
+      if (result?.payload?.state === "error") {
+        // Server returned success action but with error state - keep modal open
+        console.log("Server validation error:", result.payload);
+        return; // Don't close modal, let validation errors show
       }
+      
+      // True success case - close modal
+      console.log("Save successful, closing modal");
+      setOpenedAddModal(false);
       setFilterName("");
-    });
-  }, [filterName, COOKIE_NAME, dispatch, saveStatus]);
+      
+      // Add a small delay before fetching updated data
+      setTimeout(() => {
+        dispatch(getFilterSettings(slug));
+      }, 500);
+      
+      // Clear the save state
+      setTimeout(() => {
+        dispatch(clearSaveFilterState());
+      }, 1000);
+      
+      // notifications.show({
+      //   title: 'موفق',
+      //   message: 'فیلتر با موفقیت ذخیره شد',
+      //   color: 'green',
+      //   autoClose: 3000,
+      // });
+    } else if (result?.payload?.status === "error") {
+      // Handle validation errors - keep modal open
+      // The form will show the validation errors from saveStatus
+      return;
+    }
+    
+  } catch (error) {
+    console.error("Save filter error:", error);
+    // Let the useEffect handle the error display
+  }
+}, [filterName, COOKIE_NAME, dispatch]);
 
   // Delete filter handler
-  const handleDeleteSavedFilter = useCallback((id) => {
+  const handleDeleteSavedFilter = useCallback(async (id) => {
     const slug = "brand-fast-order";
-    dispatch(deleteFilterSettings({ slug, id }))
-      .then(() => {
+    
+    try {
+      const result = await dispatch(deleteFilterSettings({ slug, id }));
+
+      // Wait for the result and check if it was successful  
+      if (result?.type === 'category/deleteFilterSettings/fulfilled' || result?.payload?.id) {
         dispatch(getFilterSettings(slug));
         if (isChecked(id)) {
           toggleCheck(id);
@@ -303,7 +653,21 @@ const SearchComponentBrand = ({
         if (editingFilterId === id) {
           cancelEditMode();
         }
-      });
+        
+        notifications.show({
+          title: 'حذف شد',
+          message: 'فیلتر با موفقیت حذف شد',
+          color: 'green',
+          autoClose: 3000,
+        });
+      } else if (result?.payload?.status === "error") {
+        // Handle validation errors if any
+        return;
+      }
+    } catch (error) {
+      console.error("Delete filter error:", error);
+      // Let the useEffect handle the error display
+    }
   }, [dispatch, isChecked, toggleCheck, editingFilterId, cancelEditMode]);
 
   // Update filters and store in cookies
@@ -334,55 +698,90 @@ const SearchComponentBrand = ({
     id
   ]);
 
-  // OPTIMIZED: Combined data fetching effect with duplicate prevention
+  // Modified useEffect for checked rows - now uses array format
   useEffect(() => {
-    const currentParams = {
+    if (checkedRows.size > 0) {
+      const checkedFiltersArray = buildCheckedFiltersArray();
+      if (checkedFiltersArray.length > 0) {
+        dispatch(fetchFastOrderBrandModeTableData(checkedFiltersArray));
+      }
+    }
+  }, [checkedRows, dispatch, buildCheckedFiltersArray]);
+
+  // OPTIMIZED: Combined data fetching effect with duplicate prevention - Modified to use array format
+    useEffect(() => {
+      const currentParams = {
+        searchType,
+        filterBrandStorage,
+        filterBrandsCategoryStorage,
+        filterBrandsCategorySubCategoryStorage,
+        checkedRowsSize: checkedRows.size,
+        checkedRowIds: Array.from(checkedRows).sort().join(','),
+        hasCheckedRows: checkedRows.size > 0,
+        filters: JSON.stringify(filters || localFilters) // Add filters to comparison
+      };
+
+      // Skip if parameters haven't changed
+      if (isEqual(lastFetchParams.current, currentParams)) {
+        return;
+      }
+
+      lastFetchParams.current = currentParams;
+
+      // Always make an API request when there are changes
+      if (checkedRows.size > 0) {
+        // When checkboxes are selected, fetch data based on checked rows
+        const checkedFiltersArray = buildCheckedFiltersArray();
+        if (checkedFiltersArray.length > 0) {
+          dispatch(fetchFastOrderBrandModeTableData(checkedFiltersArray));
+        }
+      } else {
+        // When no checkboxes are selected, fetch normal filtered data as array
+        const currentFiltersArray = buildCurrentFilterArray();
+        dispatch(fetchFastOrderBrandModeTableData(currentFiltersArray));
+      }
+    }, [
+      dispatch, 
       searchType,
       filterBrandStorage,
       filterBrandsCategoryStorage,
       filterBrandsCategorySubCategoryStorage,
-      checkedRowsSize: checkedRows.size,
-      checkedRowIds: Array.from(checkedRows).sort().join(',')
-    };
+      checkedRows,
+      checkedRows.size,
+      filters,
+      localFilters,
+      buildCheckedFiltersArray,
+      buildCurrentFilterArray
+    ]);
 
-    // Skip if parameters haven't changed
-    if (isEqual(lastFetchParams.current, currentParams)) {
-      return;
-    }
-
-    lastFetchParams.current = currentParams;
-
-    if (checkedRows.size > 0) {
-      dispatch(fetchCheckedRowsTableData({ 
-        checkedRowIds: Array.from(checkedRows),
-        searchType: "brand"
-      }));
-    } else {
-      dispatch(fetchFastOrderBrandModeTableData({
-        searchType,
-        uniqueIDClickedBrands: filterBrandStorage,
-        uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage,
-        filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage
-      }));
-    }
-  }, [
-    dispatch, 
-    searchType,
-    filterBrandStorage,
-    filterBrandsCategoryStorage,
-    filterBrandsCategorySubCategoryStorage,
-    checkedRows
-  ]);
+    console.log("saveStatus", saveStatus);
 
   // OPTIMIZED: Load saved filters only once when user is available
-  useEffect(() => {
-    if (user && !hasLoadedInitialFilters.current) {
-      const slug = "brand-fast-order";
+useEffect(() => {
+  if (saveStatus?.state == "ok") {
+    setOpenedAddModal(false);
+    setFilterName("");
+    
+    // Refresh the filter list after successful save
+    const slug = "brand-fast-order";
+    setTimeout(() => {
       dispatch(getFilterSettings(slug));
-      hasLoadedInitialFilters.current = true;
-    }
-  }, [dispatch, user]);
+    }, 500);
+  }
+}, [saveStatus, dispatch]);
 
+useEffect(() => {
+  if (saveStatus?.state == "error") {
+    setOpenedAddModal(true);
+    setFilterName("");
+    
+    // Refresh the filter list after successful save
+    const slug = "brand-fast-order";
+    setTimeout(() => {
+      dispatch(getFilterSettings(slug));
+    }, 500);
+  }
+}, [saveStatus, dispatch]);
   // Save to cookies whenever relevant state changes
   useEffect(() => {
     const dataToSave = {
@@ -403,7 +802,7 @@ const SearchComponentBrand = ({
     COOKIE_NAME
   ]);
 
-  // Load filters from cookies on component mount
+  // Load filters from cookies on component mount - Modified to use array format
   useEffect(() => {
     const storedFilters = Cookies.get(COOKIE_NAME);
   
@@ -423,10 +822,22 @@ const SearchComponentBrand = ({
         if (setSearchType && parsedFilters.searchType) {
           setSearchType(parsedFilters.searchType);
         }
+
+        // Send loaded filters as array to API
+        setTimeout(() => {
+          const filterArray = [{
+            searchType: parsedFilters.searchType || 'brand',
+            uniqueIDClickedBrands: parsedFilters.uniqueIDClickedBrands || [],
+            uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
+            filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || []
+          }];
+          dispatch(fetchFastOrderBrandModeTableData(filterArray));
+        }, 0);
       } catch (error) {
+        console.error('Error parsing stored filters:', error);
       }
     }
-  }, [COOKIE_NAME, setFilters, setSearchType]);
+  }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
 
   // Sync localFilters with parent filters
   useEffect(() => {
@@ -455,7 +866,7 @@ const SearchComponentBrand = ({
     }
   }, [tableDataFromSavedFilters, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
 
-  // Clear filters when checkboxes are active
+  // Clear filters when checkboxes are active - Modified to use array format
   useEffect(() => {
     if (checkedRows.size > 0) {
       setFilterBrandStorage([]);
@@ -475,17 +886,189 @@ const SearchComponentBrand = ({
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
+  // Monitor save status for error handling
+  useEffect(() => {
+    if (saveError) {
+      
+      // Skip handling validation errors here - let the form handle them
+      if (saveError?.state === "error" && saveError?.error && typeof saveError.error === 'object') {
+        return; // Don't clear state for validation errors
+      }
+      
+      // Handle all other errors (including 403) by showing them in ErrorMessageModal
+      if (saveError?.status) {
+        if (saveError.status === 401) {
+          // Handle auth errors specially
+          handleTokenExpiration(saveError);
+          setOpenedAddModal(false);
+          setFilterName("");
+        } else if (saveError.status >= 400) {
+          // Show all other HTTP errors (including 403) in ErrorMessageModal
+          setOpenedAddModal(false);
+          setFilterName("");
+          // Try different ways to extract the message
+          const errorMessage = saveError?.message || 
+                              saveError?.data?.message || 
+                              saveError?.response?.data?.message ||
+                              (typeof saveError === 'string' ? saveError : null) ||
+                              'خطای ناشناخته رخ داده است';
+          setErrorModalMessage(errorMessage);
+          setShowErrorModal(true);
+        }
+      } else {
+        // Handle errors without status
+        const errorMessage = saveError?.message || 
+                            saveError?.data?.message || 
+                            saveError?.response?.data?.message ||
+                            (typeof saveError === 'string' ? saveError : null) ||
+                            'خطای ناشناخته رخ داده است';
+        setErrorModalMessage(errorMessage);
+        setShowErrorModal(true);
+      }
+      
+      // Clear state after handling
+      dispatch(clearSaveFilterState());
+    }
+  }, [saveError, dispatch, handleTokenExpiration]);
 
-  console.log("render SearchComponentBrand", tableData);
+  // Monitor update status for error handling
+  useEffect(() => {
+    if (updateError) {
+      
+      // Skip handling validation errors here - let the form handle them
+      if (updateError?.state === "error" && updateError?.error && typeof updateError.error === 'object') {
+        return; // Don't clear state for validation errors
+      }
+      
+      // Handle all other errors (including 403) by showing them in ErrorMessageModal
+      if (updateError?.status) {
+        if (updateError.status === 401) {
+          // Handle auth errors specially
+          handleTokenExpiration(updateError);
+          setIsEditMode(false);
+          setEditingFilterId(null);
+          setEditingFilterName('');
+        } else if (updateError.status >= 400) {
+          // Show all other HTTP errors (including 403) in ErrorMessageModal
+          // Try different ways to extract the message
+          const errorMessage = updateError?.message || 
+                              updateError?.data?.message || 
+                              updateError?.response?.data?.message ||
+                              (typeof updateError === 'string' ? updateError : null) ||
+                              'خطای ناشناخته رخ داده است';
+          setErrorModalMessage(errorMessage);
+          setShowErrorModal(true);
+        }
+      } else {
+        // Handle errors without status
+        const errorMessage = updateError?.message || 
+                            updateError?.data?.message || 
+                            updateError?.response?.data?.message ||
+                            (typeof updateError === 'string' ? updateError : null) ||
+                            'خطای ناشناخته رخ داده است';
+        setErrorModalMessage(errorMessage);
+        setShowErrorModal(true);
+      }
+      
+      // Clear state after handling
+      dispatch(clearUpdateFilterState());
+    }
+  }, [updateError, dispatch, handleTokenExpiration]);
+
+  // Monitor delete status for error handling
+  useEffect(() => {
+    if (deleteError) {
+      
+      // Handle all errors by showing them in ErrorMessageModal
+      if (deleteError?.status) {
+        if (deleteError.status === 401) {
+          // Handle auth errors specially
+          handleTokenExpiration(deleteError);
+        } else if (deleteError.status >= 400) {
+          // Show all other HTTP errors (including 403) in ErrorMessageModal
+          // Try different ways to extract the message
+          const errorMessage = deleteError?.message || 
+                              deleteError?.data?.message || 
+                              deleteError?.response?.data?.message ||
+                              (typeof deleteError === 'string' ? deleteError : null) ||
+                              'خطای ناشناخته رخ داده است';
+          setErrorModalMessage(errorMessage);
+          setShowErrorModal(true);
+        }
+      } else {
+        // Handle errors without status
+        const errorMessage = deleteError?.message || 
+                            deleteError?.data?.message || 
+                            deleteError?.response?.data?.message ||
+                            (typeof deleteError === 'string' ? deleteError : null) ||
+                            'خطای ناشناخته رخ داده است';
+        setErrorModalMessage(errorMessage);
+        setShowErrorModal(true);
+      }
+      
+      // Clear state after handling
+      dispatch(clearDeleteFilterState());
+    }
+  }, [deleteError, dispatch, handleTokenExpiration]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearSaveFilterState());
+      dispatch(clearUpdateFilterState());
+      dispatch(clearDeleteFilterState());
+    };
+  }, [dispatch]);
 
   return (
     <>
+      {/* Authentication Modal */}
+      <Modal
+        opened={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="ورود به حساب کاربری"
+        centered
+        closeOnClickOutside={false}
+        closeOnEscape={false}
+        overlayProps={{
+          backgroundOpacity: 0,
+          blur: 0,
+        }}
+      >
+        <Text mb="md">
+          زمان حضور شما منقضی شده است
+          <br />
+          لطفا وارد حساب کاربری شوید
+        </Text>
+        <Flex gap="sm" justify="flex-end">
+          <Button 
+            onClick={handleLoginRedirect}
+          >
+            ورود به حساب کاربری
+          </Button>
+        </Flex>
+      </Modal>
+
+      <ErrorMessageModal
+        opened={showErrorModal}
+        onClose={() => {
+          setShowErrorModal(false);
+          setErrorModalMessage('');
+          dispatch(clearSaveFilterState());
+          dispatch(clearUpdateFilterState());
+          dispatch(clearDeleteFilterState());
+        }}
+        message={errorModalMessage}
+      />
+
       {/* Add Filter Modal */}
       <Modal
         opened={openedAddModal}
         onClose={() => {
           setOpenedAddModal(false);
           setFilterName('');
+          // Clear any validation errors when manually closing
+          dispatch(clearSaveFilterState());
         }}
         title="افزودن فیلتر جدید - برند"
         centered
@@ -500,6 +1083,7 @@ const SearchComponentBrand = ({
           onChange={(event) => setFilterName(event.currentTarget.value)}
           size={isMobile ? "sm" : "md"}
           error={
+            // Show validation errors from saveStatus if it's a client error
             (saveStatus?.state === "error" && saveStatus?.error?.inputBox) || form.errors.inputBox ? (
               <div>
                 {saveStatus?.state === "error" && saveStatus?.error?.inputBox && (
@@ -513,7 +1097,8 @@ const SearchComponentBrand = ({
         <Button 
           mt="md" 
           onClick={saveFiltersSettings}
-          disabled={!filterName.trim()}
+          disabled={!filterName.trim() || saveLoading}
+          loading={saveLoading}
           size={isMobile ? "sm" : "md"}
           fullWidth={isMobile}
         >
@@ -529,6 +1114,14 @@ const SearchComponentBrand = ({
           overflow: 'hidden'
         }}
       >
+        {/* Loading Overlay for auth verification */}
+        <LoadingOverlay 
+          pos="fixed" 
+          visible={authVerificationLoading || loading} 
+          zIndex={1000} 
+          h="100%" 
+        />
+
         {/* Header */}
         <Flex
           direction={isMobile ? "column" : "row"}
@@ -551,6 +1144,8 @@ const SearchComponentBrand = ({
                     size="sm"
                     onClick={saveEditedFilter}
                     title="ذخیره تغییرات"
+                    loading={updateLoading}
+                    disabled={updateLoading}
                   >
                     <IconDeviceFloppy size={14} />
                   </ActionIcon>
@@ -574,8 +1169,8 @@ const SearchComponentBrand = ({
             gap={isMobile ? "xs" : "sm"}
             align={isMobile ? "stretch" : "center"}
           >
-            {/* Filter Settings Menu */}
-            {user && 
+
+            {/* Filter Settings Menu - Always show button, but with server verification */}
             <Menu 
               shadow="md" 
               width={isMobile ? "90vw" : isTablet ? 350 : 400} 
@@ -591,6 +1186,8 @@ const SearchComponentBrand = ({
                   size={isMobile ? "sm" : "md"}
                   fullWidth={isMobile}
                   compact={isMobile}
+                  onClick={handleMenuClick} // Use our enhanced handler
+                  loading={authVerificationLoading}
                   styles={{
                     root: {
                       height: isMobile ? '32px' : '36px',
@@ -608,7 +1205,9 @@ const SearchComponentBrand = ({
                 
                 <Menu.Item
                   leftSection={<IconPlus size={16} />}
-                  onClick={() => setOpenedAddModal(true)}
+                  onClick={() => {
+                    setOpenedAddModal(true);
+                  }}
                 >
                   افزودن فیلتر جدید
                 </Menu.Item>
@@ -651,8 +1250,12 @@ const SearchComponentBrand = ({
                                 <Checkbox
                                   checked={isChecked(filter.id)}
                                   onChange={(event) => {
+                                    event.stopPropagation();
+                                    
                                     if (isEditMode) return;
-                                    handleFilterCheckboxChange(filter.id, event.currentTarget.checked);
+                                    
+                                    const isCurrentlyChecked = event.currentTarget.checked;
+                                    handleFilterCheckboxChange(filter.id, isCurrentlyChecked);
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                   size={isMobile ? "sm" : "md"}
@@ -672,7 +1275,7 @@ const SearchComponentBrand = ({
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap',
                                     flex: 1,
-                                    opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
+                                    opacity: (isEditMode && editingFilterId !== filter.id) ? 0.6 : 1
                                   }}
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -710,6 +1313,15 @@ const SearchComponentBrand = ({
                                     }
 
                                     setSelectedRow(filter.id);
+
+                                    // Send filter as array to API
+                                    const filterArray = [{
+                                      searchType: 'brand',
+                                      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+                                      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+                                      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || []
+                                    }];
+                                    dispatch(fetchFastOrderBrandModeTableData(filterArray));
                                   }}
                                   title={filter.filterName || 'بدون نام'}
                                 >
@@ -728,6 +1340,9 @@ const SearchComponentBrand = ({
                                   }}
                                   title="ویرایش"
                                   disabled={isEditMode && editingFilterId !== filter.id}
+                                  style={{
+                                    opacity: (isEditMode && editingFilterId !== filter.id) ? 0.5 : 1
+                                  }}
                                 >
                                   <IconEdit size={isMobile ? 12 : 14} />
                                 </ActionIcon>
@@ -738,6 +1353,7 @@ const SearchComponentBrand = ({
                                   size={isMobile ? "sm" : "md"}
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    
                                     if (isEditMode && editingFilterId !== filter.id) {
                                       notifications.show({
                                         title: 'در حال ویرایش',
@@ -751,6 +1367,10 @@ const SearchComponentBrand = ({
                                   }}
                                   disabled={deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id)}
                                   title="حذف"
+                                  loading={deleteLoading && deleteLoadingId === filter.id}
+                                  style={{
+                                    opacity: (deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id)) ? 0.5 : 1
+                                  }}
                                 >
                                   <IconTrash size={isMobile ? 12 : 14} />
                                 </ActionIcon>
@@ -776,7 +1396,6 @@ const SearchComponentBrand = ({
                 )}
               </Menu.Dropdown>
             </Menu>
-            }
 
             <ShareModal 
               filters={updateFiltersAndStore().thisFilter} 
@@ -784,13 +1403,6 @@ const SearchComponentBrand = ({
             />
           </Flex>
         </Flex>
-
-        <LoadingOverlay 
-          pos="fixed" 
-          visible={loading} 
-          zIndex={1000} 
-          h="100%" 
-        />
 
         {/* Tabs */}
         <Tabs 

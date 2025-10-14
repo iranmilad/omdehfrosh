@@ -42,6 +42,8 @@ import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import RotateModal from "../../../components/rotatemodal";
+import { BrandRowSelectionProvider } from "./BrandRowSelectionContext";
+import { CategoryRowSelectionProvider } from "./CategoryRowSelectionContext";
 
 const FastOrderContext = createContext();
 
@@ -421,24 +423,21 @@ function FastEdit() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-// Add this before the main return statement, after all the useEffects
+  const [openedM, setOpenedM] = useState(false);
 
+// Add this before the main return statement, after all the useEffects
+  useEffect(() => {
+    if (authError) {
+      setOpened(true);
+    }
+  }, [authError]);
 // Show loading while authentication is being verified
 if (authLoading) {
   return <DelayedFullScreenLoader />;
 }
 
-// Show error if authentication verification failed
-if (authError) {
-  return (
-    <Center style={{ minHeight: '200px' }}>
-      <Stack align="center">
-        <Text color="red">خطا در بررسی احراز هویت</Text>
-        <Button onClick={() => dispatch(verifyToken())}>تلاش مجدد</Button>
-      </Stack>
-    </Center>
-  );
-}
+    
+  
 
 // Only show access denied modal after we've confirmed the user's status
 if (!user || user.role !== "supplier") {
@@ -498,33 +497,36 @@ if (!user || user.role !== "supplier") {
             
             <FilterProvider>
 
-          {
-            searchType === "brand" ? 
-            <div>
-            <SearchComponentBrand
-              filters={filters_brand_mode} 
-              setFilters={setFilters_brand_mode}
-              setNodesSubCategories={setNodesSubCategoriesData} 
-              setNodes={setNodes} 
-              setAvailableLocations={setAvailableLocations}
-              searchType={searchType} 
-              setSearchType={setSearchType} 
-              
-              />
-            </div>
-            :
-            <div>
-                <SearchComponentCategory 
-                  filters={filters_category_mode} 
-                  setFilters={setFilters_category_mode}
-                  setNodesSubCategories={setNodesSubCategoriesData} 
-                  setNodes={setNodes} 
-                  setAvailableLocations={setAvailableLocations}
-                  searchType={searchType} 
-                  setSearchType={setSearchType} 
+              {
+                searchType === "brand" ? 
+                <BrandRowSelectionProvider>
+                  <div>
+                    <SearchComponentBrand
+                      filters={filters_brand_mode} 
+                      setFilters={setFilters_brand_mode}
+                      setNodesSubCategories={setNodesSubCategoriesData} 
+                      setNodes={setNodes} 
+                      setAvailableLocations={setAvailableLocations}
+                      searchType={searchType} 
+                      setSearchType={setSearchType} 
+                    />
+                  </div>
+                </BrandRowSelectionProvider>
+                :
+                <CategoryRowSelectionProvider>
+                  <div>
+                    <SearchComponentCategory 
+                      filters={filters_category_mode} 
+                      setFilters={setFilters_category_mode}
+                      setNodesSubCategories={setNodesSubCategoriesData} 
+                      setNodes={setNodes} 
+                      setAvailableLocations={setAvailableLocations}
+                      searchType={searchType} 
+                      setSearchType={setSearchType} 
                   />
-            </div>
-          }
+                  </div>
+                </CategoryRowSelectionProvider>
+              }
 
           {/* ✅ Apply sticky behavior to filters (same as FastOrder) */}
           <div

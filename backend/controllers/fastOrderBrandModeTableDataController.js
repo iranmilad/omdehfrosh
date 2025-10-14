@@ -6,27 +6,121 @@ import FiltersSettingsBrand from '../models/SearchBrandSchema.js'
 
 
 export const getFastOrderBrandModeTableData = async (req, res) => {
-    const { 
-        // supplierId,
-        searchType, 
-        uniqueIDClickedBrands, 
-        uniqueIDClickedBrandsCategories, 
-        filterBrandsCategorySubCategoryStorage,
-    } = req.body;
+    console.log("Received request body:", req.body);
 
+    // Handle array of filter objects
+    if (!Array.isArray(req.body)) {
+        return res.status(400).json({ message: "Request body must be an array of filter objects" });
+    }
 
-
-
-    if (searchType !== "brand") return res.status(400).json({ message: "Invalid search type" });
+    if (req.body.length === 0) {
+        return res.status(400).json({ message: "At least one filter object is required" });
+    }
 
     try {
-        if (!Array.isArray(uniqueIDClickedBrands)) {
-            return res.status(400).json({ message: "Invalid brand IDs array" });
+        // Collect all unique brand IDs from all filter objects
+        const allUniqueBrandIds = new Set();
+        const allUniqueBrandCategories = new Set();
+        const allFilterStorage = [];
+        let primarySearchType = null;
+
+        // Process each filter object
+        req.body.forEach((filterObj, index) => {
+            const { 
+                searchType, 
+                uniqueIDClickedBrands, 
+                uniqueIDClickedBrandsCategories, 
+                filterBrandsCategorySubCategoryStorage,
+            } = filterObj;
+
+            // Validate search type for each filter
+            if (searchType !== "brand") {
+                console.warn(`Filter ${index}: Invalid search type "${searchType}", skipping`);
+                return;
+            }
+
+            // Set primary search type from first valid filter
+            if (!primarySearchType) {
+                primarySearchType = searchType;
+            }
+
+            // Collect brand IDs
+            if (Array.isArray(uniqueIDClickedBrands)) {
+                uniqueIDClickedBrands.forEach(brandId => {
+                    if (brandId && brandId.trim()) {
+                        allUniqueBrandIds.add(brandId);
+                    }
+                });
+            }
+
+            // Collect brand categories
+            if (Array.isArray(uniqueIDClickedBrandsCategories)) {
+                uniqueIDClickedBrandsCategories.forEach(category => {
+                    if (category) {
+                        allUniqueBrandCategories.add(JSON.stringify(category));
+                    }
+                });
+            }
+
+            // Collect filter storage
+            if (Array.isArray(filterBrandsCategorySubCategoryStorage)) {
+                filterBrandsCategorySubCategoryStorage.forEach(storage => {
+                    if (storage) {
+                        allFilterStorage.push(storage);
+                    }
+                });
+            }
+        });
+
+        // Convert Sets back to arrays
+        const finalBrandIds = Array.from(allUniqueBrandIds);
+        const finalBrandCategories = Array.from(allUniqueBrandCategories).map(cat => {
+            try {
+                return JSON.parse(cat);
+            } catch (e) {
+                return cat;
+            }
+        });
+
+        console.log("Processed filters:", {
+            searchType: primarySearchType,
+            totalFilterObjects: req.body.length,
+            finalBrandIds,
+            finalBrandCategoriesCount: finalBrandCategories.length,
+            filterStorageCount: allFilterStorage.length
+        });
+
+        // If no valid brand IDs found, return empty results
+        if (finalBrandIds.length === 0) {
+            console.log("No valid brand IDs found, returning empty results");
+            
+            // Still return brands and filters for UI
+            const allFastEditBrands = await FastOrderBrand.find();
+            const allFastEditFilters = await FastOrderFilter.find();
+            const newFilters = {
+                sellers: allFastEditFilters[0]?.sellers || [],
+                colors: allFastEditFilters[0]?.colors || [],
+                deliveryTime: allFastEditFilters[0]?.deliveryTime || []
+            };
+
+            return res.status(200).json({
+                products: [],
+                brands: allFastEditBrands,
+                filters: newFilters,
+                meta: {
+                    totalFilters: req.body.length,
+                    processedBrandIds: finalBrandIds,
+                    message: "No products found for the provided filters"
+                }
+            });
         }
 
+        // Find products using the combined brand IDs
         const products = await SingleProduct.find({
-            "general.brandId": { $in: uniqueIDClickedBrands }
+            "general.brandId": { $in: finalBrandIds }
         }).lean();
+
+        console.log(`Found ${products.length} products for brand IDs:`, finalBrandIds);
 
         // Group by brand
         const sortedProductsMap = new Map();
@@ -50,8 +144,6 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
 
             const { id, name, ...restSupplierData } = firstSupplier;
 
-            
-
             // Process product combinations and collect all suppliers
             product.combinations.map(combination => {
                 if (!combination.suppliers || combination.suppliers.length === 0) return;
@@ -61,10 +153,8 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
                         ...item, // Spread supplier details
                         combinationsID: combination.id, // Attach combination ID
                         attributes: combination.options, // Add attributes
-
                     });
                 });
-                
             });
 
             // Remove the first supplier from all suppliers
@@ -85,17 +175,16 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
                     name: product.general.title,
                     id: product.id, // Add product ID
                     productId: product.id, // Add product ID
-
                 }))
             };
 
             // Push the processed supplier into sortedProductsMap
             sortedProductsMap.get(brandId).items.push(supplierWithProductID);
-
         });
 
         const sortedProducts = Array.from(sortedProductsMap.values());
 
+        // Get brands and filters
         const allFastEditBrands = await FastOrderBrand.find();
         const allFastEditFilters = await FastOrderFilter.find();
         const newFilters = {
@@ -107,14 +196,23 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
         res.status(200).json({
             products: sortedProducts,
             brands: allFastEditBrands,
-            filters: newFilters
+            filters: newFilters,
+            meta: {
+                totalFilters: req.body.length,
+                processedBrandIds: finalBrandIds,
+                totalProductsFound: products.length,
+                totalBrandsWithProducts: sortedProducts.length
+            }
         });
+
     } catch (error) {
         console.error("Error fetching table data:", error);
-        res.status(500).json({ message: "Failed to fetch fast order brand mode table data" });
+        res.status(500).json({ 
+            message: "Failed to fetch fast order brand mode table data",
+            error: error.message 
+        });
     }
 };
-
 
 export const fetchTableDataByIds = async (req, res) => {
     const { searchType } = req.query; // ✅ from query string

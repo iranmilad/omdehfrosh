@@ -1,5 +1,6 @@
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { useBrandRowSelection } from '../../BrandRowSelectionContext';
 
 // Default SVG image for brands when image is null or empty
 const DEFAULT_BRAND_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
@@ -17,8 +18,15 @@ const SliderComponentBrands = ({
   searchType, 
   tab, 
   filterBrandStorage, 
-  setFilterBrandStorage 
+  setFilterBrandStorage,
+  filterBrandsCategoryStorage,
+  setFilterBrandsCategoryStorage,
+  filterBrandsCategorySubCategoryStorage,
+  setFilterBrandsCategorySubCategoryStorage,
 }) => {
+
+  const { checkedRows } = useBrandRowSelection();
+  const isSlideSelectionActive = checkedRows.size > 0;
 
   const handleSelectAll = () => {
     if (clickType === "brands") {
@@ -28,9 +36,13 @@ const SliderComponentBrands = ({
       if (allSelected) {
         // Clear all filters when deselecting all
         setFilterBrandStorage([]);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
       } else {
-        // Select all brands
+        // Select all brands and clear category filters
         setFilterBrandStorage(allBrandIds);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
       }
     }
   };
@@ -59,6 +71,11 @@ const SliderComponentBrands = ({
             tab={tab}
             filterBrandStorage={filterBrandStorage}
             setFilterBrandStorage={setFilterBrandStorage}
+            filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+            setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+            filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+            setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+            isDisabled={isSlideSelectionActive} 
           />
         </SwiperSlide>
       ))}
@@ -68,9 +85,12 @@ const SliderComponentBrands = ({
         <button
           className={`flex h-[35px] px-4 gap-2 justify-center items-center border-[1.5px] 
             ${allSelected ? "border-green-400 bg-green-50" : "border-transparent bg-gray-100"} 
-            cursor-pointer`}
+            ${isSlideSelectionActive ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           style={{ borderRadius: '18px' }}
-          onClick={handleSelectAll}
+          onClick={() => {
+            if (!isSlideSelectionActive) handleSelectAll();
+          }}
+          disabled={isSlideSelectionActive}
         >
           <span className="text-[9px] font-medium whitespace-nowrap">
             انتخاب همه
@@ -87,7 +107,11 @@ export function SingleCategory1({
   title, 
   searchType, 
   filterBrandStorage, 
-  setFilterBrandStorage, 
+  setFilterBrandStorage,
+  filterBrandsCategoryStorage,
+  setFilterBrandsCategoryStorage,
+  filterBrandsCategorySubCategoryStorage,
+  setFilterBrandsCategorySubCategoryStorage,
   tab, 
   item, 
   idBrand, 
@@ -95,19 +119,25 @@ export function SingleCategory1({
   clickType, 
   active, 
   categories, 
-  items 
+  items,
+  isDisabled
 }) {
 
   const onClick = (item) => {
+    if (isDisabled) return;
     if (clickType === "brands") {
       const isActive = filterBrandStorage.includes(item.idBrand);
 
       if (isActive) {
-        // Deselecting current brand - remove it
-        setFilterBrandStorage(prevState => prevState.filter(id => id !== item.idBrand));
+        // Deselecting current brand - clear all filters
+        setFilterBrandStorage([]);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
       } else {
-        // Selecting new brand - add it to the list
-        setFilterBrandStorage(prevState => [...prevState, item.idBrand]);
+        // Selecting new brand - set only this brand and clear category filters
+        setFilterBrandStorage([item.idBrand]);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
       }
     }
   };
@@ -134,12 +164,13 @@ export function SingleCategory1({
       {!badge && !categories && (
         <div className="w-full">
           <div
-            className={`flex flex-col items-center justify-center flex-shrink-0 cursor-pointer`}
+            className={`flex flex-col items-center justify-center flex-shrink-0
+              ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
             onClick={() => onClick(item)}
           >
             <div
               className={`flex h-[35px] px-3 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100 flex-shrink-0
-                ${isActive ? "border-red-600" : "border-transparent"}`}
+                ${!isDisabled && isActive ? "border-red-600" : "border-transparent"}`}
               style={{ 
                 borderRadius: '18px',
                 minWidth: 'fit-content',

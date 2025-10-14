@@ -51,7 +51,6 @@ const TableRow = ({
   filters_brand_mode 
 }) => {
 
-  console.log("item", item)
 
   const handleRowClick = () => {
   };
