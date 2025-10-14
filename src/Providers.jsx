@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import "./assets/fonts/iranyekan/font.css";
+import "./assets/fonts/iranyekanx/font-optimized.css";
 import NoInternet from "./components/noInternet";
 import "./global.css";
 import { queryClientConfig } from "./Libs/api";

@@ -1,0 +1,141 @@
+/**
+*
+*	Name:			IRANYekanX Fonts
+*	Version:			2.4
+*	Author:			Moslem Ebrahimi (moslemebrahimi.com)
+*	Created on:		Aug 02, 2022
+*	Updated on:		Aug 02, 2022
+*	Website:			http://fontiran.com
+*	Copyright:		Commercial/Proprietary Software
+--------------------------------------------------------------------------------------
+فونت ایران یکان X  یک نرم افزار مالکیتی محسوب می شود. جهت آگاهی از قوانین استفاده از این فونت ها لطفا به وب سایت (فونت ایران دات کام) مراجعه نمایید
+--------------------------------------------------------------------------------------
+IRANYekanX fonts are considered a proprietary software. To gain information about the laws regarding the use of these fonts, please visit www.fontiran.com 
+--------------------------------------------------------------------------------------
+This set of fonts are used in this project under the license: (.....)
+------------------------------------------------------------------------------------- fonts/-
+*	
+**/
+
+/* Thin */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 100;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-Thin.woff2') format('woff2'),
+	     url('woff/IRANYekanX-Thin.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-Thin.ttf') format('truetype');
+}
+
+/* Ultra Light */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 200;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-UltraLight.woff2') format('woff2'),
+	     url('woff/IRANYekanX-UltraLight.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-UltraLight.ttf') format('truetype');
+}
+
+/* Light */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 300;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-Light.woff2') format('woff2'),
+	     url('woff/IRANYekanX-Light.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-Light.ttf') format('truetype');
+}
+
+/* Regular */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 400;
+	font-weight: normal;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-Regular.woff2') format('woff2'),
+	     url('woff/IRANYekanX-Regular.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-Regular.ttf') format('truetype');
+}
+
+/* Medium */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-Medium.woff2') format('woff2'),
+	     url('woff/IRANYekanX-Medium.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-Medium.ttf') format('truetype');
+}
+
+/* DemiBold */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-DemiBold.woff2') format('woff2'),
+	     url('woff/IRANYekanX-DemiBold.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-DemiBold.ttf') format('truetype');
+}
+
+/* Bold */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 700;
+	font-weight: bold;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-Bold.woff2') format('woff2'),
+	     url('woff/IRANYekanX-Bold.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-Bold.ttf') format('truetype');
+}
+
+/* ExtraBold */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 800;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-ExtraBold.woff2') format('woff2'),
+	     url('woff/IRANYekanX-ExtraBold.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-ExtraBold.ttf') format('truetype');
+}
+
+/* Black */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 900;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-Black.woff2') format('woff2'),
+	     url('woff/IRANYekanX-Black.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-Black.ttf') format('truetype');
+}
+
+/* Extra Black */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 950;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-ExtraBlack.woff2') format('woff2'),
+	     url('woff/IRANYekanX-ExtraBlack.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-ExtraBlack.ttf') format('truetype');
+}
+
+/* Heavy */
+@font-face {
+	font-family: IRANYekanX;
+	font-style: normal;
+	font-weight: 1000;
+	font-display: swap;
+	src: url('woff2/IRANYekanX-Heavy.woff2') format('woff2'),
+	     url('woff/IRANYekanX-Heavy.woff') format('woff'),
+	     url('ttf/IRANYekanXFaNum-Heavy.ttf') format('truetype');
+}

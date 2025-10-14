@@ -244,6 +244,7 @@ const handleInputChange = (id, key, value) => {
                     priceFormat={filters_brand_mode.priceFormat}
                     onChange={() => handleReplaceNode(displayItem)}
                     onClick={handleRowClick}
+                    visibleColumns={visibleColumns}
                   />
               );
               break;

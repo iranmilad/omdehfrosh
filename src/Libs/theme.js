@@ -12,24 +12,24 @@ export const CONTAINER_SIZES= {
 };
 
 const Theme = {
-  fontFamily: "IranYekan, sans-serif",
-  headings: { fontFamily: "IranYekan, sans-serif" },
-  fontFamilyMonospace: "IranYekan, sans-serif",
+  fontFamily: "var(--primary-font-family)",
+  headings: { fontFamily: "var(--primary-font-family)" },
+  fontFamilyMonospace: "var(--primary-font-family)",
   primaryColor: "brand",
   defaultRadius: "8px",
   primaryShade: 5,
   colors: {
     brand: [
-      "#f0fde6",
-      "#e3f6d5",
-      "#c8ecad",
-      "#abe082",
-      "#93d75e",
-      "#83d146",
-      "#7ace39",
-      "#67b62a",
-      "#5aa221",
-      "#4a8c14"
+      "#f7f4ff",
+      "#ede7ff",
+      "#d9c7ff",
+      "#c2a0ff",
+      "#a876ff",
+      "#6a46d1",
+      "#5d3bb8",
+      "#4f319f",
+      "#422885",
+      "#361f6c"
     ]    
   },
   components: {

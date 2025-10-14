@@ -16,7 +16,7 @@ import {
   Loader,
   Modal
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { IconShoppingCart, IconTrash, IconUser, IconX, IconCheck } from "@tabler/icons-react";
 import { useEffect, useState, useMemo } from "react";
@@ -531,6 +531,9 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
 const MiniCart = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const navigate = useNavigate();
+  
+  // Check if mobile
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Get cart data from Redux store only
   const cartState = useSelector((state) => state.cart);
@@ -582,7 +585,7 @@ const MiniCart = () => {
         opened={opened}
         onClose={close}
         position="right"
-        size={450}
+        size={isMobile ? '100%' : 450}
         styles={{
           inner: {
             right: 0,
@@ -599,15 +602,16 @@ const MiniCart = () => {
             bottom: 0,
             height: '100vh',
             maxHeight: '100vh',
-            minWidth: '450px',
-            width: '450px',
+            minWidth: isMobile ? '100%' : '450px',
+            width: isMobile ? '100%' : '450px',
             position: 'fixed',
             display: 'flex',
             flexDirection: 'column'
           },
           header: {
             flexShrink: 0,
-            padding: '1rem'
+            padding: '1rem',
+            borderBottom: isMobile ? '1px solid var(--mantine-color-gray-3)' : 'none'
           },
           body: {
             flex: 1,
@@ -672,11 +676,20 @@ const MiniCart = () => {
               ) : (
                 <>
                   {/* Scrollable content */}
-                  <div style={{ flex: 1, overflow: 'hidden', width: '100%' }}>
+                  <div style={{ 
+                    flex: 1, 
+                    overflow: 'hidden', 
+                    width: '100%',
+                    minHeight: 0 // Important for proper flex scrolling
+                  }}>
                     <ScrollArea 
-                      style={{ height: '100%', width: '100%' }}
-                      type="hover"
-                      px="lg"
+                      style={{ 
+                        height: '100%', 
+                        width: '100%',
+                        maxHeight: isMobile ? 'calc(100vh - 200px)' : '100%' // Reserve space for header and footer
+                      }}
+                      type={isMobile ? "auto" : "hover"}
+                      px={isMobile ? "md" : "lg"}
                       py="md"
                     >
                       <Stack className="divide-y" gap="sm">
@@ -699,10 +712,16 @@ const MiniCart = () => {
                   <div
                     style={{
                       borderTop: '1px solid var(--mantine-color-gray-3)',
-                      padding: '1.25rem',
+                      padding: isMobile ? '1rem' : '1.25rem',
+                      paddingBottom: isMobile ? '3rem' : '1.25rem', // Extra bottom padding for mobile navigation
                       backgroundColor: 'var(--mantine-color-body)',
                       zIndex: 10,
-                      width: '100%'
+                      width: '100%',
+                      flexShrink: 0,
+                      position: isMobile ? 'sticky' : 'relative',
+                      bottom: isMobile ? '20px' : 'auto', // Move up from bottom
+                      boxShadow: isMobile ? '0 -2px 10px rgba(0,0,0,0.1)' : 'none',
+                      marginBottom: isMobile ? '30px' : '20px' // Additional margin from bottom
                     }}
                   >
                     <Flex justify="space-between" align="center" gap="md">

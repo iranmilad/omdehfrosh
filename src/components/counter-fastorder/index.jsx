@@ -17,7 +17,9 @@ const CounterFastOrder = (props) => {
     productName = "",
     productImages = "",
     item,
-    priceFormat
+    priceFormat,
+    visibleColumns = [],
+    text = "افزودن"
   } = props;
 
   const [cookies] = useCookies(["user"]);
@@ -462,7 +464,6 @@ const CounterFastOrder = (props) => {
           }}
         >
           <IconBasket />
-          افزودن
         </Button>
       )}
     </>

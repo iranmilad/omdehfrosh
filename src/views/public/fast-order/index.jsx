@@ -606,6 +606,7 @@ useEffect(() => {
                         setNodes={setNodes}
                         filters={filters_brand_mode}
                         searchType={searchType}
+                        setOpened={setOpened}
                       />
                     ) : (
                       <FiltersCategoryMode
@@ -615,6 +616,7 @@ useEffect(() => {
                         setNodes={setNodes}
                         filters={filters_category_mode}
                         searchType={searchType}
+                        setOpened={setOpened}
                       />
                     )}
                   </div>
@@ -632,14 +634,6 @@ useEffect(() => {
                     justify="center"
                     align="center"
                   >
-                    <Button
-                      leftSection={<IconSettings size={16} />}
-                      onClick={() => setOpened(true)}
-                      py={0}
-                    >
-                      نمایش ستون‌ها
-                    </Button>
-
                     <RotateModal isPortrait={isPortrait} />
                   </Group>
 
@@ -650,7 +644,7 @@ useEffect(() => {
                         <FastTableBrand type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodes[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
                         {nodes.map((item, index) => (
                           <React.Fragment key={index}>
-                            <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                            <Flex h={32} align="center" justify="center" bg="#e5e7eb">
                               <Text size="18px" c="dark">
                                 {item.label}
                               </Text>
@@ -665,7 +659,7 @@ useEffect(() => {
                         <FastTableCategory type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
                         {nodesSubCategoriesData?.map((item, index) => (
                           <React.Fragment key={index}>
-                            <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                            <Flex h={32} align="center" justify="center" bg="#e5e7eb">
                               <Text size="18px" c="dark">
                                 {item.label}
                               </Text>

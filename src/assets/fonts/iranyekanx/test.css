@@ -1,0 +1,15 @@
+/* Test file to verify font loading */
+.font-test {
+    font-family: "IRANYekanX", sans-serif;
+    font-weight: 400;
+}
+
+.font-test-thin {
+    font-family: "IRANYekanX", sans-serif;
+    font-weight: 100;
+}
+
+.font-test-bold {
+    font-family: "IRANYekanX", sans-serif;
+    font-weight: 700;
+}

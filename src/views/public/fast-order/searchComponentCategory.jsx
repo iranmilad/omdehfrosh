@@ -1183,21 +1183,41 @@ const SearchComponentCategory = ({
               <Menu.Target>
                 <Button 
                   variant="light" 
-                  leftSection={!isMobile && <IconFilter size={16} />}
                   size={isMobile ? "sm" : "md"}
-                  fullWidth={isMobile}
-                  compact={isMobile}
                   onClick={handleMenuClick} // Use our enhanced handler
                   loading={authVerificationLoading}
                   styles={{
                     root: {
                       height: isMobile ? '32px' : '36px',
-                      fontSize: isMobile ? '11px' : '13px'
+                      width: isMobile ? '32px' : '36px',
+                      padding: 0,
+                      marginBottom: '8px'
                     }
                   }}
+                  title="تنظیمات جستجو"
                 >
-                  {isMobile ? "تنظیمات جستجو" : "تنظیمات جستجو"}
-                  {checkedRows.size > 0 && ` (${checkedRows.size})`}
+                  <IconFilter size={16} />
+                  {checkedRows.size > 0 && (
+                    <Badge
+                      size="xs"
+                      variant="filled"
+                      color="red"
+                      style={{
+                        position: 'absolute',
+                        top: -5,
+                        right: -5,
+                        minWidth: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        fontSize: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {checkedRows.size}
+                    </Badge>
+                  )}
                 </Button>
               </Menu.Target>
 

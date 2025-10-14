@@ -243,6 +243,7 @@ case "image":
                     priceFormat={filters_category_mode.priceFormat}
                     onChange={() => handleReplaceNode(displayItem)}
                     onClick={handleRowClick}
+                    visibleColumns={visibleColumns}
                   />
               );
               break;

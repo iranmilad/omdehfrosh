@@ -23,7 +23,7 @@ import {
   LoadingOverlay,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconFilter, IconChevronDown, IconCheck } from "@tabler/icons-react";
+import { IconFilter, IconChevronDown, IconCheck, IconSettings } from "@tabler/icons-react";
 import { FreeMode } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import iranStates from "../../../Libs/iranStates";
@@ -363,7 +363,7 @@ const ColorCombobox = ({
   );
 };
 
-function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSubCategories, searchType, setSearchType }) {
+function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSubCategories, searchType, setSearchType, setOpened }) {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const supplierId = params.get("supplierid") || "";
@@ -529,6 +529,20 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
             overflow: 'visible' // Allow dropdown to overflow
           }}
         >
+          {/* Column Settings Button */}
+          <SwiperSlide style={buttonSlideStyle}>
+            <div className="flex flex-col justify-center h-full">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setOpened && setOpened(true)}
+                px="xs"
+              >
+                <IconSettings size={18} />
+              </Button>
+            </div>
+          </SwiperSlide>
+
         {/* Apply Filter Button */}
           <SwiperSlide style={buttonSlideStyle}>
             <div className="flex flex-col justify-center h-full">
@@ -541,8 +555,6 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
               </Button>
             </div>
           </SwiperSlide>
-
-
 
           {/* Sort Filter */}
           <SwiperSlide style={slideStyle}>
