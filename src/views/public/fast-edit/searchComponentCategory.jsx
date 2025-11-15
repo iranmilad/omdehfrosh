@@ -607,15 +607,14 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
   }, [filters, localFilters]);
 
   // Handle table data updates
-  useEffect(() => {
-    if (tableData) {
-      setNodes(tableData?.products || []);
-      setNodesSubCategories(tableData?.subCategoriesData || []);
-      setFilterValues(tableData?.filters || {});
-      setAvailableLocations(tableData?.supplierLocations || []);
-    }
-  }, [tableData, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
-
+    useEffect(() => {
+      if (tableData) {
+        setNodes(tableData?.products || []);
+        setNodesSubCategories(tableData?.products || []); // ✅ Change this!
+        setFilterValues(tableData?.filters || {});
+        setAvailableLocations(tableData?.supplierLocations || []);
+      }
+    }, [tableData, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
   // Clear filters when checkboxes are active - Modified to use array format
   useEffect(() => {
     if (checkedRows.size > 0) {
@@ -698,7 +697,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
           mb={isTablet ? "sm" : ""}
         >
           <div>
-            <XTitle>ویرایش سریع</XTitle>
+            {/* <XTitle>ویرایش سریع</XTitle> */}
             {isEditMode && (
               <Group gap="xs" mt="xs">
                 <Badge color="blue" variant="light" size="sm">
@@ -744,7 +743,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
               opened={menuOpened}
               onChange={setMenuOpened}
             >
-              <Menu.Target>
+              {/* <Menu.Target>
                 <Button 
                   variant="light" 
                   leftSection={!isMobile && <IconFilter size={16} />}
@@ -761,7 +760,7 @@ const SearchComponentCategory = ({ searchType, setSearchType, setAvailableLocati
                   {isMobile ? "تنظیمات جستجو" : "تنظیمات جستجو"}
                   {checkedRows.size > 0 && ` (${checkedRows.size})`}
                 </Button>
-              </Menu.Target>
+              </Menu.Target> */}
 
               <Menu.Dropdown>
                 <Menu.Label>فیلترهای ذخیره شده</Menu.Label>
@@ -948,6 +947,28 @@ onClick={(e) => {
                     </Menu.Item>
                   </>
                 )}
+
+                {(!savedFilters || savedFilters.length === 0) && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item disabled>
+                      <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
+                        فیلتری ذخیره نشده است
+                      </Text>
+                    </Menu.Item>
+                  </>
+                )}
+
+                {/* --- Bottom Close Button --- */}
+                <Menu.Divider />
+                <Box p="xs">
+                  <Button
+                    fullWidth
+                    onClick={() => setMenuOpened(false)}
+                  >
+                    بستن
+                  </Button>
+                </Box>
               </Menu.Dropdown>
             </Menu>
             }
@@ -973,16 +994,25 @@ onClick={(e) => {
             list: {
               overflowX: 'auto',
               flexWrap: 'nowrap',
-              justifyContent: 'center',
+              justifyContent: 'space-between',
               display: 'flex',
-              width: '100%'
+              width: '100%',
+              gap: isMobile ? '8px' : '12px',
+              flexDirection: 'row',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              padding: isMobile ? '8px' : '12px',
+              backgroundColor: '#fafafa'
             },
             tab: {
               fontSize: isMobile ? '12px' : '14px',
               padding: isMobile ? '8px 12px' : '10px 16px',
               whiteSpace: 'nowrap',
-              flex: '1 1 50%',
-              textAlign: 'center'
+              flex: '1 1 0',  // Each tab takes equal space
+              textAlign: 'center',
+              minWidth: 0,  // Allow flex to control width
+              border: '1px solid transparent',
+              transition: 'all 0.2s ease'
             }
           }} 
           variant="pills" 
@@ -991,13 +1021,46 @@ onClick={(e) => {
           onChange={setSearchType}
           orientation="horizontal"
         >
-          <Tabs.List grow={false}>
-            <Tabs.Tab value="brand">
+          <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
+            {/* Tab 1 - Takes 1/3 of space */}
+            <Tabs.Tab value="brand" style={{ flex: '1 1 0', minWidth: 0 }}>
               {isMobile ? "برند" : "جستجو بر اساس برند"}
             </Tabs.Tab>
-            <Tabs.Tab value="category">
+            
+            {/* Tab 2 - Takes 1/3 of space */}
+            <Tabs.Tab value="category" style={{ flex: '1 1 0', minWidth: 0 }}>
               {isMobile ? "دسته‌بندی" : "جستجو بر اساس دسته بندی"}
             </Tabs.Tab>
+
+            {/* Filter Button - Takes 1/3 of space */}
+            <Button
+              variant="light"
+              size={isMobile ? "sm" : "md"}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpened(!menuOpened);
+              }}
+              styles={{
+                root: {
+                  height: isMobile ? '32px' : '36px',
+                  padding: isMobile ? '8px 12px' : '10px 16px',
+                  fontSize: isMobile ? '11px' : '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  flex: '1 1 0',  // Takes equal space with tabs
+                  minWidth: 0,
+                  border: '1px solid #d0d0d0',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: '#a0a0a0'
+                  }
+                },
+              }}
+            >
+              <IconFilter size={16} />
+            </Button>
           </Tabs.List>
           
           <Tabs.Panel value="category">
@@ -1019,6 +1082,7 @@ onClick={(e) => {
             )}
           </Tabs.Panel>
         </Tabs>
+
 
       </Paper>
     </>

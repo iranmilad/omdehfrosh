@@ -40,6 +40,8 @@ function ChevronSelect({
   size = "xs",
   clearable = false,
   disabled = false,
+  searchable = false,
+  style = {},
   dropdownId,
   ...props
 }) {
@@ -124,30 +126,55 @@ function ChevronSelect({
           aria-expanded={isOpen}
           disabled={disabled}
           {...props}
+          styles={{
+            input: {
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              height: "32px",
+              minHeight: "32px",
+              padding: "0 8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+            }
+          }}
           style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
             width: "100%",
-            textAlign: "left",
+            height: "32px",
+            minHeight: "32px",
             background: "transparent",
-            border: "none",
             cursor: disabled ? "not-allowed" : "pointer",
             position: 'relative',
             zIndex: 1,
+            ...style,
           }}
         >
-          <Flex flexDirection="row" alignItems="center" gap={8} style={{ flex: 1 }}>
-            <Text size="xs" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+          <Flex
+            flex={1}
+            align="center"
+            justify="space-between"
+            style={{ width: "100%" }}
+          >
+            <Text
+              size="xs"
+              style={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                textAlign: "center",
+                flex: 1
+              }}
+            >
               {displayText}
             </Text>
-            <IconChevronDown 
-              size={14} 
-              style={{ 
-                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s ease'
-              }} 
+
+            <IconChevronDown
+              size={14}
+              style={{
+                transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease"
+              }}
             />
           </Flex>
         </InputBase>
@@ -156,36 +183,24 @@ function ChevronSelect({
       <Combobox.Dropdown 
         style={{ 
           minWidth: '200px',
-          width: 'auto',
           zIndex: 1000,
-          maxHeight: '250px',
+          maxHeight: '200px',
           overflowY: 'auto',
-          overflowX: 'hidden',
-          border: '1px solid #ccc',
-          borderRadius: '6px',
-          backgroundColor: 'white',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
         }}
       >
+        {/* Default placeholder option (not selectable) */}
         <Combobox.Option value="" disabled style={{ opacity: 0.7, pointerEvents: 'none' }}>
           <Text size="xs" color="dimmed">{placeholder}</Text>
         </Combobox.Option>
 
         {normalized.map((item) => (
-          <Combobox.Option 
-            key={item.value} 
-            value={item.value}
-            style={{
-              cursor: 'pointer',
-              borderRadius: '4px',
-            }}
-          >
+          <Combobox.Option key={item.value} value={item.value}>
             <Group position="apart" style={{ width: "100%" }}>
               <Flex flexDirection="row" alignItems="center" gap={8} style={{ flex: 1 }}>
                 {String(effectiveValue) === String(item.value) && (
                   <IconCheck size={14} color={theme.colors.gray?.[6]} />
-                )}  
-                <Text size="xs" style={{ whiteSpace: 'nowrap' }}>{item.label}</Text>
+                )}
+                <Text size="xs">{item.label}</Text>
               </Flex>
             </Group>
           </Combobox.Option>
@@ -200,7 +215,7 @@ const ColorCombobox = ({
   colors = [], 
   value, 
   onChange, 
-  placeholder = "رنگ", 
+  placeholder = "انتخاب رنگ", 
   dropdownId
 }) => {
   const theme = useMantineTheme();
@@ -265,6 +280,7 @@ const ColorCombobox = ({
         combobox.closeDropdown();
         setIsOpen(false);
       }}
+      size="sm"
       position="bottom-start"
       middlewares={{ flip: false, shift: true }}
       dropdownPadding={4}
@@ -276,22 +292,39 @@ const ColorCombobox = ({
           type="button"
           onClick={handleClick}
           size="xs"
+          styles={{
+            input: {
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              height: "32px",
+              minHeight: "32px",
+              padding: "0 8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+            }
+          }}
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            gap: 8,
             width: "100%",
+            height: "32px",
+            minHeight: "32px",
             background: "transparent",
-            border: "none",
-            textAlign: "left",
             position: 'relative',
             zIndex: 1,
           }}
         >
-          <Flex flexDirection="row" alignItems="center" gap={8} style={{ flex: 1 }}> 
+          <Flex 
+            align="center" 
+            justify="center"
+            style={{
+              width: "100%",
+              height: "100%",
+              position: "relative",
+            }}
+          >
             {selectedColor && selectedItem ? (
-              <Group gap={6} style={{ flex: 1 }}>
+              <Group gap={6} style={{ display: "flex", alignItems: "center" }}>
                 {selectedColor === "all" ? (
                   <Text size="xs" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     همه رنگ‌ها
@@ -312,7 +345,10 @@ const ColorCombobox = ({
               size={14}
               style={{ 
                 transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s ease'
+                transition: 'transform 0.2s ease',
+                flexShrink: 0,
+                position: "absolute",
+                right: 0
               }}
             />
           </Flex>
@@ -322,34 +358,22 @@ const ColorCombobox = ({
       <Combobox.Dropdown 
         style={{ 
           minWidth: '200px',
-          width: 'auto',
           zIndex: 1000,
-          maxHeight: '250px',
+          maxHeight: '200px',
           overflowY: 'auto',
-          overflowX: 'hidden',
-          border: '1px solid #ccc',
-          borderRadius: '6px',
-          backgroundColor: 'white',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
         }}
       >
+        {/* Default placeholder option (not selectable) */}
         <Combobox.Option value="" disabled style={{ opacity: 0.7, pointerEvents: 'none' }}>
           <Text size="xs" color="dimmed">{placeholder}</Text>
         </Combobox.Option>
 
         {extendedColors.map((color) => (
-          <Combobox.Option 
-            key={color.value} 
-            value={color.value}
-            style={{
-              cursor: 'pointer',
-              borderRadius: '4px',
-            }}
-          >
+          <Combobox.Option key={color.value} value={color.value}>
             <Group gap={6} position="apart" style={{ width: "100%" }}>
               <Group>
-                {color.value !== "all" && <ColorSwatch color={color.value} size={12} />}
-                <Text size="xs" style={{ whiteSpace: 'nowrap' }}>{color.label}</Text>
+                {color.value !== "all" && <ColorSwatch color={color.value} size={16} />}
+                <Text size="xs">{color.label}</Text>
               </Group>
               {selectedColor === color.value && <IconCheck size={12} color={theme.colors.gray?.[6]} />}
             </Group>
@@ -429,21 +453,28 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
     return <LoadingOverlay />
   }
 
-  const slideStyle = {
+  // Unified slide styles - all elements have same height and spacing
+  const baseSlideStyle = {
     width: 'fit-content', 
     minWidth: '30px', 
-    padding: '2px',
-    height: '35px',
+    height: '40px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
   };
 
+  const selectSlideStyle = {
+    ...baseSlideStyle,
+  };
+
+  const switchSlideStyle = {
+    ...baseSlideStyle,
+  };
+
   const buttonSlideStyle = {
-    ...slideStyle,
-    minWidth: '60px',
-    justifyContent: 'flex-end'
+    ...baseSlideStyle,
+    minWidth: '50px',
   };
 
   // helper to normalize seller list (strings or objects)
@@ -463,29 +494,37 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Swiper
           modules={[FreeMode]}
-          spaceBetween={0}
+          spaceBetween={8}
           slidesPerView="auto"
           freeMode={true}
           style={{ 
-            height: "35px",
+            height: '35px',
             overflow: 'visible'
           }}
         >
           {/* Apply Filter Button */}
-        <SwiperSlide style={buttonSlideStyle}>
-          <Button
-            type="submit"
-            size="sm"
-            
-          >
-            <IoSettingsSharp size={18} />
-          </Button>
-        </SwiperSlide>
+          <SwiperSlide style={buttonSlideStyle}>
+            <Button
+              type="submit"
+              size="xs"
+              style={{
+                height: "32px",
+                minHeight: "32px",
+                maxHeight: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 12px"
+              }}
+            >
+              <IoSettingsSharp size={16} />
+            </Button>
+          </SwiperSlide>
           
           {/* Sort Filter */}
-          <SwiperSlide style={slideStyle}>
+          {/* <SwiperSlide style={selectSlideStyle}>
             <div className="flex items-center h-full">
-              <div style={{ flex: 1, minWidth: "0" }}>
+              <div style={{ flex: 1 }}>
                 <ChevronSelect
                   placeholder="ترتیب"
                   allLabel="همه ترتیب‌ها"
@@ -496,13 +535,14 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
                   value={form.values.sort}
                   onChange={(v) => form.setFieldValue("sort", v)}
                   dropdownId="sort"
+                  style={{ minWidth: "120px" }}
                 />
               </div>
             </div>
-          </SwiperSlide>
+          </SwiperSlide> */}
 
           {/* Price Format Filter */}
-          <SwiperSlide style={slideStyle}>
+          {/* <SwiperSlide style={selectSlideStyle}>
             <div className="flex items-center h-full">
               <div style={{ flex: 1 }}>
                 <ChevronSelect
@@ -515,13 +555,14 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
                   value={form.values.priceFormat}
                   onChange={(v) => form.setFieldValue("priceFormat", v)}
                   dropdownId="priceFormat"
+                  style={{ minWidth: "120px" }}
                 />
               </div>
             </div>
-          </SwiperSlide>
+          </SwiperSlide> */}
 
           {/* Color Filter */}
-          <SwiperSlide style={slideStyle}>
+          {/* <SwiperSlide style={selectSlideStyle}>
             <div className="flex items-center h-full">
               <div style={{ flex: 1 }}>
                 <ColorCombobox 
@@ -533,10 +574,10 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
                 />
               </div>
             </div>
-          </SwiperSlide>
+          </SwiperSlide> */}
 
           {/* Delivery Time Filter */}
-          <SwiperSlide style={slideStyle}>
+          <SwiperSlide style={selectSlideStyle}>
             <div className="flex items-center h-full">
               <div style={{ flex: 1 }}>
                 <ChevronSelect
@@ -561,62 +602,66 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
           </SwiperSlide>
 
           {/* Min Stock Filter */}
-          <SwiperSlide style={slideStyle}>
-            <div className="flex items-center h-full">
-              <div style={{ flex: 1 }}>
-                <ChevronSelect
-                  placeholder="موجودی"
-                  allLabel="همه موجودی"
-                  data={[
-                    { label: "همه", value: "all" },
-                    { label: "5", value: "5" },
-                    { label: "10", value: "10" },
-                    { label: "20", value: "20" },
-                    { label: "50", value: "50" },
-                    { label: "100", value: "100" },
-                  ]}
-                  value={form.values.minStock}
-                  onChange={(v) => form.setFieldValue("minStock", v)}
-                  dropdownId="minStock"
-                />
-              </div>
-            </div>
+          <SwiperSlide style={selectSlideStyle}>
+            <ChevronSelect
+              placeholder="موجودی"
+              allLabel="همه موجودی"
+              data={[
+                { label: "همه", value: "all" },
+                { label: "5", value: "5" },
+                { label: "10", value: "10" },
+                { label: "20", value: "20" },
+                { label: "50", value: "50" },
+                { label: "100", value: "100" },
+              ]}
+              value={form.values.minStock}
+              onChange={(v) => form.setFieldValue("minStock", v)}
+              dropdownId="minStock"
+              style={{ minWidth: "100px" }}
+            />
           </SwiperSlide>
 
           {/* Supplier Filter */}
-          <SwiperSlide style={slideStyle}>
-            <div className="flex items-center h-full">
-              <div style={{ flex: 1 }}>
-                <ChevronSelect
-                  placeholder="تامین"
-                  allLabel="همه تامین‌کنندگان"
-                  data={[
-                    { label: "همه", value: "all" },
-                    ...sellersData
-                  ]}
-                  value={isSupplierFixed ? supplierId : form.values.supplier}
-                  onChange={(v) => {
-                    if (!isSupplierFixed) form.setFieldValue("supplier", v);
-                  }}
-                  disabled={isSupplierFixed}
-                  dropdownId="supplier"
-                />
-              </div>
-            </div>
+          <SwiperSlide style={selectSlideStyle}>
+            <ChevronSelect
+              placeholder="تامین"
+              allLabel="همه تامین‌کنندگان"
+              data={[
+                { label: "همه", value: "all" },
+                ...sellersData
+              ]}
+              value={isSupplierFixed ? supplierId : form.values.supplier}
+              onChange={(v) => {
+                if (!isSupplierFixed) form.setFieldValue("supplier", v);
+              }}
+              disabled={isSupplierFixed}
+              searchable={true}
+              dropdownId="supplier"
+              style={{ minWidth: "120px" }}
+            />
           </SwiperSlide>
 
-          {/* Province Filter (Switch) */}
+          {/* Province Filter */}
           <SwiperSlide 
-            style={{...slideStyle, cursor: 'pointer', overflow: "hidden"}}
+            style={switchSlideStyle}
             onClick={(e) => handleSlideClick(e, 'province')}
           >
-            <div className="flex flex-col items-center justify-center h-full gap-1">
+            <div style={{
+              height: "32px",
+              minHeight: "32px",
+              display: "flex",
+              alignItems: "center",
+              padding: "0 12px",
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              cursor: "pointer",
+              backgroundColor: "transparent"
+            }}>
               <Switch
                 label={form.values.province === "mylocation" ? "استان من" : "همه استان ها"}
                 checked={form.values.province === "mylocation"}
                 readOnly
                 size="xs"
-                labelPosition="right"
                 styles={(theme) => ({
                   root: {
                     pointerEvents: 'none',
@@ -634,18 +679,27 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
             </div>
           </SwiperSlide>
 
-          {/* Stock Status Filter (Switch) */}
+          {/* Stock Status Filter */}
           <SwiperSlide 
-            style={{...slideStyle, cursor: 'pointer', overflow: "hidden"}}
+            style={switchSlideStyle}
             onClick={(e) => handleSlideClick(e, 'stockStatus')}
           >
-            <div className="flex flex-col items-center justify-center h-full gap-1">
+            <div style={{
+              height: "32px",
+              minHeight: "32px",
+              display: "flex",
+              alignItems: "center",
+              padding: "0 12px",
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              cursor: "pointer",
+              backgroundColor: "transparent"
+            }}>
               <Switch
                 label={form.values.stockStatus ? "موجود" : "ناموجود"}
                 checked={!!form.values.stockStatus}
                 readOnly
                 size="xs"
-                labelPosition="right"
                 styles={(theme) => ({
                   root: {
                     pointerEvents: 'none',
@@ -663,18 +717,27 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
             </div>
           </SwiperSlide>
 
-          {/* Sale Type Filter (Switch) */}
+          {/* Sale Type Filter */}
           <SwiperSlide 
-            style={{...slideStyle, cursor: 'pointer', overflow: "hidden"}}
+            style={switchSlideStyle}
             onClick={(e) => handleSlideClick(e, 'saleType')}
           >
-            <div className="flex flex-col items-center justify-center h-full gap-1">
+            <div style={{
+              height: "32px",
+              minHeight: "32px",
+              display: "flex",
+              alignItems: "center",
+              padding: "0 12px",
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              cursor: "pointer",
+              backgroundColor: "transparent"
+            }}>
               <Switch
                 label={form.values.saleType === "cash" ? "نقدی" : "پیش فروش"}
                 checked={form.values.saleType === "cash"}
                 readOnly
                 size="xs"
-                labelPosition="right"
                 styles={(theme) => ({
                   root: {
                     pointerEvents: 'none',
