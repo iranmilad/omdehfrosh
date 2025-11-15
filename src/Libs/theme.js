@@ -19,18 +19,20 @@ const Theme = {
   defaultRadius: "8px",
   primaryShade: 5,
   colors: {
-    brand: [
-      "#f0fde6",
-      "#e3f6d5",
-      "#c8ecad",
-      "#abe082",
-      "#93d75e",
-      "#83d146",
-      "#7ace39",
-      "#67b62a",
-      "#5aa221",
-      "#4a8c14"
-    ]    
+    brand: 
+      [
+        "#f0f3fd", // very light bluish-lavender
+        "#e0e6fb", // soft pale periwinkle
+        "#c3c9f7", // light blue-violet
+        "#a6adf3", // medium periwinkle
+        "#8FA4E6", // soft cornflower blue accent
+        "#6A46D1", // core purple (kept)
+        "#4F79E4", // bright azure blue
+        "#3E68D4", // vivid royal blue
+        "#3256BA", // deep cobalt
+        "#2543A0"  // dark indigo-blue
+      ]
+ 
   },
   components: {
     Container: Container.extend({

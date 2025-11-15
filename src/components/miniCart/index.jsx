@@ -16,7 +16,7 @@ import {
   Loader,
   Modal
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { IconShoppingCart, IconTrash, IconUser, IconX, IconCheck } from "@tabler/icons-react";
 import { useEffect, useState, useMemo } from "react";
@@ -35,28 +35,26 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
   const [isRemoving, setIsRemoving] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { primaryColor } = useMantineTheme();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Helper function to handle token expiration
   const handleTokenExpiration = (error) => {
-    // Check if the error is related to token expiration
     if (error.message.includes('توکن نامعتبر است') || 
         error.message.includes('Unauthorized') || 
         error.status === 401) {
       localStorage.removeItem("user");
-      dispatch(setInitial([])); // Clear cart
+      dispatch(setInitial([]));
       setShowAuthModal(true);
       return true;
     }
     return false;
   };
 
-  // Handle login redirect
   const handleLoginRedirect = () => {
     setShowAuthModal(false);
     navigate('/login');
   };
 
-  // Cleanup effect to ensure loading state is reset if component unmounts
   useEffect(() => {
     return () => {
       if (isRemoving) {
@@ -65,7 +63,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     };
   }, [isRemoving]);
 
-  // Enhanced default image with better styling
   const defaultImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -94,7 +91,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     return image;
   };
 
-  // Helper function to check if attributes should be rendered
   const shouldRenderAttributes = (attrs) => {
     if (!attrs) return false;
     if (Array.isArray(attrs)) {
@@ -108,21 +104,15 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     return attrs !== "";
   };
 
-  // Helper function to get color code from color name or value
   const getColorCode = (colorValue) => {
     if (!colorValue || colorValue === "") return null;
-    
-    // If it's already a hex color code, return as is
     if (colorValue.startsWith('#')) {
       return colorValue;
     }
-    
-    // Check if it's a CSS color name or matches our default mapping
     const lowerColorValue = colorValue.toLowerCase();
     return DEFAULT_COLOR_MAP[lowerColorValue] || DEFAULT_COLOR_MAP[colorValue] || colorValue;
   };
 
-  // Calculate discount percentage for display
   const discountPercentage = useMemo(() => {
     if (price?.regularPrice && price?.discountedPrice && price.regularPrice > price.discountedPrice) {
       return Math.round(((price.regularPrice - price.discountedPrice) / price.regularPrice) * 100);
@@ -130,7 +120,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     return null;
   }, [price]);
 
-  // Enhanced remove function with token expiration handling
   const removeItem = async () => {
     setIsRemoving(true);
 
@@ -156,7 +145,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         body: JSON.stringify(requestPayload),
       });
 
-      // Handle 401 Unauthorized immediately
       if (removeResponse.status === 401) {
         handleTokenExpiration({ status: 401, message: 'Unauthorized' });
         setIsRemoving(false);
@@ -211,7 +199,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         return;
       }
 
-      // Fallback: fetch updated cart
       const cartResponse = await fetch(getApiUrl("/cart"), {
         method: "GET",
         headers: {
@@ -220,7 +207,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         },
       });
 
-      // Handle 401 for cart fetch as well
       if (cartResponse.status === 401) {
         handleTokenExpiration({ status: 401, message: 'Unauthorized' });
         setIsRemoving(false);
@@ -247,7 +233,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     } catch (error) {
       console.error("Remove failed:", error);
       
-      // Handle token expiration for caught errors
       if (handleTokenExpiration(error)) {
         setIsRemoving(false);
         return;
@@ -285,7 +270,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
       setIsRemoving(false);
     }
 
-    // Refresh subscription plans
     try {
       dispatch(getsubscriptionPlansGet());
     } catch (planError) {
@@ -295,7 +279,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
 
   return (
     <>
-      {/* Authentication Modal */}
       <Modal
         opened={showAuthModal}
         onClose={() => setShowAuthModal(false)}
@@ -321,7 +304,7 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
       </Modal>
 
       <Flex 
-        gap="md" 
+        gap={isMobile ? "xs" : "md"}
         pt="sm" 
         w="100%" 
         style={{ 
@@ -329,7 +312,7 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
           transition: 'all 0.3s ease',
           transform: isRemoving ? 'scale(0.95)' : 'scale(1)',
           borderRadius: '8px',
-          padding: '8px',
+          padding: isMobile ? '6px' : '8px',
           backgroundColor: 'var(--mantine-color-gray-0)',
           border: '1px solid var(--mantine-color-gray-2)',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
@@ -342,8 +325,8 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
           <Anchor component={NavLink} to={`product/${productId}`}>
             <Image 
               src={getValidImageSrc()} 
-              w={80} 
-              h={80} 
+              w={isMobile ? 60 : 80}
+              h={isMobile ? 60 : 80}
               fit="contain" 
               radius="md"
               fallbackSrc={defaultImage}
@@ -354,7 +337,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
             />
           </Anchor>
           
-          {/* Quantity badge */}
           <Badge
             size="xs"
             variant="filled"
@@ -377,12 +359,12 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         {/* Product Details */}
         <Flex gap="xs" direction="column" flex="1" style={{ minWidth: 0 }}>
           {/* Product Name and Remove Button */}
-          <Flex align="flex-start" justify="space-between" gap="sm">
+          <Flex align="flex-start" justify="space-between" gap="xs">
             <Text 
               component={NavLink} 
               to={`product/${productId}`} 
               className="line-clamp-2"
-              size="sm"
+              size={isMobile ? "xs" : "sm"}
               fw={500}
               style={{ 
                 flex: 1, 
@@ -408,12 +390,12 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
                 flexShrink: 0,
                 transition: 'all 0.2s ease'
               }}
-              size="sm"
+              size={isMobile ? "xs" : "sm"}
               loading={isRemoving}
               disabled={isRemoving}
               radius="md"
             >
-              {isRemoving ? <Loader size={12} /> : <IconTrash size={12} />}
+              {isRemoving ? <Loader size={10} /> : <IconTrash size={isMobile ? 10 : 12} />}
             </ActionIcon>
           </Flex>
           
@@ -422,12 +404,11 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
             <Flex gap="xs" wrap="wrap" style={{ margin: '4px 0' }}>
               {attributes?.map((attr, index) => (
                 <Flex key={index} gap="xs" wrap="wrap">
-                  {/* Color attribute - only colorful circle */}
                   {attr.color && attr.color !== "" && (
                     <div
                       style={{
-                        width: '16px',
-                        height: '16px',
+                        width: isMobile ? '14px' : '16px',
+                        height: isMobile ? '14px' : '16px',
                         borderRadius: '50%',
                         backgroundColor: getColorCode(attr.color),
                         border: '2px solid var(--mantine-color-gray-4)',
@@ -437,14 +418,12 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
                     />
                   )}
                   
-                  {/* Material attribute */}
                   {attr.material && attr.material !== "" && (
                     <Badge variant="light" color="gray" size="xs" radius="sm">
                       <Text size="xs">{attr.material}</Text>
                     </Badge>
                   )}
                   
-                  {/* Warranty attribute */}
                   {attr.warranty && attr.warranty !== "" && (
                     <Badge variant="light" color="blue" size="xs" radius="sm">
                       <Text size="xs">{attr.warranty}</Text>
@@ -457,23 +436,22 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
           
           {/* Seller Information */}
           <Flex align="center" gap="xs" style={{ margin: '2px 0' }}>
-            <IconUser size={12} color="var(--mantine-color-gray-6)" />
+            <IconUser size={isMobile ? 10 : 12} color="var(--mantine-color-gray-6)" />
             <Text size="xs" c="gray.6">{seller?.label}</Text>
           </Flex>
 
           {/* Price Section */}
           <Flex 
             dir="ltr" 
-            gap="sm" 
+            gap={isMobile ? "xs" : "sm"}
             align="center" 
             justify="space-between" 
             w="100%"
-            style={{ marginTop: 'auto', padding: '8px 0' }}
+            style={{ marginTop: 'auto', padding: isMobile ? '4px 0' : '8px 0' }}
           >
             <Flex direction="column" align="start" gap="2px">
-              {/* Discounted Price */}
               <Flex align="center" gap="xs">
-                <Text fw={600} size="sm" c="dark">
+                <Text fw={600} size={isMobile ? "xs" : "sm"} c="dark">
                   <NumberFormatter 
                     thousandSeparator 
                     value={price?.discountedPrice || price?.regularPrice} 
@@ -483,7 +461,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
                   </Text>
                 </Text>
                 
-                {/* Discount badge */}
                 {discountPercentage && (
                   <Badge color="red" size="xs" variant="filled" radius="sm">
                     {discountPercentage}%
@@ -491,7 +468,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
                 )}
               </Flex>
               
-              {/* Original Price (if discounted) */}
               {price?.discountedPrice && price?.regularPrice > price?.discountedPrice && (
                 <Text 
                   size="xs" 
@@ -506,13 +482,12 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
               )}
             </Flex>
             
-            {/* Quantity Display */}
             <Flex 
               align="center" 
               gap="xs"
               style={{
                 backgroundColor: 'var(--mantine-primary-color-light)',
-                padding: '4px 8px',
+                padding: isMobile ? '3px 6px' : '4px 8px',
                 borderRadius: '6px',
                 border: '1px solid var(--mantine-primary-color-outline)'
               }}
@@ -531,15 +506,14 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
 const MiniCart = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isSmallMobile = useMediaQuery('(max-width: 480px)');
 
-  // Get cart data from Redux store only
   const cartState = useSelector((state) => state.cart);
   const items = cartState?.items || [];
 
-  // Authentication state
   const { user, isVerified } = useSelector((state) => state.auth);
 
-  // Calculate total from Redux items (avoid extra API calls)
   const calculatedTotal = useMemo(() => {
     return items.reduce((total, item) => {
       const itemPrice = item.price?.discountedPrice || item.price?.regularPrice || 0;
@@ -547,17 +521,18 @@ const MiniCart = () => {
     }, 0);
   }, [items]);
 
-  // Only show cart badge and content when user is authenticated
   const shouldShowCart = user && isVerified;
   const cartCount = shouldShowCart ? items.length : 0;
 
-  // Handle navigation to basket
   const handleNavigateToBasket = () => {
-    close(); // Close drawer first
+    close();
     setTimeout(() => {
       navigate("/basket");
-    }, 100); // Small delay to ensure drawer closes smoothly
+    }, 100);
   };
+
+  // Determine drawer size based on screen size
+  const drawerSize = isSmallMobile ? '100%' : isMobile ? '85%' : 450;
 
   return (
     <>
@@ -582,7 +557,7 @@ const MiniCart = () => {
         opened={opened}
         onClose={close}
         position="right"
-        size={450}
+        size={drawerSize}
         styles={{
           inner: {
             right: 0,
@@ -599,15 +574,15 @@ const MiniCart = () => {
             bottom: 0,
             height: '100vh',
             maxHeight: '100vh',
-            minWidth: '450px',
-            width: '450px',
+            minWidth: isMobile ? 'auto' : '450px',
+            width: isMobile ? '100%' : '450px',
             position: 'fixed',
             display: 'flex',
             flexDirection: 'column'
           },
           header: {
             flexShrink: 0,
-            padding: '1rem'
+            padding: isMobile ? '0.75rem' : '1rem'
           },
           body: {
             flex: 1,
@@ -621,7 +596,7 @@ const MiniCart = () => {
         <Drawer.Overlay />
         <Drawer.Content>
           <Drawer.Header>
-            <Drawer.Title fw={600} size="md">سبد خرید</Drawer.Title>
+            <Drawer.Title fw={600} size={isMobile ? "sm" : "md"}>سبد خرید</Drawer.Title>
             <Drawer.CloseButton />
           </Drawer.Header>
 
@@ -643,16 +618,17 @@ const MiniCart = () => {
               width: '100%'
             }}>
               {!shouldShowCart ? (
-                <Center style={{ flex: 1, padding: '2rem', width: '100%' }}>
+                <Center style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', width: '100%' }}>
                   <InfoBox back={false} shadow="0" style={{ width: '100%', textAlign: 'center' }}>
                     <Stack align="center" gap="md">
-                      <IconShoppingCart size={40} color="gray" />
-                      <Text size="md" c="dimmed">لطفا وارد حساب کاربری شوید</Text>
+                      <IconShoppingCart size={isMobile ? 32 : 40} color="gray" />
+                      <Text size={isMobile ? "sm" : "md"} c="dimmed">لطفا وارد حساب کاربری شوید</Text>
                       <Button 
                         component={NavLink} 
                         to="/login"
                         onClick={() => close()}
                         size="sm"
+                        fullWidth={isMobile}
                       >
                         ورود
                       </Button>
@@ -660,11 +636,11 @@ const MiniCart = () => {
                   </InfoBox>
                 </Center>
               ) : items.length === 0 ? (
-                <Center style={{ flex: 1, padding: '2rem', width: '100%' }}>
+                <Center style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', width: '100%' }}>
                   <InfoBox back={false} shadow="0" style={{ width: '100%', textAlign: 'center' }}>
                     <Stack align="center" gap="md">
-                      <IconShoppingCart size={40} color="gray" />
-                      <Text size="md" c="dimmed">سبد خرید خالی است</Text>
+                      <IconShoppingCart size={isMobile ? 32 : 40} color="gray" />
+                      <Text size={isMobile ? "sm" : "md"} c="dimmed">سبد خرید خالی است</Text>
                       <Text size="sm" c="dimmed">محصولات مورد نظر خود را اضافه کنید</Text>
                     </Stack>
                   </InfoBox>
@@ -676,12 +652,11 @@ const MiniCart = () => {
                     <ScrollArea 
                       style={{ height: '100%', width: '100%' }}
                       type="hover"
-                      px="lg"
-                      py="md"
+                      px={isMobile ? "sm" : "lg"}
+                      py={isMobile ? "xs" : "md"}
                     >
                       <Stack className="divide-y" gap="sm">
                         {items.map((item, index) => {
-                          // Create a unique key that will change when items are removed
                           const uniqueKey = `${item.productId}-${item.combinationsID || 'no-combo'}-${index}-${items.length}`;
                           return (
                             <MiniBox 
@@ -695,22 +670,32 @@ const MiniCart = () => {
                     </ScrollArea>
                   </div>
 
-                  {/* Fixed footer */}
+                  {/* Fixed footer - RESPONSIVE */}
                   <div
                     style={{
                       borderTop: '1px solid var(--mantine-color-gray-3)',
-                      padding: '1.25rem',
+                      padding: isMobile ? '0.75rem 1rem' : '1.25rem',
                       backgroundColor: 'var(--mantine-color-body)',
                       zIndex: 10,
-                      width: '100%'
+                      width: '100%',
+                      boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.05)'
                     }}
                   >
-                    <Flex justify="space-between" align="center" gap="md">
-                      <Flex direction="column" align="start">
+                    <Flex 
+                      justify="space-between" 
+                      align="center" 
+                      gap={isMobile ? "xs" : "md"}
+                      direction={isSmallMobile ? "column" : "row"}
+                    >
+                      <Flex 
+                        direction="column" 
+                        align={isSmallMobile ? "center" : "start"}
+                        style={{ width: isSmallMobile ? '100%' : 'auto' }}
+                      >
                         <Text size="xs" c="gray" component="span">
                           جمع کل
                         </Text>
-                        <Text component="span" fw={600} size="md">
+                        <Text component="span" fw={600} size={isMobile ? "sm" : "md"}>
                           <NumberFormatter
                             thousandSeparator
                             value={calculatedTotal}
@@ -722,8 +707,12 @@ const MiniCart = () => {
                       </Flex>
                       <Button
                         onClick={handleNavigateToBasket}
-                        size="sm"
-                        style={{ minWidth: '100px' }}
+                        size={isMobile ? "sm" : "md"}
+                        fullWidth={isSmallMobile}
+                        style={{ 
+                          minWidth: isSmallMobile ? '100%' : isMobile ? '80px' : '100px',
+                          marginTop: isSmallMobile ? '0.5rem' : 0
+                        }}
                       >
                         ادامه
                       </Button>

@@ -462,7 +462,7 @@ const CounterFastOrder = (props) => {
           }}
         >
           <IconBasket />
-          افزودن
+          
         </Button>
       )}
     </>

@@ -31,6 +31,7 @@ import { shallowEqual, useMediaQuery } from "@mantine/hooks";
 import { useFastOrder } from ".";
 import { useFilterContext } from "./filterscontext";
 import { useLocation, useParams } from "react-router";
+import { IoSettingsSharp } from "react-icons/io5";
 
 const colors = [
   { label: "قرمز", value: "#FF0000" },
@@ -144,35 +145,60 @@ function ChevronSelect({
           aria-expanded={isOpen}
           disabled={disabled}
           {...props}
+          styles={{
+            input: {
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              height: "32px",
+              minHeight: "32px",
+              padding: "0 8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              justifyContent: "center", // ⬅ centers text vertically/horizontally
+              textAlign: "center",       // ⬅ ensures perfect middle alignment
+            }
+          }}
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            justifyItems: "center",
             width: "100%",
-            // padding: "8px 12px",
-            textAlign: "left",
+            height: "32px",
+            minHeight: "32px",
             background: "transparent",
-            border: "none",
             cursor: disabled ? "not-allowed" : "pointer",
             position: 'relative',
             zIndex: 1,
             ...style,
           }}
         >
-          <Flex flexDirection="row" alignItems="center" gap={8} style={{ flex: 1 }}>
-            <Text size="xs" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
-              {displayText}
-            </Text>
-            <IconChevronDown 
-              size={14} 
-              style={{ 
-                // marginLeft: 8,
-                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s ease'
-              }} 
-            />
-          </Flex>
+
+        <Flex
+          flex={1}
+          align="center"
+          justify="space-between"
+          style={{ width: "100%" }}
+        >
+          <Text
+            size="xs"
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              textAlign: "center",
+              flex: 1
+            }}
+          >
+            {displayText}
+          </Text>
+
+          <IconChevronDown
+            size={14}
+            style={{
+              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease"
+            }}
+          />
+        </Flex>
+
         </InputBase>
       </Combobox.Target>
 
@@ -289,24 +315,39 @@ const ColorCombobox = ({
           type="button"
           onClick={handleClick}
           size="xs"
+          styles={{
+            input: {
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              height: "32px",
+              minHeight: "32px",
+              padding: "0 8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center", // ⬅ centers text vertically/horizontally
+              textAlign: "center",       // ⬅ ensures perfect middle alignment
+            }
+          }}
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            justifyItems: "center",
-            gap: 8,
             width: "100%",
-            // padding: "8px 12px",
+            height: "32px",
+            minHeight: "32px",
             background: "transparent",
-            border: "none",
-            textAlign: "left",
             position: 'relative',
             zIndex: 1,
           }}
         >
-          <Flex flexDirection="row" alignItems="center" gap={8} style={{ flex: 1 }}> 
+          <Flex 
+            align="center" 
+            justify="center"
+            style={{
+              width: "100%",
+              height: "100%",
+              position: "relative",
+            }}
+          >
             {selectedColor && selectedItem ? (
-              <Group gap={6} style={{ flex: 1 }}>
+              <Group gap={6} style={{ display: "flex", alignItems: "center" }}>
                 {selectedColor === "all" ? (
                   <Text size="xs" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     همه رنگ‌ها
@@ -327,7 +368,10 @@ const ColorCombobox = ({
               size={14}
               style={{ 
                 transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s ease'
+                transition: 'transform 0.2s ease',
+                flexShrink: 0,
+                position: "absolute",
+                right: 0
               }}
             />
           </Flex>
@@ -367,14 +411,13 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const supplierId = params.get("supplierid") || "";
-  // const supplierName = params.get("suppliername") || "";
   const isSupplierFixed = !!supplierId;
   const isMobile = useMediaQuery("(max-width: 480px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
   const { filterValues } = useFastOrder();
 
-  const { filtersContext, setFiltersContext, brandsContext = { parent: [] } } = useFilterContext(); // Default to an empty parent array if brandss is undefined or null
+  const { filtersContext, setFiltersContext, brandsContext = { parent: [] } } = useFilterContext();
 
   const form = useForm({
     initialValues: {
@@ -393,7 +436,6 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
   
   useEffect(() => {
     if (supplierId && supplierId !== form.values.supplier) {
-      // Update the supplier filter if the supplierId from the URL exists
       form.setFieldValue("supplier", supplierId);
       setFilters((prevFilters) => ({
         ...prevFilters,
@@ -447,9 +489,8 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
   useEffect(() => {
   }, [filters]);
   
-  const { setBrandsContext, setCategoryContext } = useFilterContext(); // Access context here
+  const { setBrandsContext, setCategoryContext } = useFilterContext();
 
-  // const [searchType, setSearchType] = useState("brand"); // نوع جستجو: brand یا category
   const [brands, setBrands] = useState({ parent: [], categories: [] });
   const [category, setCategory] = useState({ parent: [], subCategory: [], brands: [] });
   const {setFilterValues} = useFastOrder();
@@ -457,7 +498,6 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
   const {id} = useParams();
 
   
-  // Toggle function for stock status
   const toggleStockStatus = () => {
     form.setFieldValue("stockStatus", form.values.stockStatus === "yes" ? "no" : "yes");
   };
@@ -465,7 +505,6 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
   const handleBrandChange = (selectedBrands) => {
     if (!brandsContext || !Array.isArray(brandsContext.parent)) return;
   
-    // If "all" is selected, select all brands
     if (selectedBrands.includes("all")) {
       form.setFieldValue("brands", brandsContext.parent.map(brand => brand.name));
     } else {
@@ -477,26 +516,29 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
     return <LoadingOverlay />
   }
 
-  // Common slide style for consistent height
-  const slideStyle = {
+  // Unified slide styles - all elements have same height and spacing
+  const baseSlideStyle = {
     width: 'fit-content', 
     minWidth: '30px', 
-    // border: '1.5px solid #ccc', 
-    // borderRadius: '8px', 
-    padding: '2px',
-    // marginLeft: '8px',
-    height: '35px', // Set fixed height
+    height: '40px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    // position: 'relative', // Add relative positioning for dropdown context
+
+  };
+
+  const selectSlideStyle = {
+    ...baseSlideStyle,
+  };
+
+  const switchSlideStyle = {
+    ...baseSlideStyle,
   };
 
   const buttonSlideStyle = {
-    ...slideStyle,
-    minWidth: '60px',
-    justifyContent: 'flex-end'
+    ...baseSlideStyle,
+    minWidth: '50px',
   };
 
   // helper to normalize seller list (strings or objects)
@@ -504,121 +546,65 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
     ? filterValues.sellers.map((s) => (typeof s === "string" ? { label: s, value: s } : s))
     : [];
 
-
-
-
-    return (
-      <Paper 
-        mt={{ base: "xs", md: "xs" }} 
-        // mb="xl" 
-        id="fastorder-search"
-        p={isMobile ? "sm" : "md"}
-        style={{ 
-          overflow: 'hidden' // Prevent horizontal scroll
-        }}
-      >
+  return (
+    <Paper 
+      mt={{ base: "xs", md: "xs" }} 
+      id="fastorder-search"
+      p={isMobile ? "sm" : "md"}
+      style={{ 
+        overflow: 'hidden'
+      }}
+    >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Swiper
           modules={[FreeMode]}
-          spaceBetween={0}
+          spaceBetween={8}
           slidesPerView="auto"
           freeMode={true}
           style={{ 
-            // padding: '10px 0', 
-            height: '35px', // Set container height
-            overflow: 'visible' // Allow dropdown to overflow
+            height: '35px',
+            overflow: 'visible'
           }}
         >
-        {/* Apply Filter Button */}
+          {/* Apply Filter Button */}
           <SwiperSlide style={buttonSlideStyle}>
-            <div className="flex flex-col justify-center h-full">
-              <Button
-                type="submit"
-                size="sm"
-                leftSection={<IconFilter size={18} />}
-              >
-                اعمال
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              size="xs"
+              style={{
+                height: "32px",
+                minHeight: "32px",
+                maxHeight: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 12px"
+              }}
+            >
+              <IoSettingsSharp size={16} />
+            </Button>
           </SwiperSlide>
 
-
-
-          {/* Sort Filter */}
-          <SwiperSlide style={slideStyle}>
-            <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">ترتیب نمایش:</span> */}
-              <div style={{ flex: 1 }}>
-                <ChevronSelect
-                  placeholder="ترتیب نمایش"
-                  data={[
-                    { label: "بهترین قیمت", value: "bestPrice" },
-                    { label: "بیشترین موجودی", value: "highestStock" },
-                  ]}
-                  value={form.values.sort}
-                  onChange={(v) => form.setFieldValue("sort", v)}
-                  // size="sm"
-                  dropdownId="sort"
-                />
-              </div>
-            </div>
-          </SwiperSlide>
-
-          {/* Price Format Filter */}
-          <SwiperSlide style={slideStyle}>
-            <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">واحد قیمت:</span> */}
-              <div style={{ flex: 1 }}>
-                <ChevronSelect
-                  placeholder="واحد"
-                  data={[
-                    { label: "هزار تومان", value: "hezar" },
-                    { label: "میلیون تومان", value: "million" },
-                  ]}
-                  value={form.values.priceFormat}
-                  onChange={(v) => form.setFieldValue("priceFormat", v)}
-                  // size="sm"
-                  dropdownId="priceFormat"
-                />
-              </div>
-            </div>
-          </SwiperSlide>
-
-          {/* Color Filter */}
-          <SwiperSlide style={slideStyle}>
-            <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">انتخاب رنگ:</span> */}
-              <div style={{ flex: 1 }}>
-                <ColorCombobox 
-                  placeholder="رنگ"
-                  colors={filterValues.colors || []} 
-                  value={form.values.color} 
-                  onChange={(v) => form.setFieldValue("color", v)}
-                  dropdownId="color"
-                />
-              </div>
-            </div>
-          </SwiperSlide>
-          
           {/* Delivery Time Filter */}
-          <SwiperSlide style={slideStyle}>
+          <SwiperSlide style={selectSlideStyle}>
             <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">زمان ارسال:</span> */}
               <div style={{ flex: 1 }}>
                 <ChevronSelect
                   placeholder="ارسال"
                   allLabel="همه بازه‌های ارسال"
                   data={[
                     { label: "همه", value: "all" },
-                    { label: "کمتر از 3 ساعت", value: "3hr" },
-                    { label: "کمتر از 1 روز", value: "1d" },
+                    { label: "< 3 ساعت", value: "3hr" },
+                    { label: "< 1 روز", value: "1d" },
                     { label: "تا 3 روز", value: "3d" },
                     { label: "تا 1 هفته", value: "7d" },
                     { label: "تا 15 روز", value: "15d" },
+                    { label: "تا 30 روز", value: "30d" },
+                    { label: "بیش از 30 روز", value: "30d+" },
                   ]}
                   value={form.values.deliveryTime}
                   onChange={(v) => form.setFieldValue("deliveryTime", v)}
-                  // size="sm"
+                  // size="xs"
                   dropdownId="deliveryTime"
                 />
               </div>
@@ -626,62 +612,61 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
           </SwiperSlide>
           
           {/* Min Stock Filter */}
-          <SwiperSlide style={slideStyle}>
-            <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">حداقل موجودی:</span> */}
-              <div style={{ flex: 1 }}>
-                <ChevronSelect
-                  placeholder="موجودی"
-                  allLabel="همه موجودی"
-                  data={[
-                    { label: "همه", value: "all" },
-                    { label: "5", value: "5" },
-                    { label: "10", value: "10" },
-                    { label: "20", value: "20" },
-                    { label: "50", value: "50" },
-                    { label: "100", value: "100" },
-                  ]}
-                  value={form.values.minStock}
-                  onChange={(v) => form.setFieldValue("minStock", v)}
-                  // size="sm"
-                  dropdownId="minStock"
-                />
-              </div>
-            </div>
+          <SwiperSlide style={selectSlideStyle}>
+            <ChevronSelect
+              placeholder="موجودی"
+              allLabel="همه موجودی"
+              data={[
+                { label: "همه", value: "all" },
+                { label: "5", value: "5" },
+                { label: "10", value: "10" },
+                { label: "20", value: "20" },
+                { label: "50", value: "50" },
+                { label: "100", value: "100" },
+              ]}
+              value={form.values.minStock}
+              onChange={(v) => form.setFieldValue("minStock", v)}
+              dropdownId="minStock"
+              style={{ minWidth: "100px" }}
+            />
           </SwiperSlide>
 
           {/* Supplier Filter */}
-          <SwiperSlide style={slideStyle}>
-            <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">تامین کننده:</span> */}
-              <div style={{ flex: 1 }}>
-                <ChevronSelect
-                  placeholder="تامین"
-                  allLabel="همه تامین‌کنندگان"
-                  data={[
-                    { label: "همه", value: "all" },
-                    ...sellersData
-                  ]}
-                  value={isSupplierFixed ? supplierId : form.values.supplier}
-                  onChange={(v) => {
-                    if (!isSupplierFixed) form.setFieldValue("supplier", v);
-                  }}
-                  // size="sm"
-                  disabled={isSupplierFixed}
-                  searchable={true}
-                  dropdownId="supplier"
-                />
-              </div>
-            </div>
+          <SwiperSlide style={selectSlideStyle}>
+            <ChevronSelect
+              placeholder="تامین"
+              allLabel="همه تامین‌کنندگان"
+              data={[
+                { label: "همه", value: "all" },
+                ...sellersData
+              ]}
+              value={isSupplierFixed ? supplierId : form.values.supplier}
+              onChange={(v) => {
+                if (!isSupplierFixed) form.setFieldValue("supplier", v);
+              }}
+              disabled={isSupplierFixed}
+              searchable={true}
+              dropdownId="supplier"
+              style={{ minWidth: "120px" }}
+            />
           </SwiperSlide>
 
           {/* Province Filter */}
           <SwiperSlide 
-            style={{...slideStyle, cursor: 'pointer'}}
+            style={switchSlideStyle}
             onClick={(e) => handleSlideClick(e, 'province')}
           >
-            <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">استان ارسال:</span> */}
+            <div style={{
+              height: "32px",
+              minHeight: "32px",
+              display: "flex",
+              alignItems: "center",
+              padding: "0 12px",
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              cursor: "pointer",
+              backgroundColor: "transparent"
+            }}>
               <Switch
                 label={form.values.province === "mylocation" ? "استان من" : "همه استان ها"}
                 checked={form.values.province === "mylocation"}
@@ -693,11 +678,11 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
                   },
                   track: {
                     backgroundColor: form.values.province === "mylocation"
-                      ? theme.colors.blue[8]  // Blue for "استان من"
-                      : theme.colors.yellow[5], // Orange for "همه استان ها"
+                      ? theme.colors.blue[8]
+                      : theme.colors.yellow[5],
                   },
                   thumb: {
-                    backgroundColor: theme.white, // White thumb for visibility
+                    backgroundColor: theme.white,
                   },
                 })}
               />
@@ -706,11 +691,20 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
 
           {/* Stock Status Filter */}
           <SwiperSlide 
-            style={{...slideStyle, cursor: 'pointer'}}
+            style={switchSlideStyle}
             onClick={(e) => handleSlideClick(e, 'stockStatus')}
           >
-            <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">وضعیت موجودی:</span> */}
+            <div style={{
+              height: "32px",
+              minHeight: "32px",
+              display: "flex",
+              alignItems: "center",
+              padding: "0 12px",
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              cursor: "pointer",
+              backgroundColor: "transparent"
+            }}>
               <Switch
                 label={form.values.stockStatus ? "موجود" : "ناموجود"}
                 checked={!!form.values.stockStatus}
@@ -723,7 +717,7 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
                   track: {
                     backgroundColor: form.values.stockStatus
                       ? theme.colors.green[6]
-                      : theme.colors.red[6], // Green for "موجود", Red for "ناموجود"
+                      : theme.colors.red[6],
                   },
                   thumb: {
                     backgroundColor: theme.white,
@@ -735,11 +729,20 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
 
           {/* Sale Type Filter */}
           <SwiperSlide 
-            style={{...slideStyle, cursor: 'pointer'}}
+            style={switchSlideStyle}
             onClick={(e) => handleSlideClick(e, 'saleType')}
           >
-            <div className="flex items-center h-full">
-              {/* <span className="text-sm whitespace-nowrap min-w-fit">نوع فروش:</span> */}
+            <div style={{
+              height: "32px",
+              minHeight: "32px",
+              display: "flex",
+              alignItems: "center",
+              padding: "0 12px",
+              border: "1px solid #dee2e6",
+              borderRadius: "8px",
+              cursor: "pointer",
+              backgroundColor: "transparent"
+            }}>
               <Switch
                 label={form.values.saleType === "cash" ? "نقدی" : "پیش فروش"}
                 checked={form.values.saleType === "cash"}
@@ -759,8 +762,6 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
               />
             </div>
           </SwiperSlide>
-
-
         </Swiper>
       </form>
     </Paper>

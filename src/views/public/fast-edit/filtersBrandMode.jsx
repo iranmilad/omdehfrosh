@@ -21,6 +21,7 @@ import { useFastOrder } from ".";
 import { useFilterContext } from "./filterscontext";
 import { useLocation } from "react-router";
 import { useMediaQuery } from "@mantine/hooks";
+import { IoSettingsSharp } from "react-icons/io5";
 
 // Global state for managing dropdowns
 let globalDropdownManager = {
@@ -471,17 +472,15 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
           }}
         >
           {/* Apply Filter Button */}
-          <SwiperSlide style={buttonSlideStyle}>
-            <div className="flex flex-col justify-center h-full">
-              <Button
-                type="submit"
-                size="sm"
-                leftSection={<IconFilter size={18} />}
-              >
-                اعمال
-              </Button>
-            </div>
-          </SwiperSlide>
+        <SwiperSlide style={buttonSlideStyle}>
+          <Button
+            type="submit"
+            size="sm"
+            
+          >
+            <IoSettingsSharp size={18} />
+          </Button>
+        </SwiperSlide>
           
           {/* Sort Filter */}
           <SwiperSlide style={slideStyle}>

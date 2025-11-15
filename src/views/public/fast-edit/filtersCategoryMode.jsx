@@ -31,6 +31,7 @@ import { shallowEqual, useMediaQuery } from "@mantine/hooks";
 import { useFastOrder } from ".";
 import { useFilterContext } from "./filterscontext";
 import { useLocation, useParams } from "react-router";
+import { IoSettingsSharp } from "react-icons/io5";
 
 const colors = [
   { label: "قرمز", value: "#FF0000" },
@@ -540,15 +541,13 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
       >
       {/* Apply Filter Button */}
         <SwiperSlide style={buttonSlideStyle}>
-          <div className="flex flex-col justify-center h-full">
-            <Button
-              type="submit"
-              size="sm"
-              leftSection={<IconFilter size={18} />}
-            >
-              اعمال
-            </Button>
-          </div>
+          <Button
+            type="submit"
+            size="sm"
+            
+          >
+            <IoSettingsSharp size={18} />
+          </Button>
         </SwiperSlide>
 
         {/* Sort Filter */}

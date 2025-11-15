@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
 
 // Async Thunk for verifying JWT token
 export const verifyToken = createAsyncThunk(
@@ -17,10 +18,17 @@ export const verifyToken = createAsyncThunk(
           }),         
         });
     
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          return rejectWithValue(errorData?.error || "Failed to verify token");
-        }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+      
+        const error = {
+          status: response.status,
+          message: errorData?.message || getHttpCodeMessage(response.status),
+        };
+      
+        return rejectWithValue(error);
+      }
+
   
         const data = await response.json();
   
