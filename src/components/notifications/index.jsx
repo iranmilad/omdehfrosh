@@ -38,25 +38,17 @@ const Notifications = () => {
   }, [dispatch]);
 
   // Fetch notifications only once per session (persists across page refreshes)
-  useEffect(() => {
-    // Reset flag when user changes
-    if (!user || !isVerified) {
-      fetchAttemptedRef.current = false;
-      return;
-    }
+// Fetch notifications when component mounts and user is authenticated
+useEffect(() => {
+  if (!user || !isVerified) {
+    return;
+  }
 
-    // Only attempt to fetch once per component lifecycle
-    if (!fetchAttemptedRef.current && !loadingNotificationNumber) {
-      fetchAttemptedRef.current = true;
-      
-      try {
-        dispatch(getNotificationNumber()); // No force refresh for initial load
-      } catch (error) {
-        // Handle error silently
-      }
-    }
-  }, [dispatch, user, isVerified, loadingNotificationNumber]);
-
+  // Fetch notifications every time the component mounts
+  if (!loadingNotificationNumber) {
+    dispatch(getNotificationNumber());
+  }
+}, [dispatch, user, isVerified]); // Remove loadingNotificationNumber from deps
   // Clear cache on logout (when user becomes null)
   useEffect(() => {
     if (!user && fetchAttemptedRef.current) {
@@ -131,15 +123,15 @@ const Notifications = () => {
   if (!user || !isVerified) {
     return (
       <ActionIcon
-        h={45}
-        color="gray"
+        style={{ height: 39, width: 44 }}
+        // color="gray"
         variant="light"
-        size="xl"
         onClick={() => navigate('/login')}
         title="وارد شوید تا اعلان‌ها را ببینید"
       >
         <IoIosNotificationsOutline size={25} />
       </ActionIcon>
+
     );
   }
 
@@ -148,10 +140,11 @@ const Notifications = () => {
     console.error('Notification error:', errorNotificationNumber);
     return (
       <ActionIcon
-        h={45}
+        // h={35}
         color="gray"
         variant="light"
-        size="xl"
+        // size="xl"
+        style={{ height: 45, width: 44 }}
         onClick={handleClick}
         title="خطا در بارگیری اعلان‌ها"
         disabled
@@ -165,10 +158,11 @@ const Notifications = () => {
   if (loadingNotificationNumber && !notificationNumber) {
     return (
       <ActionIcon
-        h={45}
+        // h={35}
         color="blue"
         variant="light"
-        size="xl"
+        // size="xl"
+        style={{ height: 45, width: 44 }}
         onClick={handleClick}
         loading
       >
@@ -192,10 +186,11 @@ const Notifications = () => {
         }}
       >
         <ActionIcon
-          h={45}
+          // h={35}
           color="blue"
           variant="light"
-          size="xl"
+          // size="xl"
+          style={{ height: 45, width: 44 }}
           onClick={handleClick}
         >
           <IoIosNotificationsOutline size={25} />
@@ -207,10 +202,11 @@ const Notifications = () => {
   // Default: show without indicator
   return (
     <ActionIcon
-      h={45}
+      // h={44}
       color="blue"
       variant="light"
-      size="xl"
+      // size="xl"
+      style={{ height: 45, width: 44 }}
       onClick={handleClick}
     >
       <IoIosNotificationsOutline size={25} />

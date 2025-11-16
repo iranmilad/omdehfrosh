@@ -1,13 +1,19 @@
 import { ActionIcon, Button, Flex, Text } from "@mantine/core";
-import { IconHome, IconMenu, IconMenu2, IconSearch, IconShoppingCart, IconUser } from "@tabler/icons-react";
+import {
+  IconHome,
+  IconMenu2,
+  IconSearch,
+  IconShoppingCart,
+  IconUser,
+} from "@tabler/icons-react";
 import React from "react";
 import { NavLink } from "react-router";
 
-function BottomNavigation({category, search, basket}) {
+function BottomNavigation({ category, search, basket }) {
   return (
     <Flex
-    id="bottom-navigation"
-    hiddenFrom="md"
+      id="bottom-navigation"
+      hiddenFrom="md"
       bg="white"
       w="100%"
       h="70"
@@ -21,36 +27,99 @@ function BottomNavigation({category, search, basket}) {
       justify="space-between"
       align="center"
     >
-        <Button p="0" variant="transparent" size="xs" w="calc(100% / 5)" h="45" fw="500" component={NavLink} to="/">
-            <Flex direction="column" align="center" justify="center" gap="5">
-                <IconHome stroke={1.5} size={22} color="#A5A5A7" />
-                <Text c="#A5A5A7" size="10px">خانه</Text>
-            </Flex>
-        </Button>
-        <Button p="0" variant="transparent" size="xs" w="calc(100% / 5)" h="45" fw="500" onClick={category}>
-            <Flex direction="column" align="center" justify="center" gap="5">
-                <IconMenu2 stroke={1.5} size={22} color="#A5A5A7" />
-                <Text c="#A5A5A7" size="10px">دسته‌بندی</Text>
-            </Flex>
-        </Button>
-        <Button p="0" variant="transparent" size="xs" w="calc(100% / 5)" h="45" fw="500" onClick={basket} component={NavLink} to="/basket"> 
-            <Flex direction="column" align="center" justify="center" gap="5">
-                <IconShoppingCart stroke={1.5} size={22} color="#A5A5A7" />
-                <Text c="#A5A5A7" size="10px">سبد خرید</Text>
-            </Flex>
-        </Button>
-        <Button p="0" variant="transparent" size="xs" w="calc(100% / 5)" h="45" fw="500" onClick={search}>
-            <Flex direction="column" align="center" justify="center" gap="5">
-                <IconSearch stroke={1.5} size={22} color="#A5A5A7" />
-                <Text c="#A5A5A7" size="10px">جستجو</Text>
-            </Flex>
-        </Button>
-        <Button p="0" variant="transparent" size="xs" w="calc(100% / 5)" h="45" fw="500" component={NavLink} to='/account'>
-            <Flex direction="column" align="center" justify="center" gap="5">
-                <IconUser stroke={1.5} size={22} color="#A5A5A7" />
-                <Text c="#A5A5A7" size="10px">حساب کاربری</Text>
-            </Flex>
-        </Button>
+      <Button
+        className="bottom-nav-btn"
+        p="0"
+        variant="transparent"
+        size="xs"
+        w="calc(100% / 5)"
+        h="45"
+        fw="500"
+        component={NavLink}
+        to="/"
+      >
+        <Flex direction="column" align="center" justify="center" gap="5">
+          <IconHome stroke={1.5} size={22} color="#A5A5A7" />
+          <Text c="#A5A5A7" size="10px">
+            خانه
+          </Text>
+        </Flex>
+      </Button>
+
+      <Button
+        className="bottom-nav-btn"
+        p="0"
+        variant="transparent"
+        size="xs"
+        w="calc(100% / 5)"
+        h="45"
+        fw="500"
+        onClick={category}
+      >
+        <Flex direction="column" align="center" justify="center" gap="5">
+          <IconMenu2 stroke={1.5} size={22} color="#A5A5A7" />
+          <Text c="#A5A5A7" size="10px">
+            دسته‌بندی
+          </Text>
+        </Flex>
+      </Button>
+
+      <Button
+        className="bottom-nav-btn"
+        p="0"
+        variant="transparent"
+        size="xs"
+        w="calc(100% / 5)"
+        h="45"
+        fw="500"
+        onClick={basket}
+        component={NavLink}
+        to="/basket"
+      >
+        <Flex direction="column" align="center" justify="center" gap="5">
+          <IconShoppingCart stroke={1.5} size={22} color="#A5A5A7" />
+          <Text c="#A5A5A7" size="10px">
+            سبد خرید
+          </Text>
+        </Flex>
+      </Button>
+
+      <Button
+        className="bottom-nav-btn"
+        p="0"
+        variant="transparent"
+        size="xs"
+        w="calc(100% / 5)"
+        h="45"
+        fw="500"
+        onClick={search}
+      >
+        <Flex direction="column" align="center" justify="center" gap="5">
+          <IconSearch stroke={1.5} size={22} color="#A5A5A7" />
+          <Text c="#A5A5A7" size="10px">
+            جستجو
+          </Text>
+        </Flex>
+      </Button>
+
+      <Button
+        className="bottom-nav-btn"
+        p="0"
+        variant="transparent"
+        size="xs"
+        w="calc(100% / 5)"
+        h="45"
+        fw="500"
+        component={NavLink}
+        to="/account"
+      >
+        <Flex direction="column" align="center" justify="center" gap="5">
+          <IconUser stroke={1.5} size={22} color="#A5A5A7" />
+          <Text c="#A5A5A7" size="10px">
+            حساب کاربری
+          </Text>
+        </Flex>
+      </Button>
     </Flex>
   );
 }

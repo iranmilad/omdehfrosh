@@ -1,0 +1,97 @@
+/**=====================
+    IRANYekanX Fonts css start
+==========================**/
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 100;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-Thin.woff2') format('woff2'),
+         url('./woff/IRANYekanX-Thin.woff') format('woff'),
+         url('./ttf/IRANYekanX-Thin.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 200;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-UltraLight.woff2') format('woff2'),
+         url('./woff/IRANYekanX-UltraLight.woff') format('woff'),
+         url('./ttf/IRANYekanX-UltraLight.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-Light.woff2') format('woff2'),
+         url('./woff/IRANYekanX-Light.woff') format('woff'),
+         url('./ttf/IRANYekanX-Light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-Regular.woff2') format('woff2'),
+         url('./woff/IRANYekanX-Regular.woff') format('woff'),
+         url('./ttf/IRANYekanX-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-Medium.woff2') format('woff2'),
+         url('./woff/IRANYekanX-Medium.woff') format('woff'),
+         url('./ttf/IRANYekanX-Medium.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-DemiBold.woff2') format('woff2'),
+         url('./woff/IRANYekanX-DemiBold.woff') format('woff'),
+         url('./ttf/IRANYekanX-DemiBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-Bold.woff2') format('woff2'),
+         url('./woff/IRANYekanX-Bold.woff') format('woff'),
+         url('./ttf/IRANYekanX-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-ExtraBold.woff2') format('woff2'),
+         url('./woff/IRANYekanX-ExtraBold.woff') format('woff'),
+         url('./ttf/IRANYekanX-ExtraBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IRANYekanX';
+    font-style: normal;
+    font-weight: 900;
+    font-display: swap;
+    src: url('./woff2/IRANYekanX-Black.woff2') format('woff2'),
+         url('./woff/IRANYekanX-Black.woff') format('woff'),
+         url('./ttf/IRANYekanX-Black.ttf') format('truetype');
+}
+
+/**=====================
+    IRANYekanX Fonts css end
+==========================**/
