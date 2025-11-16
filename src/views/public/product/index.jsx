@@ -97,7 +97,7 @@ const Product = () => {
     >
       <div className="my-8 lg:my-10">
         <Paper pt="xl" px="xl">
-          <div className="flex flex-col lg:flex-row gap-24">
+          <div className="flex flex-col lg:flex-row gap-6">
             <div className="lg:w-4/12">
               <Flex gap="md" direction={{ base: "column", lg: "row" }}>
                 <IconBar favorite={product?.general?.addedToFavorite} data={product} />

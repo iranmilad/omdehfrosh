@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button, Text } from "@mantine/core";
 import { FaTimes, FaRedo } from "react-icons/fa";
+import { FaRotate } from "react-icons/fa6";
+import { FcRotateToLandscape } from "react-icons/fc";
 
 // Helper functions to set/get cookies
 function setCookie(name, value, seconds) {
@@ -64,31 +66,67 @@ function RotateModal({ isPortrait }) {
         zIndex: 9999,
       }}
     >
-      <div
-        style={{
-          background: "white",
-          padding: "20px 30px",
-          borderRadius: "12px",
-          position: "relative",
-          textAlign: "center",
-          maxWidth: "90%",
-        }}
-      >
-        <Button
-          variant="subtle"
-          color="red"
-          style={{ position: "absolute", top: 8, right: 8 }}
-          onClick={handleClose}
-        >
-          <FaTimes />
-        </Button>
-        
-        <FaRedo size={30} color="red" style={{ marginBottom: "10px" }} />
-        
-        <Text style={{ fontSize: "14px" }}>
-          برای تجربه بهتر لطفا از حالت صفحه نمایش افقی استفاده کنید
-        </Text>
-      </div>
+
+<div
+  style={{
+    background: "white",
+    padding: "16px 24px",
+    borderRadius: "12px",
+    maxWidth: "90%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "16px",
+  }}
+>
+  {/* Row: Icon + Text */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      width: "100%",
+      justifyContent: "center",
+      textAlign: "center",
+    }}
+  >
+    <Button
+      variant="subtle"
+      color="purple"
+      onClick={handleClose}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 0,
+        width: "36px",
+        height: "36px",
+        borderRadius: "50%",
+        flexShrink: 0,
+      }}
+    >
+      <FcRotateToLandscape size={26} />
+    </Button>
+
+    <Text style={{ fontSize: "14px" }}>
+      برای تجربه بهتر لطفا از حالت صفحه نمایش افقی استفاده کنید
+    </Text>
+  </div>
+
+  {/* Bottom Close Button */}
+  <Button
+    variant="light"
+    // color="gray"
+    fullWidth
+    onClick={handleClose}
+    style={{ maxWidth: "200px" }}
+  >
+    بستن
+  </Button>
+</div>
+
+
+
     </div>
   );
 }

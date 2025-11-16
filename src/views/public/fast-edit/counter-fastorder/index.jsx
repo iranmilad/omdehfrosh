@@ -275,7 +275,7 @@ const decrement = () => {
           h={45}
           onClick={() => handleChange(Number(item?.minOrder) || 1)} // Now starts at minOrder
         >
-          افزودن  
+            
         </Button>
         )}
     </>

@@ -1,303 +1,13 @@
 import { useEffect, useState } from "react";
-import {
-  Table,
-  Header,
-  HeaderRow,
-  Body,
-  Row,
-  HeaderCell,
-  Cell,
-} from "@table-library/react-table-library/table";
-import { useTheme } from "@table-library/react-table-library/theme";
-import {
-  getTheme,
-  DEFAULT_OPTIONS,
-} from "@table-library/react-table-library/mantine";
-import {
-  IconChevronDown,
-  IconChevronLeft,
-  IconUserCircle,
-} from "@tabler/icons-react";
-import {
-  Button,
-  Image,
-  Group,
-  Anchor,
-  ThemeIcon,
-  Box,
-  useMantineTheme,
-  TextInput,
-  NumberInput,
-  Select,
-  Text,
-} from "@mantine/core";
-import { CellTree, useTree } from "@table-library/react-table-library/tree";
+import { Table, Image, Typography, Space, Button, Tag, Avatar } from "antd";
+import { DownOutlined, RightOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
 import { NavLink } from "react-router";
-import { useMediaQuery } from "@mantine/hooks";
 import usePrint from "../../../hooks/usePrint";
 import { Attributes } from "../fast-edit/orderRow";
 import CounterFastOrder from "../../../components/counter-fastorder";
 import EditItemsFastOrder from "./edit-items";
 
-const TableRow = ({ 
-  item, 
-  columns, 
-  selectedNodes,
-  visibleColumns, 
-  formData, 
-  setFormData, 
-  availableLocations = [], 
-  filterValues,
-  filters_brand_mode 
-}) => {
-
-
-  const handleRowClick = () => {
-  };
-
-  const displayItem = selectedNodes?.[item.id] || item;
-
-  const visibleCols = columns.filter(
-    (col) => !visibleColumns.includes(col.key)
-  );
-  const firstVisibleColumn = visibleCols[0]?.key;
-
-const handleInputChange = (id, key, value) => {
-  setFormData((prev) => {
-    const updatedItem = structuredClone(prev[id] || {}); // Deep copy safely
-    const keys = key.split(".");
-
-    let current = updatedItem;
-    for (let i = 0; i < keys.length - 1; i++) {
-      const k = keys[i];
-
-      if (!current[k]) {
-        current[k] = k === "ICPrice" ? [] : {};
-      }
-
-      current = current[k];
-    }
-
-    const lastKey = keys[keys.length - 1];
-
-    if (keys[keys.length - 2] === "ICPrice") {
-      const icLabel = lastKey; // Example: "usd" or "AED"
-      const icIndex = current.findIndex((ic) => ic.label === icLabel);
-
-      if (icIndex !== -1) {
-        // ✅ Retrieve existing ICID & name before updating
-        const existingIC = current[icIndex];
-        current[icIndex] = { 
-          ...existingIC, 
-          amount: value 
-        };
-      } else {
-        // ✅ Find ICID & name from existing form data to preserve it
-        const existingICData = prev[id]?.price?.ICPrice?.find((ic) => ic.label === icLabel);
-        current.push({ 
-          ICID: existingICData?.ICID ?? "default_id", 
-          label: icLabel, 
-          name: existingICData?.name ?? "Unknown", 
-          amount: value 
-        });
-      }
-    } else {
-      current[lastKey] = value;
-    }
-
-    return {
-      ...prev,
-      [id]: updatedItem,
-    };
-  });
-};
-
-  const [imageErrors, setImageErrors] = useState({});
-
-  return (
-    <Row item={item} 
-      className="items-center justify-center" 
-      style={{ width: '100%', tableLayout: 'auto' }}
-    >
-
-      {columns.map((column, index) => {
-        if (visibleColumns.includes(column.key)) return null;
-
-        let content;
-        switch (column.key) {
-            case "image":
-            const hasValidImage = displayItem.images && 
-                                displayItem.images.length > 0 && 
-                                displayItem.images[0] && 
-                                displayItem.images[0].trim() !== "" &&
-                                !imageErrors[item.psid]; // Check if this specific image failed to load
-
-            content = hasValidImage ? (
-              <Image 
-                src={displayItem.images[0]} 
-                w={40} 
-                h={40}
-                onError={() => {
-                  // When image fails to load, mark it as error and trigger re-render
-                  setImageErrors(prev => ({ ...prev, [item.psid]: true }));
-                }}
-              />
-            ) : (
-              <div style={{ 
-                width: 40, 
-                height: 40, 
-                backgroundColor: '#f8f9fa', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                borderRadius: '4px',
-                border: '1px solid #e9ecef'
-              }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#868e96" strokeWidth="1.5">
-                            {/* Shopping bag/product icon */}
-                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                            <line x1="3" y1="6" x2="21" y2="6"/>
-                            <path d="m16 10a4 4 0 0 1-8 0"/>
-                          </svg>
-              </div>
-            );
-            break;
-            case "name":
-              content = (
-                <NavLink
-                  to={`/product/${item.id}`}
-                  className="text-md md:text-sm text-blue-500 hover:text-red-700 transition-colors duration-200"
-                >
-                  <Text
-                    style={{
-                      fontSize: '9px',
-                      minWidth: '60px',
-                      display: 'inline-block',
-                      whiteSpace: 'normal',
-                      wordWrap: 'break-word',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {item.name}
-                  </Text>
-                </NavLink>
-              );            
-              break;
-          case "attributes":
-            content = <Attributes items={item.attributes} />;
-            break;
-          case "price":
-            content = displayItem.price.regularPrice;
-            break;
-          case "discount":
-             content = displayItem.price.discountedPrice;
-             break;
-          // case "psid":
-          //   content = displayItem.psid;
-            break;
-          case "stock":
-            content = `${displayItem.stock} عدد`;
-            break;
-          case "minOrder":
-            content = `${displayItem.minOrder} عدد`;
-            break;
-            case "maxOrder":
-              content = `${displayItem.maxOrder} عدد`;
-              break;
-              case "ICPrice_usd":
-                const usdIC = formData[item?.psid]?.price?.ICPrice?.find((ic) => ic.label === "usd") || { amount: 0 };
-                content = usdIC.amount
-                break;
-                case "ICPrice_AED":
-                  const aedIC = formData[item?.psid]?.price?.ICPrice?.find((ic) => ic.label === "AED") || { amount: 0 };
-                  content = aedIC.amount
-                  break;
-          case "seller":
-            content = (
-              <Group gap={2} align="center">
-                <Anchor
-                  size="xs"
-                  className="text-blue-500 hover:text-red-700 transition-colors duration-200"
-                  component={NavLink}
-                  to={`/seller/${displayItem.seller.id}`}
-                >
-                  {displayItem.seller.label}
-                </Anchor>
-                <ThemeIcon size={12} variant="transparent">
-                  <IconUserCircle />
-                </ThemeIcon>
-              </Group>
-            );
-            break;
-          case "deliveryTime":
-            content = displayItem.deliveryTime.label;
-            break;
-            case "action":
-              content = (
-                  <CounterFastOrder
-                    text="انتخاب"
-                    withButton
-                    style={{ minWidth: "40px"}}
-                    key={displayItem.id}
-                    item={displayItem}
-                    priceFormat={filters_brand_mode.priceFormat}
-                    onChange={() => handleReplaceNode(displayItem)}
-                    onClick={handleRowClick}
-                    visibleColumns={visibleColumns}
-                  />
-              );
-              break;
-            
-          default:
-            content = "";
-        }
-
-        {column.key === firstVisibleColumn && item.nodes ? (
-          <CellTree key={column.key} item={item}>
-            {content}
-          </CellTree>
-        ) : (
-          <Cell 
-            key={index} 
-            style={{
-              minWidth: "40px", 
-              padding: "2px 4px", // Minimal padding
-              margin: "0", // Remove margin
-              textAlign: "center", 
-              wordBreak: 'break-word',
-              whiteSpace: 'normal',
-              overflow: 'visible',
-              fontSize: '10px', // Smaller font
-              lineHeight: '1.2', // Tighter line height
-            }}
-          >
-            {content}
-          </Cell>
-        )}
-
-        return <Cell 
-        key={index} 
-        style={{
-          minWidth: "50px", // Reduced minimum width
-          maxWidth: "120px", // Reduced maximum width
-          padding: "2px 4px", // Minimal padding
-          margin: "0", // Remove margin
-          textAlign: "center",
-          wordBreak: "break-word",
-          whiteSpace: "normal",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          fontSize: '10px', // Smaller font
-          lineHeight: '1.2', // Tighter line height
-        }}
-      >
-        {content}
-      </Cell>
-      })}
-    </Row>
-  );
-};
+const { Text, Link } = Typography;
 
 const FastTableBrand = ({ 
   nodes, 
@@ -312,49 +22,51 @@ const FastTableBrand = ({
   icPriceKeys,
   isPortrait,
   isLandscape
- }) => {
-
+}) => {
   if (!nodes || nodes.length === 0) return null;
 
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const isTablet = useMediaQuery("(max-width: 1024px)");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth <= 1024);
   const isPrinting = usePrint();
-  const { primaryColor } = useMantineTheme();
-  const [ formData, setFormData ] = useState({});
+  const [formData, setFormData] = useState({});
+  const [imageErrors, setImageErrors] = useState({});
+  const [expandedRowKeys, setExpandedRowKeys] = useState([]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsTablet(window.innerWidth <= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     let newVisibleColumns = [];
 
-    // Mobile view columns
     if (isMobile) {
       newVisibleColumns = [
-         "image", "minOrder", "deliveryTime", "discount", "attributes", "psid",
+        "minOrder", "deliveryTime", "discount", "attributes", "psid",
         "minOrder", "maxOrder", "seller", "deliveryTime", "payment_type", "delivery", "psid"
       ];
-    } 
-    // Tablet view columns
-    else if (isTablet) {
-      newVisibleColumns = ["image", "maxOrder", "deliveryTime", "stock", "minOrder"];
-    } 
-    // For non-mobile and non-tablet views (desktop)
-    else {
+    } else if (isTablet) {
+      newVisibleColumns = [ "maxOrder", "deliveryTime", "stock", "minOrder"];
+    } else {
       newVisibleColumns = [
-         "image", "deliveryTime", "discount",
+        "deliveryTime", "discount",
         "minOrder", "maxOrder", "seller", "delivery"
       ];
     }
 
-    // Add columns for printing
     if (isPrinting) {
-      newVisibleColumns = ["image", "stock", "minOrder", "deliveryTime"];
+      newVisibleColumns = ["stock", "minOrder", "deliveryTime"];
     }
 
-    // Join the icPriceKeys with the other visible columns
     if (icPriceKeys && icPriceKeys.length > 0) {
       newVisibleColumns = [...newVisibleColumns, ...icPriceKeys];
     }
 
-    // Update the state with the combined columns
     setVisibleColumns(newVisibleColumns);
   }, [isMobile, isTablet, isPortrait, isLandscape, isPrinting, icPriceKeys]);
 
@@ -385,196 +97,381 @@ const FastTableBrand = ({
           delivery: item.delivery ?? [],
           payment_type: item.payment_type || "",
         };
-  
-        // Recursively handle subrows (nodes)
+
         if (item.nodes && item.nodes.length > 0) {
           initializeData(item.nodes, acc);
         }
       });
-  
+
       return acc;
     };
-  
+
     setFormData(initializeData(nodes));
   }, [nodes]);
 
-  let tree = useTree(
-    { nodes: nodes || [] },
-    {},
-    {
-      treeIcon: {
-        iconRight: isPrinting ? null : <IconChevronLeft />,
-        iconDown: isPrinting ? null : <IconChevronDown />,
-      },
-    }
-  );
+  const handleInputChange = (id, key, value) => {
+    setFormData((prev) => {
+      const updatedItem = structuredClone(prev[id] || {});
+      const keys = key.split(".");
 
-  // Create custom compact theme
-  const mantineTheme = getTheme({
-    ...DEFAULT_OPTIONS,
-    // Override theme for minimal spacing
-    Table: `
-      border-collapse: collapse;
-      border-spacing: 0;
-      width: 100%;
-      table-layout: auto;
-    `,
-    Header: `
-      background-color: #f8f9fa;
-    `,
-    HeaderRow: `
-      border-bottom: 1px solid #dee2e6;
-    `,
-    HeaderCell: `
-      padding: 4px 6px !important;
-      margin: 0 !important;
-      border-right: 1px solid #dee2e6;
-      font-size: 10px;
-      font-weight: 600;
-      text-align: center;
-      white-space: normal;
-      word-break: break-word;
-      line-height: 1.2;
-    `,
-    Row: `
-      border-bottom: 1px solid #f1f3f4;
-      &:hover {
-        background-color: #f8f9fa;
+      let current = updatedItem;
+      for (let i = 0; i < keys.length - 1; i++) {
+        const k = keys[i];
+
+        if (!current[k]) {
+          current[k] = k === "ICPrice" ? [] : {};
+        }
+
+        current = current[k];
       }
-    `,
-    Cell: `
-      padding: 2px 4px !important;
-      margin: 0 !important;
-      border-right: 1px solid #f1f3f4;
-      font-size: 10px;
-      text-align: center;
-      vertical-align: middle;
-      line-height: 1.2;
-    `,
-  });
-  
-  const theme = useTheme(mantineTheme);
+
+      const lastKey = keys[keys.length - 1];
+
+      if (keys[keys.length - 2] === "ICPrice") {
+        const icLabel = lastKey;
+        const icIndex = current.findIndex((ic) => ic.label === icLabel);
+
+        if (icIndex !== -1) {
+          const existingIC = current[icIndex];
+          current[icIndex] = { 
+            ...existingIC, 
+            amount: value 
+          };
+        } else {
+          const existingICData = prev[id]?.price?.ICPrice?.find((ic) => ic.label === icLabel);
+          current.push({ 
+            ICID: existingICData?.ICID ?? "default_id", 
+            label: icLabel, 
+            name: existingICData?.name ?? "Unknown", 
+            amount: value 
+          });
+        }
+      } else {
+        current[lastKey] = value;
+      }
+
+      return {
+        ...prev,
+        [id]: updatedItem,
+      };
+    });
+  };
+
+  const handleRowClick = () => {};
+
+  const renderCellContent = (column, record, onExpand) => {
+    const displayItem = record;
+    
+    switch (column.key) {
+      case "image":
+        const hasValidImage = displayItem.images && 
+          displayItem.images.length > 0 && 
+          displayItem.images[0] && 
+          displayItem.images[0].trim() !== "" &&
+          !imageErrors[record.psid];
+
+        const hasChildren = record.children && record.children.length > 0;
+        const isExpanded = expandedRowKeys.includes(record.key);
+
+        return (
+          <div 
+            style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              width: '100%', 
+              height: '100%',
+              cursor: hasChildren ? 'pointer' : 'default',
+              position: 'relative'
+            }}
+            onClick={hasChildren ? (e) => {
+              e.stopPropagation();
+              if (isExpanded) {
+                setExpandedRowKeys(expandedRowKeys.filter(key => key !== record.key));
+              } else {
+                setExpandedRowKeys([...expandedRowKeys, record.key]);
+              }
+            } : undefined}
+          >
+            {hasValidImage ? (
+              <div style={{ position: 'relative' }}>
+                <Image 
+                  src={displayItem.images[0]} 
+                  width={40} 
+                  height={40}
+                  preview={false}
+                  fallback="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='40' height='40' fill='%23f8f9fa'/%3E%3C/svg%3E"
+                  onError={() => {
+                    setImageErrors(prev => ({ ...prev, [record.psid]: true }));
+                  }}
+                  style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
+                />
+                {hasChildren && !isPrinting && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: -2,
+                    right: -2,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    backgroundColor: isExpanded ? '#1890ff' : '#fff',
+                    border: '2px solid #1890ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 8,
+                    color: isExpanded ? '#fff' : '#1890ff',
+                    transition: 'all 0.3s ease',
+                  }}>
+                    {isExpanded ? <DownOutlined /> : <RightOutlined />}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ position: 'relative' }}>
+                <div style={{ 
+                  width: 40, 
+                  height: 40, 
+                  backgroundColor: '#f8f9fa', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  borderRadius: 4,
+                  border: '1px solid #e9ecef'
+                }}>
+                  <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
+                </div>
+                {hasChildren && !isPrinting && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: -2,
+                    right: -2,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    backgroundColor: isExpanded ? '#1890ff' : '#fff',
+                    border: '2px solid #1890ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 8,
+                    color: isExpanded ? '#fff' : '#1890ff',
+                    transition: 'all 0.3s ease',
+                  }}>
+                    {isExpanded ? <DownOutlined /> : <RightOutlined />}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
+      case "name":
+        return (
+          <NavLink
+            to={`/product/${record.id}`}
+            style={{ color: '#1890ff' }}
+          >
+            <Text
+              style={{
+                fontSize: isMobile ? 11 : 12,
+                display: 'inline-block',
+              }}
+              ellipsis={{ tooltip: record.name }}
+            >
+              {record.name}
+            </Text>
+          </NavLink>
+        );
+
+      case "attributes":
+        return <Attributes items={record.attributes} />;
+
+      case "price":
+        return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{displayItem.price.regularPrice}</Text>;
+
+      case "discount":
+        return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{displayItem.price.discountedPrice}</Text>;
+
+      case "stock":
+        return <Tag color="blue" style={{ fontSize: isMobile ? 9 : 11 }}>{`${displayItem.stock} عدد`}</Tag>;
+
+      case "minOrder":
+        return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{`${displayItem.minOrder} عدد`}</Text>;
+
+      case "maxOrder":
+        return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{`${displayItem.maxOrder} عدد`}</Text>;
+
+      case "ICPrice_usd":
+        const usdIC = formData[record?.psid]?.price?.ICPrice?.find((ic) => ic.label === "usd") || { amount: 0 };
+        return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{usdIC.amount}</Text>;
+
+      case "ICPrice_AED":
+        const aedIC = formData[record?.psid]?.price?.ICPrice?.find((ic) => ic.label === "AED") || { amount: 0 };
+        return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{aedIC.amount}</Text>;
+
+      case "seller":
+        return (
+          <Space size={4} align="center">
+            <Link
+              style={{ fontSize: isMobile ? 10 : 12 }}
+              href={`/seller/${displayItem.seller.id}`}
+            >
+              {displayItem.seller.label}
+            </Link>
+            <Avatar size={16} icon={<UserOutlined />} />
+          </Space>
+        );
+
+      case "deliveryTime":
+        return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{displayItem.deliveryTime.label}</Text>;
+
+      case "action":
+        return (
+          <CounterFastOrder
+            text="انتخاب"
+            withButton
+            style={{ minWidth: "40px" }}
+            key={displayItem.id}
+            item={displayItem}
+            priceFormat={filters_brand_mode.priceFormat}
+            onChange={() => {}}
+            onClick={handleRowClick}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(column => ({
+    title: (
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600 }}>{column.label}</div>
+        {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
+          <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>میلیون تومان</Text>
+        )}
+        {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
+          <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>هزار تومان</Text>
+        )}
+      </div>
+    ),
+    dataIndex: column.key,
+    key: column.key,
+    align: 'center',
+    width: isMobile ? 80 : 120,
+    render: (_, record) => renderCellContent(column, record),
+  }));
+
+  const transformData = (items) => {
+    return items.map(item => ({
+      ...item,
+      key: item.psid || item.id,
+      children: item.nodes && item.nodes.length > 0 ? transformData(item.nodes) : undefined,
+    }));
+  };
+
+  const dataSource = transformData(nodes);
 
   return (
-    <Box 
-      style={{ 
-        overflowX: "auto", 
-        width: "100%", 
-        maxWidth: "100%",
-        WebkitOverflowScrolling: "touch",
-        whiteSpace: "nowrap",
-      }}
-    >
-      <div style={{ 
-        minWidth: `${
-          isMobile && isLandscape 
-            ? 350 // Reduced from 500
-            : isMobile && isPortrait 
-              ? 400 // Reduced from 800
-              : COLUMNS.length  // Reduced from 120
-        }px`, 
-        overflowX: "auto" 
-      }}>
+    <div style={{ width: '100%', overflowX: 'auto' }}>
+      {type === "head" ? null : (
         <Table
-          data={{ nodes }}
-          theme={theme}
-          tree={tree}
-          layout={{ isDiv: true, fixedHeader: true }}
-          style={{ 
-            width: "100%", 
-            tableLayout: "auto",
-            borderCollapse: "collapse",
-            borderSpacing: "0"
+          columns={columns}
+          dataSource={dataSource}
+          pagination={false}
+          // size={isMobile ? "small" : "middle"}
+          scroll={{ 
+            x: isMobile && isLandscape ? 350 : isMobile && isPortrait ? 400 : 'max-content',
+            y: undefined 
           }}
-        >
-          {(tableList) => (
-            <>
-              {type === "head" ? (
-                <Header>
-                  {/* Header content */}
-                </Header>
-              ) : (
-                <Box className="hidden">
-                  <Header>
-                    <HeaderRow>
-                    {COLUMNS.map((column) => (
-                      <HeaderCell
-                        style={{
-                          fontSize: '9px', // Reduced font size
-                          minWidth: "50px", // Reduced min width
-                          maxWidth: "120px", // Reduced max width
-                          padding: "4px 6px", // Minimal padding
-                          margin: "0", // Remove margin
-                          textAlign: "center",
-                          whiteSpace: "normal",
-                          wordBreak: "break-word",
-                          lineHeight: "1.2", // Tighter line height
-                        }}
-                        hide={visibleColumns.includes(column.key)}
-                        key={column.key}
-                      >
-                        {column.label}
-                        {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
-                          <Text size="xs" style={{ marginTop: '2px', fontSize: '7px' }}>میلیون تومان</Text>
-                        )}
-                        {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
-                          <Text size="xs" style={{ marginTop: '2px', fontSize: '7px' }}>هزار تومان</Text>
-                        )}
-                      </HeaderCell>
-                    ))}
-                    </HeaderRow>
-                  </Header>
-                </Box>
-              )}
-              {type === "head" ? null : (
-                <Body>
-                  <HeaderRow>
-                    {COLUMNS.map((column) => (
-                      <HeaderCell
-                        style={{
-                          fontSize: '9px', // Reduced font size
-                          minWidth: "50px", // Reduced min width
-                          maxWidth: "120px", // Reduced max width
-                          padding: "4px 6px", // Minimal padding
-                          margin: "0", // Remove margin
-                          textAlign: "center",
-                          whiteSpace: "normal",
-                          wordBreak: "break-word",
-                          lineHeight: "1.2", // Tighter line height
-                        }}
-                        hide={visibleColumns.includes(column.key)}
-                        key={column.key}
-                      >
-                        {column.label}
-                        {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
-                          <Text style={{ marginTop: '2px', fontSize: '7px' }}>میلیون تومان</Text> 
-                        )}
-                        {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
-                          <Text style={{ marginTop: '2px', fontSize: '7px' }}>هزار تومان</Text>  
-                        )}
-                      </HeaderCell>
-                    ))}
-                  </HeaderRow>
-                  {tableList.map((item) => (
-                    <TableRow
-                      key={item.psid}
-                      item={item}
-                      columns={COLUMNS}
-                      visibleColumns={visibleColumns}
-                      filterValues={filterValues}
-                      availableLocations={availableLocations}
-                      formData={formData}
-                      filters_brand_mode={filters_brand_mode}
-                      setFormData={setFormData}
-                    />
-                  ))}
-                </Body>
-              )}
-            </>
-          )}
-        </Table>
-      </div>
-    </Box>
+          expandable={{
+            expandedRowKeys,
+            onExpandedRowsChange: setExpandedRowKeys,
+            expandIcon: () => null, // Remove the default expand icon
+            indentSize: 20,
+            expandedRowClassName: (record) => 'expanded-row',
+          }}
+          bordered
+          style={{
+            fontSize: isMobile ? 10 : 12,
+          }}
+          className="fast-table-brand"
+        />
+      )}
+<style jsx>{`
+        .fast-table-brand,
+        .fast-table-brand .ant-table,
+        .fast-table-brand .ant-table-container,
+        .fast-table-brand .ant-table-content,
+        .fast-table-brand table {
+          background: #ffffff !important;
+          background-color: #ffffff !important;
+          backdrop-filter: none !important;
+          box-shadow: none !important;
+        }
+        .fast-table-brand::before,
+        .fast-table-brand::after,
+        .fast-table-brand .ant-table::before,
+        .fast-table-brand .ant-table::after,
+        .fast-table-brand .ant-table-container::before,
+        .fast-table-brand .ant-table-container::after,
+        .fast-table-brand .ant-table-content::before,
+        .fast-table-brand .ant-table-content::after,
+        .fast-table-brand table::before,
+        .fast-table-brand table::after {
+          display: none !important;
+          content: none !important;
+        }
+        .fast-table-brand .ant-table-cell {
+          padding: ${isMobile ? '4px 6px' : '8px 12px'} !important;
+          font-size: ${isMobile ? '10px' : '12px'} !important;
+          background: #ffffff !important;
+          background-color: #ffffff !important;
+          backdrop-filter: none !important;
+        }
+        .fast-table-brand .ant-table-cell::before,
+        .fast-table-brand .ant-table-cell::after {
+          display: none !important;
+          content: none !important;
+        }
+        .fast-table-brand .ant-table-thead > tr > th {
+          background: #f8f9fa !important;
+          background-color: #f8f9fa !important;
+          font-weight: 600;
+          padding: ${isMobile ? '4px 6px' : '8px 12px'} !important;
+          backdrop-filter: none !important;
+        }
+        .fast-table-brand .ant-table-thead > tr > th::before,
+        .fast-table-brand .ant-table-thead > tr > th::after {
+          display: none !important;
+          content: none !important;
+        }
+        .fast-table-brand .ant-table-tbody > tr > td {
+          background: #ffffff !important;
+          background-color: #ffffff !important;
+          backdrop-filter: none !important;
+        }
+        .fast-table-brand .ant-table-tbody > tr > td::before,
+        .fast-table-brand .ant-table-tbody > tr > td::after {
+          display: none !important;
+          content: none !important;
+        }
+        .fast-table-brand .ant-table-tbody > tr:hover > td {
+          background: #f8f9fa !important;
+          background-color: #f8f9fa !important;
+        }
+        .fast-table-brand .ant-table-tbody > tr.expanded-row > td {
+          background: #e6f7ff !important;
+          background-color: #e6f7ff !important;
+        }
+        .fast-table-brand .ant-table-tbody > tr.expanded-row:hover > td {
+          background: #bae7ff !important;
+          background-color: #bae7ff !important;
+        }
+      `}</style>
+    </div>
   );
 };
 

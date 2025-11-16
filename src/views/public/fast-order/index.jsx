@@ -640,7 +640,7 @@ useEffect(() => {
                   {
                   searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
                     (
-                      <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+                      <>
                         <FastTableBrand type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodes[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
                         {nodes.map((item, index) => (
                           <React.Fragment key={index}>
@@ -652,7 +652,7 @@ useEffect(() => {
                             <FastTableBrand keyIndex={index} isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} setNodes={setNodes} availableLocations={availableLocations}  type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
                           </React.Fragment>
                         ))}
-                      </Paper>
+                       </>
                     ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
                     (
                       <Paper p={0} className="overflow-hidden" bg="white" id="tables">

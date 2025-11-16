@@ -83,6 +83,22 @@
 @tailwind components;
 @tailwind utilities;
 
+.mantine-Modal-close {
+  display: flex !important;
+}
+
+.mantine-Modal-inner {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mantine-Modal-content {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+}
 /* Add to your global CSS or a <style> tag */
 .swiper-wrapper {
   padding-right: 0 !important;

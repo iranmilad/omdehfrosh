@@ -464,6 +464,7 @@ const CounterFastOrder = (props) => {
           }}
         >
           <IconBasket />
+          
         </Button>
       )}
     </>
