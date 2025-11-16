@@ -5,44 +5,28 @@ import {
   Container,
   Flex,
   Image,
-  Indicator,
   Menu,
   MenuDropdown,
   MenuItem,
   MenuTarget,
   Drawer,
-  Stack,
-  ScrollArea,
-  Text,
-  NumberInput,
-  NumberFormatter,
   Anchor,
   Box,
-  Burger,
   useMantineTheme,
   Avatar,
   ThemeIcon
 } from "@mantine/core";
-import Logo from "../../assets/logo.png";
 import {
-  IconArrowLeft,
-  IconBasketHeart,
   IconChevronLeft,
   IconComet,
-  IconLayoutSidebarLeftCollapse,
   IconLogout,
-  IconMenu2,
-  IconMenuDeep,
   IconShoppingCart,
-  IconTrash,
   IconUser,
   IconUserCog,
-  IconX,
 } from "@tabler/icons-react";
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import Search from "../search";
-import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import MegaMenu from "../megaMenu";
 import MobileMenu from "../mobileMenu";
@@ -51,7 +35,7 @@ import MobileSearch from "../mobileSearch";
 import MiniCart from "../miniCart";
 import { useEffect, useState, useRef } from "react";
 import { setInitial, clearCart } from "../../redux/cart";
-import { logout, verifyToken, verifyTokenSilent } from "../../redux/auth/authusers/auth";
+import { logout, verifyTokenSilent } from "../../redux/auth/authusers/auth";
 import Notifications from "../notifications";
 import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
@@ -61,7 +45,8 @@ const Header = () => {
   const dispatch = useDispatch();
   
   // Scroll animation states
-  const [showBottomNav, setShowBottomNav] = useState(false); // Start hidden
+  const [showBottomNav, setShowBottomNav] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
 
@@ -115,7 +100,7 @@ const Header = () => {
       });
 
       if (!response.ok) {
-        localStorage.removeItem("user"); // Remove token if not valid
+        localStorage.removeItem("user");
         throw new Error("Failed to fetch cart data");
       }
 
@@ -128,7 +113,6 @@ const Header = () => {
       
       setCartData(newCartData);
       
-      // Update Redux cart state if we have cart items
       if (newCartData.cart.length > 0) {
         dispatch(setInitial(newCartData.cart));
       }
@@ -147,14 +131,14 @@ const Header = () => {
     
     if (!ticking.current) {
       requestAnimationFrame(() => {
+        // Update sticky shadow state
+        setIsSticky(currentScrollY > 0);
+        
         if (currentScrollY < 10) {
-          // Hide at top
           setShowBottomNav(false);
         } else if (currentScrollY > lastScrollY.current + 5) {
-          // Scrolling down - show bottom nav
           setShowBottomNav(true);
         } else if (currentScrollY < lastScrollY.current - 5) {
-          // Scrolling up - hide bottom nav
           setShowBottomNav(false);
         }
         
@@ -174,30 +158,20 @@ const Header = () => {
   useEffect(() => {
     const verifyUserAuth = async () => {
       try {
-        // Use silent version to prevent console errors
         await dispatch(verifyTokenSilent());
       } catch (error) {
         // Silently handle verification errors
-        // console.debug('Silent auth verification completed');
       }
     };
 
     verifyUserAuth();
   }, [dispatch]);
 
-  // Get notification number only if user is authenticated
+  // Get notification number - force refresh every time
   useEffect(() => {
     if (user && isVerified) {
-      const fetchNotifications = async () => {
-        try {
-          await dispatch(getNotificationNumber());
-        } catch (error) {
-          // Silently handle notification fetch errors
-          // console.debug('Notification fetch completed');
-        }
-      };
-
-      fetchNotifications();
+      console.log('Fetching notifications with force refresh');
+      dispatch(getNotificationNumber({ forceRefresh: true }));
     }
   }, [dispatch, user, isVerified]);
 
@@ -206,31 +180,19 @@ const Header = () => {
     if (user && isVerified) {
       fetchCartData();
     } else {
-      // Clear cart data if user is not authenticated
       setCartData({ cart: [], totalPrice: 0 });
     }
   }, [user, isVerified, dispatch]);
 
   const Logout = async () => {
     try {
-      // Clear localStorage
       localStorage.removeItem("user"); 
-      
-      // Clear Redux states
       dispatch(logout());
       dispatch(clearCart());
-      
-      // Clear local cart data
       setCartData({ cart: [], totalPrice: 0 });
-      
-      // Silent re-verification to update auth state
       await dispatch(verifyTokenSilent());
-      
-      // Navigate to home
       navigate("/");
     } catch (error) {
-      // Even if there's an error, ensure user is logged out
-      // console.debug('Logout process completed');
       navigate("/");
     }
   };
@@ -238,7 +200,7 @@ const Header = () => {
   // Safe render for notification badge
   const renderNotificationBadge = () => {
     if (errorNotificationNumber || !notificationNumber) {
-      return null; // Don't show badge if there's an error or no data
+      return null;
     }
     return (
       <Badge variant="light">
@@ -261,34 +223,67 @@ const Header = () => {
         </a>
       ) : null}
       
-      <div className=" z-50 bg-white relative" id="header">
+      <div 
+        className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${
+          isSticky ? 'shadow-md' : 'shadow-sm'
+        }`} 
+        id="header"
+      >
         <div>
-          <div className="relative z-30 gap-x-4 bg-white py-4 pb-3 shadow-sm">
+          <div className="relative z-30 gap-x-4 bg-white py-4 pb-2">
             <Container>
-              <Flex w="100%" justify="space-between" align="center">
-                <Flex align="center" gap={60}>
-                  <Flex align="center" gap="sm">
-                    <Anchor component={NavLink} to="/">
-                      <Image
-                        src={bootstrap?.logo}
-                        h="auto"
-                        w={{ base: "146" }}
-                        fit="contain"
-                      />
-                    </Anchor>
-                  </Flex>
-                  <Box visibleFrom="md">
-                    <Search />
+              <Flex w="100%" justify="space-between" align="center" gap={{ base: 'xs', sm: 'sm', md: 'md' }}>
+                {/* Logo Section - Fixed width */}
+                <Box
+                  style={{ flexShrink: 0 }}
+                  w={{ base: "80px", sm: "100px", md: "146px" }}
+                >
+                  <Anchor component={NavLink} to="/">
+                    <Image
+                      src={bootstrap?.logo}
+                      h={{ base: "36px", sm: "42px", md: "48px" }}
+                      w="100%"
+                      fit="contain"
+                    />
+                  </Anchor>
+                </Box>
+                
+                {/* Search Section - Flexible width */}
+                <Box 
+                  style={{ 
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                  maw={{ base: "none", md: "500px", lg: "600px" }}
+                >
+                  <Search />
+                </Box>
+
+                {/* Actions Section - Fixed width */}
+                <Flex 
+                  gap={{ base: 'xs', sm: 'sm', md: 'md' }}
+                  align="center"
+                  style={{ flexShrink: 0 }}
+                  w={{ base: "auto", md: "auto" }}
+                >
+                  <Box hiddenFrom="sm">
+                    <Notifications compact />
                   </Box>
-                </Flex>
-                <Flex align="center" gap="md">
-                  <Notifications />
-                  {!hideMiniCart && <MiniCart cartItems={cartItems} />}
+                  
+                  <Box visibleFrom="sm">
+                    <Notifications />
+                  </Box>
+                  
                   {user ? (
                     <Menu shadow="md" position="bottom-end" styles={{dropdown:{minWidth: 250,padding:"10px"}}}>
                       <MenuTarget>
-                        <ActionIcon h={45} variant="light" size="xl">
-                          <IconUser />
+                        <ActionIcon 
+                          h={{ base: 40, md: 45 }} 
+                          w={{ base: 40, md: 45 }}
+                          variant="light" 
+                          size="xl"
+                        >
+                          <IconUser size={18} />
                         </ActionIcon>
                       </MenuTarget>
                       <MenuDropdown>
@@ -346,15 +341,18 @@ const Header = () => {
                       </MenuDropdown>
                     </Menu>
                   ) : (
-                    <Button h="45" variant="light" component={NavLink} to="/login">
-                      ورود/ثبت‌ نام
+                    <Button h="39" w="113" component={NavLink} to="/login" visibleFrom="sm">
+                      ورود/ثبت‌نام
                     </Button>
                   )}
+                  {!hideMiniCart && <MiniCart cartItems={cartItems} />}
                 </Flex>
               </Flex>
+
               <Box visibleFrom="md">
                 <MegaMenu menuItems={bootstrap?.menu?.main} />
               </Box>
+
               <Drawer
                 opened={mobileMenuDrawer[0]}
                 size="100%"
@@ -362,8 +360,9 @@ const Header = () => {
                 title={
                   <Image
                     src={bootstrap?.logo}
-                    h="auto"
-                    w={{ base: "146" }}
+                    h="40px"
+                    w="auto"
+                    maw="120px"
                     fit="contain"
                   />
                 }
@@ -396,7 +395,6 @@ const Header = () => {
       </div>
       
       <MobileSearch opened={mobileSearchDrawer[0]} close={mobileSearchDrawer[1].close} />
-
     </>
   );
 };

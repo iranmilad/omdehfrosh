@@ -175,6 +175,7 @@ function MobileSearch({ opened, close }) {
           </ScrollArea>
         </>
       )}
+      
     </Drawer>
   );
 }

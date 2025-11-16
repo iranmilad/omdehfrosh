@@ -125,15 +125,15 @@ const Search = () => {
   }, [location.href]); // افزودن `opened` به وابستگی‌ها
 
   return (
-    <div className="relative w-[500px] z-50">
+    <div className="relative w-full z-50">
       <form onSubmit={(e) => submitFormSearch(e)}>
         <Input
-          ref={inputRef} // مرجع اینپوت
+          ref={inputRef}
           onInput={(e) => {
             handleChange(e);
           }}
           w="100%"
-          size="md"
+          size={{ base: "sm", sm: "md" }}
           variant="default"
           radius="99999"
           value={value}

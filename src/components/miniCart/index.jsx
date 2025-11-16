@@ -18,7 +18,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { IconShoppingCart, IconTrash, IconUser, IconX, IconCheck } from "@tabler/icons-react";
+import { IconTrash, IconUser, IconX, IconCheck } from "@tabler/icons-react";
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router";
@@ -27,6 +27,31 @@ import InfoBox from "../InfoBox";
 import { getsubscriptionPlansGet } from "../../redux/usermyaccounts/usermyaccounts/getsubscriptionplans/getSubscriptionPlansActions";
 import { DEFAULT_COLOR_MAP } from '../../Libs/attribute_colors/colors';
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
+
+// Custom Cart Icon Component
+const CartIcon = ({ size = 18, color = "currentColor", ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{
+      width: `${size}px`,
+      height: `${size}px`,
+      transform: "scaleX(1.2)",
+      transformOrigin: "center",
+    }}
+    {...props}
+  >
+    <circle cx="9" cy="21" r="1" />
+    <circle cx="20" cy="21" r="1" />
+    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    <line x1="16" y1="10" x2="19" y2="10" />
+  </svg>
+);
 
 
 const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min }) => {
@@ -388,9 +413,9 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
               onClick={removeItem}
               style={{ 
                 flexShrink: 0,
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                height: 35, width: 45
               }}
-              size={isMobile ? "xs" : "sm"}
               loading={isRemoving}
               disabled={isRemoving}
               radius="md"
@@ -548,11 +573,41 @@ const MiniCart = () => {
           indicator: { paddingTop: "1px", fontSize: "10px" },
         }}
       >
-        <ActionIcon h={45} color="red" variant="light" size="xl" onClick={open}>
-          <IconShoppingCart />
-        </ActionIcon>
+        <Button
+          variant="subtle"
+          color="gray"
+          onClick={open}
+          styles={{
+            root: {
+              height: '42px',
+              width: '47px',
+              minWidth: '45px',
+              padding: '2px 8px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1px',
+              backgroundColor: 'transparent',
+              '&:hover': {
+                backgroundColor: 'transparent'
+              }
+            },
+            label: {
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1px'
+            }
+          }}
+        >
+          <CartIcon size={35} color="var(--mantine-color-gray-7)" />
+          <Text size="12px" fw={400} c="gray.7" style={{ lineHeight: 1, paddingTop: '2px' }}>
+            سبد خرید
+          </Text>
+        </Button>
       </Indicator>
-      
+
       <Drawer.Root
         opened={opened}
         onClose={close}
@@ -621,7 +676,7 @@ const MiniCart = () => {
                 <Center style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', width: '100%' }}>
                   <InfoBox back={false} shadow="0" style={{ width: '100%', textAlign: 'center' }}>
                     <Stack align="center" gap="md">
-                      <IconShoppingCart size={isMobile ? 32 : 40} color="gray" />
+                      <CartIcon size={35} color="gray" />
                       <Text size={isMobile ? "sm" : "md"} c="dimmed">لطفا وارد حساب کاربری شوید</Text>
                       <Button 
                         component={NavLink} 
@@ -639,7 +694,7 @@ const MiniCart = () => {
                 <Center style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', width: '100%' }}>
                   <InfoBox back={false} shadow="0" style={{ width: '100%', textAlign: 'center' }}>
                     <Stack align="center" gap="md">
-                      <IconShoppingCart size={isMobile ? 32 : 40} color="gray" />
+                      <CartIcon size={35} color="gray" />
                       <Text size={isMobile ? "sm" : "md"} c="dimmed">سبد خرید خالی است</Text>
                       <Text size="sm" c="dimmed">محصولات مورد نظر خود را اضافه کنید</Text>
                     </Stack>

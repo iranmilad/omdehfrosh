@@ -83,22 +83,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.mantine-Modal-close {
-  display: flex !important;
-}
-
-.mantine-Modal-inner {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.mantine-Modal-content {
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  transform: none !important;
-}
 /* Add to your global CSS or a <style> tag */
 .swiper-wrapper {
   padding-right: 0 !important;
@@ -117,8 +101,78 @@ body {
   -webkit-font-variant-numeric: normal;
   -moz-font-variant-numeric: normal;
 }
+.bottom-nav-btn {
+  position: relative;
+  overflow: hidden;
+}
 
-/* Use Persian digits with IRANYekanXFaNum font */
+/* FLASH ELEMENT */
+.bottom-nav-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.06); /* lighter gray */
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+
+  /* Animation timing */
+  transition:
+    width 0.4s ease-out,
+    opacity 0.4s ease-out;
+}
+
+/* START FLASH ON HOVER */
+.bottom-nav-btn:hover::after {
+  width: 200%;
+  opacity: 1;
+
+  /* After 1 second: fade-out automatically */
+  animation: flash-disappear 1s ease forwards;
+}
+
+/* Keyframes to fade-out after 1s */
+@keyframes flash-disappear {
+  0% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+
+
+
+.mantine-Modal-close {
+  display: flex !important;
+}
+
+.mantine-Modal-inner {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+
+.mantine-Modal-content {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+}
+/* Add to your global CSS or a <style> tag */
+.swiper-wrapper {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+
 
 /* Remove input password shower icon in edge */
 input:has(::-ms-reveal, ::-ms-clear) {
