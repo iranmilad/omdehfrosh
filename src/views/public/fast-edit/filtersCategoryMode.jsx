@@ -700,16 +700,20 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
             <div style={{
               height: "32px",
               minHeight: "32px",
+              width: "140px", // Fixed width
               display: "flex",
               alignItems: "center",
+              justifyContent: "space-between", // Space between label and switch
               padding: "0 12px",
               border: "1px solid #dee2e6",
               borderRadius: "8px",
               cursor: "pointer",
               backgroundColor: "transparent"
             }}>
+              <Text size="xs" style={{ flexShrink: 0 }}>
+                استان من
+              </Text>
               <Switch
-                label={form.values.province === "mylocation" ? "استان من" : "همه استان ها"}
                 checked={form.values.province === "mylocation"}
                 readOnly
                 size="xs"
@@ -719,8 +723,9 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
                   },
                   track: {
                     backgroundColor: form.values.province === "mylocation"
-                      ? theme.colors.blue[8]
-                      : theme.colors.yellow[5],
+                      ? theme.colors.blue[6]
+                      : theme.colors.gray[4],
+                    cursor: 'pointer',
                   },
                   thumb: {
                     backgroundColor: theme.white,
@@ -738,17 +743,21 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
             <div style={{
               height: "32px",
               minHeight: "32px",
+              width: "120px", // Fixed width
               display: "flex",
               alignItems: "center",
+              justifyContent: "space-between",
               padding: "0 12px",
               border: "1px solid #dee2e6",
               borderRadius: "8px",
               cursor: "pointer",
               backgroundColor: "transparent"
             }}>
+              <Text size="xs" style={{ flexShrink: 0 }}>
+                ناموجود
+              </Text>
               <Switch
-                label={form.values.stockStatus ? "موجود" : "ناموجود"}
-                checked={!!form.values.stockStatus}
+                checked={!form.values.stockStatus}
                 readOnly
                 size="xs"
                 styles={(theme) => ({
@@ -756,9 +765,10 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
                     pointerEvents: 'none',
                   },
                   track: {
-                    backgroundColor: form.values.stockStatus
-                      ? theme.colors.green[6]
-                      : theme.colors.red[6],
+                    backgroundColor: !form.values.stockStatus
+                      ? theme.colors.red[6]
+                      : theme.colors.gray[4],
+                    cursor: 'pointer',
                   },
                   thumb: {
                     backgroundColor: theme.white,
@@ -769,6 +779,7 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
           </SwiperSlide>
 
           {/* Sale Type Filter */}
+          {/* Sale Type Filter */}
           <SwiperSlide 
             style={switchSlideStyle}
             onClick={(e) => handleSlideClick(e, 'saleType')}
@@ -776,17 +787,21 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
             <div style={{
               height: "32px",
               minHeight: "32px",
+              width: "130px", // Fixed width
               display: "flex",
               alignItems: "center",
+              justifyContent: "space-between", // Space between label and switch
               padding: "0 12px",
               border: "1px solid #dee2e6",
               borderRadius: "8px",
               cursor: "pointer",
               backgroundColor: "transparent"
             }}>
+              <Text size="xs" style={{ flexShrink: 0 }}>
+                پیش‌فروش
+              </Text>
               <Switch
-                label={form.values.saleType === "cash" ? "نقدی" : "پیش فروش"}
-                checked={form.values.saleType === "cash"}
+                checked={form.values.saleType === "credit"}
                 readOnly
                 size="xs"
                 styles={(theme) => ({
@@ -794,7 +809,10 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
                     pointerEvents: 'none',
                   },
                   track: {
-                    backgroundColor: form.values.saleType === "cash" ? theme.colors.grape[6] : theme.colors.violet[6],
+                    backgroundColor: form.values.saleType === "credit" 
+                      ? theme.colors.grape[6] 
+                      : theme.colors.gray[4],
+                    cursor: 'pointer',
                   },
                   thumb: {
                     backgroundColor: theme.white,
