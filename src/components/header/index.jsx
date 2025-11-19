@@ -230,7 +230,7 @@ const Header = () => {
         id="header"
       >
         <div>
-          <div className="relative z-30 gap-x-4 bg-white py-4 pb-2">
+          <div className="relative z-30 gap-x-4 bg-white py-2 pb-2">
             <Container>
               <Flex w="100%" justify="space-between" align="center" gap={{ base: 'xs', sm: 'sm', md: 'md' }}>
                 {/* Logo Section - Fixed width */}
@@ -248,17 +248,46 @@ const Header = () => {
                   </Anchor>
                 </Box>
                 
-                {/* Search Section - Flexible width */}
+                {/* Search Section - Flexible width - Only on mobile and md+ */}
                 <Box 
                   style={{ 
                     flex: 1,
                     minWidth: 0,
                   }}
                   maw={{ base: "none", md: "500px", lg: "600px" }}
+                  hiddenFrom="sm"
+                  visibleFrom="md"
                 >
                   <Search />
                 </Box>
 
+                {/* Mobile Search Trigger - Only visible on mobile */}
+                <Box 
+                  style={{ 
+                    flex: 1,
+                    minWidth: 0,
+                    cursor: 'pointer',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '9999px',
+                    padding: '4px 12px',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onClick={mobileSearchDrawer[1].toggle}
+                  sx={{
+                    '&:hover': {
+                      borderColor: '#868e96'
+                    }
+                  }}
+                >
+                  <Search readOnly />
+                </Box>
+                <Box 
+                  style={{ 
+                    flex: 1,
+
+                  }}
+                >
+                </Box>
                 {/* Actions Section - Fixed width */}
                 <Flex 
                   gap={{ base: 'xs', sm: 'sm', md: 'md' }}
@@ -266,10 +295,7 @@ const Header = () => {
                   style={{ flexShrink: 0 }}
                   w={{ base: "auto", md: "auto" }}
                 >
-                  <Box hiddenFrom="sm">
-                    <Notifications compact />
-                  </Box>
-                  
+                  {/* Notifications - Only visible from sm (tablet) and up */}
                   <Box visibleFrom="sm">
                     <Notifications />
                   </Box>
@@ -341,11 +367,17 @@ const Header = () => {
                       </MenuDropdown>
                     </Menu>
                   ) : (
-                    <Button h="39" w="113" component={NavLink} to="/login" visibleFrom="sm">
+                    <Button h="39" w="113" component={NavLink} to="/login">
                       ورود/ثبت‌نام
                     </Button>
                   )}
-                  {!hideMiniCart && <MiniCart cartItems={cartItems} />}
+                  
+                  {/* MiniCart - Only visible from sm (tablet) and up */}
+                  {!hideMiniCart && (
+                    <Box>
+                      <MiniCart cartItems={cartItems} />
+                    </Box>
+                  )}
                 </Flex>
               </Flex>
 
@@ -390,7 +422,8 @@ const Header = () => {
         <BottomNavigation 
           category={mobileMenuDrawer[1].toggle} 
           basket={open} 
-          search={mobileSearchDrawer[1].toggle} 
+          search={mobileSearchDrawer[1].toggle}
+          user={user}
         />
       </div>
       

@@ -7,9 +7,18 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import React from "react";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 
-function BottomNavigation({ category, search, basket }) {
+function BottomNavigation({ category, search, basket, user }) {
+  const navigate = useNavigate();
+
+  const handleAccountClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      navigate("/login");
+    }
+  };
+
   return (
     <Flex
       id="bottom-navigation"
@@ -111,7 +120,8 @@ function BottomNavigation({ category, search, basket }) {
         h="45"
         fw="500"
         component={NavLink}
-        to="/account"
+        to={user ? "/account" : "/login"}
+        onClick={handleAccountClick}
       >
         <Flex direction="column" align="center" justify="center" gap="5">
           <IconUser stroke={1.5} size={22} color="#A5A5A7" />

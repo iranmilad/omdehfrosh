@@ -144,6 +144,7 @@ import userMessagesGetComponentReducer from './usermyaccounts/usermyaccounts/use
 import userMessagesModalComponentGetReducer from './usermyaccounts/usermyaccounts/usermessagesgetcomponent/usermessagesmodalcomponentget/userMessagesModalComponentGetSlice.js'
 import shopHomeReducer from './shophome/shopHomeSlice.js'
 import getUserFavoritesListReducer from './users/getuserfavouriteslist/listSlice.js'
+import searchReducer from './search/searchSlice.js'
 
 
 
@@ -193,6 +194,8 @@ export default configureStore({
       stockAlert: stockAlertReducer,
       getUserFavoritesList: getUserFavoritesListReducer,
       brandProducts: brandProductsReducer,
+      search: searchReducer,
+
 
       submitComments: submitCommentReducer,
 

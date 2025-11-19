@@ -76,6 +76,7 @@ import checkedRowsTableDataRoutes from "./routes/checkedRowsTableDataRoutes.js"
 
 import homeRoutes from './routes/homePageRoutes.js'
 import brandsRoutes from './routes/brandsRoutes.js'
+import searchRoutes from './routes/searchRoutes.js'
 
 
 dotenv.config();
@@ -87,7 +88,7 @@ connectDB();
 const corsOptions = {
   origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-allowedHeaders: '*',
+  allowedHeaders: '*',
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -113,6 +114,9 @@ app.use("/api/cart", cartRoutes); // ✅ Routes should come after middleware
 // Routes
 // cart routes
 app.get("/cart", getCart);
+
+// search routes
+app.use("/api/search", searchRoutes);
 
 
 app.post("/cart/update", updateCart);
