@@ -1,0 +1,41 @@
+[
+    {
+        "searchResultName": "product",
+        "products": [
+            {
+                "id": "prod1",
+                "name": "گوشی سامسونگ مدل A12"
+            },
+            {
+                "id": "prod2",
+                "name": "گوشی شیائومی مدل Redmi Note 10"
+            }
+        ]
+    },
+    {
+        "searchResultName": "category",
+        "categories": [
+            {
+                "id": "cat1",
+                "name": "گوشی"
+            },
+            {
+                "id": "cat2",
+                "name": "تبلت"
+            }
+        ]
+    },
+    {
+        "searchResultName": "brand",
+        "brands": [
+            {
+                "id": "brand1",
+                "name": "سامسونگ"
+            },
+            {
+                "id": "brand2",
+                "name": "شیائومی"
+            }
+        ]
+    }
+]

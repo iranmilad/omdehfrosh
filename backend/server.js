@@ -62,6 +62,8 @@ import userMessagesRoutes from './routes/userMessagesRoutes.js'
 import homePageRoutes from './routes/homePageRoutes.js'
 import compareListRoutes from './routes/compareRoutes.js'
 import brandsPageDataRoutes from './routes/brandspagedataRoutes.js'
+import bootstrapRoutes from './routes/bootstrapRoutes.js'
+
 
 import saveFilterSettingsRoutes from './routes/filterSettingsRoutes.js' 
 
@@ -76,6 +78,7 @@ import checkedRowsTableDataRoutes from "./routes/checkedRowsTableDataRoutes.js"
 
 import homeRoutes from './routes/homePageRoutes.js'
 import brandsRoutes from './routes/brandsRoutes.js'
+import searchRoutes from './routes/searchRoutes.js'
 
 
 dotenv.config();
@@ -87,7 +90,7 @@ connectDB();
 const corsOptions = {
   origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-allowedHeaders: '*',
+  allowedHeaders: '*',
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -114,6 +117,9 @@ app.use("/api/cart", cartRoutes); // ✅ Routes should come after middleware
 // cart routes
 app.get("/cart", getCart);
 
+// search routes
+app.use("/api/search", searchRoutes);
+
 
 app.post("/cart/update", updateCart);
 
@@ -123,6 +129,8 @@ app.use("/api/auth", authRoutes);
 // user routes
 app.use("/api/users", userRoutes); 
 app.use("/api/homepage", homeRoutes); 
+
+app.use("/api/bootstrap", bootstrapRoutes); 
 
 // sms routes
 app.use("/api/sms", smsRoutes); 

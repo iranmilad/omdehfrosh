@@ -1470,9 +1470,7 @@ useEffect(() => {
                 </Box>
               </Menu.Dropdown>
             </Menu>
-
             </Menu>
-
             <ShareModal 
               filters={updateFiltersAndStore().thisFilter} 
               isMobile={isMobile}

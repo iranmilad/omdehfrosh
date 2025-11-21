@@ -50,6 +50,7 @@ function mockRunner({ environment }) {
       this.passthrough('http://localhost:5000/api/auth/login');
       this.passthrough('http://localhost:5000/api/users/***');
       this.passthrough('http://localhost:5000/api/products/***');
+      this.passthrough('http://localhost:5000/api/search/***');
 
       // this.passthrough('http://localhost:5000/api/users');
       // this.passthrough('http://localhost:5000/api/users/add');
