@@ -7,33 +7,15 @@ import {
   Text,
   Grid,
   Stack,
-  Title,
   Anchor,
   Box,
-  SimpleGrid,
-  GridCol,
-  Paper,
-  Skeleton,
   Flex,
+  Skeleton,
 } from "@mantine/core";
-import cashDelivery from "../../assets/services/cash-on-delivery.svg";
-import daysReturn from "../../assets/services/days-return.svg";
-import expressDelivery from "../../assets/services/express-delivery.svg";
-import originalProducts from "../../assets/services/original-products.svg";
-import support from "../../assets/services/support.svg";
 import { useSelector } from "react-redux";
 
 const Footer = () => {
-  // Fixed selector - use state.bootstrap.bootstrapData
   const { bootstrapData: bootstrap, loadingBootstrap } = useSelector((state) => state.bootstrap);
-
-  const features = [
-    { icon: cashDelivery, label: "پرداخت درب منزل" },
-    { icon: daysReturn, label: "ضمانت 7 روزه" },
-    { icon: expressDelivery, label: "پست سریع" },
-    { icon: originalProducts, label: "ضمانت کالا" },
-    { icon: support, label: "پشتیبانی 24 ساعته" },
-  ];
 
   return (
     <Box className="border-t pt-10 mt-32 bg-white z-30" id="footer">
@@ -58,7 +40,7 @@ const Footer = () => {
             color="gray"
             style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
           >
-            برو به بالا
+            {bootstrap?.data.footer?.scrollButtonText || "برو به بالا"}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -71,12 +53,32 @@ const Footer = () => {
           </Button>
         </Group>
 
-        {/* Footer Menu Categories with Images Column */}
+        {/* Features Section */}
+        {bootstrap?.data.footer?.features && bootstrap.data.footer.features.length > 0 && (
+          <Grid gutter="md" mt={40} mb={40}>
+            {bootstrap.data.footer.features.map((feature, index) => (
+              <Grid.Col key={index} span={{ base: 6, xs: 4, sm: 2.4 }}>
+                <Stack align="center" gap="xs">
+                  <Image 
+                    src={feature.icon} 
+                    alt={feature.label}
+                    w={48}
+                    h={48}
+                    fit="contain"
+                  />
+                  <Text size="sm" ta="center">{feature.label}</Text>
+                </Stack>
+              </Grid.Col>
+            ))}
+          </Grid>
+        )}
+
+        {/* Footer Menu Categories with Certificates Column */}
         <Grid gutter="xl" mt={50} mb={60} align="start">
           {/* Left Column - Footer Menu */}
           <Grid.Col span={{ base: 12, md: 9 }}>
             <Grid gutter="xl">
-              {bootstrap?.data.menu?.footer?.map((item) => (
+              {bootstrap?.data.footer?.menuLinks?.map((item) => (
                 <Grid.Col key={item.id} span={{ base: 6, sm: 4, lg: 3 }}>
                   <Stack>
                     {item.links?.map((link) => (
@@ -96,34 +98,39 @@ const Footer = () => {
             </Grid>
           </Grid.Col>
 
-          {/* Right Column - Images (VERTICAL) */}
-          <Flex direction="col" span={{ base: 12, md: 3 }}>
-              <Image
-                src="/uploads/footer/enamad.png"
-                alt="enamad"
-                w={{ base: 100, sm: 120 }}
-                fit="contain"
-              />
-              <Image
-                src="/uploads/footer/samandehi.jpg"
-                alt="samandehi"
-                w={{ base: 100, sm: 120 }}
-                fit="contain"
-              />
-          </Flex>
+          {/* Right Column - Certificates/Trust Images (VERTICAL) */}
+          <Grid.Col span={{ base: 12, md: 3 }}>
+            <Flex direction="row" gap="md">
+              {bootstrap?.data.footer?.certificates?.map((cert, index) => (
+                <Anchor
+                  key={index}
+                  href={cert.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Image
+                    src={cert.image}
+                    alt={cert.alt || `Certificate ${index + 1}`}
+                    w={{ base: 100, sm: 120 }}
+                    fit="contain"
+                  />
+                </Anchor>
+              ))}
+            </Flex>
+          </Grid.Col>
         </Grid>
-
-
 
         {/* Bottom Bar with Copyright and Social Links */}
         <Group justify="space-between" pb={{ base: 100, md: "xl" }}>
           <Group gap="xl">
-            <Text size="xs" c="gray" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <i className="bi bi-telephone" style={{ fontSize: 16 }}></i>
-              تلفن واحد صدای مشتریان 021-43802000
-            </Text>
+            {bootstrap?.data.footer?.contactPhone && (
+              <Text size="xs" c="gray" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <i className="bi bi-telephone" style={{ fontSize: 16 }}></i>
+                {bootstrap.data.footer.contactPhone}
+              </Text>
+            )}
             <Text size="xs" c="gray">
-              تمامی حقوق برای این فروشگاه محفوظ است
+              {bootstrap?.data.footer?.copyrightText || "تمامی حقوق برای این فروشگاه محفوظ است"}
             </Text>
           </Group>
           
