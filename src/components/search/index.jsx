@@ -10,7 +10,15 @@ const Search = () => {
       type="text"
       placeholder="جستجو"
       onChange={handleChange}
-      style={{padding: '10px', fontSize: '16px', border: '4px'}}
+      style={{
+        width: '100%',
+        padding: '6px',
+        fontSize: '16px',
+        border: 'none',
+        outline: 'none',
+        backgroundColor: 'transparent',
+        boxSizing: 'border-box',
+      }}
     />
   );
 };

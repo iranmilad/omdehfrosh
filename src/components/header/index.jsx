@@ -189,14 +189,24 @@ const Header = () => {
                 <Search />
               </Box> */}
 
-              <Box 
-                style={{ flex: 1, minWidth: 0, cursor: 'pointer', border: '1px solid #dee2e6', borderRadius: '9999px', padding: '2px 8px' }}
+              <Box
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  maxWidth: '600px', // Add max width to prevent it from being too wide
+                  cursor: 'pointer',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '9px',
+                  padding: '2px 8px',
+                  outline: 'none',
+                  overflow: 'hidden', // Prevent overflow
+                }}
                 onClick={mobileSearchDrawer[1].toggle}
-                // visibleFrom="base"
-                // hiddenFrom="md"
+                tabIndex={-1}
               >
                 <Search />
               </Box>
+
 
               <Box style={{ flex: 1 }} />
 
@@ -266,7 +276,12 @@ const Header = () => {
         <BottomNavigation category={mobileMenuDrawer[1].toggle} basket={open} search={mobileSearchDrawer[1].toggle} user={user} />
       </div>
       
-      <MobileSearch opened={mobileSearchDrawer[0]} close={mobileSearchDrawer[1].close} />
+      <MobileSearch 
+        opened={mobileSearchDrawer[0]} 
+        close={mobileSearchDrawer[1].close} 
+        position="bottom"
+
+      />
     </>
   );
 };
