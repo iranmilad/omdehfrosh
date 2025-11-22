@@ -27,6 +27,7 @@ import { useSend } from "../../Libs/api";
 import { notifications } from "@mantine/notifications";
 import { NavLink } from "react-router";
 import ProductPrice from "../ProductPrice";
+import CounterHomePage from "../counterhomepage";
 
 function ProductBox({
   id,
@@ -39,6 +40,8 @@ function ProductBox({
   discountedPrice,
   discountPercent,
   refetchParent,
+  defaultSellerId,
+  defaultCombinationId,
 }) {
   const { colors } = useMantineTheme();
   const { ref, width } = useElementSize();
@@ -161,6 +164,18 @@ function ProductBox({
     >
       {!skeleton ? (
         <>
+          {/* Counter in top-right corner */}
+          {id && (
+            <Box 
+              pos="absolute" 
+              top={10} 
+              right={10} 
+              style={{ zIndex: 10 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+            </Box>
+          )}
+          
           <Box component={id ? NavLink : 'div'} to={id ? `/product/${id}` : undefined}>
             {renderProductImage()}
           </Box>
@@ -186,7 +201,7 @@ function ProductBox({
             </Text>
           </Box>
           <Flex justify="space-between" align="end" mt="auto">
-            {id ? (
+            {/* {id ? (
               <Button component={NavLink} to={`/product/${id}`}>
                 {width < 240 ? <IconEye size={14} /> : "مشاهده"}
               </Button>
@@ -194,12 +209,17 @@ function ProductBox({
               <Button disabled variant="light" color="gray">
                 {width < 240 ? <IconEye size={20} /> : "غیر قابل مشاهده"}
               </Button>
-            )}
+            )} */}
             <ProductPrice 
               regularPrice={regularPrice} 
               discountPercent={discountPercent} 
               discountedPrice={discountedPrice} 
             />
+          <CounterHomePage 
+            productId={id} 
+            defaultSellerId={defaultSellerId}
+            defaultCombinationId={defaultCombinationId}
+          />
           </Flex>
         </>
       ) : (

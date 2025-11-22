@@ -730,6 +730,7 @@ export const removeFromCart = async (req, res) => {
     });
   }
 };
+
 export const updateCart = async (req, res) => {
   try {
     // Handle token validation properly
@@ -748,6 +749,8 @@ export const updateCart = async (req, res) => {
     const userIdNum = Number(user_id);
 
     const { productId, combinationsID, seller, count } = req.body;
+
+    console.log('Update Cart called with:', { user_id, productId, combinationsID, seller, count });
 
     if (!user_id || !productId || !combinationsID || !seller?.id || !count) {
       return res.status(400).json({

@@ -3,9 +3,13 @@ import mongoose from "mongoose";
 const fpSchema = new mongoose.Schema(
   {
     id: {
-      type: Number,
+      type: String,
       required: true,
       unique: true
+    },
+    combinationId: {
+      type: Number,
+      required: true
     },
     title: {
       type: String,
@@ -26,6 +30,28 @@ const fpSchema = new mongoose.Schema(
     },
     discountPercent: {
       type: String
+    },
+    attributes: [
+      {
+        name: {
+          type: String,
+          required: true
+        },
+        value: {
+          type: String,
+          required: true
+        }
+      }
+    ],
+    seller: {
+      id: {
+        type: Number,
+        required: true
+      },
+      label: {
+        type: String,
+        required: true
+      }
     },
     image: {
       type: String,

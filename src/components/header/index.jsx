@@ -56,10 +56,19 @@ const Header = () => {
 
   const { notificationNumber, errorNotificationNumber } = useSelector((state) => state.notificationNumber);
   const { bootstrapData: bootstrap, loadingBootstrap } = useSelector((state) => state.bootstrap);
-  const { isVerified, user } = useSelector((state) => state.auth);
+  const { isVerified, user, loading: authLoading } = useSelector((state) => state.auth);
   const cartItems = useSelector((state) => state.cart.items);
 
-  console.log("Headerbootstrap:", bootstrap);
+  // DEBUG: Log auth state changes
+  useEffect(() => {
+    console.log("🔍 AUTH STATE DEBUG:", {
+      isVerified,
+      user,
+      authLoading,
+      hasToken: !!localStorage.getItem("user"),
+      timestamp: new Date().toISOString()
+    });
+  }, [isVerified, user, authLoading]);
 
   const theme = useMantineTheme();
   const isSmallScreen = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
@@ -74,37 +83,44 @@ const Header = () => {
 
   const navigate = useNavigate();
 
-  // Memoized menu data to prevent unnecessary re-renders
   const mainMenu = useMemo(() => bootstrap?.data.menu?.main, [bootstrap?.data.menu?.main]);
 
   const fetchCartData = useCallback(async () => {
     const token = localStorage.getItem("user");
     if (!token) {
+      console.log("⚠️ No token found in localStorage");
       setCartData({ cart: [], totalPrice: 0 });
       return;
     }
+    
+    console.log("🛒 Fetching cart data...");
     setIsLoadingCart(true);
     try {
       const response = await fetch(getApiUrl("/cart"), {
         method: "GET",
         headers: { 'Authorization': `Bearer ${token}`, "Content-Type": "application/json" },        
       });
+      
       if (!response.ok) {
+        console.error("❌ Cart fetch failed:", response.status);
         localStorage.removeItem("user");
         throw new Error("Failed to fetch cart data");
       }
+      
       const serverData = await response.json();
+      console.log("✅ Cart data fetched:", serverData);
+      
       const newCartData = { cart: serverData.cart || [], totalPrice: serverData.total || 0 };
       setCartData(newCartData);
       if (newCartData.cart.length > 0) dispatch(setInitial(newCartData.cart));
     } catch (error) {
+      console.error("❌ Cart fetch error:", error);
       setCartData({ cart: [], totalPrice: 0 });
     } finally {
       setIsLoadingCart(false);
     }
   }, [dispatch]);
 
-  // Optimized scroll handler with useCallback
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY;
     if (!ticking.current) {
@@ -120,7 +136,6 @@ const Header = () => {
           newShowBottomNav = false;
         }
         
-        // Only update state if values changed
         setIsSticky(prev => prev !== newIsSticky ? newIsSticky : prev);
         setShowBottomNav(prev => prev !== newShowBottomNav ? newShowBottomNav : prev);
         
@@ -136,32 +151,58 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
+  // Verify token on mount
   useEffect(() => {
-    dispatch(verifyTokenSilent()).catch(() => {});
+    console.log("🔐 Verifying token on mount...");
+    dispatch(verifyTokenSilent())
+      .then((result) => {
+        console.log("✅ Token verification result:", result);
+      })
+      .catch((error) => {
+        console.error("❌ Token verification failed:", error);
+      });
   }, [dispatch]);
 
   useEffect(() => {
-    if (user && isVerified) dispatch(getNotificationNumber({ forceRefresh: true }));
+    if (user && isVerified) {
+      console.log("👤 User verified, fetching notifications...");
+      dispatch(getNotificationNumber({ forceRefresh: true }));
+    }
   }, [dispatch, user, isVerified]);
 
   useEffect(() => {
-    if (user && isVerified) fetchCartData();
-    else setCartData({ cart: [], totalPrice: 0 });
+    if (user && isVerified) {
+      console.log("👤 User verified, fetching cart...");
+      fetchCartData();
+    } else {
+      console.log("⚠️ User not verified, clearing cart");
+      setCartData({ cart: [], totalPrice: 0 });
+    }
   }, [user, isVerified, fetchCartData]);
 
   const Logout = useCallback(async () => {
+    console.log("🚪 Logging out...");
     localStorage.removeItem("user"); 
     dispatch(logout());
     dispatch(clearCart());
     setCartData({ cart: [], totalPrice: 0 });
     await dispatch(verifyTokenSilent());
     navigate("/");
+    console.log("✅ Logout complete");
   }, [dispatch, navigate]);
 
   const renderNotificationBadge = useCallback(() => {
     if (errorNotificationNumber || !notificationNumber) return null;
     return <Badge variant="light">{notificationNumber.unreadCount || 0}</Badge>;
   }, [errorNotificationNumber, notificationNumber]);
+
+  // DEBUG: Show current state in console
+  console.log("🎨 HEADER RENDER:", {
+    user: !!user,
+    isVerified,
+    authLoading,
+    cartItemsCount: cartItems?.length || 0
+  });
 
   return (
     <>
@@ -185,28 +226,23 @@ const Header = () => {
                 </Anchor>
               </Box>
               
-              {/* <Box style={{ flex: 1, minWidth: 0 }} maw={{ base: "none", md: "500px", lg: "600px" }}>
-                <Search />
-              </Box> */}
-
               <Box
                 style={{
                   flex: 1,
                   minWidth: 0,
-                  maxWidth: '600px', // Add max width to prevent it from being too wide
+                  maxWidth: '600px',
                   cursor: 'pointer',
                   border: '1px solid #dee2e6',
                   borderRadius: '9px',
                   padding: '2px 8px',
                   outline: 'none',
-                  overflow: 'hidden', // Prevent overflow
+                  overflow: 'hidden',
                 }}
                 onClick={mobileSearchDrawer[1].toggle}
                 tabIndex={-1}
               >
                 <Search />
               </Box>
-
 
               <Box style={{ flex: 1 }} />
 
@@ -221,7 +257,6 @@ const Header = () => {
                       </ActionIcon>
                     </MenuTarget>
                     <MenuDropdown>
-                      {/* Fixed: bootstrap?.menu?.main instead of bootstrap?.data.menu?.main */}
                       <DropDownMenu menuItems={mainMenu} />
                     </MenuDropdown>
                   </Menu>
@@ -229,7 +264,10 @@ const Header = () => {
 
                 <Box visibleFrom="sm"><Notifications /></Box>
                 
-                {user ? (
+                {/* DEBUG: Show loading state */}
+                {authLoading ? (
+                  <Button h="39" w="113" loading>بارگذاری...</Button>
+                ) : user && isVerified ? (
                   <Menu shadow="md" position="bottom-end" styles={{ dropdown: { minWidth: 250, padding: "10px" } }}>
                     <MenuTarget>
                       <ActionIcon h={{ base: 40, md: 45 }} w={{ base: 40, md: 45 }} variant="light" size="xl">
@@ -261,7 +299,6 @@ const Header = () => {
               onClose={mobileMenuDrawer[1].close}
               title={<Image src={bootstrap?.data.logo} h="40px" w="auto" maw="120px" fit="contain" alt={bootstrap?.data.siteTitle} />}
             >
-              {/* Fixed: bootstrap?.menu?.main instead of bootstrap?.data.menu?.main */}
               <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={mainMenu} />
             </Drawer>
           </Container>
@@ -280,7 +317,6 @@ const Header = () => {
         opened={mobileSearchDrawer[0]} 
         close={mobileSearchDrawer[1].close} 
         position="bottom"
-
       />
     </>
   );

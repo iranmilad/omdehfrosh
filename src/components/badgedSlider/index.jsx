@@ -11,6 +11,8 @@ import { NavLink } from 'react-router';
 
 function BadgedSlider({ items = [] }) {
 
+  console.log("items", items);
+
   
   const sliderRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
@@ -83,7 +85,11 @@ function BadgedSlider({ items = [] }) {
         </SwiperSlide>
         {items.map((item, index) => (
           <SwiperSlide key={index} style={{ width: "250px", height: "auto" }}>
-            <ProductBox {...item} />
+            <ProductBox 
+              {...item}
+              defaultSellerId={item.sellerId || item.seller?.id}
+              defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
+            />
           </SwiperSlide>
         ))}
         <SwiperSlide className='badged-slider-left-right'>
