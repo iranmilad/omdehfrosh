@@ -10,6 +10,7 @@ import {
   Skeleton,
   Text,
   useMantineTheme,
+  Group,
 } from "@mantine/core";
 import {
   IconEye,
@@ -42,10 +43,12 @@ function ProductBox({
   refetchParent,
   defaultSellerId,
   defaultCombinationId,
+  attributes,
 }) {
   const { colors } = useMantineTheme();
   const { ref, width } = useElementSize();
   const [imageError, setImageError] = useState(false);
+
 
   const handleImageError = () => {
     setImageError(true);
@@ -149,6 +152,77 @@ function ProductBox({
     );
   };
 
+  const renderAttributes = () => {
+    if (!attributes || attributes.length === 0) return null;
+    
+    // Show only first 2 attributes
+    const displayAttributes = attributes.slice(0, 2);
+    
+    return (
+      <Box 
+        mt="xs"
+        w="fit-content"
+        h="18px"
+        bg="white"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          overflow: 'visible',
+        }}
+      >
+        {displayAttributes.map((attr, index) => (
+          <>
+            <Flex
+              key={index}
+              align="center"
+              gap={4}
+              style={{
+                whiteSpace: '',
+                overflow: 'visible',
+              }}
+            >
+              {attr.nameEng === 'color' && attr.colorCode && (
+                <Box
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '3px',
+                    backgroundColor: attr.colorCode,
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+              <Text
+                size="12px"
+                fw={400}
+                c="dimmed"
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'visible',
+                  textOverflow: 'unset',
+                }}
+              >
+                {attr.value}
+              </Text>
+            </Flex>
+            {index < displayAttributes.length - 1 && (
+              <Box
+                style={{
+                  width: '1px',
+                  height: '12px',
+                  backgroundColor: 'gray',
+                  opacity: 0.3,
+                  flexShrink: 0,
+                }}
+              />
+            )}
+          </>
+        ))}
+      </Box>
+    );
+  };
 
   return (
     <Paper
@@ -179,47 +253,49 @@ function ProductBox({
           <Box component={id ? NavLink : 'div'} to={id ? `/product/${id}` : undefined}>
             {renderProductImage()}
           </Box>
-          <Box my="lg">
-            <Text
-              fw="600"
-              size="sm"
-              component={id ? NavLink : 'div'}
-              to={id ? `/product/${id}` : undefined}
-              style={{
-                display: "-webkit-box",
-                WebkitBoxOrient: "vertical",
-                WebkitLineClamp: 2,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "normal",
-                color: slug ? 'inherit' : 'var(--mantine-color-dimmed)',
-                textDecoration: 'none',
-                cursor: slug ? 'pointer' : 'default',
-              }}
-            >
-              {title || 'عنوان محصول'}
-            </Text>
+          
+          <Box my="lg" w="177px" minh="42px">
+          <Text
+            fw="500"
+            size="14px"
+            component={id ? NavLink : 'div'}
+            to={id ? `/product/${id}` : undefined}
+            style={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 2,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "normal",
+              lineHeight: "1.2",           // ← ADD THIS
+              color: slug ? 'inherit' : 'var(--mantine-color-dimmed)',
+              textDecoration: 'none',
+              cursor: slug ? 'pointer' : 'default',
+            }}
+          >
+            {title || 'عنوان محصول'}
+          </Text>
+
+            
+            {renderAttributes()}
           </Box>
-          <Flex justify="space-between" align="end" mt="auto">
-            {/* {id ? (
-              <Button component={NavLink} to={`/product/${id}`}>
-                {width < 240 ? <IconEye size={14} /> : "مشاهده"}
-              </Button>
-            ) : (
-              <Button disabled variant="light" color="gray">
-                {width < 240 ? <IconEye size={20} /> : "غیر قابل مشاهده"}
-              </Button>
-            )} */}
-            <ProductPrice 
-              regularPrice={regularPrice} 
-              discountPercent={discountPercent} 
-              discountedPrice={discountedPrice} 
-            />
-          <CounterHomePage 
-            productId={id} 
-            defaultSellerId={defaultSellerId}
-            defaultCombinationId={defaultCombinationId}
-          />
+          
+          <Flex justify="space-between" align="center" mt="auto" gap="md">
+            <Box style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+              <ProductPrice 
+                regularPrice={regularPrice} 
+                discountPercent={discountPercent} 
+                discountedPrice={discountedPrice} 
+              />
+            </Box>
+            
+            <Box style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              <CounterHomePage 
+                productId={id} 
+                defaultSellerId={defaultSellerId}
+                defaultCombinationId={defaultCombinationId}
+              />
+            </Box>
           </Flex>
         </>
       ) : (
@@ -230,7 +306,11 @@ function ProductBox({
           </Flex>
           <Skeleton w="100%" h="150px" radius="md" />
           <Skeleton h="20" my="lg" />
-          <Flex justify="space-between" align="end">
+          <Group gap="xs" mt="xs">
+            <Skeleton h={20} w={60} radius="sm" />
+            <Skeleton h={20} w={80} radius="sm" />
+          </Group>
+          <Flex justify="space-between" align="end" mt="auto">
             <Skeleton w="100" h={50} radius="md" />
             <Flex direction="column" align="end" gap={6}>
               <Flex gap={5}>

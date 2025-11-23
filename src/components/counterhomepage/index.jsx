@@ -291,8 +291,8 @@ const CounterHomePage = ({ productId, defaultSellerId, defaultCombinationId }) =
           style={{
             border: "1px solid #394343FF",
             borderRadius: "50px",
-            padding: "0px 8px",
-            minWidth: "120px",
+            padding: "0px 6px",
+            minWidth: "80px",
             backgroundColor: "white",
           }}
         >

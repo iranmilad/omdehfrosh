@@ -6,8 +6,8 @@ export const featuredproducts = [
       slug: "brand0-category0-subCategory1-item0i0000",
       regularPrice: 21000000,
       attributes: [
-        { name: "رنگ", value: "مشکی" },
-        { name: "حافظه داخلی", value: "256 گیگابایت" }
+        { name: "رنگ", nameEng: "color", value: "مشکی", colorCode: "#000000" },
+        { name: "حافظه داخلی", nameEng: "storage", value: "256 گیگابایت" }
       ],
       seller: {
         id: 4,
@@ -24,8 +24,8 @@ export const featuredproducts = [
       discountedPrice: 10500000,
       discountPercent: "30",
       attributes: [
-        { name: "رنگ", value: "آبی" },
-        { name: "حافظه داخلی", value: "128 گیگابایت" }
+        { name: "رنگ", nameEng: "color", value: "آبی", colorCode: "#0066CC" },
+        { name: "حافظه داخلی", nameEng: "storage", value: "128 گیگابایت" }
       ],
       seller: {
         id: 1002,
@@ -42,8 +42,8 @@ export const featuredproducts = [
       discountedPrice: 18000000,
       discountPercent: "10",
       attributes: [
-        { name: "رنگ", value: "نقره‌ای" },
-        { name: "نوع اتصال", value: "GPS" }
+        { name: "رنگ", nameEng: "color", value: "نقره‌ای", colorCode: "#C0C0C0" },
+        { name: "نوع اتصال", nameEng: "connection", value: "GPS" }
       ],
       seller: {
         id: 1001,
@@ -60,8 +60,8 @@ export const featuredproducts = [
       discountedPrice: 36000000,
       discountPercent: "10",
       attributes: [
-        { name: "سایز", value: "55 اینچ" },
-        { name: "نوع پنل", value: "OLED" }
+        { name: "سایز", nameEng: "size", value: "55 اینچ" },
+        { name: "نوع پنل", nameEng: "panel", value: "OLED" }
       ],
       seller: {
         id: 1003,
@@ -78,8 +78,8 @@ export const featuredproducts = [
       discountedPrice: 45000000,
       discountPercent: "10",
       attributes: [
-        { name: "رنگ", value: "خاکستری" },
-        { name: "رم", value: "16 گیگابایت" }
+        { name: "رنگ", nameEng: "color", value: "خاکستری", colorCode: "#808080" },
+        { name: "رم", nameEng: "ram", value: "16 گیگابایت" }
       ],
       seller: {
         id: 1004,
@@ -96,8 +96,8 @@ export const featuredproducts = [
       discountedPrice: 6400000,
       discountPercent: "20",
       attributes: [
-        { name: "رنگ", value: "Skyline Collection" },
-        { name: "نوع اتصال", value: "بی‌سیم" }
+        { name: "رنگ", nameEng: "color", value: "Skyline Collection", colorCode: "#87CEEB" },
+        { name: "نوع اتصال", nameEng: "connection", value: "بی‌سیم" }
       ],
       seller: {
         id: 1005,

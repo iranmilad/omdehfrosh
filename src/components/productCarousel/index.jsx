@@ -155,15 +155,16 @@ function ProductCarousel(props) {
                     1200: { slidesPerView: 5, spaceBetween: 10 }, // Larger screens
                 }}
             >
-        {items.map((item, index) => (
-          <SwiperSlide key={index} style={{ width: "250px", height: "auto" }}>
-            <ProductBox 
-              {...item}
-              defaultSellerId={item.sellerId || item.seller?.id}
-              defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
+            {items.map((item, index) => (
+            <SwiperSlide key={index} style={{ width: "250px", height: "auto" }}>
+                <ProductBox 
+                {...item}
+                defaultSellerId={item.sellerId || item.seller?.id}
+                defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
+                attributes={item.attributes}
             />
-          </SwiperSlide>
-        ))}
+            </SwiperSlide>
+            ))}
             </Swiper>
         </Box>
     );
