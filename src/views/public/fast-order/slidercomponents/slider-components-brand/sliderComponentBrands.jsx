@@ -30,6 +30,8 @@ const SliderComponentBrands = ({
   const { checkedRows } = useBrandRowSelection();
   const isSlideSelectionActive = checkedRows.size > 0;
 
+  console.log("SliderComponentBrands rendered with items:", items);
+
   const handleSelectAll = () => {
     if (clickType === "brands") {
       const allBrandIds = items?.map(item => item.idBrand) || [];

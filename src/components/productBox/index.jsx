@@ -267,7 +267,7 @@ function ProductBox({
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "normal",
-              lineHeight: "1.2",           // ← ADD THIS
+              lineHeight: "1.2",
               color: slug ? 'inherit' : 'var(--mantine-color-dimmed)',
               textDecoration: 'none',
               cursor: slug ? 'pointer' : 'default',

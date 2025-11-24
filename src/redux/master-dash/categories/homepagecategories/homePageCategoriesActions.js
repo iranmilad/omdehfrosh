@@ -9,7 +9,7 @@ export const batchImportHomePageCategories = createAsyncThunk(
       const response = await fetch(getApiUrl("/master-dash/categories/batch-import"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        // credentials: "include",
         body: JSON.stringify({ categories }), // Send categories array as body
       });
 

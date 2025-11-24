@@ -1022,6 +1022,45 @@ const SearchComponentCategory = ({
     };
   }, [dispatch]);
 
+  // Add this around line 350, after your other useEffects
+useEffect(() => {
+  // Extract category name from URL path
+  const pathSegments = location.pathname.split('/');
+  const urlCategoryName = pathSegments[3]; // Gets 'mobile' from /fastorder/category/mobile
+  
+  if (urlCategoryName && searchType === 'category' && tableData?.category) {
+    // Find the category that matches the URL parameter by name
+    const matchingCategory = tableData.category.find(
+      cat => cat.name === urlCategoryName
+    );
+    
+    if (matchingCategory && matchingCategory.idCategory) {
+      // Only set if not already selected to avoid infinite loops
+      if (!filterCategoryStorage.includes(matchingCategory.idCategory)) {
+        setFilterCategoryStorage([matchingCategory.idCategory]);
+        
+        // Also update cookies
+        const cookieValue = {
+          searchType: 'category',
+          uniqueIDClickedCategories: [matchingCategory.idCategory],
+          uniqueIDClickedSubCategories: [],
+          uniqueIDClickedSubCategoriesBrands: [],
+          filters: localFilters,
+        };
+        
+        Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+      }
+    }
+  }
+}, [location.pathname, searchType, tableData?.category, COOKIE_NAME]);
+
+  console.log("Rendered FastOrderCategoryMode with filters:", {
+    filterCategoryStorage,
+    filterCategorySubCategoryStorage,
+    filterCategorySubCategoryBrandsStorage,
+    localFilters
+  });
+
   return (
     <>
       {/* Authentication Modal */}

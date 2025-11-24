@@ -1020,6 +1020,44 @@ useEffect(() => {
     };
   }, [dispatch]);
 
+
+  useEffect(() => {
+    // Extract brand name from URL path
+    const pathSegments = location.pathname.split('/');
+    const urlBrandName = pathSegments[3]; // Gets 'apple' from /fastorder/brand/apple
+    
+    if (urlBrandName && searchType === 'brand' && tableData?.brands) {
+      // Find the brand that matches the URL parameter by name
+      const matchingBrand = tableData.brands.find(
+        brand => brand.name === urlBrandName
+      );
+      
+      if (matchingBrand && matchingBrand.idBrand) {
+        // Only set if not already selected to avoid infinite loops
+        if (!filterBrandStorage.includes(matchingBrand.idBrand)) {
+          setFilterBrandStorage([matchingBrand.idBrand]);
+          
+          // Clear category filters when selecting a brand from URL
+          setFilterBrandsCategoryStorage([]);
+          setFilterBrandsCategorySubCategoryStorage([]);
+          
+          // Also update cookies
+          const cookieValue = {
+            searchType: 'brand',
+            uniqueIDClickedBrands: [matchingBrand.idBrand],
+            uniqueIDClickedBrandsCategories: [],
+            filterBrandsCategorySubCategoryStorage: [],
+            filters: localFilters,
+          };
+          
+          Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+        }
+      }
+    }
+  }, [location.pathname, searchType, tableData?.brands, COOKIE_NAME]);
+
+
+
   return (
     <>
       {/* Authentication Modal */}

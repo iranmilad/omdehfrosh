@@ -448,7 +448,7 @@ export const PublicRoutes = [
                 element: <PriceLists />,
             },
             {
-                path: "/fastorder/:id?",
+                path: "/fastorder/:searchType?/:categoryName?",
                 element: <FastOrder />,
             },
             {

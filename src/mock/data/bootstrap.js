@@ -16,7 +16,7 @@ export const menuItems = {
           label: "موبایل",
           icon: '/uploads/bootstrap/icons/mobile.webp',
           mega: false,
-          url: "/category/mobile",
+          url: "/fastorder/category/mobile",
           links: [],
         },
         {
@@ -24,7 +24,7 @@ export const menuItems = {
           label: "لپ تاپ",
           icon: '/uploads/bootstrap/icons/laptop.webp',
           mega: false,
-          url: "/category/laptop",
+          url: "/fastorder/category/laptop",
           links: [],
         },
         {
@@ -32,7 +32,7 @@ export const menuItems = {
           label: "هدفون",
           icon: '/uploads/bootstrap/icons/headphones.webp',
           mega: false,
-          url: "/category/headphone",
+          url: "/fastorder/category/headphone",
           links: [],
         },
         {
@@ -40,7 +40,7 @@ export const menuItems = {
           label: "کنسول بازی",
           icon: '/uploads/bootstrap/icons/gamepad.webp',
           mega: false,
-          url: "/category/game-console",
+          url: "/fastorder/category/game-console",
           links: [],
         },
         {
@@ -48,7 +48,7 @@ export const menuItems = {
           label: "هارد و حافظه",
           icon: '/uploads/bootstrap/icons/storage.webp',
           mega: false,
-          url: "/category/storage",
+          url: "/fastorder/category/storage",
           links: [],
         },
         {
@@ -56,7 +56,7 @@ export const menuItems = {
           label: "تبلت",
           icon: '/uploads/bootstrap/icons/tablet.webp',
           mega: false,
-          url: "/category/tablet",
+          url: "/fastorder/category/tablet",
           links: [],
         },
         {
@@ -64,7 +64,7 @@ export const menuItems = {
           label: "ساعت هوشمند",
           icon: '/uploads/bootstrap/icons/smartwatch.webp',
           mega: false,
-          url: "/category/smartwatch",
+          url: "/fastorder/category/smartwatch",
           links: [],
         },
         {
@@ -72,7 +72,7 @@ export const menuItems = {
           label: "پرینتر",
           icon: '/uploads/bootstrap/icons/printer.webp',
           mega: false,
-          url: "/category/printer",
+          url: "/fastorder/category/printer",
           links: [],
         },
         {
@@ -80,7 +80,7 @@ export const menuItems = {
           label: "اسپیکر",
           icon: '/uploads/bootstrap/icons/speaker.webp',
           mega: false,
-          url: "/category/speaker",
+          url: "/fastorder/category/speaker",
           links: [],
         },
         {
@@ -88,7 +88,7 @@ export const menuItems = {
           label: "پاور بانک",
           icon: '/uploads/bootstrap/icons/powerbank.webp',
           mega: false,
-          url: "/category/powerbank",
+          url: "/fastorder/category/powerbank",
           links: [],
         },
         {
@@ -96,7 +96,7 @@ export const menuItems = {
           label: "مانیتور",
           icon: '/uploads/bootstrap/icons/monitor.webp',
           mega: false,
-          url: "/category/monitor",
+          url: "/fastorder/category/monitor",
           links: [],
         },
       ],
@@ -106,7 +106,7 @@ export const menuItems = {
     {
       id: "188",
       label: "دسته بندی ها",
-      icon: '/uploads/bootstrap/icons/category.webp',
+      icon: '/uploads/bootstrap/icons/fastorder/category.webp',
       mega: false,
       url: null,
       links: [

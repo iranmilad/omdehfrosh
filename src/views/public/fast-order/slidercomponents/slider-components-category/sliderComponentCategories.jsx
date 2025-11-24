@@ -30,6 +30,8 @@ const SliderComponentCategoriesCM = ({
 }) => {
 
   const { checkedRows } = useCategoryRowSelection();
+
+  console.log("SliderComponentCategoriesCM rendered with items:", items);
   
   // Disable when multiple filters checked
   const isSlideSelectionActive = checkedRows.size > 0;

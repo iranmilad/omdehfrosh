@@ -169,7 +169,15 @@ function FastOrder() {
     };
   }, []);
 
-
+  useEffect(() => {
+    // Extract the search type from the URL pathname
+    const pathSegments = location.pathname.split('/');
+    const urlSearchType = pathSegments[2]; // Assuming format: /fastorder/category/mobile or /fastorder/brand/...
+    
+    if (urlSearchType === 'category' || urlSearchType === 'brand') {
+      setSearchType(urlSearchType);
+    }
+  }, [location.pathname]); // Re-run when pathname changes
 
 //   useEffect(() => {
 //   if (hasCheckedAuth && user === null) {

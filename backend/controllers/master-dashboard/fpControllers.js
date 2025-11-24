@@ -66,6 +66,7 @@ export const deleteFP = async (req, res) => {
   }
 };
 
+
 // Batch import FPs
 export const batchImportFPs = async (req, res) => {
   const fps = req.body.featuredproducts;
