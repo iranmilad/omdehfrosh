@@ -548,8 +548,8 @@ const FastTableCategory = ({
             onBlur={(e) => (e.target.style.borderColor = "#d9d9d9")}
           >
             {filterValues?.deliveryTime?.length > 0 ? (
-              filterValues.deliveryTime.map((option) => (
-                <option key={option._id} value={option.value}>
+              filterValues.deliveryTime.map((option, id) => (
+                <option key={option.id} value={option.value}>
                   {option.label}
                 </option>
               ))

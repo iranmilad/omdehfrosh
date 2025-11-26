@@ -77,7 +77,7 @@ function Categories({ items, title, title_align }) {
           align="center"
           gap="sm"
           component={NavLink}
-          to={`/category/${item.url}`}
+          to={`/fastorder/category/${item.url}`}
           opacity={item.display ? 1 : 0.4}
           h={150} // Fixed height for all boxes
           style={{

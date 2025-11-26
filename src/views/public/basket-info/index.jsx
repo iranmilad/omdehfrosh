@@ -45,6 +45,23 @@ import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStat
 import { notifications } from "@mantine/notifications";
 import ErrorMessageModal from "../../../components/errormessagemodal";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import { Steps } from "antd";
+import {
+  ShoppingCartOutlined,
+  UserOutlined,
+  WalletOutlined,
+  CheckCircleOutlined,
+  DeleteOutlined,
+  ShoppingOutlined,
+  LoadingOutlined,
+  WarningOutlined,
+  InboxOutlined,
+  MinusOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
+import { Grid as GridAnt } from 'antd';
+
+const { useBreakpoint } = GridAnt;
 
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("نام الزامی است"),
@@ -84,6 +101,8 @@ const BasketInfo = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [errs, setErrs] = useState({});
+
+  const screensAnt = useBreakpoint();
 
   useEffect(() => {
     const nonNotifyStatuses = [400, 401, 403, 404, 405, 406, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 422, 429];
@@ -298,12 +317,24 @@ const BasketInfo = () => {
         onClose={() => setModalOpen(false)}
         message={errors?.message}
       />
-      <Stepper mb="xl" active={2}>
-        <Stepper.Step label="سبد خرید" icon={<IconShoppingCart />} />
-        <Stepper.Step label="اطلاعات خریدار" icon={<IconUserCheck />} />
-        <Stepper.Step label="انتخاب روش پرداخت" icon={<IconWallet />} />
-        <Stepper.Step label="پرداخت نهایی" icon={<IconCircleCheck />} />
-      </Stepper>
+        <Steps
+          current={1}
+          size={screensAnt.md ? 'default' : 'small'}
+          style={{ 
+            marginBottom: 32,
+            background: 'white',
+            padding: screensAnt.md ? 24 : 12,
+            borderRadius: 16,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            fontSize: screensAnt.md ? '14px' : '12px'
+          }}
+          items={[
+            { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+          ]}
+        />
       <Grid>
         <Grid.Col span={{ lg: 9 }}>
           <Title fw="600" c="gray.8" mb="lg">

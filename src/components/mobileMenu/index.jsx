@@ -41,6 +41,7 @@ function MobileMenu({ toggle, menu }) {
           borderRadius: "10px",
           padding: "5px",
           marginRight: 3, // Add 3px marginRight for all levels
+          zIndex: 1001
         }}
       >
         {links.map((child) => (

@@ -207,16 +207,16 @@ const Header = () => {
   return (
     <>
       {bootstrap?.data.banner?.src && (
-        <a className="relative z-50" id="header_banner" href={bootstrap.data.banner.link} target="_blank" rel="noopener noreferrer">
+        <a className="relative" style={{ zIndex: 1000 }} id="header_banner" href={bootstrap.data.banner.link} target="_blank" rel="noopener noreferrer">
           <Image src={bootstrap.data.banner.src} w="100%" h={48} />
         </a>
       )}
       
-      <div className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} id="header">
-        <div className="relative z-30 gap-x-4 bg-white py-2 pb-2">
+      <div className={`sticky top-0 bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} style={{ zIndex: 1000 }} id="header">
+        <div className="relative gap-x-4 bg-white py-2 pb-2" style={{ zIndex: 1000 }}>
           <Container>
             <Flex w="100%" justify="space-between" align="center" gap={{ base: 'xs', sm: 'sm', md: 'md' }}>
-              <Box style={{ flexShrink: 0 }} w={{ base: "80px", sm: "100px", md: "146px" }}>
+              <Box style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "80px", sm: "100px", md: "146px" }}>
                 <Anchor component={NavLink} to="/">
                   {loadingBootstrap ? (
                     <Skeleton h={{ base: 36, sm: 42, md: 48 }} w="100%" />
@@ -237,6 +237,7 @@ const Header = () => {
                   padding: '2px 8px',
                   outline: 'none',
                   overflow: 'hidden',
+                  zIndex: 1000
                 }}
                 onClick={mobileSearchDrawer[1].toggle}
                 tabIndex={-1}
@@ -246,10 +247,10 @@ const Header = () => {
 
               <Box style={{ flex: 1 }} />
 
-              <Flex gap={{ base: 'xs', sm: 'sm', md: 'md' }} align="center" style={{ flexShrink: 0 }}>
+              <Flex gap={{ base: 'xs', sm: 'sm', md: 'md' }} align="center" style={{ flexShrink: 0, zIndex: 1000 }}>
                 <Box visibleFrom="sm">
                   <Menu shadow="md" position="bottom-end" trigger="hover" openDelay={100} closeDelay={200}
-                    styles={{ dropdown: { minWidth: 192, padding: "15px", maxHeight: '500px', overflowY: 'auto' } }}
+                    styles={{ dropdown: { minWidth: 192, padding: "15px", maxHeight: '500px', overflowY: 'auto', zIndex: 1001 } }}
                   >
                     <MenuTarget>
                       <ActionIcon h={{ base: 40, md: 45 }} w={{ base: 40, md: 45 }} variant="light" size="xl">
@@ -268,7 +269,7 @@ const Header = () => {
                 {authLoading ? (
                   <Button h="39" w="113" loading>بارگذاری...</Button>
                 ) : user && isVerified ? (
-                  <Menu shadow="md" position="bottom-end" styles={{ dropdown: { minWidth: 250, padding: "10px" } }}>
+                  <Menu shadow="md" position="bottom-end" styles={{ dropdown: { minWidth: 250, padding: "10px", zIndex: 1001 } }}>
                     <MenuTarget>
                       <ActionIcon h={{ base: 40, md: 45 }} w={{ base: 40, md: 45 }} variant="light" size="xl">
                         <IconUser size={18} />
@@ -298,6 +299,7 @@ const Header = () => {
               size="100%"
               onClose={mobileMenuDrawer[1].close}
               title={<Image src={bootstrap?.data.logo} h="40px" w="auto" maw="120px" fit="contain" alt={bootstrap?.data.siteTitle} />}
+              styles={{ root: { zIndex: 1001 }, inner: { zIndex: 1001 }, overlay: { zIndex: 1000 } }}
             >
               <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={mainMenu} />
             </Drawer>
@@ -306,7 +308,7 @@ const Header = () => {
       </div>
 
       <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
         transform: `translateY(${showBottomNav ? '0px' : '100px'})`,
         transition: 'transform 0.3s ease-in-out', willChange: 'transform'
       }}>

@@ -37,10 +37,26 @@ import { useCookies } from "react-cookie";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import CartStepper from "../../../components/cartStepper";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
-
+import { Steps } from "antd";
+import { Grid as GridAnt } from 'antd';
+import {
+  ShoppingCartOutlined,
+  UserOutlined,
+  WalletOutlined,
+  CheckCircleOutlined,
+  DeleteOutlined,
+  ShoppingOutlined,
+  LoadingOutlined,
+  WarningOutlined,
+  InboxOutlined,
+  MinusOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 /* ---------------------- API Configuration ---------------------- */
 // You'll need to replace this with your actual API base URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+
+const { useBreakpoint } = GridAnt;
 
 
 /* ---------------------- Pretty SVG placeholder as DATA URI ---------------------- */
@@ -385,13 +401,28 @@ const EmptyCartComponent = () => (
 
 /* ---------------------- Enhanced Stepper Component ---------------------- */
 const EnhancedStepper = ({ active = 0 }) => {
+
+    const screensAnt = useBreakpoint();
+
   return (
-      <Stepper mb="xl" active={1}>
-        <Stepper.Step label="سبد خرید" icon={<IconShoppingCart />} />
-        <Stepper.Step label="اطلاعات خریدار" icon={<IconUserCheck />} />
-        <Stepper.Step label="انتخاب روش پرداخت" icon={<IconWallet />} />
-        <Stepper.Step label="پرداخت نهایی" icon={<IconCircleCheck />} />
-      </Stepper>
+        <Steps
+          current={0}
+          size={screensAnt.md ? 'default' : 'small'}
+          style={{ 
+            marginBottom: 32,
+            background: 'white',
+            padding: screensAnt.md ? 24 : 12,
+            borderRadius: 16,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            fontSize: screensAnt.md ? '14px' : '12px'
+          }}
+          items={[
+            { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+          ]}
+        />
   )
 }
 
@@ -400,7 +431,9 @@ const Basket = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [cookies] = useCookies(["user"]);
-  
+
+  const screensAnt = useBreakpoint();
+
   // State management
   const [authInitialized, setAuthInitialized] = useState(false);
   const [initialCartLoaded, setInitialCartLoaded] = useState(false);

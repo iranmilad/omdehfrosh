@@ -47,7 +47,7 @@ const DropDownMenu = ({ menuItems }) => {
       const isMainMenu = item.label === "منوی اصلی";
 
       return (
-        <Box key={index}>
+        <Box key={index} style={{ zIndex: 1001 }}>
           {/* Links */}
           {item.links?.map((link, linkIndex) => {
             // Main menu items
@@ -79,6 +79,7 @@ const DropDownMenu = ({ menuItems }) => {
                       cursor: link.url ? "pointer" : "default",
                       width: "fit-content",
                       minWidth: "100%",
+                      zIndex: 1001,
                       "&:hover": {
                         backgroundColor: link.url ? "#f8f9fa" : "transparent"
                       }
@@ -92,7 +93,7 @@ const DropDownMenu = ({ menuItems }) => {
             // Items with sub-links
             if (link.links && link.links.length > 0) {
               return (
-                <Box key={link.id || linkIndex}>
+                <Box key={link.id || linkIndex} style={{ zIndex: 1001 }}>
                   <Text
                     size="xs"
                     fw={600}
@@ -104,7 +105,7 @@ const DropDownMenu = ({ menuItems }) => {
                     {link.label}
                   </Text>
 
-                  <Stack gap={1}>
+                  <Stack gap={1} style={{ zIndex: 1001 }}>
                     {link.links.map((child, childIndex) => (
                       <MantineNavLink
                         key={child.id || childIndex}
@@ -134,6 +135,7 @@ const DropDownMenu = ({ menuItems }) => {
                             backgroundColor: "transparent",
                             width: "fit-content",
                             minWidth: "calc(100% - 4px)",
+                            zIndex: 1001,
                             "&:hover": { backgroundColor: "#f8f9fa" }
                           },
                           label: { fontSize: "14px" }
@@ -177,6 +179,7 @@ const DropDownMenu = ({ menuItems }) => {
                       backgroundColor: "transparent",
                       width: "fit-content",
                       minWidth: "100%",
+                      zIndex: 1001,
                       "&:hover": { backgroundColor: "#f8f9fa" }
                     },
                     label: { fontSize: "14px", fontWeight: 400 }
@@ -202,7 +205,12 @@ const DropDownMenu = ({ menuItems }) => {
       bg="transparent"
       shadow="none"
       p={0}
-      style={{ background: "transparent", width: "fit-content", maxWidth: "180px" }}
+      style={{ 
+        background: "transparent", 
+        width: "fit-content", 
+        maxWidth: "180px",
+        zIndex: 1001
+      }}
     >
       {menuContent}
     </Paper>

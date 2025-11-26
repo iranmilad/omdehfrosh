@@ -608,46 +608,55 @@ const MiniCart = () => {
         </Button>
       </Indicator>
 
-      <Drawer.Root
-        opened={opened}
-        onClose={close}
-        position="right"
-        size={drawerSize}
-        styles={{
-          inner: {
-            right: 0,
-            left: 'auto',
-            top: 0,
-            bottom: 0,
-            height: '100vh',
-            position: 'fixed'
-          },
-          content: {
-            right: 0,
-            left: 'auto',
-            top: 0,
-            bottom: 0,
-            height: '100vh',
-            maxHeight: '100vh',
-            minWidth: isMobile ? 'auto' : '450px',
-            width: isMobile ? '100%' : '450px',
-            position: 'fixed',
-            display: 'flex',
-            flexDirection: 'column'
-          },
-          header: {
-            flexShrink: 0,
-            padding: isMobile ? '0.75rem' : '1rem'
-          },
-          body: {
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            padding: 0
-          }
-        }}
-      >
+
+        <Drawer.Root
+          opened={opened}
+          onClose={close}
+          position="right"
+          size={drawerSize}
+          styles={{
+            root: {
+              zIndex: 1005  // Added this line
+            },
+            inner: {
+              right: 0,
+              left: 'auto',
+              top: 0,
+              bottom: 0,
+              height: '100vh',
+              position: 'fixed',
+              zIndex: 1005  // Added this line
+            },
+            overlay: {
+              zIndex: 1005  // Added this line
+            },
+            content: {
+              right: 0,
+              left: 'auto',
+              top: 0,
+              bottom: 0,
+              height: '100vh',
+              maxHeight: '100vh',
+              minWidth: isMobile ? 'auto' : '450px',
+              width: isMobile ? '100%' : '450px',
+              position: 'fixed',
+              display: 'flex',
+              flexDirection: 'column',
+              zIndex: 1005  // Added this line
+            },
+            header: {
+              flexShrink: 0,
+              padding: isMobile ? '0.75rem' : '1rem'
+            },
+            body: {
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              padding: 0
+            }
+          }}
+        >
         <Drawer.Overlay />
         <Drawer.Content>
           <Drawer.Header>

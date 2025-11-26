@@ -119,18 +119,22 @@ function MobileSearch({ opened, close }) {
       size="100%"
       withCloseButton={false}
       styles={{
+        root: { zIndex: 1001 },
+        inner: { zIndex: 1001 },
+        overlay: { zIndex: 1001 },
+        content: { height: '100%', zIndex: 1001 },
         body: { 
           height: '100%', 
           display: 'flex', 
           flexDirection: 'column',
-          padding: 0
-        },
-        content: { height: '100%' }
+          padding: 0,
+          zIndex: 1001
+        }
       }}
     >
 
       {/* Search Input with جستجو and blue divider inside */}
-      <Box px="md" mb="md">
+      <Box px="md" mb="md" style={{ zIndex: 1001 }}>
       <TextInput
         leftSection={
           <GoArrowRight 
@@ -145,9 +149,11 @@ function MobileSearch({ opened, close }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         styles={{
+          root: { zIndex: 1001 },
           input: {
             border: "none",
             backgroundColor: "white",
+            zIndex: 1001,
             "&::placeholder": {
               fontSize: "4px !important",  // force override
               opacity: 0.7,
@@ -164,6 +170,7 @@ function MobileSearch({ opened, close }) {
           styles={{
             root: {
               opacity: 0.3,
+              zIndex: 1001
             },
           }}
         />
@@ -173,7 +180,7 @@ function MobileSearch({ opened, close }) {
 
 
       {/* Scrollable Content */}
-      <ScrollArea flex={1} px="md" pb="md">
+      <ScrollArea flex={1} px="md" pb="md" style={{ zIndex: 1001 }}>
         {debounced.length > 2 ? (
           <>
             {loading ? (
@@ -185,10 +192,10 @@ function MobileSearch({ opened, close }) {
                     {error}
                   </InfoBox>
                 ) : hasResults ? (
-                  <Box>
+                  <Box style={{ zIndex: 1001 }}>
                     {/* Brands Section */}
                     {hasBrands && (
-                      <Box mb="xl">
+                      <Box mb="xl" style={{ zIndex: 1001 }}>
                         <Flex align="center" gap="xs" mb="xs">
                           <IconBuildingStore size={18} color="#868e96" />
                           <Text size="sm" fw={600} c="dimmed">برندها</Text>
@@ -206,6 +213,7 @@ function MobileSearch({ opened, close }) {
                               style={{ 
                                 cursor: "pointer",
                                 transition: 'all 0.2s',
+                                zIndex: 1001,
                                 '&:hover': {
                                   transform: 'translateY(-2px)',
                                   boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
@@ -225,7 +233,7 @@ function MobileSearch({ opened, close }) {
 
                     {/* Categories Section */}
                     {hasCategories && (
-                      <Box mb="xl">
+                      <Box mb="xl" style={{ zIndex: 1001 }}>
                         <Flex align="center" gap="xs" mb="xs">
                           <IconLayoutGridAdd size={18} color="#868e96" />
                           <Text size="sm" fw={600} c="dimmed">دسته‌بندی‌ها</Text>
@@ -242,7 +250,8 @@ function MobileSearch({ opened, close }) {
                               withBorder
                               style={{ 
                                 cursor: "pointer",
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                zIndex: 1001
                               }}
                               onClick={() => navgiateURL(`/category/${item.slug || item.id}`)}
                             >
@@ -258,7 +267,7 @@ function MobileSearch({ opened, close }) {
 
                     {/* Products Section */}
                     {hasProducts && (
-                      <Box>
+                      <Box style={{ zIndex: 1001 }}>
                         <Flex align="center" gap="xs" mb="xs">
                           <IconSearch size={18} color="#868e96" />
                           <Text size="sm" fw={600} c="dimmed">محصولات</Text>
@@ -275,7 +284,8 @@ function MobileSearch({ opened, close }) {
                               withBorder
                               style={{ 
                                 cursor: "pointer",
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                zIndex: 1001
                               }}
                               onClick={() => navgiateURL(`/product/${item.slug || item.id}`)}
                             >

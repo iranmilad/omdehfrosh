@@ -82,8 +82,8 @@ if (!items || items.length === 0) return null;
 
   const renderTables = () => (
     <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}>
-      {items.map((list) => (
-        <Card key={list._id} padding="sm" shadow="xs" radius="md" withBorder style={{ minWidth: 340 }}>
+      {items.map((list, i) => (
+        <Card key={list.i} padding="sm" shadow="xs" radius="md" withBorder style={{ minWidth: 340 }}>
             <Text mb="md" className={classes.title}>
                 {list.title}
             </Text>
@@ -96,8 +96,8 @@ if (!items || items.length === 0) return null;
                 </tr>
               </thead>
               <tbody>
-                {list.tablelist.map((entry) => (
-                  <tr key={entry._id} className={classes.stripedRow}>
+                {list.tablelist.map((entry, i) => (
+                  <tr key={entry.id} className={classes.stripedRow}>
                     <td className={classes.td}>{entry.product}</td>
                     <td className={classes.td}>{entry.price}</td>
                   </tr>

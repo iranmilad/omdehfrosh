@@ -33,6 +33,23 @@ import { clearCartFinalReceiptUpdate } from "../../../redux/cartfinalreceipt/car
 import ErrorMessageModal from '../../../components/errormessagemodal';
 import { handleForbiddenError, handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { updateFinalReceiptDeleteDiscountCode } from "../../../redux/cartfinalreceipt/cartfinalreceiptdeletediscount/cartfinalreceiptdeletediscountActions";
+import { Steps } from "antd";
+import {
+  ShoppingCartOutlined,
+  UserOutlined,
+  WalletOutlined,
+  CheckCircleOutlined,
+  DeleteOutlined,
+  ShoppingOutlined,
+  LoadingOutlined,
+  WarningOutlined,
+  InboxOutlined,
+  MinusOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
+import { Grid as GridAnt } from 'antd';
+
+const { useBreakpoint } = GridAnt;
 
 // Default SVG icon component
 const DefaultPaymentIcon = ({ size = 30, color = "var(--mantine-color-gray-6)" }) => (
@@ -157,6 +174,8 @@ const PaymentMethod = () => {
   const { orderfinalreceipt } = useSelector((state) => state.cartfinalreceipt); 
   const [ isDiscountApplied, setIsDiscountApplied ] = useState(false);
 
+  const screensAnt = useBreakpoint();
+
   useEffect(() => {
     if (orderfinalreceipt?.cartDiscounts?.discountCode?.code) {
       setIsDiscountApplied(true);
@@ -257,7 +276,24 @@ const PaymentMethod = () => {
 
   return (
     <>
-      <CartStepper active={3} />
+        <Steps
+          current={2}
+          size={screensAnt.md ? 'default' : 'small'}
+          style={{ 
+            marginBottom: 32,
+            background: 'white',
+            padding: screensAnt.md ? 24 : 12,
+            borderRadius: 16,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            fontSize: screensAnt.md ? '14px' : '12px'
+          }}
+          items={[
+            { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+          ]}
+        />
       <Grid>
         <GridCol>
           <Title fw="600" c="gray.8" mb="sm">

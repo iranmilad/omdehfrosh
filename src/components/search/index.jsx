@@ -15,6 +15,7 @@ const Search = () => {
         padding: '6px',
         fontSize: '16px',
         border: 'none',
+        zIndex: 1001,
         outline: 'none',
         backgroundColor: 'transparent',
         boxSizing: 'border-box',
