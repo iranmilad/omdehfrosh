@@ -104,7 +104,7 @@ export const getHomePageData = async (req, res) => {
       { type: "categories", data: filteredCategories },
       { type: "banners", data: banners },
       { type: "prices", data: priceLists },  
-      { type: "featured_promo", data: shuffleArray(fps) },
+      // { type: "featured_promo", data: shuffleArray(fps) },
       { type: "productGrid", data: pg },
       { type: "trendProducts", data: allTrendingProducts },
       { type: "brands", data: processedBrands },

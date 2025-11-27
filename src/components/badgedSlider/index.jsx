@@ -42,7 +42,14 @@ function BadgedSlider({ items = [] }) {
   }
 
   return (
-    <Box p="sm" className='bg-red-500' style={{ borderRadius: "15px" }} pos="relative">
+    <Box 
+      p="sm" 
+      style={{ 
+        borderRadius: "15px",
+        background: "linear-gradient(to bottom left, #57C1FF, #0064CF)"
+      }} 
+      pos="relative"
+    >
       {!isBeginning && (
         <ActionIcon
           variant="white"

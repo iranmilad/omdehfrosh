@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { FreeMode } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useBrandRowSelection } from '../../BrandRowSelectionContext';
@@ -28,6 +29,7 @@ const SliderComponentBrands = ({
 }) => {
 
   const { checkedRows } = useBrandRowSelection();
+  const navigate = useNavigate(); // Add this
   const isSlideSelectionActive = checkedRows.size > 0;
 
   console.log("SliderComponentBrands rendered with items:", items);
@@ -42,6 +44,7 @@ const SliderComponentBrands = ({
         setFilterBrandStorage([]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
+        navigate('/fastorder/brand'); // Navigate to base brand page
       } else {
         // Select all brands and clear category filters
         setFilterBrandStorage(allBrandIds);
@@ -58,10 +61,9 @@ const SliderComponentBrands = ({
     <Swiper 
       modules={[FreeMode]} 
       slidesPerView="auto" 
-      spaceBetween={6}            // ✅ Gap between boxes
+      spaceBetween={6}
       style={{ width: "100%" }}
     >
-
       {/* Brand items */}
       {items?.map((item) => (
         <SwiperSlide 
@@ -79,7 +81,8 @@ const SliderComponentBrands = ({
             setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
             filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
             setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-            isDisabled={isSlideSelectionActive} 
+            isDisabled={isSlideSelectionActive}
+            navigate={navigate} // Pass navigate down
           />
         </SwiperSlide>
       ))}
@@ -101,7 +104,6 @@ const SliderComponentBrands = ({
           </span>
         </button>
       </SwiperSlide>
-
     </Swiper>
   );
 };
@@ -119,7 +121,8 @@ export function SingleCategory1({
   tab, 
   badge, 
   categories,
-  isDisabled
+  isDisabled,
+  navigate // Add this prop
 }) {
   const isActive = filterBrandStorage.includes(item.idBrand);
 
@@ -127,30 +130,28 @@ export function SingleCategory1({
     if (isDisabled) return;
     if (clickType === "brands") {
       if (isActive) {
-        // Deselecting current brand - clear all filters
+        // Deselecting current brand - clear all filters and go back to base
         setFilterBrandStorage([]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
+        navigate('/fastorder/brand');
       } else {
-        // Selecting new brand - set only this brand and clear category filters
+        // Selecting new brand - set only this brand, clear category filters, and update URL
         setFilterBrandStorage([item.idBrand]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
+        navigate(`/fastorder/brand/${item.name}`);
       }
     }
   };
 
-  // Helper function to get brand image source with fallback
   const getBrandImageSrc = (image) => {
-    // Check if image exists and is not empty
     if (image && image.trim() !== '') {
       return image;
     }
-    // Return default placeholder
     return DEFAULT_BRAND_IMAGE;
   };
 
-  // Handle image error by setting default placeholder
   const handleImageError = (e) => {
     e.target.src = DEFAULT_BRAND_IMAGE;
   };

@@ -233,7 +233,11 @@ function ProductBox({
       pt="40"
       pos="relative"
       display="flex"
-      style={{ flexDirection: "column" }}
+      style={{ 
+        flexDirection: "column",
+        border: "1px solid rgba(1, 1, 1, 0.5)",
+        
+      }}
       h="100%"
     >
       {!skeleton ? (

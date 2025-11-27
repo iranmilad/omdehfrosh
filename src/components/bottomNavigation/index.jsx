@@ -68,7 +68,7 @@ function BottomNavigation({ category, search, basket, user }) {
         <Flex direction="column" align="center" justify="center" gap="5">
           <IconMenu2 stroke={1.5} size={22} color="#A5A5A7" />
           <Text c="#A5A5A7" size="10px">
-            دسته‌بندی
+            دسته‌بندی‌ها
           </Text>
         </Flex>
       </Button>
