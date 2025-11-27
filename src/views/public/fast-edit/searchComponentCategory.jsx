@@ -1024,12 +1024,12 @@ onClick={(e) => {
           <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
             {/* Tab 1 - Takes 1/3 of space */}
             <Tabs.Tab value="brand" style={{ flex: '1 1 0', minWidth: 0 }}>
-              {isMobile ? "برند" : "جستجو بر اساس برند"}
+              {isMobile ? "برند" : "برند"}
             </Tabs.Tab>
             
             {/* Tab 2 - Takes 1/3 of space */}
             <Tabs.Tab value="category" style={{ flex: '1 1 0', minWidth: 0 }}>
-              {isMobile ? "دسته‌بندی" : "جستجو بر اساس دسته بندی"}
+              {isMobile ? "دسته‌بندی" : "دسته‌بندی"}
             </Tabs.Tab>
 
             {/* Filter Button - Takes 1/3 of space */}

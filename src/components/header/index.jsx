@@ -46,6 +46,9 @@ const Header = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   
+  // Check if current route is FastOrder
+  const isFastOrderPage = location.pathname.includes('/fastorder');
+  
   const [showBottomNav, setShowBottomNav] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const lastScrollY = useRef(0);
@@ -201,7 +204,8 @@ const Header = () => {
     user: !!user,
     isVerified,
     authLoading,
-    cartItemsCount: cartItems?.length || 0
+    cartItemsCount: cartItems?.length || 0,
+    isFastOrderPage
   });
 
   return (
@@ -212,7 +216,11 @@ const Header = () => {
         </a>
       )}
       
-      <div className={`sticky top-0 bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} style={{ zIndex: 1000 }} id="header">
+      <div 
+        className={`${isFastOrderPage ? '' : 'sticky top-0'} bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} 
+        style={{ zIndex: 1000 }} 
+        id="header"
+      >
         <div className="relative gap-x-4 bg-white py-2 pb-2" style={{ zIndex: 1000 }}>
           <Container>
             <Flex w="100%" justify="space-between" align="center" gap={{ base: 'xs', sm: 'sm', md: 'md' }}>
@@ -225,14 +233,14 @@ const Header = () => {
                   )}
                 </Anchor>
               </Box>
-              
+
               <Box
                 style={{
                   flex: 1,
                   minWidth: 0,
                   maxWidth: '600px',
                   cursor: 'pointer',
-                  border: '1px solid #dee2e6',
+                  border: window.innerWidth <= 768 ? 'none' : '1px solid #dee2e6',
                   borderRadius: '9px',
                   padding: '2px 8px',
                   outline: 'none',
@@ -244,6 +252,10 @@ const Header = () => {
               >
                 <Search />
               </Box>
+              
+
+
+
 
               <Box style={{ flex: 1 }} />
 
@@ -265,7 +277,6 @@ const Header = () => {
 
                 <Box visibleFrom="sm"><Notifications /></Box>
                 
-                {/* DEBUG: Show loading state */}
                 {authLoading ? (
                   <Button h="39" w="113" loading>بارگذاری...</Button>
                 ) : user && isVerified ? (
