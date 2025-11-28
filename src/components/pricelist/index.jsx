@@ -1,153 +1,227 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
+  Box,
   Card,
   Table,
   ScrollArea,
   Text,
-  Group,
+  Flex,
   Button,
-  Collapse
+  Collapse,
+  Paper,
 } from "@mantine/core";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
-import { createStyles, rem } from "@mantine/styles";
-import { useNavigate } from "react-router-dom"; // ✅ Import this
-
-
-
-const useStyles = createStyles((theme) => ({
-  table: {
-    borderCollapse: "collapse",
-    minWidth: rem(300),
-    fontSize: rem(14),
-  },
-
-  th: {
-    backgroundColor: theme.colors.indigo[1],
-    color: theme.colors.indigo[7],
-    fontWeight: 700,
-    padding: rem(10),
-    border: `1px solid ${theme.colors.indigo[3]}`,
-    textAlign: "center",
-  },
-
-  td: {
-    padding: rem(10),
-    border: `1px solid ${theme.colors.indigo[2]}`,
-    textAlign: "center",
-    color: theme.colors.gray[8],
-  },
-
-  stripedRow: {
-    "&:nth-of-type(odd)": {
-      backgroundColor: theme.colors.gray[0],
-    },
-  },
-
-  title: {
-    color: theme.colors.indigo[7],
-    marginBottom: rem(8),
-    fontWeight: 700,
-    fontSize: rem(16),
-  },
-}));
-
-
-
-
-
-
+import { NavLink, useNavigate } from "react-router-dom";
 
 function PriceList({ items }) {
-
-
-if (!items || items.length === 0) return null;
-
+  if (!items || items.length === 0) return null;
 
   const [expanded, setExpanded] = useState(false);
-
-
-  const { classes } = useStyles();
-
-
-
-  const navigate = useNavigate(); // ✅ Hook for routing
+  const scrollPositionRef = useRef(0);
+  const navigate = useNavigate();
 
   const displayAll = () => {
     navigate("/pricelists");
   };
 
+  const toggleExpanded = (e) => {
+    e.stopPropagation();
+    setExpanded((prev) => !prev);
+  };
 
+  const handleScroll = (e) => {
+    scrollPositionRef.current = e.target.scrollLeft;
+  };
 
-  const toggleExpanded = () => setExpanded((prev) => !prev);
-
-  const renderTables = () => (
-    <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}>
+  const renderTables = (isExpanded) => (
+    <Box 
+      onScroll={handleScroll}
+      style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8 }}
+      ref={(el) => {
+        if (el) {
+          el.scrollLeft = scrollPositionRef.current;
+        }
+      }}
+    >
       {items.map((list, i) => (
-        <Card key={list.i} padding="sm" shadow="xs" radius="md" withBorder style={{ minWidth: 340 }}>
-            <Text mb="md" className={classes.title}>
-                {list.title}
+        <Paper
+          key={i}
+          shadow="sm"
+          p="md"
+          radius="md"
+          style={{
+            minWidth: 340,
+            border: "1px solid rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <Flex 
+            justify="space-between" 
+            align="center" 
+            mb="md"
+            onClick={toggleExpanded}
+            style={{
+              cursor: "pointer",
+              borderRadius: "6px",
+              padding: "8px",
+              transition: "background-color 0.2s ease",
+            }}
+            className="hover:bg-gray-100"
+          >
+            <Text
+              fw="600"
+              size="md"
+              style={{ color: 'rgb(9, 54, 114)' }}
+            >
+              {list.title}
             </Text>
+            
+            {/* Chevron button inside each table */}
+            <Flex
+              align="center"
+              gap="xs"
+              px="md"
+              py="xs"
+              h={36}
+              style={{
+                borderRadius: "6px",
+                transition: "background-color 0.2s ease",
+                backgroundColor: "transparent",
+                color: "inherit",
+              }}
+            >
+              {expanded ? (
+                <IconChevronUp size={16} />
+              ) : (
+                <IconChevronDown size={16} />
+              )}
+            </Flex>
+          </Flex>
+          
           <ScrollArea type="auto" offsetScrollbars>
-            <table className={classes.table}>
-              <thead>
-                <tr>
-                  <th className={classes.th}>محصول</th>
-                  <th className={classes.th}>قیمت</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.tablelist.map((entry, i) => (
-                  <tr key={entry.id} className={classes.stripedRow}>
-                    <td className={classes.td}>{entry.product}</td>
-                    <td className={classes.td}>{entry.price}</td>
-                  </tr>
+            <Table
+              striped
+              highlightOnHover
+              withTableBorder
+              withColumnBorders
+              style={{
+                minWidth: 300,
+                fontSize: 14,
+              }}
+            >
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th
+                    style={{
+                      backgroundColor: '#e7f5ff',
+                      color: 'rgb(9, 54, 114)',
+                      fontWeight: 700,
+                      textAlign: 'center',
+                    }}
+                  >
+                    محصول
+                  </Table.Th>
+                  <Table.Th
+                    style={{
+                      backgroundColor: '#e7f5ff',
+                      color: 'rgb(9, 54, 114)',
+                      fontWeight: 700,
+                      textAlign: 'center',
+                    }}
+                  >
+                    قیمت
+                  </Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {list.tablelist.map((entry, idx) => (
+                  <Table.Tr key={entry.id || idx}>
+                    <Table.Td style={{ textAlign: 'center', color: '#495057' }}>
+                      {entry.product}
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: 'center', color: '#495057' }}>
+                      {entry.price}
+                    </Table.Td>
+                  </Table.Tr>
                 ))}
-              </tbody>
-            </table>
+              </Table.Tbody>
+            </Table>
           </ScrollArea>
-        </Card>
+        </Paper>
       ))}
-    </div>
+    </Box>
   );
 
   return (
-    <Card shadow="md" padding="md" radius="md" withBorder>
-      <Group position="right" mb="xs" justify="space-between">
-        <Button
-          size="xs"
-          variant="light"
-          onClick={toggleExpanded}
-          leftIcon={expanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+    <Box px={{ base: "md", md: 0 }}>
+      {/* Header with title and button */}
+      <Flex
+        justify="space-between"
+        align="center"
+        w="100%"
+        mb="lg"
+        wrap="nowrap"
+      >
+        <Text
+          size="md"
+          fw="600"
+          style={{ color: 'rgb(9, 54, 114)' }}
         >
-          {expanded ? "نمایش کمتر" : "نمایش بیشتر"}
-        </Button>
+          آخرین قیمت‌ها
+        </Text>
 
-        <Button
-          size="xs"
-          variant="light"
-          onClick={() => displayAll()}
-          leftIcon={expanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+        {/* نمایش همه button */}
+        <Box
+          component={NavLink}
+          to="/pricelists"
+          style={{
+            textDecoration: 'none',
+          }}
         >
-          نمایش همه
-        </Button>
-      </Group>
+          <Flex
+            align="center"
+            gap="xs"
+            px="md"
+            py="xs"
+            h={36}
+            style={{
+              borderRadius: "6px",
+              cursor: "pointer",
+              transition: "background-color 0.2s ease",
+              backgroundColor: "transparent",
+              color: "inherit",
+            }}
+            className="hover:bg-gray-100"
+          >
+            <Text size="sm" fw="500">
+              مشاهده همه
+            </Text>
+            <svg
+              style={{ width: '16px', height: '16px', fill: 'currentColor' }}
+              viewBox="0 0 24 24"
+            >
+              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+          </Flex>
+        </Box>
+      </Flex>
 
+      {/* Content area */}
       <Collapse in={expanded} transitionDuration={300}>
-        {renderTables()}
+        {renderTables(true)}
       </Collapse>
 
       {!expanded && (
-        <div
+        <Box
           style={{
             maxHeight: 300,
             overflowY: "hidden",
             maskImage: "linear-gradient(to bottom, black 60%, transparent)",
           }}
         >
-          {renderTables()}
-        </div>
+          {renderTables(false)}
+        </Box>
       )}
-    </Card>
+    </Box>
   );
 }
 

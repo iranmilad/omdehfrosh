@@ -1,11 +1,11 @@
-import { Grid, GridCol, Image, Box, Flex, Text, Card, Overlay, Title, Anchor, Group } from "@mantine/core";
-import React, { useState } from "react";
+import { Grid, GridCol, Image, Box, Flex, Text, Paper, Title, Anchor, Group } from "@mantine/core";
+import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router";
 import { EditorContainer } from "../editor/container";
 import ToolbarItem from "../editor/toolbar/toolbarItem";
 import { 
   IconChevronLeft,
-  IconPhoto
+  IconPackage
 } from "@tabler/icons-react";
 
 function ProductHighlightCard({ items = [] }) {
@@ -32,8 +32,8 @@ function ProductHighlightCard({ items = [] }) {
     setFailedImages(prev => new Set([...prev, key]));
   };
 
-  const createDefaultImagePlaceholder = (title) => {
-    // Array of green-based gradient backgrounds
+  const createProductPlaceholder = (title) => {
+    // Array of green-based gradient backgrounds matching ProductBox
     const gradients = [
       "linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)", // Classic Green
       "linear-gradient(135deg, #66BB6A 0%, #388E3C 100%)", // Light Green
@@ -43,32 +43,33 @@ function ProductHighlightCard({ items = [] }) {
       "linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%)", // Dark Green
       "linear-gradient(135deg, #4CAF50 0%, #43A047 100%)", // Fresh Green
       "linear-gradient(135deg, #8BC34A 0%, #689F38 100%)", // Lime Green
-      "linear-gradient(135deg, #9CCC65 0%, #7CB342 100%)", // Yellow Green
-      "linear-gradient(135deg, #C8E6C9 0%, #81C784 100%)", // Very Light Green
     ];
     
-    // Generate a consistent gradient based on title hash for consistent colors
-    const titleHash = title ? title.split('').reduce((a, b) => {
+    // Generate consistent gradient based on title hash
+    const titleHash = (title || '').toString().split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
-    }, 0) : 0;
+    }, 0);
     
     const selectedGradient = gradients[Math.abs(titleHash) % gradients.length];
     
     return (
       <Box
-        h={180}
+        w="100%"
+        h="150px"
         style={{
           background: selectedGradient,
-          position: "relative",
-          overflow: "hidden",
-          borderRadius: "var(--mantine-radius-lg)",
+          borderRadius: "8px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "column",
-          gap: "var(--mantine-spacing-xs)",
+          gap: "8px",
+          position: "relative",
+          overflow: "hidden",
+          cursor: "pointer",
         }}
+        className="hover:scale-105 transition-transform duration-300"
       >
         {/* Subtle pattern overlay */}
         <Box
@@ -83,39 +84,19 @@ function ProductHighlightCard({ items = [] }) {
           }}
         />
         
-        {/* Photo icon as placeholder */}
-        <IconPhoto 
+        {/* Product icon */}
+        <IconPackage 
           size={48} 
           color="rgba(255, 255, 255, 0.8)" 
           style={{ zIndex: 2 }} 
         />
-        
-        {/* Title if available */}
-        {title && (
-          <Text 
-            c="white" 
-            fw={500} 
-            size="xs" 
-            ta="center"
-            px="sm"
-            style={{ 
-              zIndex: 2,
-              textShadow: "0 1px 3px rgba(0,0,0,0.3)",
-              lineHeight: 1.2,
-              maxWidth: "100%",
-              wordBreak: "break-word"
-            }}
-          >
-            {title}
-          </Text>
-        )}
       </Box>
     );
   };
 
-  const renderProductImage = (item, categoryIndex, itemIndex, categoryTitle) => {
+  const renderProductImage = (item, categoryIndex, itemIndex) => {
     const key = `${categoryIndex}-${itemIndex}`;
-    const displayTitle = categoryTitle || item.title || 'محصول';
+    const displayTitle = item.title || 'محصول';
     
     // Check if this image has failed to load or doesn't exist
     const hasValidImage = item.image && 
@@ -124,72 +105,72 @@ function ProductHighlightCard({ items = [] }) {
                          item.image.trim() !== "" &&
                          !failedImages.has(key);
 
+    if (!hasValidImage) {
+      return createProductPlaceholder(displayTitle);
+    }
+
     return (
-      <Card
-        radius="lg"
+      <Image
+        className="hover:scale-105 transition-transform duration-300"
+        w="100%"
+        h="150px"
+        fit="contain"
+        src={item.image}
+        alt={displayTitle}
+        onError={() => handleImageError(categoryIndex, itemIndex)}
+        fallbackSrc="" // This will trigger onError if image fails
+        style={{
+          borderRadius: "8px",
+          backgroundColor: "#f8f9fa", // Light background for transparent images
+        }}
+      />
+    );
+  };
+
+  const renderProductCard = (item, categoryIndex, itemIndex) => {
+    const displayTitle = item.title || 'عنوان محصول';
+    
+    return (
+      <Paper
+        shadow="sm"
+        px="25"
+        pb="lg"
+        pt="40"
+        pos="relative"
+        display="flex"
         style={{ 
-          position: "relative",
-          overflow: "hidden",
-          cursor: "pointer",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          flexDirection: "column",
+          border: "1px solid rgba(1, 1, 1, 0.5)",
         }}
-        styles={{
-          root: {
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
-            }
-          }
-        }}
+        h="100%"
       >
-        {hasValidImage ? (
-          <>
-            <Image 
-              h={180}
-              fit="cover" 
-              src={item.image}
-              alt={displayTitle}
-              onError={() => handleImageError(categoryIndex, itemIndex)}
-              style={{ borderRadius: "inherit" }}
-              fallbackSrc="" // This will trigger onError if image fails
-            />
-            
-            {/* Product title overlay for real images */}
-            <Overlay
-              gradient="linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .85) 100%)"
-              opacity={0.7}
-              zIndex={1}
-            />
-            
-            <Box
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: 2,
-                padding: "var(--mantine-spacing-xs)"
-              }}
-            >
-              <Text 
-                c="white" 
-                fw={600} 
-                size="xs" 
-                ta="center"
-                style={{ 
-                  textShadow: "0 1px 2px rgba(0,0,0,0.8)",
-                  lineHeight: 1.2
-                }}
-              >
-                {displayTitle}
-              </Text>
-            </Box>
-          </>
-        ) : (
-          // Use default placeholder when no valid image
-          createDefaultImagePlaceholder(displayTitle)
-        )}
-      </Card>
+        <Box component={item.url ? NavLink : 'div'} to={item.url ? `/product/${item.url}` : undefined}>
+          {renderProductImage(item, categoryIndex, itemIndex)}
+        </Box>
+        
+        <Box my="lg" w="100%" minh="42px">
+          <Text
+            fw="500"
+            size="14px"
+            component={item.url ? NavLink : 'div'}
+            to={item.url ? `/product/${item.url}` : undefined}
+            style={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 2,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "normal",
+              lineHeight: "1.2",
+              color: item.url ? 'inherit' : 'var(--mantine-color-dimmed)',
+              textDecoration: 'none',
+              cursor: item.url ? 'pointer' : 'default',
+            }}
+          >
+            {displayTitle}
+          </Text>
+        </Box>
+      </Paper>
     );
   };
 
@@ -236,24 +217,15 @@ function ProductHighlightCard({ items = [] }) {
                 )}
               </Group>
               
-              <Grid gutter="md">
-                {category.children.map((item, itemIndex) => (
-                  <GridCol key={item.url || `${categoryIndex}-${itemIndex}`} span={{ base: 12, xs: 6, sm: 4, md: 3 }}>
-                    {item.url ? (
-                      <NavLink 
-                        to={`/product/${item.url}`} 
-                        style={{ textDecoration: "none" }}
-                      >
-                        {renderProductImage(item, categoryIndex, itemIndex, category.title)}
-                      </NavLink>
-                    ) : (
-                      <Box style={{ cursor: 'default' }}>
-                        {renderProductImage(item, categoryIndex, itemIndex, category.title)}
-                      </Box>
-                    )}
-                  </GridCol>
-                ))}
-              </Grid>
+              <Flex justify="center" w="100%">
+                <Grid gutter="md" style={{ maxWidth: '100%' }}>
+                  {category.children.map((item, itemIndex) => (
+                    <GridCol key={item.url || `${categoryIndex}-${itemIndex}`} span={{ base: 6, xs: 6, sm: 4, md: 3, lg: 3 }}>
+                      {renderProductCard(item, categoryIndex, itemIndex)}
+                    </GridCol>
+                  ))}
+                </Grid>
+              </Flex>
             </Box>
           ))}
         </Box>
@@ -266,24 +238,15 @@ function ProductHighlightCard({ items = [] }) {
     <EditorContainer>
       {items.map((row, rowIndex) => (
         <Box key={rowIndex} mb="lg">
-          <Grid gutter="md">
-            {row.map((item, itemIndex) => (
-              <GridCol key={item.url || `${rowIndex}-${itemIndex}`} span={{ base: 12, sm: 6, md: 4 }}>
-                {item.url ? (
-                  <NavLink 
-                    to={`/product/${item.url}`} 
-                    style={{ textDecoration: "none" }}
-                  >
-                    {renderProductImage(item, rowIndex, itemIndex)}
-                  </NavLink>
-                ) : (
-                  <Box style={{ cursor: 'default' }}>
-                    {renderProductImage(item, rowIndex, itemIndex)}
-                  </Box>
-                )}
-              </GridCol>
-            ))}
-          </Grid>
+          <Flex justify="center" w="100%">
+            <Grid gutter="md" style={{ maxWidth: '100%' }}>
+              {row.map((item, itemIndex) => (
+                <GridCol key={item.url || `${rowIndex}-${itemIndex}`} span={{ base: 6, xs: 6, sm: 4, md: 3, lg: 3 }}>
+                  {renderProductCard(item, rowIndex, itemIndex)}
+                </GridCol>
+              ))}
+            </Grid>
+          </Flex>
         </Box>
       ))}
     </EditorContainer>

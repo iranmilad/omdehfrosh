@@ -30,7 +30,13 @@ function ProductCarousel(props) {
         return (
             <Box>
                 <Group justify="space-between" mb="md">
-                    <XTitle>{title || 'محصولات'}</XTitle>
+                    <Text 
+                        size="md" 
+                        fw="600"
+                        style={{ color: 'rgb(9, 54, 114)' }}
+                    >
+                        {title || 'محصولات'}
+                    </Text>
                 </Group>
                 <Box
                     p="xl"
@@ -97,7 +103,13 @@ function ProductCarousel(props) {
     return (
         <Box>
             <Group justify="space-between" mb="md">
-                <XTitle>{title || 'محصولات'}</XTitle>
+                <Text 
+                    size="md" 
+                    fw="600"
+                    style={{ color: 'rgb(9, 54, 114)' }}
+                >
+                    {title || 'محصولات'}
+                </Text>
                 {showNavigation && (
                     <Group>
                         <ActionIcon 
