@@ -13,17 +13,27 @@ const SliderComponentCategories = ({
 }) => {
   return (
     <Swiper 
-      modules={[FreeMode, Navigation]}       
-      freeMode={true} 
-      slidesPerView="auto" 
-      spaceBetween={6}              // Added gap between slides for spacing
-      className="mt-2"              // Added margin-top for some spacing above
-      style={{ width: "100%" }}
+      modules={[FreeMode, Navigation]}
+      freeMode={true}
+      slidesPerView="auto"
+      spaceBetween={6}
+      style={{ 
+        width: "100%",
+        margin: 0,
+        padding: 0
+      }}
+      className="!m-0 !p-0"
     >
       {items?.map((item, index) => (
         <SwiperSlide 
           key={index} 
-          style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}
+          style={{
+            width: "auto",
+            display: "flex",
+            margin: 0,
+            padding: 0
+          }}
+          className="!m-0 !p-0"
         >
           <SingleCategoryGroup 
             parentItem={item} 
@@ -44,12 +54,12 @@ const SliderComponentCategories = ({
 // Enhanced SVG Icon Component for fallback
 const CategoryIcon = () => (
   <svg 
-    width="25" 
-    height="25" 
+    width="20" 
+    height="20" 
     viewBox="0 0 24 24" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    className="w-[25px] h-[25px]"
+    className="w-[20px] h-[20px]"
   >
     <rect x="3" y="3" width="18" height="18" rx="2" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
     <rect x="6" y="6" width="5" height="5" rx="1" fill="#9CA3AF"/>
@@ -149,9 +159,9 @@ export function SingleCategoryGroup({
   return (
     <>
       {isActive && (
-        <div className="items-center border-gray-300 p-2 rounded-lg flex flex-col gap-4">
+        <div className="flex flex-col mt-2">
           {/* Categories Row */}
-          <div className="flex flex-row gap-2 justify-center">
+          <div className="flex flex-row flex-wrap gap-2">
             {parentItem.categories.map((category, index) => {
               const isActiveBorder = filterBrandsCategoryStorage.some(
                 (member) => 
@@ -168,14 +178,14 @@ export function SingleCategoryGroup({
                   onClick={() => onClick(category, parentItem.idBrand)}
                 >
                   <div
-                    className={`flex w-fit px-2 flex-row gap-1 justify-center items-center h-[35px] overflow-hidden border-[1.5px] bg-gray-100
-                      ${isActiveBorder ? "border-red-600" : "border-none"}`}
-                    style={{ borderRadius: '18px' }}  // Rounded corners same as others
+                    className={`flex w-fit px-3 flex-row gap-2 justify-center items-center h-[35px] overflow-hidden border-[1.5px] bg-gray-100
+                      ${isActiveBorder ? "border-gray-400" : "border-none"}`}
+                    style={{ borderRadius: '18px' }}
                   >
                     {showImage ? (
-                      <div className="relative">
+                      <div className="relative flex-shrink-0">
                         <img 
-                          className="w-fit h-[25px] object-cover" 
+                          className="w-[20px] h-[20px] object-cover" 
                           src={category.image} 
                           alt={category.title}
                           onError={(e) => handleImageError(e, category.title)}
@@ -188,7 +198,7 @@ export function SingleCategoryGroup({
                     ) : (
                       <CategoryIcon />
                     )}
-                    <span className="cursor-pointer text-center text-[8px] whitespace-nowrap">
+                    <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
                       {category.title}
                     </span>
                   </div>

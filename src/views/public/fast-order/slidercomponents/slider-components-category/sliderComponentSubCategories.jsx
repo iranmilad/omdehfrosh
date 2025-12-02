@@ -149,22 +149,24 @@ export function SingleCategoryWithSubcategories({
               return (
                 <div
                   key={subIndex}
-                  className="text-sm flex-shrink-0 flex items-center cursor-pointer"
+                  className="text-sm w-fit flex flex-col items-center cursor-pointer"
                   onClick={() => onClick(subcategory, parentItem.idCategory)}
                 >
                   <div
-                    className={`flex w-fit flex-row justify-center items-center px-2 h-[35px] bg-gray-100 overflow-hidden border-[1.5px] ${
-                      isActiveBorder ? "border-red-600" : "border-none"
+                    className={`flex w-fit flex-row justify-center items-center px-3 gap-2 h-[35px] bg-gray-100 overflow-hidden border-[1.5px] ${
+                      isActiveBorder ? "border-gray-400" : "border-none"
                     }`}
                     style={{ borderRadius: '18px' }}
                   >
-                    <img
-                      className="w-fit h-[25px] object-cover"
-                      src={getSubcategoryImageSrc(subcategory.image)}
-                      alt={subcategory.name}
-                      onError={handleImageError}
-                    />
-                    <span className="cursor-pointer text-[8px] whitespace-nowrap ml-1">
+                    <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
+                      <img
+                        className="w-full h-full object-cover"
+                        src={getSubcategoryImageSrc(subcategory.image)}
+                        alt={subcategory.name}
+                        onError={handleImageError}
+                      />
+                    </div>
+                    <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
                       {subcategory.name}
                     </span>
                   </div>

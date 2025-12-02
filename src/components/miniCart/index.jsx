@@ -14,11 +14,13 @@ import {
   Text,
   useMantineTheme,
   Loader,
-  Modal
+  Modal,
+  Box,
+  Input
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { IconTrash, IconUser, IconX, IconCheck } from "@tabler/icons-react";
+import { IconTrash, IconUser, IconX, IconCheck, IconMinus, IconPlus } from "@tabler/icons-react";
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router";
@@ -27,6 +29,9 @@ import InfoBox from "../InfoBox";
 import { getsubscriptionPlansGet } from "../../redux/usermyaccounts/usermyaccounts/getsubscriptionplans/getSubscriptionPlansActions";
 import { DEFAULT_COLOR_MAP } from '../../Libs/attribute_colors/colors';
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
+import CounterMiniCart from "../counterminicart";
+import PriceText from "../priceText";
+
 
 // Custom Cart Icon Component
 const CartIcon = ({ size = 18, color = "currentColor", ...props }) => (
@@ -144,6 +149,99 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     }
     return null;
   }, [price]);
+
+  const updateItem = async (newCount) => {
+    try {
+      const token = localStorage.getItem("user");
+      
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const requestPayload = {
+        productId: productId,
+        seller: seller,
+        count: newCount,
+        combinationsID: combinationsID || null,
+      };
+
+      const updateResponse = await fetch(getApiUrl("/cart/update"), {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestPayload),
+      });
+
+      if (updateResponse.status === 401) {
+        handleTokenExpiration({ status: 401, message: 'Unauthorized' });
+        return;
+      }
+
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        throw new Error(`HTTP ${updateResponse.status}: ${errorText}`);
+      }
+
+      const updateData = await updateResponse.json();
+
+      if (updateData?.message === "error") {
+        throw new Error(updateData.error || "Server returned an error");
+      }
+
+      // Fetch updated cart
+      const cartResponse = await fetch(getApiUrl("/cart"), {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (cartResponse.status === 401) {
+        handleTokenExpiration({ status: 401, message: 'Unauthorized' });
+        return;
+      }
+
+      if (cartResponse.ok) {
+        const cartData = await cartResponse.json();
+        if (cartData?.message === "ok" && cartData?.cart) {
+          dispatch(setInitial([...cartData.cart]));
+          notifications.show({
+            title: 'موفق',
+            message: 'تعداد محصول به‌روزرسانی شد',
+            color: 'green',
+            icon: <IconCheck size={16} />,
+            autoClose: 2000,
+            position: 'top-right'
+          });
+        }
+      }
+
+    } catch (error) {
+      console.error("Update failed:", error);
+      
+      if (handleTokenExpiration(error)) {
+        return;
+      }
+      
+      notifications.show({
+        title: 'خطا',
+        message: 'مشکلی در به‌روزرسانی پیش آمد',
+        color: 'red',
+        icon: <IconX size={16} />,
+        autoClose: 3000,
+        position: 'top-right'
+      });
+    }
+
+    try {
+      dispatch(getsubscriptionPlansGet());
+    } catch (planError) {
+      console.warn("Failed to refresh subscription plans:", planError);
+    }
+  };
 
   const removeItem = async () => {
     setIsRemoving(true);
@@ -328,202 +426,168 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         </Flex>
       </Modal>
 
-      <Flex 
-        gap={isMobile ? "xs" : "md"}
-        pt="sm" 
-        w="100%" 
-        style={{ 
+      {/* Main container matching the design */}
+      <Box
+        style={{
+          padding: isMobile ? '8px' : '16px',
+          border: '1px solid #e0e0e0',
+          borderRadius: '8px',
           opacity: isRemoving ? 0.5 : 1,
           transition: 'all 0.3s ease',
-          transform: isRemoving ? 'scale(0.95)' : 'scale(1)',
-          borderRadius: '8px',
-          padding: isMobile ? '6px' : '8px',
-          backgroundColor: 'var(--mantine-color-gray-0)',
-          border: '1px solid var(--mantine-color-gray-2)',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          position: 'relative',
-          overflow: 'hidden'
+          backgroundColor: '#fff'
         }}
       >
-        {/* Product Image */}
-        <div style={{ position: 'relative', flexShrink: 0 }}>
+        {/* Product row */}
+        <Flex gap={isMobile ? 4 : 8} align="flex-start">
+          {/* Image */}
           <Anchor component={NavLink} to={`product/${productId}`}>
             <Image 
               src={getValidImageSrc()} 
-              w={isMobile ? 60 : 80}
-              h={isMobile ? 60 : 80}
+              w={60}
+              h={60}
               fit="contain" 
-              radius="md"
-              fallbackSrc={defaultImage}
               style={{
-                border: '1px solid var(--mantine-color-gray-3)',
-                backgroundColor: '#fff'
+                objectFit: 'contain'
               }}
             />
           </Anchor>
-          
-          <Badge
-            size="xs"
-            variant="filled"
-            color="blue"
-            style={{
-              position: 'absolute',
-              top: -4,
-              right: -4,
-              minWidth: '20px',
-              height: '20px',
-              padding: '0 6px',
-              fontSize: '10px',
-              fontWeight: 600
-            }}
-          >
-            {count}
-          </Badge>
-        </div>
 
-        {/* Product Details */}
-        <Flex gap="xs" direction="column" flex="1" style={{ minWidth: 0 }}>
-          {/* Product Name and Remove Button */}
-          <Flex align="flex-start" justify="space-between" gap="xs">
-            <Text 
-              component={NavLink} 
-              to={`product/${productId}`} 
-              className="line-clamp-2"
-              size={isMobile ? "xs" : "sm"}
-              fw={500}
-              style={{ 
-                flex: 1, 
-                minWidth: 0,
-                color: 'var(--mantine-color-dark-7)',
-                textDecoration: 'none',
-                lineHeight: 1.4
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.color = 'var(--mantine-primary-color-filled)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.color = 'var(--mantine-color-dark-7)';
-              }}
-            >
-              {name}
-            </Text>
-            <ActionIcon 
-              color="red" 
-              variant="light" 
-              onClick={removeItem}
-              style={{ 
-                flexShrink: 0,
-                transition: 'all 0.2s ease',
-                height: 35, width: 45
-              }}
-              loading={isRemoving}
-              disabled={isRemoving}
-              radius="md"
-            >
-              {isRemoving ? <Loader size={10} /> : <IconTrash size={isMobile ? 10 : 12} />}
-            </ActionIcon>
-          </Flex>
-          
-          {/* Product Attributes */}
-          {shouldRenderAttributes(attributes) && (
-            <Flex gap="xs" wrap="wrap" style={{ margin: '4px 0' }}>
-              {attributes?.map((attr, index) => (
-                <Flex key={index} gap="xs" wrap="wrap">
-                  {attr.color && attr.color !== "" && (
-                    <div
-                      style={{
-                        width: isMobile ? '14px' : '16px',
-                        height: isMobile ? '14px' : '16px',
-                        borderRadius: '50%',
-                        backgroundColor: getColorCode(attr.color),
-                        border: '2px solid var(--mantine-color-gray-4)',
-                        display: 'inline-block',
-                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                  )}
-                  
-                  {attr.material && attr.material !== "" && (
-                    <Badge variant="light" color="gray" size="xs" radius="sm">
-                      <Text size="xs">{attr.material}</Text>
-                    </Badge>
-                  )}
-                  
-                  {attr.warranty && attr.warranty !== "" && (
-                    <Badge variant="light" color="blue" size="xs" radius="sm">
-                      <Text size="xs">{attr.warranty}</Text>
-                    </Badge>
-                  )}
-                </Flex>
-              ))}
-            </Flex>
-          )}
-          
-          {/* Seller Information */}
-          <Flex align="center" gap="xs" style={{ margin: '2px 0' }}>
-            <IconUser size={isMobile ? 10 : 12} color="var(--mantine-color-gray-6)" />
-            <Text size="xs" c="gray.6">{seller?.label}</Text>
-          </Flex>
-
-          {/* Price Section */}
-          <Flex 
-            dir="ltr" 
-            gap={isMobile ? "xs" : "sm"}
-            align="center" 
-            justify="space-between" 
-            w="100%"
-            style={{ marginTop: 'auto', padding: isMobile ? '4px 0' : '8px 0' }}
-          >
-            <Flex direction="column" align="start" gap="2px">
-              <Flex align="center" gap="xs">
-                <Text fw={600} size={isMobile ? "xs" : "sm"} c="dark">
-                  <NumberFormatter 
-                    thousandSeparator 
-                    value={price?.discountedPrice || price?.regularPrice} 
-                  />
-                  <Text component="span" size="xs" c="dimmed" mr="4px">
-                    تومان
-                  </Text>
-                </Text>
-                
-                {discountPercentage && (
-                  <Badge color="red" size="xs" variant="filled" radius="sm">
-                    {discountPercentage}%
-                  </Badge>
-                )}
-              </Flex>
-              
-              {price?.discountedPrice && price?.regularPrice > price?.discountedPrice && (
-                <Text 
-                  size="xs" 
-                  c="gray.5" 
-                  style={{ textDecoration: 'line-through' }}
-                >
-                  <NumberFormatter 
-                    thousandSeparator 
-                    value={price.regularPrice} 
-                  />
-                </Text>
-              )}
-            </Flex>
-            
-            <Flex 
-              align="center" 
-              gap="xs"
-              style={{
-                backgroundColor: 'var(--mantine-primary-color-light)',
-                padding: isMobile ? '3px 6px' : '4px 8px',
-                borderRadius: '6px',
-                border: '1px solid var(--mantine-primary-color-outline)'
-              }}
-            >
-              <Text c="var(--mantine-primary-color-filled)" size="xs" fw={500}>
-                × {count}
+          {/* Product details */}
+          <Flex direction="column" gap={isMobile ? 8 : 16} style={{ flex: 1 }}>
+            <Anchor component={NavLink} to={`product/${productId}`} style={{ textDecoration: 'none' }}>
+              <Text size={isMobile ? "xs" : "sm"} fw={400} c="#23254e" style={{ lineHeight: 1.5 }}>
+                {name}
               </Text>
-            </Flex>
+            </Anchor>
           </Flex>
         </Flex>
-      </Flex>
+
+        {/* Divider */}
+        <Box style={{ width: '100%', height: '1px', backgroundColor: '#D7DADFFF', margin: '16px 0' }} />
+
+        {/* Attributes row */}
+        <Flex align="center" gap="xs" wrap="wrap" mb="xs">
+          {shouldRenderAttributes(attributes) && attributes?.map((attr, index) => (
+            <Flex key={index} align="center" gap={4}>
+              {attr.color && attr.color !== "" && (
+                <>
+                  <div style={{
+                    width: 12,
+                    height: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <svg style={{ width: '12px', height: '12px', fill: 'rgb(255, 255, 255)' }}>
+                      <circle cx="6" cy="6" r="6" fill={getColorCode(attr.color)} />
+                    </svg>
+                  </div>
+                  {/* <Text size="xs" c="#81858b" mr={8}>
+                    {attr.color}
+                  </Text> */}
+                </>
+              )}
+              
+              {(attr.material || attr.warranty) && (
+                <Box style={{ width: '1px', height: '12px', backgroundColor: '#81858b', marginRight: '8px' }} />
+              )}
+              
+              {attr.material && attr.material !== "" && (
+                <Text size="xs" c="#81858b" mr={8}>
+                  {attr.material}
+                </Text>
+              )}
+              
+              {attr.warranty && attr.warranty !== "" && (
+                <>
+                  {attr.material && (
+                    <Box style={{ width: '1px', height: '12px', backgroundColor: '#81858b', marginRight: '8px' }} />
+                  )}
+                  <Text size="xs" c="#81858b" mr={8}>
+                    {attr.warranty}
+                  </Text>
+                </>
+              )}
+            </Flex>
+          ))}
+
+          {seller?.label && (
+            <>
+              {shouldRenderAttributes(attributes) && (
+                <Box style={{ width: '1px', height: '12px', backgroundColor: '#81858b', marginRight: '8px' }} />
+              )}
+              <Text size="xs" c="#81858b">
+                {seller.label}
+              </Text>
+            </>
+          )}
+
+          <Box style={{ width: '1px', height: '12px', backgroundColor: '#81858b', marginRight: '8px' }} />
+          
+        <Flex align="center" gap={4} wrap="nowrap">
+          <Text size="xs" c="#81858b" style={{ whiteSpace: 'nowrap' }}>
+            هر واحد
+          </Text>
+          <Text size="xs" c="#81858b" style={{ whiteSpace: 'nowrap' }}>
+            <NumberFormatter thousandSeparator value={price?.discountedPrice || price?.regularPrice} />
+          </Text>
+          <PriceText fontSize="10px">تومان</PriceText>
+        </Flex>
+        </Flex>
+
+        {/* Quantity and Price row */}
+        <Flex align="center" justify="space-between" mt={8}>
+          {/* Quantity selector with CounterMiniCart */}
+          <CounterMiniCart
+            productId={productId}
+            seller={seller}
+            combinationsID={combinationsID}
+            count={count}
+            max={max}
+            min={min}
+            onUpdate={updateItem}
+            onRemove={removeItem}
+            isLoading={isRemoving}
+          />
+
+          {/* Price section */}
+          <Flex direction="column" align="flex-end" gap={4}>
+            <Flex align="center" gap={4}>
+              <Text size="lg" fw={700} c="#23254e">
+                <NumberFormatter thousandSeparator value={price?.discountedPrice || price?.regularPrice} />
+              </Text>
+              <PriceText fontSize="10px">تومان</PriceText>
+            </Flex>
+
+            {discountPercentage && (
+              <Flex align="center" gap={8}>
+                <Badge 
+                  size="sm" 
+                  radius="md"
+                  style={{
+                    backgroundColor: '#ef4056',
+                    color: '#fff',
+                    border: 'none',
+                    height: '20px',
+                    padding: '4px 8px',
+                    fontSize: '10px',
+                    fontWeight: 600
+                  }}
+                >
+                  {discountPercentage} %
+                </Badge>
+
+                <Flex align="center" gap={4} style={{ textDecoration: 'line-through' }}>
+                  <Text size="xs" c="#a1a3a8">
+                    <NumberFormatter thousandSeparator value={price.regularPrice} />
+                  </Text>
+                  <PriceText fontSize="8px">تومان</PriceText>
+                </Flex>
+              </Flex>
+            )}
+          </Flex>
+        </Flex>
+      </Box>
     </>
   );
 };
@@ -556,7 +620,6 @@ const MiniCart = () => {
     }, 100);
   };
 
-  // Determine drawer size based on screen size
   const drawerSize = isSmallMobile ? '100%' : isMobile ? '85%' : 450;
 
   return (
@@ -608,72 +671,84 @@ const MiniCart = () => {
         </Button>
       </Indicator>
 
-
-        <Drawer.Root
-          opened={opened}
-          onClose={close}
-          position="right"
-          size={drawerSize}
-          styles={{
-            root: {
-              zIndex: 1005  // Added this line
-            },
-            inner: {
-              right: 0,
-              left: 'auto',
-              top: 0,
-              bottom: 0,
-              height: '100vh',
-              position: 'fixed',
-              zIndex: 1005  // Added this line
-            },
-            overlay: {
-              zIndex: 1005  // Added this line
-            },
-            content: {
-              right: 0,
-              left: 'auto',
-              top: 0,
-              bottom: 0,
-              height: '100vh',
-              maxHeight: '100vh',
-              minWidth: isMobile ? 'auto' : '450px',
-              width: isMobile ? '100%' : '450px',
-              position: 'fixed',
-              display: 'flex',
-              flexDirection: 'column',
-              zIndex: 1005  // Added this line
-            },
-            header: {
-              flexShrink: 0,
-              padding: isMobile ? '0.75rem' : '1rem'
-            },
-            body: {
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              padding: 0
-            }
-          }}
-        >
+      <Drawer.Root
+        opened={opened}
+        onClose={close}
+        position="right"
+        size={drawerSize}
+        styles={{
+          root: { zIndex: 1005 },
+          inner: {
+            right: 0,
+            left: 'auto',
+            top: 0,
+            bottom: 0,
+            height: '100vh',
+            position: 'fixed',
+            zIndex: 1005
+          },
+          overlay: { zIndex: 1005 },
+          content: {
+            right: 0,
+            left: 'auto',
+            top: 0,
+            bottom: 0,
+            height: '100vh',
+            maxHeight: '100vh',
+            minWidth: isMobile ? 'auto' : '450px',
+            width: isMobile ? '100%' : '450px',
+            position: 'fixed',
+            display: 'flex',
+            flexDirection: 'column',
+            zIndex: 1005,
+            backgroundColor: '#f7f7f7'
+          },
+          header: {
+            flexShrink: 0,
+            padding: isMobile ? '12px 16px' : '14px 20px',
+            backgroundColor: '#fff',
+            borderBottom: '1px solid #e0e0e0',
+            height: '56px'
+          },
+          body: {
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            padding: 0,
+            backgroundColor: '#f7f7f7'
+          }
+        }}
+      >
         <Drawer.Overlay />
         <Drawer.Content>
           <Drawer.Header>
-            <Drawer.Title fw={600} size={isMobile ? "sm" : "md"}>سبد خرید</Drawer.Title>
-            <Drawer.CloseButton />
+            <Flex justify="space-between" align="center" w="100%">
+              <ActionIcon
+                size="lg"
+                variant="subtle"
+                color="black"
+                onClick={close}
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="36" 
+                  height="20" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="1" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </ActionIcon>
+              <Text fw={600} size="md" c="#000000FF" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>سبد خرید</Text>
+              <div style={{ width: '40px' }}></div>
+            </Flex>
           </Drawer.Header>
-
-          <Drawer.Body
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              padding: 0,
-              overflow: 'hidden',
-              width: '100%'
-            }}
-          >
+          <Drawer.Body>
             <div style={{ 
               flex: 1, 
               display: 'flex', 
@@ -716,10 +791,10 @@ const MiniCart = () => {
                     <ScrollArea 
                       style={{ height: '100%', width: '100%' }}
                       type="hover"
-                      px={isMobile ? "sm" : "lg"}
+                      px={isMobile ? "sm" : "md"}
                       py={isMobile ? "xs" : "md"}
                     >
-                      <Stack className="divide-y" gap="sm">
+                      <Stack gap={isMobile ? "sm" : "md"}>
                         {items.map((item, index) => {
                           const uniqueKey = `${item.productId}-${item.combinationsID || 'no-combo'}-${index}-${items.length}`;
                           return (
@@ -734,54 +809,53 @@ const MiniCart = () => {
                     </ScrollArea>
                   </div>
 
-                  {/* Fixed footer - RESPONSIVE */}
-                  <div
+                  {/* Fixed footer matching the design */}
+                  <Box
                     style={{
-                      borderTop: '1px solid var(--mantine-color-gray-3)',
-                      padding: isMobile ? '0.75rem 1rem' : '1.25rem',
-                      backgroundColor: 'var(--mantine-color-body)',
+                      borderTop: '1px solid #e0e0e0',
+                      padding: isMobile ? '12px 16px' : '16px',
+                      backgroundColor: '#fff',
                       zIndex: 10,
-                      width: '100%',
-                      boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.05)'
+                      width: '100%'
                     }}
                   >
                     <Flex 
                       justify="space-between" 
-                      align="center" 
-                      gap={isMobile ? "xs" : "md"}
-                      direction={isSmallMobile ? "column" : "row"}
+                      align="center"
+                      gap="md"
                     >
-                      <Flex 
-                        direction="column" 
-                        align={isSmallMobile ? "center" : "start"}
-                        style={{ width: isSmallMobile ? '100%' : 'auto' }}
-                      >
-                        <Text size="xs" c="gray" component="span">
-                          جمع کل
+                      {/* Price section */}
+                      <Flex direction="column" gap={4}>
+                        <Text size="xs" c="#09346D">
+                          قابل پرداخت
                         </Text>
-                        <Text component="span" fw={600} size={isMobile ? "sm" : "md"}>
-                          <NumberFormatter
-                            thousandSeparator
-                            value={calculatedTotal}
-                          />
-                          <Text component="span" size="xs" c="dimmed" mr="xs">
-                            تومان
+                        <Flex align="center" gap={4}>
+                          <Text size="md" fw={700} c="#23254e" mr={4}>
+                            <NumberFormatter thousandSeparator value={calculatedTotal} />
                           </Text>
-                        </Text>
+                          <PriceText fontSize="8px">تومان</PriceText>
+                        </Flex>
                       </Flex>
+
+                      {/* Checkout button */}
                       <Button
                         onClick={handleNavigateToBasket}
-                        size={isMobile ? "sm" : "md"}
-                        fullWidth={isSmallMobile}
-                        style={{ 
-                          minWidth: isSmallMobile ? '100%' : isMobile ? '80px' : '100px',
-                          marginTop: isSmallMobile ? '0.5rem' : 0
+                        size="md"
+                        radius="md"
+                        style={{
+                          flex: 1,
+                          maxWidth: '60%',
+                          backgroundColor: '#09346D',
+                          color: '#fff',
+                          fontWeight: 500,
+                          fontSize: '14px',
+                          height: '48px'
                         }}
                       >
-                        ادامه
+                        تأیید و تکمیل سفارش
                       </Button>
                     </Flex>
-                  </div>
+                  </Box>
                 </>
               )}
             </div>
