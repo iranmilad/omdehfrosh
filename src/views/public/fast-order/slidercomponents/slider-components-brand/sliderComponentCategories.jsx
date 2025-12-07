@@ -1,7 +1,7 @@
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-const SliderComponentCategories = ({ 
+const SliderComponentCategoriesFastOrder = ({ 
   items, 
   clickType, 
   searchType, 
@@ -212,4 +212,4 @@ export function SingleCategoryGroup({
   );
 }
 
-export default SliderComponentCategories;
+export default SliderComponentCategoriesFastOrder;

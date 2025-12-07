@@ -1,4 +1,4 @@
-import { ActionIcon, Flex, Input, LoadingOverlay, Modal, Text, Box } from "@mantine/core";
+import { ActionIcon, Flex, Input, LoadingOverlay, Modal, Text, Box, Button } from "@mantine/core";
 import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setInitial } from "../../redux/cart";
@@ -137,7 +137,14 @@ const cartAPI = {
   }
 };
 
-const CounterHomePage = ({ productId, defaultSellerId, defaultCombinationId }) => {
+const CounterHomePage = ({ 
+  productId, 
+  defaultSellerId, 
+  defaultCombinationId,
+  stock = 0,
+  minOrder = 1,
+  maxOrder = 0
+}) => {
   const dispatch = useDispatch();
   const [isPending, setIsPending] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -179,6 +186,10 @@ const CounterHomePage = ({ productId, defaultSellerId, defaultCombinationId }) =
   };
   
   const count = getProductCount();
+
+  // Check if product is available
+  const isAvailable = stock > 0;
+  const effectiveMaxOrder = Math.min(maxOrder || stock, stock);
 
   const handleChange = async (value) => {
     if (!user || !isVerified) {
@@ -241,7 +252,14 @@ const CounterHomePage = ({ productId, defaultSellerId, defaultCombinationId }) =
       return;
     }
 
-    handleChange(count + 1);
+    if (!isAvailable) {
+      return;
+    }
+
+    // Don't exceed stock or maxOrder
+    if (count < effectiveMaxOrder) {
+      handleChange(count + 1);
+    }
   };
 
   const decrement = () => {
@@ -250,9 +268,14 @@ const CounterHomePage = ({ productId, defaultSellerId, defaultCombinationId }) =
       return;
     }
 
-    if (count > 1) {
+    if (!isAvailable) {
+      return;
+    }
+
+    if (count > minOrder) {
       handleChange(count - 1);
-    } else {
+    } else if (count === minOrder) {
+      // If we're at minOrder, remove from cart
       handleRemove();
     }
   };
@@ -262,9 +285,43 @@ const CounterHomePage = ({ productId, defaultSellerId, defaultCombinationId }) =
       setShowAuthModal(true);
       return;
     }
+
+    if (!isAvailable) {
+      return;
+    }
     
-    handleChange(1);
+    handleChange(minOrder);
   };
+
+  const handleSetMax = () => {
+    if (!user || !isVerified) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (!isAvailable) {
+      return;
+    }
+
+    handleChange(effectiveMaxOrder);
+  };
+
+  // Don't render unavailable message if stock is 0 - just show disabled button
+  if (stock === 0) {
+    return (
+      <Box pos="relative">
+        <ActionIcon
+          size="sm"
+          radius="md"
+          variant="light"
+          color="gray"
+          disabled
+        >
+          <IconPlus size={14} />
+        </ActionIcon>
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -279,67 +336,72 @@ const CounterHomePage = ({ productId, defaultSellerId, defaultCombinationId }) =
 
       {count > 0 ? (
         <Box pos="relative">
-        <LoadingOverlay 
+          <LoadingOverlay 
             visible={isPending} 
             zIndex={10} 
-            overlayProps={{ radius: "50px", blur: 2 }}
-            loaderProps={{ size: "sm" }}
+            overlayProps={{ radius: "md", blur: 2 }}
+            loaderProps={{ size: "xs" }}
           />
           <Flex
-          align="center"
-          justify="space-between"
-          style={{
-            border: "1px solid #394343FF",
-            borderRadius: "50px",
-            padding: "0px 6px",
-            minWidth: "80px",
-            backgroundColor: "white",
-          }}
-        >
-          <ActionIcon
-            size="md"
-            variant="transparent"
-            color="#394343FF"
-            onClick={increment}
-          >
-            <IconPlus size={20} />
-          </ActionIcon>
-        
-        <Box
+            align="center"
+            gap={2}
             style={{
-              width: "0.6px",
-              height: "24px",
-              backgroundColor: "#394343FF",
+              border: "1px solid var(--mantine-color-gray-4)",
+              borderRadius: "var(--mantine-radius-xl)",
+              padding: "2px 4px",
+              minWidth: "80px",
+              backgroundColor: "var(--mantine-color-white)",
             }}
-          />
+          >
+            {/* Plus button */}
+            <ActionIcon
+              size="xs"
+              variant="transparent"
+              color="gray"
+              onClick={increment}
+              disabled={count >= effectiveMaxOrder}
+            >
+              <IconPlus size={14} />
+            </ActionIcon>
           
-        <Text
-            fw={400}
-            fz="15px"
-            c="orange"
-            style={{ minWidth: "24px", textAlign: "center" }}
-          >
-            {count}
-          </Text>
-          <Box
-            style={{
-              width: "0.6px",
-              height: "24px",
-              backgroundColor: "#394343FF",
-            }}
-          />
+            {/* Divider */}
+            <Box
+              style={{
+                width: "0.5px",
+                height: "16px",
+                backgroundColor: "var(--mantine-color-gray-4)",
+              }}
+            />
+            
+            {/* Count display */}
+            <Text
+              fw={500}
+              size="xs"
+              c="blue"
+              style={{ minWidth: "20px", textAlign: "center" }}
+            >
+              {count}
+            </Text>
 
-        <ActionIcon
-            size="md"
-            variant="transparent"
-            color="red"
-            onClick={decrement}
-          >
-            {count === 1 ? <IconTrash size={20} /> : <IconMinus size={20} />}
-          </ActionIcon>
+            {/* Divider */}
+            <Box
+              style={{
+                width: "0.5px",
+                height: "16px",
+                backgroundColor: "var(--mantine-color-gray-4)",
+              }}
+            />
 
-
-        </Flex>
+            {/* Minus/Trash button */}
+            <ActionIcon
+              size="xs"
+              variant="transparent"
+              color="red"
+              onClick={decrement}
+            >
+              {count === minOrder ? <IconTrash size={14} /> : <IconMinus size={14} />}
+            </ActionIcon>
+          </Flex>
         </Box>
       ) : (
         <Box pos="relative">
@@ -350,23 +412,30 @@ const CounterHomePage = ({ productId, defaultSellerId, defaultCombinationId }) =
             loaderProps={{ size: "sm" }}
           />
           <ActionIcon
-          size="36px"
-          radius="6px"
-          variant="filled"
-          onClick={handleAddToCart}
-          styles={{
-            root: {
-              backgroundColor: "white",
-              border: "1px solid #ccc",
-              color: "black",
-              "&:hover": {
-                backgroundColor: "#f8f8f8",
+            size="36px"
+            radius="6px"
+            variant="filled"
+            onClick={handleAddToCart}
+            disabled={!isAvailable}
+            styles={{
+              root: {
+                backgroundColor: "white",
+                border: "1px solid #ccc",
+                color: "black",
+                "&:hover": {
+                  backgroundColor: "#f8f8f8",
+                },
+                "&:disabled": {
+                  backgroundColor: "#f5f5f5",
+                  borderColor: "#e0e0e0",
+                  opacity: 0.6,
+                  cursor: "not-allowed",
+                },
               },
-            },
-          }}
-        >
-          <IconPlus size={16} />
-        </ActionIcon>
+            }}
+          >
+            <IconPlus size={16} />
+          </ActionIcon>
         </Box>
       )}
     </>

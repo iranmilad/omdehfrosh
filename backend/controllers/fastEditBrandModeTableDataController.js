@@ -1,11 +1,54 @@
 import FastOrderFilter from '../models/FastOrderFilter.js'
 import FastOrderBrand from '../models/FastOrderBrand.js';
 import SingleProduct from '../models/SingleProduct.js';
+import FastOrderCategory from '../models/FastOrderCategory.js';
 import FastOrderLocation from '../models/FastOrderLocation.js';
 import getUserFromToken from '../libs/verifyToken.js';
 
+// ============================================
+// HELPER FUNCTION TO REMOVE ICPrice
+// ============================================
+const removeICPriceFromSupplier = (supplier) => {
+    if (!supplier) return supplier;
+    
+    const cleanedSupplier = { ...supplier };
+    
+    if (cleanedSupplier.price && cleanedSupplier.price.ICPrice) {
+        cleanedSupplier.price = {
+            regularPrice: cleanedSupplier.price.regularPrice,
+            discountedPrice: cleanedSupplier.price.discountedPrice,
+            discountPercent: cleanedSupplier.price.discountPercent
+        };
+    }
+    
+    return cleanedSupplier;
+};
+
+const removeICPriceFromProducts = (products) => {
+    return products.map(product => {
+        const cleanedProduct = { ...product };
+        
+        if (cleanedProduct.combinations && Array.isArray(cleanedProduct.combinations)) {
+            cleanedProduct.combinations = cleanedProduct.combinations.map(combination => {
+                const cleanedCombination = { ...combination };
+                
+                if (cleanedCombination.suppliers && Array.isArray(cleanedCombination.suppliers)) {
+                    cleanedCombination.suppliers = cleanedCombination.suppliers.map(removeICPriceFromSupplier);
+                }
+                
+                return cleanedCombination;
+            });
+        }
+        
+        return cleanedProduct;
+    });
+};
 
 
+
+// ============================================
+// BRAND MODE API
+// ============================================
 export const getFastEditBrandModeTableData = async (req, res) => {
     console.log("Received request body:", req.body);
 
@@ -88,19 +131,8 @@ export const getFastEditBrandModeTableData = async (req, res) => {
             }
         });
 
-        // console.log("Processed filters:", {
-        //     searchType: primarySearchType,
-        //     totalFilterObjects: req.body.length,
-        //     finalBrandIds,
-        //     finalBrandCategoriesCount: finalBrandCategories.length,
-        //     filterStorageCount: allFilterStorage.length,
-        //     supplierId: user_id
-        // });
-
         // If no valid brand IDs found, return empty results
         if (finalBrandIds.length === 0) {
-            // console.log("No valid brand IDs found, returning empty results");
-            
             // Still return brands and filters for UI
             const allLocations = await FastOrderLocation.find({idSupplier: String(user_id)});
             const sortedLocations = allLocations[0]?.locations || [];
@@ -126,11 +158,13 @@ export const getFastEditBrandModeTableData = async (req, res) => {
         }
 
         // Find products using the combined brand IDs
-        const products = await SingleProduct.find({
+        let products = await SingleProduct.find({
             "general.brandId": { $in: finalBrandIds }
         }).lean();
 
-        // console.log(`Found ${products.length} products for brand IDs:`, finalBrandIds);
+        // 🔥 REMOVE ICPrice FROM ALL PRODUCTS
+        products = removeICPriceFromProducts(products);
+        console.log(`✓ Removed ICPrice from ${products.length} products`);
 
         // Group by brand
         const sortedProductsMap = new Map();
@@ -150,17 +184,20 @@ export const getFastEditBrandModeTableData = async (req, res) => {
 
             // Get the first combination and first supplier
             const firstCombination = product.combinations[0];  
-            const firstSupplier = firstCombination.suppliers[0];  
+            if (!firstCombination || !firstCombination.suppliers || firstCombination.suppliers.length === 0) {
+                return; // Skip if no suppliers
+            }
 
+            const firstSupplier = firstCombination.suppliers[0];  
             const { id, name, ...restSupplierData } = firstSupplier;
 
             // Process product combinations and collect all suppliers
-            product.combinations.map(combination => {
+            product.combinations.forEach(combination => {
                 if (!combination.suppliers || combination.suppliers.length === 0) return;
 
-                combination.suppliers.map(item => {
+                combination.suppliers.forEach(item => {
                     allSuppliers.push({
-                        ...item, // Spread supplier details
+                        ...item, // Spread supplier details (ICPrice already removed)
                         combinationsID: combination.id, // Attach combination ID
                         attributes: combination.options, // Add attributes
                     });
@@ -172,7 +209,7 @@ export const getFastEditBrandModeTableData = async (req, res) => {
 
             // Create the primary supplier object with nodes
             const supplierWithProductID = {
-                ...restSupplierData, // Remaining supplier data (excluding id & name)
+                ...restSupplierData, // Remaining supplier data (excluding id & name, ICPrice already removed)
                 seller: { id, label: name }, // New seller field
                 productId: product.id, // Add product ID
                 id: product.id, // Add product ID
@@ -206,6 +243,7 @@ export const getFastEditBrandModeTableData = async (req, res) => {
             colors: allFastEditFilters[0]?.colors || [],
             deliveryTime: allFastEditFilters[0]?.deliveryTime || []
         };
+
 
         res.status(200).json({
             products: sortedProducts,

@@ -57,6 +57,7 @@
     "jalali-moment": "^3.3.11",
     "js-cookie": "^3.0.5",
     "jsonwebtoken-esm": "^2.0.1",
+    "lucide-react": "^0.556.0",
     "lzutf8": "^0.6.3",
     "mantine-form-yup-resolver": "^2.0.0",
     "miragejs": "^0.1.48",

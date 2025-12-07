@@ -17,7 +17,7 @@ const DEFAULT_CATEGORY_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
 </svg>
 `);
 
-const SliderComponentCategoriesCM = ({ 
+const SliderComponentCategoriesCMFastOrder = ({ 
   items, 
   clickType, 
   searchType, 
@@ -160,4 +160,4 @@ export function SingleCategoryGroupCM({
   );
 }
 
-export default SliderComponentCategoriesCM;
+export default SliderComponentCategoriesCMFastOrder;

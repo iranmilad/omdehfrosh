@@ -13,7 +13,7 @@ const DEFAULT_BRAND_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
 </svg>
 `);
 
-const SliderComponentBrandsCM = ({ 
+const SliderComponentBrandsCMFastOrder = ({ 
   items, 
   clickType, 
   searchType, 
@@ -301,4 +301,4 @@ export function SingleCategory1({
   );
 }
 
-export default SliderComponentBrandsCM;
+export default SliderComponentBrandsCMFastOrder;

@@ -48,7 +48,8 @@ const Header = () => {
   
   // Check if current route is FastOrder
   const isFastOrderPage = location.pathname.includes('/fastorder');
-  
+  const isFastEditPage = location.pathname.includes('/fastedit'); // Add this line
+
   const [showBottomNav, setShowBottomNav] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const lastScrollY = useRef(0);
@@ -217,7 +218,7 @@ const Header = () => {
       )}
       
       <div 
-        className={`${isFastOrderPage ? '' : 'sticky top-0'} bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} 
+        className={`${(isFastOrderPage || isFastEditPage) ? '' : 'sticky top-0'} bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} 
         style={{ zIndex: 1000 }} 
         id="header"
       >
@@ -293,7 +294,7 @@ const Header = () => {
                       <MenuItem rightSection={<IconShoppingCart size={18} />} component={NavLink} to="/account/orders">سفارش ها</MenuItem>
                       <MenuItem rightSection={<IconShoppingCart size={18} />} component={NavLink} to="/account/wallet">کیف پول</MenuItem>
                       <MenuItem rightSection={renderNotificationBadge()} component={NavLink} to="/account/notifications">پیام ها</MenuItem>
-                      <MenuItem rightSection={<ThemeIcon size="xs" color="yellow" variant="transparent"><IconComet /></ThemeIcon>} component={NavLink} to="/subscription">تهیه اشتراک</MenuItem>
+                      {/* <MenuItem rightSection={<ThemeIcon size="xs" color="yellow" variant="transparent"><IconComet /></ThemeIcon>} component={NavLink} to="/subscription">تهیه اشتراک</MenuItem> */}
                       <MenuItem color="red" rightSection={<IconLogout size={18} />} onClick={Logout}>خروج</MenuItem>
                     </MenuDropdown>
                   </Menu>

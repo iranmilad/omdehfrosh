@@ -4,11 +4,13 @@ import { useBrandRowSelection } from '../../BrandRowSelectionContext';
 
 // Default SVG image for brands when image is null or empty
 const DEFAULT_BRAND_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
-<svg width="25" height="25" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background circle -->
-  <circle cx="20" cy="20" r="19" fill="#F8F9FA" stroke="#E9ECEF" stroke-width="1"/>
-  <!-- Brand/star icon -->
-  <path d="M20 8 L22 14 L28 14 L23.5 18 L25.5 24 L20 21 L14.5 24 L16.5 18 L12 14 L18 14 L20 8 Z" fill="#9CA3AF"/>
+  <circle cx="20" cy="20" r="20" fill="#F8F9FA"/>
+  <!-- Brand/tag icon -->
+  <path d="M12 14 L22 14 C23.1 14 24 14.9 24 16 L24 24 C24 25.1 23.1 26 22 26 L12 26 C10.9 26 10 25.1 10 24 L10 16 C10 14.9 10.9 14 12 14 Z" fill="#E9ECEF" stroke="#ADB5BD" stroke-width="1"/>
+  <!-- Star/brand symbol -->
+  <path d="M17 18 L18 21 L21 21 L18.5 22.5 L19.5 25.5 L17 24 L14.5 25.5 L15.5 22.5 L13 21 L16 21 L17 18 Z" fill="#6C757D"/>
 </svg>
 `);
 
@@ -54,8 +56,8 @@ const SliderComponentBrands = ({
     <Swiper 
       modules={[FreeMode, Navigation]} 
       slidesPerView="auto" 
-      spaceBetween={6}            // ✅ Gap between boxes
-      className="mt-2"            // Add margin top for spacing
+      spaceBetween={6}
+      className="mt-2"
       style={{ width: "100%" }}
     >
       {/* Brand items */}
@@ -83,8 +85,8 @@ const SliderComponentBrands = ({
       {/* Select All Button */}
       <SwiperSlide style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}>
         <button
-          className={`flex h-[35px] px-4 gap-2 justify-center items-center border-[1.5px] 
-            ${allSelected ? "border-green-400 bg-green-50" : "border-transparent bg-gray-100"} 
+          className={`flex h-[35px] px-3 gap-2 justify-center items-center border-2 
+            ${allSelected ? "border-green-400 bg-green-50" : "border-none bg-gray-100"} 
             ${isSlideSelectionActive ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           style={{ borderRadius: '18px' }}
           onClick={() => {
@@ -92,7 +94,7 @@ const SliderComponentBrands = ({
           }}
           disabled={isSlideSelectionActive}
         >
-          <span className="text-[9px] font-medium whitespace-nowrap">
+          <span className="text-xs leading-none font-medium whitespace-nowrap">
             انتخاب همه
           </span>
         </button>
@@ -142,17 +144,13 @@ export function SingleCategory1({
     }
   };
 
-  // Helper function to get brand image source with fallback
   const getBrandImageSrc = (image) => {
-    // Check if image exists and is not empty
     if (image && image.trim() !== '') {
       return image;
     }
-    // Return default placeholder
     return DEFAULT_BRAND_IMAGE;
   };
 
-  // Handle image error by setting default placeholder
   const handleImageError = (e) => {
     e.target.src = DEFAULT_BRAND_IMAGE;
   };
@@ -169,23 +167,19 @@ export function SingleCategory1({
             onClick={() => onClick(item)}
           >
             <div
-              className={`flex h-[35px] px-3 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100 flex-shrink-0
-                ${!isDisabled && isActive ? "border-red-600" : "border-transparent"}`}
-              style={{ 
-                borderRadius: '18px',
-                minWidth: 'fit-content',
-                maxWidth: '120px'
-              }}
+              className={`flex w-fit h-[35px] px-3 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100
+                ${!isDisabled && isActive ? "border-gray-400" : "border-none"}`}
+              style={{ borderRadius: '18px' }}
             >
-              <div className='w-[25px] h-[25px] bg-white rounded-full flex-shrink-0'>
+              <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
                 <img  
-                  className="w-[25px] h-[25px] object-cover rounded-full"
+                  className="w-full h-full object-cover"
                   src={getBrandImageSrc(item.image)}
                   alt={item.title}
                   onError={handleImageError}
                 />
               </div>
-              <span className="text-center whitespace-nowrap text-[9px] flex-shrink-0 truncate max-w-[70px]">
+              <span className="text-xs leading-none whitespace-nowrap">
                 {item.title}
               </span>
             </div>

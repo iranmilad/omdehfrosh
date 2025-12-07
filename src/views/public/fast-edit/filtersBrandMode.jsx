@@ -384,7 +384,7 @@ const ColorCombobox = ({
   );
 };
 
-function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCategories, searchType, setSearchType }) {
+function FiltersBrandModeFastEdit({ setFilters, nodes, filters, setNodes, setNodesSubCategories, searchType, setSearchType }) {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const supplierId = params.get("supplierid") || "";
@@ -775,4 +775,4 @@ function FiltersBrandMode({ setFilters, nodes, filters, setNodes, setNodesSubCat
   );
 }
 
-export default FiltersBrandMode;
+export default FiltersBrandModeFastEdit;

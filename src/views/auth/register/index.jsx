@@ -76,63 +76,122 @@ const Register = () => {
   const [errs, setErrs] = useState({});
   const [successMessage, setSuccessMessage] = useState({});
 
-  // Custom register function with direct fetch
-  const registerUser = async (userData) => {
-    setRegisterLoading(true);
-    setRegisterData(null);
+ // Custom register function with direct fetch - FIXED VERSION
+const registerUser = async (userData) => {
+  setRegisterLoading(true);
+  setRegisterData(null);
+  
+  try {
+    console.log('Sending registration data:', userData);
     
+    const response = await fetch(getApiUrl("/auth/signup"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userData),
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+
+    // Get response text first
+    const text = await response.text();
+    console.log('Response text:', text);
+
+    // Try to parse JSON
+    let data = null;
     try {
-      const response = await fetch(getApiUrl("/auth/signup"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
-
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : null;
-
-      if (!response.ok) {
-        const error = {
-          status: response.status,
-          message: data?.message || getHttpCodeMessage(response.status),
-        };
-
-        setRegisterData({
-          state: "error",
-          message: "خطایی در ثبت نام کاربر رخ داده است",
-          error,
-          errors: data?.errors || {}
-        });
-        return {
-          state: "error",
-          message: "خطایی در ثبت نام کاربر رخ داده است",
-          error,
-          errors: data?.errors || {}
-        };
-      }
-
-      const successData = {
-        state: "ok",
-        message: "موفقیت در ثبت نام",
-        data,
-      };
+      data = text ? JSON.parse(text) : null;
+      console.log('Parsed data:', data);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Raw text was:', text);
       
-      setRegisterData(successData);
-      return successData;
-
-    } catch (error) {
+      // If we can't parse JSON, it's an error
       const errorData = {
         state: "error",
-        message: "Internal Server Error",
-        error: error.message || error,
+        message: "خطا در دریافت پاسخ از سرور",
+        error: {
+          status: response.status,
+          message: "Invalid JSON response"
+        }
+      };
+      setRegisterData(errorData);
+      return errorData;
+    }
+
+    // Check if response is not OK (status 200-299)
+    if (!response.ok) {
+      console.error('Response not OK:', response.status);
+      
+      const error = {
+        status: response.status,
+        message: data?.message || getHttpCodeMessage(response.status),
+      };
+
+      const errorData = {
+        state: "error",
+        message: data?.message || "خطایی در ثبت نام کاربر رخ داده است",
+        error,
+        errors: data?.errors || {}
       };
       
       setRegisterData(errorData);
       return errorData;
-    } finally {
-      setRegisterLoading(false);
     }
-  };
+
+    // Check if backend returned state: "error" even with 2xx status
+    if (data?.state === "error") {
+      console.error('Backend returned error state:', data);
+      
+      const errorData = {
+        state: "error",
+        message: data.message || "خطایی در ثبت نام کاربر رخ داده است",
+        error: {
+          status: response.status,
+          message: data.message
+        },
+        errors: data?.errors || {}
+      };
+      
+      setRegisterData(errorData);
+      return errorData;
+    }
+
+    // Success!
+    console.log('Registration successful:', data);
+    
+    // Store token if provided
+    if (data.token) {
+      localStorage.setItem('user', data.token);
+      console.log('Token stored');
+    }
+    
+    const successData = {
+      state: "ok",
+      message: data.message || "موفقیت در ثبت نام",
+      data,
+    };
+    
+    setRegisterData(successData);
+    return successData;
+
+  } catch (error) {
+    console.error('Registration request failed - caught error:', error);
+    
+    const errorData = {
+      state: "error",
+      message: "خطا در برقراری ارتباط با سرور",
+      error: {
+        message: error.message || "Network error"
+      },
+    };
+    
+    setRegisterData(errorData);
+    return errorData;
+  } finally {
+    setRegisterLoading(false);
+  }
+};
 
   // Custom SMS sending function with direct fetch
   const sendSMSCode = async (mobile) => {

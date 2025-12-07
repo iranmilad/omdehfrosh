@@ -1,8 +1,7 @@
-import { Box, Container } from '@mantine/core';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-const SliderComponentSubCategories = ({ 
+const SliderComponentSubCategoriesFastEdit = ({ 
   items,
   clickType,
   searchType,
@@ -14,40 +13,44 @@ const SliderComponentSubCategories = ({
   filterBrandsCategorySubCategoryStorage,
   setFilterBrandsCategorySubCategoryStorage
 }) => {
+
   return (
-    <Container fluid>
-      <Box w="100%" pos="relative">
-        <Swiper 
-          modules={[FreeMode, Navigation]}       
-          freeMode={true} 
-          slidesPerView="auto" 
-          spaceBetween={8}          // Updated spacing
-          className="mt-2"          // Updated margin
-          style={{ width: "100%" }}
-          loop={true}
-        >
-          {items?.map((item, index) => (
-            <SwiperSlide 
-              key={index} 
-              style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}
-            >
-              <SingleCategoryWithSubcategories 
-                parentItem={item} 
-                clickType={clickType}
-                searchType={searchType}
-                tab={tab}
-                filterBrandStorage={filterBrandStorage}
-                setFilterBrandStorage={setFilterBrandStorage}
-                filterBrandsCategoryStorage={filterBrandsCategoryStorage}
-                setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
-                setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-              />
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </Box>
-    </Container>
+    <div style={{ width: "100%", margin: 0, padding: 0 }}>
+      <Swiper 
+        modules={[FreeMode, Navigation]}       
+        freeMode={true} 
+        slidesPerView="auto" 
+        spaceBetween={6}
+        className="mt-2 !m-0 !p-0"
+        style={{ 
+          width: "100%",
+          margin: 0,
+          padding: 0
+        }}
+        loop={true}
+      >
+        {items?.map((item, index) => (
+          <SwiperSlide 
+            key={index} 
+            style={{ width: "auto", margin: 0, padding: 0 }}
+            className="!m-0 !p-0"
+          >
+            <SingleCategoryWithSubcategories 
+              parentItem={item} 
+              clickType={clickType}
+              searchType={searchType}
+              tab={tab}
+              filterBrandStorage={filterBrandStorage}
+              setFilterBrandStorage={setFilterBrandStorage}
+              filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+              setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+              filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+              setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+            />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
   );
 };
 
@@ -66,7 +69,6 @@ const SubCategoryIcon = () => (
     <circle cx="16" cy="8" r="2" fill="#9CA3AF"/>
     <circle cx="8" cy="16" r="2" fill="#9CA3AF"/>
     <circle cx="16" cy="16" r="2" fill="#9CA3AF"/>
-    <path d="M8 10 L8 14 M10 8 L14 8 M10 16 L14 16 M16 10 L16 14" stroke="#6B7280" strokeWidth="1"/>
   </svg>
 );
 
@@ -82,7 +84,6 @@ export function SingleCategoryWithSubcategories({
   filterBrandsCategorySubCategoryStorage,
   setFilterBrandsCategorySubCategoryStorage
 }) {
-
   if (!parentItem || !Array.isArray(parentItem.categories)) return null;
 
   const isActiveBrands = filterBrandStorage.includes(parentItem.idBrand);
@@ -98,8 +99,7 @@ export function SingleCategoryWithSubcategories({
     if (searchType === "brand" && clickType === "brandSubCategories") {
       setFilterBrandsCategorySubCategoryStorage((prevState) => {
         const safePrevState = prevState || [];
-
-        // Create a deep copy to avoid mutating the original state
+  
         const newState = safePrevState.map(entry => ({
           ...entry,
           idCategories: [...entry.idCategories],
@@ -110,18 +110,17 @@ export function SingleCategoryWithSubcategories({
         }));
 
         const brandEntry = newState.find((entry) => entry.idBrand === idBrand);
-
+  
         if (brandEntry) {
           if (!brandEntry.idCategories.includes(item.idCategory)) {
             brandEntry.idCategories.push(item.idCategory);
           }
-
+  
           let categoryEntry = brandEntry.idSubCategories.find(sub => sub.idCategory === item.idCategory);
-
+  
           if (categoryEntry) {
             if (categoryEntry.idSubCategories.includes(itemSubCategory.idSubCategory)) {
               categoryEntry.idSubCategories = categoryEntry.idSubCategories.filter(sub => sub !== itemSubCategory.idSubCategory);
-
               if (categoryEntry.idSubCategories.length === 0) {
                 brandEntry.idSubCategories = brandEntry.idSubCategories.filter(sub => sub.idCategory !== item.idCategory);
                 brandEntry.idCategories = brandEntry.idCategories.filter(cat => cat !== item.idCategory);
@@ -135,11 +134,11 @@ export function SingleCategoryWithSubcategories({
               idSubCategories: [itemSubCategory.idSubCategory],
             });
           }
-
+  
           if (brandEntry.idSubCategories.length === 0) {
             return newState.filter(entry => entry.idBrand !== idBrand);
           }
-
+  
           return newState;
         } else {
           return [
@@ -195,76 +194,78 @@ export function SingleCategoryWithSubcategories({
   return (
     <>
       {shouldShow && (
-        <div className="items-center justify-center border-gray-300 rounded-lg flex flex-row gap-2">
-          {/* Categories mapped horizontally */}
-          {parentItem.categories.map((category, index) => {
-            const isCategoryActive = filterBrandsCategoryStorage.some(
-              (entry) => entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
-            );
+        <div className="flex flex-col mt-2">
+          <div className="flex flex-row flex-wrap gap-2">
+            {/* Categories mapped horizontally */}
+            {parentItem.categories.map((category, index) => {
+              const isCategoryActive = filterBrandsCategoryStorage.some(
+                (entry) => entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
+              );
 
-            if (!isCategoryActive) return null;
+              if (!isCategoryActive) return null;
 
-            return (
-              <div key={index} className="flex flex-col items-center rounded-lg">
-                {/* Subcategories row */}
-                <div className="flex flex-row gap-2">
-                  {category.subCategories.map((subCategory, subIndex) => {
-                    const isActiveBorder = filterBrandsCategorySubCategoryStorage.some(
-                      (member) =>
-                        member.idBrand === parentItem.idBrand &&
-                        member.idSubCategories.some(
-                          (categoryEntry) =>
-                            categoryEntry.idCategory === category.idCategory &&
-                            categoryEntry.idSubCategories.includes(subCategory.idSubCategory)
-                        )
-                    );
+              return (
+                <div key={index} className="flex flex-col items-center rounded-lg">
+                  {/* Subcategories row */}
+                  <div className="flex flex-row gap-2">
+                    {category.subCategories.map((subCategory, subIndex) => {
+                      const isActiveBorder = filterBrandsCategorySubCategoryStorage.some(
+                        (member) =>
+                          member.idBrand === parentItem.idBrand &&
+                          member.idSubCategories.some(
+                            (categoryEntry) =>
+                              categoryEntry.idCategory === category.idCategory &&
+                              categoryEntry.idSubCategories.includes(subCategory.idSubCategory)
+                          )
+                      );
 
-                    const showImage = isValidImage(subCategory.image);
+                      const showImage = isValidImage(subCategory.image);
 
-                    return (
-                      <div
-                        key={subIndex}
-                        className="text-sm w-fit flex flex-row items-center justify-center cursor-pointer"
-                        onClick={() => onClick(category, subCategory, parentItem.idBrand)}
-                      >
+                      return (
                         <div
-                          className={`flex px-3 h-[32px] w-full gap-2 justify-center items-center border-[1.5px]
-                          ${isActiveBorder ? "border-red-600" : "border-none"} bg-gray-100`}
-                          style={{ borderRadius: '16px' }}
+                          key={subIndex}
+                          className="text-sm w-fit flex flex-row items-center justify-center cursor-pointer"
+                          onClick={() => onClick(category, subCategory, parentItem.idBrand)}
                         >
-                          <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0 image-container relative flex items-center justify-center'>
-                            {showImage ? (
-                              <>
-                                <img
-                                  className="w-[20px] h-[20px] object-cover rounded-full"
-                                  src={subCategory.image}
-                                  alt={subCategory.name}
-                                  onError={(e) => handleImageError(e, subCategory.name)}
-                                  style={{ display: 'block' }}
-                                />
-                                <div className="fallback-icon w-[20px] h-[20px] bg-white rounded-full items-center justify-center absolute inset-0" style={{ display: 'none' }}>
-                                  <SubCategoryIcon />
-                                </div>
-                              </>
-                            ) : (
-                              <SubCategoryIcon />
-                            )}
+                          <div
+                            className={`flex px-3 h-[35px] w-full gap-2 justify-center items-center border-[1.5px]
+                            ${isActiveBorder ? "border-gray-400" : "border-none"} bg-gray-100`}
+                            style={{ borderRadius: '18px' }}
+                          >
+                            <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0 image-container relative flex items-center justify-center'>
+                              {showImage ? (
+                                <>
+                                  <img
+                                    className="w-[20px] h-[20px] object-cover rounded-full"
+                                    src={subCategory.image}
+                                    alt={subCategory.name}
+                                    onError={(e) => handleImageError(e, subCategory.name)}
+                                    style={{ display: 'block' }}
+                                  />
+                                  <div className="fallback-icon w-[20px] h-[20px] bg-white rounded-full items-center justify-center absolute inset-0" style={{ display: 'none' }}>
+                                    <SubCategoryIcon />
+                                  </div>
+                                </>
+                              ) : (
+                                <SubCategoryIcon />
+                              )}
+                            </div>
+                            <span className="text-xs leading-none whitespace-nowrap">
+                              {subCategory.name}
+                            </span>
                           </div>
-                          <span className="text-center text-[10px] font-medium leading-tight break-words">
-                            {subCategory.name}
-                          </span>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </>
   );
 }
 
-export default SliderComponentSubCategories;
+export default SliderComponentSubCategoriesFastEdit;

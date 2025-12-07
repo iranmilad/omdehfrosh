@@ -272,7 +272,7 @@ function IconBar({ favorite, data }) {
             <ActionIcon
               size="md"
               variant="transparent"
-              color="red"
+              color=""
               onClick={() => removeFavorite()}
               loading={loadingRemoveFromFavorites}
             >

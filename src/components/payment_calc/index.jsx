@@ -10,29 +10,20 @@ import {
   Text,
 } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons-react";
-import PriceText from "../priceText";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useSelector } from "react-redux";
 
 const PaymentCalc = ({ children, submit, prev }) => {
-
-  const cartItems = useSelector((state) => state.cart.items || []); // ✅ Fetch cart from Redux
-
+  const cartItems = useSelector((state) => state.cart.items || []);
 
   if (!Array.isArray(cartItems)) {
     cartItems = [];
   }
-
 
   // Calculate total price and discount
   const totalCartPrice = cartItems.reduce(
     (sum, item) => sum + item.price.regularPrice * item.count,
     0
   );
-
-  
-  const dispatch = useDispatch();
-
 
   const totalDiscount = cartItems.reduce(
     (sum, item) =>
@@ -43,16 +34,12 @@ const PaymentCalc = ({ children, submit, prev }) => {
 
   const finalTotal = totalCartPrice - totalDiscount;
 
-  
-
-
-  
   return (
     <>
       <Title fw="600" c="gray.8" mb="sm">
         خلاصه فاکتور
       </Title>
-      <Paper py="xl" pos="relative">
+      <Paper py="xl" pos="relative" radius={0}>
         <Stack gap="lg">
           <Flex justify="space-between">
             <Text size="sm" c="gray">
@@ -85,22 +72,20 @@ const PaymentCalc = ({ children, submit, prev }) => {
               color="gray"
               justify="space-between"
               leftSection={<IconArrowRight size={16} />}
+              radius={0}
               {...prev}
             >
               قبلی
             </Button>
           </GridCol>
         )}
-        {
-          cartItems.length !== 0 ?
+        {cartItems.length !== 0 && (
           <GridCol span={{ lg: prev ? 6 : 12 }}>
-          <Button fullWidth h="45" {...submit}>
-            {children}
-          </Button>
-        </GridCol>
-        :
-        null
-        }
+            <Button fullWidth h="45" radius={0} {...submit}>
+              {children}
+            </Button>
+          </GridCol>
+        )}
       </Grid>
     </>
   );

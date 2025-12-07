@@ -13,6 +13,7 @@ import {
   Button,
   Center,
   Loader,
+  Box,
 } from "@mantine/core";
 import CartStepper from "../../../components/cartStepper";
 import { data, NavLink, useNavigate } from "react-router";
@@ -164,6 +165,8 @@ const PaymentMethod = () => {
   const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData);
 
 
+  console.log("", fetchedGateways)
+
 
   const [ paymentURL , setPaymentURL ]  = useState("");
 
@@ -277,7 +280,7 @@ const PaymentMethod = () => {
   return (
     <>
         <Steps
-          current={2}
+          current={1}
           size={screensAnt.md ? 'default' : 'small'}
           style={{ 
             marginBottom: 32,
@@ -289,70 +292,112 @@ const PaymentMethod = () => {
           }}
           items={[
             { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-            { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            // { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
             { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
             { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
           ]}
         />
-      <Grid>
-        <GridCol>
-          <Title fw="600" c="gray.8" mb="sm">
-            روش پرداخت
-          </Title>
-          <Paper>
-            <form>
-              <Radio.Group
-                name="انتخاب درگاه پرداخت"
-                value={form.values.gateway.name}
-                onChange={(value) => {
-                  const selectedGateway = fetchedGateways.find(
-                    (gateway) => gateway.info.name === value
-                  );
-                  form.setValues({ gateway: selectedGateway?.info });
-                }}
-              >
-                <Stack>{cards}</Stack>
-              </Radio.Group>
-            </form>
-          </Paper>
-          <SubmitCoupon 
-            isDiscountApplied={isDiscountApplied} 
-            setIsDiscountApplied={setIsDiscountApplied}
-            gateway={form.getValues().gateway} 
-            />
-        </GridCol>
-        
-        <GridCol>
-        {
-          form.getValues().gateway?.name && (
-            <PaymentCalcReceipt
-              prev={{ to: "/basket-info", component: NavLink }}
-              gateway={form.getValues().gateway}
-            >
-              پرداخت
-            </PaymentCalcReceipt>
-          )
-        }
-        </GridCol>
+        <Grid gutter="xl">
 
-        {/* Buttons */}
-        {(
-          <GridCol span={{ lg: 6 }}>
-            <Button
-              fullWidth
-              h={45}
-              variant="light"
-              color="gray"
-              justify="space-between"
-              leftSection={<IconArrowRight size={16} />}
-              component={NavLink}
-              to="/basket-info"
+          <Grid.Col span={{ base: 12, lg: 7 }}>
+            {/* روش پرداخت Section */}
+            <div className="lg:rounded-medium bg-white border p-4 mb-4">
+              <div className="text-base md:text-lg font-bold mb-1 text-gray-700">
+                انتخاب روش پرداخت
+              </div>
+              
+              <div className="mt-3 flex flex-col gap-2">
+                {fetchedGateways.map((gateway) => {
+                  const isSelected = form.values.gateway?.name === gateway.info.name;
+                  
+                  return (
+                    <label 
+                      key={gateway.info.name}
+                      className={`rounded px-3 py-4 border-[2px] border-solid cursor-pointer ${
+                        isSelected 
+                          ? 'border-blue-400' 
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center rounded-sm">
+                        <input 
+                          id={gateway.info.name}
+                          className="hidden" 
+                          type="radio" 
+                          value={gateway.info.name}
+                          checked={isSelected}
+                          onChange={() => form.setValues({ gateway: gateway.info })}
+                          name="payment-gateway"
+                        />
+                        
+                        <span className="w-6 h-6 shrink-0">
+                          {isSelected ? (
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2Z" fill="#29b6f6"></path>
+                              <path d="M12 7C9.2 7 7 9.2 7 12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12C17 9.2 14.8 7 12 7Z" fill="white"></path>
+                            </svg>
+                          ) : (
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12ZM4 12C4 16.4 7.6 20 12 20C16.4 20 20 16.4 20 12C20 7.6 16.4 4 12 4C7.6 4 4 7.6 4 12Z" fill="#4D5053" fillRule="evenodd" clipRule="evenodd"></path>
+                            </svg>
+                          )}
+                        </span>
+                        
+                        <div className="flex mr-2.5 gap-2 items-center">
+                          <p className="text-xs md:text-sm font-bold">
+                            {gateway.label || gateway.info.name}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {gateway.info.description && (
+                        <div>
+                          <p className="text-[11px] md:text-xs font-normal text-gray-500 mt-1">
+                            {gateway.info.description}
+                          </p>
+                        </div>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Submit Coupon Section */}
+            <SubmitCoupon 
+              isDiscountApplied={isDiscountApplied} 
+              setIsDiscountApplied={setIsDiscountApplied}
+              gateway={form.getValues().gateway} 
+            />
+          </Grid.Col>
+            
+          <Grid.Col span={{ base: 12, lg: 5 }}>
+            <Box
+              style={{
+                position: 'sticky',
+                top: '2rem',
+              }}
             >
-              قبلی
-            </Button>
-          </GridCol>
-        )}
-      </Grid>
+              {form.getValues().gateway?.name && (
+                <Paper 
+                  p="xl" 
+                  radius={0}
+                  shadow="sm"
+                  style={{
+                    background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                  }}
+                >
+                  <PaymentCalcReceipt
+                    prev={{ to: "/basket-info", component: NavLink }}
+                    gateway={form.getValues().gateway}
+                  >
+                    پرداخت
+                  </PaymentCalcReceipt>
+                </Paper>
+              )}
+            </Box>
+          </Grid.Col>
+        </Grid>
     </>
   );
 };
@@ -524,6 +569,14 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validation = form.validate();
+    if (!validation.hasErrors) {
+      applyDiscount(form.values);
+    }
+  };
+
   return (
     <>
       <ErrorMessageModal
@@ -531,23 +584,70 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
         onClose={() => setModalOpen(false)}
         message={errorUpdateDiscount?.message || errorUpdateDiscountDelete?.message}
       />
-      <Title fw="600" c="gray.8" mt="xl" mb="sm">
-        کد تخفیف
-      </Title>
-      <Paper>
-        <form onSubmit={form.onSubmit((values) => applyDiscount(values))}>
-          <Flex align="end" gap="sm" w={{ lg: "50%" }}>
-            <TextInput
-              w="100%"
-              label="وارد کردن کد تخفیف"
-              placeholder="اینجا بنویسید"
-              {...form.getInputProps("code")}
-              disabled={isDiscountApplied}
-              error={
-                (cartfinalreceiptDiscount?.state === "error" && cartfinalreceiptDiscount?.errors?.code) || 
-                (form.errors.code) || 
-                (cartfinalreceiptDiscountDelete?.state === "error" && cartfinalreceiptDiscountDelete?.errors?.code) ? (
-                  <div>
+      
+      <div className="lg:rounded-medium bg-white">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            {/* <div className="flex sm:block hidden">
+              <svg style={{ width: '20px', height: '20px', fill: '#1f2937' }} viewBox="0 0 24 24">
+                <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
+              </svg>
+            </div> */}
+            <p className="text-xs md:text-sm font-bold text-gray-900">کد تخفیف</p>
+          </div>
+
+          {orderfinalreceipt?.cartDiscounts?.discountCode?.code ? (
+            <div className="sm:my-2">
+              <div className="text-xs md:text-sm text-green-600 font-medium mb-2">
+                کد تخفیف اعمال شده: {orderfinalreceipt.cartDiscounts.discountCode.code}
+              </div>
+              <Button 
+                color="red" 
+                size="xs"
+                onClick={removeDiscount}
+                loading={loadingUpdateDiscountDelete}
+              >
+                حذف کد تخفیف
+              </Button>
+            </div>
+          ) : (
+            <div className="sm:my-2">
+              <label className="w-full sm:w-auto sm:min-w-[40%]">
+                <div className="px-2 flex items-center relative text-gray-800 bg-gray-100 lg:bg-white rounded-lg border border-gray-200 focus-within:border-b-2 focus-within:border-b-blue-500 transition-all">
+                  <div className="grow">
+                    <input 
+                      className="px-2 w-full py-3 lg:py-2 bg-transparent outline-none text-sm"
+                      placeholder="افزودن کد تخفیف" 
+                      autoComplete="off" 
+                      type="text" 
+                      value={form.values.code}
+                      onChange={(e) => form.setFieldValue('code', e.target.value)}
+                      disabled={isDiscountApplied || loadingUpdateDiscount}
+                    />
+                  </div>
+                  <div 
+                    className="flex cursor-pointer p-1"
+                    onClick={handleSubmit}
+                  >
+                    {loadingUpdateDiscount ? (
+                      <svg 
+                        className="animate-spin"
+                        style={{ width: '24px', height: '24px', fill: '#1f2937' }} 
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 4V2A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8Z"/>
+                      </svg>
+                    ) : (
+                      <svg style={{ width: '24px', height: '24px', fill: '#1f2937' }} viewBox="0 0 24 24">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                {((cartfinalreceiptDiscount?.state === "error" && cartfinalreceiptDiscount?.errors?.code) || 
+                  (form.errors.code) || 
+                  (cartfinalreceiptDiscountDelete?.state === "error" && cartfinalreceiptDiscountDelete?.errors?.code)) && (
+                  <div className="text-xs text-red-600 mt-1 px-2">
                     {cartfinalreceiptDiscount?.state === "error" && cartfinalreceiptDiscount?.errors?.code && (
                       <div>{cartfinalreceiptDiscount?.errors?.code}</div>
                     )}
@@ -556,36 +656,12 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
                       <div>{cartfinalreceiptDiscountDelete?.errors?.code}</div>
                     )}
                   </div>
-                ) : null
-              }
-            />
-            <Button 
-              w="70" 
-              type="submit" 
-              disabled={isDiscountApplied}
-              loading={loadingUpdateDiscount}
-            >
-              ثبت
-            </Button>
-          </Flex>
-        </form>
-
-        {orderfinalreceipt?.cartDiscounts?.discountCode?.code && (
-          <>
-            <Text mt="sm" c="green">
-              کد تخفیف اعمال شده: {orderfinalreceipt.cartDiscounts.discountCode.code}
-            </Text>
-            <Button 
-              mt="sm" 
-              color="red" 
-              onClick={removeDiscount}
-              loading={loadingUpdateDiscountDelete}
-            >
-              حذف کد
-            </Button>
-          </>
-        )}
-      </Paper>
+                )}
+              </label>
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 };

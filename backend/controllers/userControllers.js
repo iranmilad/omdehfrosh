@@ -97,11 +97,8 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
-
 export const updateUser = async (req, res) => {
   try {
-
     console.log(req.body)
     let userId;
 
@@ -167,6 +164,296 @@ export const updateUser = async (req, res) => {
     console.error("Error updating user:", error);
     return res.status(500).json({
       message: "خطا در ویرایش اطلاعات کاربری",
+      error: error.message,
+    });
+  }
+};
+
+// Get all addresses for a user
+export const getUserAddresses = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    
+    const user = await UserAccounts.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(404).json({ message: "کاربر یافت نشد" });
+    }
+
+    return res.status(200).json({
+      addresses: user.addresses || [],
+      state: "ok"
+    });
+  } catch (error) {
+    console.error("Error fetching addresses:", error);
+    return res.status(500).json({
+      message: "خطا در دریافت آدرس‌ها",
+      error: error.message,
+    });
+  }
+};
+
+// Add a new address
+export const addUserAddress = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    const { 
+      title, 
+      name,
+      family,
+      mobile,
+      nationalCode,
+      province, 
+      city, 
+      address, 
+      postalCode,
+      isDefault 
+    } = req.body;
+
+    // Validation
+    if (!title || !name || !family || !mobile || !nationalCode || !province || !city || !address || !postalCode) {
+      return res.status(400).json({
+        message: "تمام فیلدهای آدرس الزامی است",
+        state: "error"
+      });
+    }
+
+    if (!/^\d{10}$/.test(postalCode.replace(/\s+/g, ""))) {
+      return res.status(400).json({
+        message: "کد پستی باید 10 رقم باشد",
+        state: "error"
+      });
+    }
+
+    if (!/^\d{10}$/.test(nationalCode.replace(/\s+/g, ""))) {
+      return res.status(400).json({
+        message: "کد ملی باید 10 رقم باشد",
+        state: "error"
+      });
+    }
+
+    const user = await UserAccounts.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(404).json({ message: "کاربر یافت نشد" });
+    }
+
+    // Clean phone numbers
+    const cleanedMobile = mobile ? mobile.replace(/\s+/g, "") : mobile;
+    const cleanedPostalCode = postalCode ? postalCode.replace(/\s+/g, "") : postalCode;
+    const cleanedNationalCode = nationalCode ? nationalCode.replace(/\s+/g, "") : nationalCode;
+
+    // If this is set as default, unset all other defaults
+    if (isDefault) {
+      user.addresses.forEach(addr => {
+        addr.isDefault = false;
+      });
+    }
+
+    // Create new address
+    const newAddress = {
+      addressId: new mongoose.Types.ObjectId().toString(),
+      title,
+      name,
+      family,
+      mobile: cleanedMobile,
+      nationalCode: cleanedNationalCode,
+      province,
+      city,
+      address,
+      postalCode: cleanedPostalCode,
+      isDefault: isDefault || user.addresses.length === 0, // First address is default
+    };
+
+    user.addresses.push(newAddress);
+    await user.save();
+
+    return res.status(200).json({
+      message: "آدرس با موفقیت اضافه شد",
+      address: newAddress,
+      state: "ok"
+    });
+  } catch (error) {
+    console.error("Error adding address:", error);
+    return res.status(500).json({
+      message: "خطا در افزودن آدرس",
+      error: error.message,
+    });
+  }
+};
+
+// Update an address
+export const updateUserAddress = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    const { addressId } = req.params;
+    const { 
+      title,
+      name,
+      family,
+      mobile,
+      nationalCode,
+      province, 
+      city, 
+      address, 
+      postalCode,
+      isDefault 
+    } = req.body;
+  
+
+    const user = await UserAccounts.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(404).json({ message: "کاربر یافت نشد" });
+    }
+
+    const addressIndex = user.addresses.findIndex(
+      addr => addr.addressId === addressId
+    );
+
+    if (addressIndex === -1) {
+      return res.status(404).json({ 
+        message: "آدرس یافت نشد",
+        state: "error" 
+      });
+    }
+
+    // If setting as default, unset all others
+    if (isDefault) {
+      user.addresses.forEach(addr => {
+        addr.isDefault = false;
+      });
+    }
+
+    // Update address fields
+    if (title) user.addresses[addressIndex].title = title;
+    if (name) user.addresses[addressIndex].name = name;
+    if (family) user.addresses[addressIndex].family = family;
+    if (mobile) user.addresses[addressIndex].mobile = mobile.replace(/\s+/g, "");
+    if (nationalCode) {
+      const cleanedNC = nationalCode.replace(/\s+/g, "");
+      if (!/^\d{10}$/.test(cleanedNC)) {
+        return res.status(400).json({
+          message: "کد ملی باید 10 رقم باشد",
+          state: "error"
+        });
+      }
+      user.addresses[addressIndex].nationalCode = cleanedNC;
+    }
+    if (province) user.addresses[addressIndex].province = province;
+    if (city) user.addresses[addressIndex].city = city;
+    if (address) user.addresses[addressIndex].address = address;
+    if (postalCode) {
+      const cleanedPC = postalCode.replace(/\s+/g, "");
+      if (!/^\d{10}$/.test(cleanedPC)) {
+        return res.status(400).json({
+          message: "کد پستی باید 10 رقم باشد",
+          state: "error"
+        });
+      }
+      user.addresses[addressIndex].postalCode = cleanedPC;
+    }
+    if (typeof isDefault !== 'undefined') {
+      user.addresses[addressIndex].isDefault = isDefault;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "آدرس با موفقیت ویرایش شد",
+      address: user.addresses[addressIndex],
+      state: "ok"
+    });
+  } catch (error) {
+    console.error("Error updating address:", error);
+    return res.status(500).json({
+      message: "خطا در ویرایش آدرس",
+      error: error.message,
+    });
+  }
+};
+
+// Delete an address
+export const deleteUserAddress = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    const { addressId } = req.params;
+
+    const user = await UserAccounts.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(404).json({ message: "کاربر یافت نشد" });
+    }
+
+    const addressIndex = user.addresses.findIndex(
+      addr => addr.addressId === addressId
+    );
+
+    if (addressIndex === -1) {
+      return res.status(404).json({ 
+        message: "آدرس یافت نشد",
+        state: "error" 
+      });
+    }
+
+    const wasDefault = user.addresses[addressIndex].isDefault;
+    user.addresses.splice(addressIndex, 1);
+
+    // If deleted address was default, set first remaining address as default
+    if (wasDefault && user.addresses.length > 0) {
+      user.addresses[0].isDefault = true;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "آدرس با موفقیت حذف شد",
+      state: "ok"
+    });
+  } catch (error) {
+    console.error("Error deleting address:", error);
+    return res.status(500).json({
+      message: "خطا در حذف آدرس",
+      error: error.message,
+    });
+  }
+};
+
+// Set an address as default
+export const setDefaultAddress = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    const { addressId } = req.params;
+
+    const user = await UserAccounts.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(404).json({ message: "کاربر یافت نشد" });
+    }
+
+    const addressIndex = user.addresses.findIndex(
+      addr => addr.addressId === addressId
+    );
+
+    if (addressIndex === -1) {
+      return res.status(404).json({ 
+        message: "آدرس یافت نشد",
+        state: "error" 
+      });
+    }
+
+    // Unset all defaults
+    user.addresses.forEach(addr => {
+      addr.isDefault = false;
+    });
+
+    // Set new default
+    user.addresses[addressIndex].isDefault = true;
+    await user.save();
+
+    return res.status(200).json({
+      message: "آدرس پیش‌فرض تنظیم شد",
+      state: "ok"
+    });
+  } catch (error) {
+    console.error("Error setting default address:", error);
+    return res.status(500).json({
+      message: "خطا در تنظیم آدرس پیش‌فرض",
       error: error.message,
     });
   }

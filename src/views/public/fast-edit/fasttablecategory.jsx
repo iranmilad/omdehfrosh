@@ -69,45 +69,133 @@ const FastTableCategory = ({
     setVisibleColumns(newVisibleColumns);
   }, [isMobile, isTablet, isPortrait, isLandscape, isPrinting, icPriceKeys]);
 
-  useEffect(() => {
-    const initializeData = (items, acc = {}) => {
-      items.forEach((item) => {
-        acc[item.psid] = {
-          price: {
-            regularPrice: item.price?.regularPrice ?? 0,
-            discountedPrice: item.price?.discountedPrice ?? 0,
-            discountPercent: item.price?.discountPercent ?? null,
-            ICPrice: Array.isArray(item.price?.ICPrice)
-              ? item.price.ICPrice.map((ic) => ({
-                  ICID: ic.ICID ?? "default_id",
-                  label: ic.label ?? "unknown",
-                  name: ic.name ?? "Unknown",
-                  amount: ic.amount ?? 0,
-                }))
-              : [],
-          },
-          stock: item.stock ?? 0,
-          minOrder: item.minOrder ?? 0,
-          maxOrder: item.maxOrder ?? 0,
-          priceLabel: filters_category_mode.priceFormat,
-          deliveryTime: {
-            label: item?.deliveryTime?.label ?? "کمتر از یک روز",
-            value: item?.deliveryTime?.value ?? "in1day",
-          },
-          delivery: Array.isArray(item.delivery) ? item.delivery : [],
-          payment_type: item.payment_type || "",
-        };
+useEffect(() => {
+  const initializeData = (items, acc = {}) => {
+    items.forEach((item) => {
+      acc[item.psid] = {
+        price: {
+          regularPrice: item.price?.regularPrice ?? 0,
+          discountedPrice: item.price?.discountedPrice ?? 0,
+          discountPercent: item.price?.discountPercent ?? null,
+          foreignCurrencyPrice: item.price?.foreignCurrencyPrice ?? 0,
+          secondaryCost: item.price?.secondaryCost ?? 0,
+          percentagePrice1: item.price?.percentagePrice1 ?? 0, // ⭐ ADD
+          percentagePrice2: item.price?.percentagePrice2 ?? 0, // ⭐ ADD
+          percentagePrice3: item.price?.percentagePrice3 ?? 0, // ⭐ ADD
+          ICPrice: Array.isArray(item.price?.ICPrice)
+            ? item.price.ICPrice.map((ic) => ({
+                ICID: ic.ICID ?? "default_id",
+                label: ic.label ?? "unknown",
+                name: ic.name ?? "Unknown",
+                amount: ic.amount ?? 0,
+              }))
+            : [],
+        },
+        stock: item.stock ?? 0,
+        minOrder: item.minOrder ?? 0,
+        maxOrder: item.maxOrder ?? 0,
+        priceLabel: filters_category_mode.priceFormat,
+        deliveryTime: {
+          label: item?.deliveryTime?.label ?? "کمتر از یک روز",
+          value: item?.deliveryTime?.value ?? "in1day",
+        },
+        delivery: Array.isArray(item.delivery) ? item.delivery : [],
+        payment_type: item.payment_type || "",
+      };
 
-        if (item.nodes && item.nodes.length > 0) {
-          initializeData(item.nodes, acc);
-        }
-      });
+      if (item.nodes && item.nodes.length > 0) {
+        initializeData(item.nodes, acc);
+      }
+    });
 
-      return acc;
-    };
+    return acc;
+  };
 
-    setFormData(initializeData(nodes));
-  }, [nodes]);
+  setFormData(initializeData(nodes));
+}, [nodes]);
+
+  const [clickedInputs, setClickedInputs] = useState(new Set());
+
+const handleNumberInputChange = (e, record, key) => {
+  const input = e.target;
+  const rawValue = e.target.value;
+  
+  if (rawValue === '') {
+    handleInputChange(record.psid, key, 0);
+    return;
+  }
+  
+  const numValue = parseInt(rawValue, 10);
+  
+  if (isNaN(numValue) || numValue < 0) {
+    handleInputChange(record.psid, key, 0);
+    return;
+  }
+  
+  handleInputChange(record.psid, key, numValue);
+  
+  // Move cursor to end after state update
+  requestAnimationFrame(() => {
+    const length = input.value.length;
+    input.setSelectionRange(length, length);
+    input.scrollLeft = input.scrollWidth;
+  });
+};
+
+const handleInputFocus = (e) => {
+  e.target.style.borderColor = "#1890ff";
+};
+
+const handleInputClick = (e, recordId, fieldKey) => {
+  const input = e.target;
+  const inputIdentifier = `${recordId}-${fieldKey}`;
+  
+  // If this is the first click on this input, select all
+  if (!clickedInputs.has(inputIdentifier)) {
+    input.select();
+    setClickedInputs(prev => new Set(prev).add(inputIdentifier));
+  }
+  // Otherwise, let the user edit normally (cursor positioning works naturally)
+};
+
+const handleInputKeyDown = (e, record, key) => {
+  // Allow: backspace, delete, tab, escape, enter
+  if ([8, 9, 27, 13, 46].includes(e.keyCode) ||
+      // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+      (e.keyCode === 65 && e.ctrlKey === true) ||
+      (e.keyCode === 67 && e.ctrlKey === true) ||
+      (e.keyCode === 86 && e.ctrlKey === true) ||
+      (e.keyCode === 88 && e.ctrlKey === true) ||
+      // Allow: home, end, left, right
+      (e.keyCode >= 35 && e.keyCode <= 39)) {
+    return;
+  }
+  
+  // Ensure only numbers
+  if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+    e.preventDefault();
+  }
+};
+
+const handleInputBlur = (e, record, key, defaultValue = 0) => {
+  e.target.style.borderColor = "#d9d9d9";
+  const inputIdentifier = `${record.psid}-${key}`;
+  
+  // Reset the clicked state when input loses focus
+  setClickedInputs(prev => {
+    const newSet = new Set(prev);
+    newSet.delete(inputIdentifier);
+    return newSet;
+  });
+  
+  if (e.target.value === '' || parseInt(e.target.value, 10) < 0) {
+    handleInputChange(record.psid, key, defaultValue);
+  }
+};
+
+
+
+
 
   const handleInputChange = (id, key, value) => {
     setFormData((prev) => {
@@ -307,61 +395,217 @@ const FastTableCategory = ({
 
       case "attributes":
         return <Attributes items={record.attributes} />;
-
-      case "price":
+      
+            case "viewPrice":
         return (
-          <input
-            type="number"
-            value={typeof formData[record?.psid]?.price?.regularPrice === "number" ? formData[record?.psid]?.price?.regularPrice : 0}
-            min="0"
-            onChange={(e) => {
-              const newValue = Math.max(0, Number(e.target.value) || 0);
-              handleInputChange(record.psid, "price.regularPrice", newValue);
-            }}
+          <div
             style={{
               fontSize: isMobile ? 10 : 12,
               minWidth: "80px",
               width: "100%",
               padding: "6px 8px",
-              textAlign: "center",
+              textAlign: "left",
+              direction: "ltr",
+              border: "1px solid #e8e8e8",
+              borderRadius: "6px",
+              backgroundColor: "#f5f5f5",
+              color: "#595959",
+              fontWeight: 500,
+            }}
+          >
+            {record?.price?.regularPrice ?? 0}
+          </div>
+        );
+
+      
+      
+      case "price":
+        return (
+          <input
+            type="text"
+            inputMode="numeric"
+            value={formData[record?.psid]?.price?.regularPrice ?? 0}
+            onChange={(e) => handleNumberInputChange(e, record, "price.regularPrice")}
+            onFocus={handleInputFocus}
+            onClick={(e) => handleInputClick(e, record.psid, "price.regularPrice")}
+            onKeyDown={(e) => handleInputKeyDown(e, record, "price.regularPrice")}
+            onBlur={(e) => handleInputBlur(e, record, "price.regularPrice", 0)}
+            style={{
+              fontSize: isMobile ? 10 : 12,
+              minWidth: "80px",
+              width: "100%",
+              padding: "6px 8px",
+              textAlign: "left",
+              direction: "ltr",
               border: "1px solid #d9d9d9",
               borderRadius: "6px",
               backgroundColor: "#fff",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
               outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
+              transition: "border-color 0.2s",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#1890ff")}
-            onBlur={(e) => (e.target.style.borderColor = "#d9d9d9")}
           />
         );
+
+        case "secondaryCost": // ⭐ NEW CASE - هزینه فرعی
+          return (
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formData[record?.psid]?.price?.secondaryCost ?? 0}
+              onChange={(e) => handleNumberInputChange(e, record, "price.secondaryCost")}
+              onFocus={handleInputFocus}
+              onClick={(e) => handleInputClick(e, record.psid, "price.secondaryCost")}
+              onKeyDown={(e) => handleInputKeyDown(e, record, "price.secondaryCost")}
+              onBlur={(e) => handleInputBlur(e, record, "price.secondaryCost", 0)}
+              style={{
+                fontSize: isMobile ? 10 : 12,
+                minWidth: "80px",
+                width: "100%",
+                padding: "6px 8px",
+                textAlign: "left",
+                direction: "ltr",
+                border: "1px solid #d9d9d9",
+                borderRadius: "6px",
+                backgroundColor: "#fff",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+            />
+          );
+      case "foreignCurrencyPrice": // ⭐ NEW CASE - قیمت ارزی
+        return (
+          <input
+            type="text"
+            inputMode="numeric"
+            value={formData[record?.psid]?.price?.foreignCurrencyPrice ?? 0}
+            onChange={(e) => handleNumberInputChange(e, record, "price.foreignCurrencyPrice")}
+            onFocus={handleInputFocus}
+            onClick={(e) => handleInputClick(e, record.psid, "price.foreignCurrencyPrice")}
+            onKeyDown={(e) => handleInputKeyDown(e, record, "price.foreignCurrencyPrice")}
+            onBlur={(e) => handleInputBlur(e, record, "price.foreignCurrencyPrice", 0)}
+            style={{
+              fontSize: isMobile ? 10 : 12,
+              minWidth: "80px",
+              width: "100%",
+              padding: "6px 8px",
+              textAlign: "left",
+              direction: "ltr",
+              border: "1px solid #d9d9d9",
+              borderRadius: "6px",
+              backgroundColor: "#fff",
+              outline: "none",
+              transition: "border-color 0.2s",
+            }}
+          />
+        );
+
+        case "percentagePrice1": // ⭐ قیمت درصدی 1 (قیمت عادی)
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={formData[record?.psid]?.price?.percentagePrice1 ?? 0}
+      onChange={(e) => handleNumberInputChange(e, record, "price.percentagePrice1")}
+      onFocus={handleInputFocus}
+      onClick={(e) => handleInputClick(e, record.psid, "price.percentagePrice1")}
+      onKeyDown={(e) => handleInputKeyDown(e, record, "price.percentagePrice1")}
+      onBlur={(e) => handleInputBlur(e, record, "price.percentagePrice1", 0)}
+      style={{
+        fontSize: isMobile ? 10 : 12,
+        minWidth: "80px",
+        width: "100%",
+        padding: "6px 8px",
+        textAlign: "left",
+        direction: "ltr",
+        border: "1px solid #d9d9d9",
+        borderRadius: "6px",
+        backgroundColor: "#fff",
+        outline: "none",
+        transition: "border-color 0.2s",
+      }}
+    />
+  );
+
+case "percentagePrice2": // ⭐ قیمت درصدی 2 (قیمت تخفیف خورده)
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={formData[record?.psid]?.price?.percentagePrice2 ?? 0}
+      onChange={(e) => handleNumberInputChange(e, record, "price.percentagePrice2")}
+      onFocus={handleInputFocus}
+      onClick={(e) => handleInputClick(e, record.psid, "price.percentagePrice2")}
+      onKeyDown={(e) => handleInputKeyDown(e, record, "price.percentagePrice2")}
+      onBlur={(e) => handleInputBlur(e, record, "price.percentagePrice2", 0)}
+      style={{
+        fontSize: isMobile ? 10 : 12,
+        minWidth: "80px",
+        width: "100%",
+        padding: "6px 8px",
+        textAlign: "left",
+        direction: "ltr",
+        border: "1px solid #d9d9d9",
+        borderRadius: "6px",
+        backgroundColor: "#fff",
+        outline: "none",
+        transition: "border-color 0.2s",
+      }}
+    />
+  );
+
+case "percentagePrice3": // ⭐ قیمت درصدی 3 (قیمت ویژه تولید کننده)
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={formData[record?.psid]?.price?.percentagePrice3 ?? 0}
+      onChange={(e) => handleNumberInputChange(e, record, "price.percentagePrice3")}
+      onFocus={handleInputFocus}
+      onClick={(e) => handleInputClick(e, record.psid, "price.percentagePrice3")}
+      onKeyDown={(e) => handleInputKeyDown(e, record, "price.percentagePrice3")}
+      onBlur={(e) => handleInputBlur(e, record, "price.percentagePrice3", 0)}
+      style={{
+        fontSize: isMobile ? 10 : 12,
+        minWidth: "80px",
+        width: "100%",
+        padding: "6px 8px",
+        textAlign: "left",
+        direction: "ltr",
+        border: "1px solid #d9d9d9",
+        borderRadius: "6px",
+        backgroundColor: "#fff",
+        outline: "none",
+        transition: "border-color 0.2s",
+      }}
+    />
+  );
+
 
       case "ICPrice_usd":
         const usdIC = formData[record?.psid]?.price?.ICPrice?.find((ic) => ic.label === "usd") || { amount: 0 };
         return (
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={usdIC.amount}
-            min="0"
-            onChange={(e) => {
-              const newValue = Math.max(0, Number(e.target.value) || 0);
-              handleInputChange(record.psid, "price.ICPrice.usd", newValue);
-            }}
+            onChange={(e) => handleNumberInputChange(e, record, "price.ICPrice.usd")}
+            onFocus={handleInputFocus}
+            onClick={(e) => handleInputClick(e, record.psid, "price.ICPrice.usd")}
+            onKeyDown={(e) => handleInputKeyDown(e, record, "price.ICPrice.usd")}
+            onBlur={(e) => handleInputBlur(e, record, "price.ICPrice.usd", 0)}
             style={{
               fontSize: isMobile ? 10 : 12,
               minWidth: "80px",
               width: "100%",
               padding: "6px 8px",
-              textAlign: "center",
+              textAlign: "left",
+              direction: "ltr",
               border: "1px solid #d9d9d9",
               borderRadius: "6px",
               backgroundColor: "#fff",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
               outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
+              transition: "border-color 0.2s",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#1890ff")}
-            onBlur={(e) => (e.target.style.borderColor = "#d9d9d9")}
           />
         );
 
@@ -369,144 +613,139 @@ const FastTableCategory = ({
         const aedIC = formData[record?.psid]?.price?.ICPrice?.find((ic) => ic.label === "AED") || { amount: 0 };
         return (
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={aedIC.amount}
-            min="0"
-            onChange={(e) => {
-              const newValue = Math.max(0, Number(e.target.value) || 0);
-              handleInputChange(record.psid, "price.ICPrice.AED", newValue);
-            }}
+            onChange={(e) => handleNumberInputChange(e, record, "price.ICPrice.AED")}
+            onFocus={handleInputFocus}
+            onClick={(e) => handleInputClick(e, record.psid, "price.ICPrice.AED")}
+            onKeyDown={(e) => handleInputKeyDown(e, record, "price.ICPrice.AED")}
+            onBlur={(e) => handleInputBlur(e, record, "price.ICPrice.AED", 0)}
             style={{
               fontSize: isMobile ? 10 : 12,
               minWidth: "80px",
               width: "100%",
               padding: "6px 8px",
-              textAlign: "center",
+              textAlign: "left",
+              direction: "ltr",
               border: "1px solid #d9d9d9",
               borderRadius: "6px",
               backgroundColor: "#fff",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
               outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
+              transition: "border-color 0.2s",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#1890ff")}
-            onBlur={(e) => (e.target.style.borderColor = "#d9d9d9")}
           />
         );
 
       case "discount":
         return (
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={formData[record.psid]?.price.discountedPrice ?? 0}
-            min="0"
-            onChange={(e) => {
-              const newValue = Math.max(0, Number(e.target.value) || 0);
-              handleInputChange(record.psid, "price.discountedPrice", newValue);
-            }}
+            onChange={(e) => handleNumberInputChange(e, record, "price.discountedPrice")}
+            onFocus={handleInputFocus}
+            onClick={(e) => handleInputClick(e, record.psid, "price.discountedPrice")}
+            onKeyDown={(e) => handleInputKeyDown(e, record, "price.discountedPrice")}
+            onBlur={(e) => handleInputBlur(e, record, "price.discountedPrice", 0)}
             style={{
               fontSize: isMobile ? 10 : 12,
               minWidth: "80px",
               width: "100%",
               padding: "6px 8px",
-              textAlign: "center",
+              textAlign: "left",
+              direction: "ltr",
               border: "1px solid #d9d9d9",
               borderRadius: "6px",
               backgroundColor: "#fff",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
               outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
+              transition: "border-color 0.2s",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#1890ff")}
-            onBlur={(e) => (e.target.style.borderColor = "#d9d9d9")}
           />
         );
 
       case "stock":
         return (
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={formData[record.psid]?.stock ?? 0}
-            min="0"
-            onChange={(e) => {
-              const newValue = Math.max(0, Number(e.target.value) || 0);
-              handleInputChange(record.psid, "stock", newValue);
-            }}
+            onChange={(e) => handleNumberInputChange(e, record, "stock")}
+            onFocus={handleInputFocus}
+            onClick={(e) => handleInputClick(e, record.psid, "stock")}
+            onKeyDown={(e) => handleInputKeyDown(e, record, "stock")}
+            onBlur={(e) => handleInputBlur(e, record, "stock", 0)}
             style={{
               fontSize: isMobile ? 10 : 12,
               minWidth: "80px",
               width: "100%",
               padding: "6px 8px",
-              textAlign: "center",
+              textAlign: "left",
+              direction: "ltr",
               border: "1px solid #d9d9d9",
               borderRadius: "6px",
               backgroundColor: "#fff",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
               outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
+              transition: "border-color 0.2s",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#1890ff")}
-            onBlur={(e) => (e.target.style.borderColor = "#d9d9d9")}
           />
         );
 
       case "minOrder":
         return (
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={formData[record.psid]?.minOrder ?? 0}
-            min="0"
-            onChange={(e) => {
-              const newValue = Math.max(0, Number(e.target.value) || 0);
-              handleInputChange(record.psid, "minOrder", newValue);
-            }}
+            onChange={(e) => handleNumberInputChange(e, record, "minOrder")}
+            onFocus={handleInputFocus}
+            onClick={(e) => handleInputClick(e, record.psid, "minOrder")}
+            onKeyDown={(e) => handleInputKeyDown(e, record, "minOrder")}
+            onBlur={(e) => handleInputBlur(e, record, "minOrder", 0)}
             style={{
               fontSize: isMobile ? 10 : 12,
               minWidth: "80px",
               width: "100%",
               padding: "6px 8px",
-              textAlign: "center",
+              textAlign: "left",
+              direction: "ltr",
               border: "1px solid #d9d9d9",
               borderRadius: "6px",
               backgroundColor: "#fff",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
               outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
+              transition: "border-color 0.2s",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#1890ff")}
-            onBlur={(e) => (e.target.style.borderColor = "#d9d9d9")}
           />
         );
 
       case "maxOrder":
         return (
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={formData[record.psid]?.maxOrder ?? 0}
-            min="0"
-            onChange={(e) => {
-              const newValue = Math.max(0, Number(e.target.value) || 0);
-              handleInputChange(record.psid, "maxOrder", newValue);
-            }}
+            onChange={(e) => handleNumberInputChange(e, record, "maxOrder")}
+            onFocus={handleInputFocus}
+            onClick={(e) => handleInputClick(e, record.psid, "maxOrder")}
+            onKeyDown={(e) => handleInputKeyDown(e, record, "maxOrder")}
+            onBlur={(e) => handleInputBlur(e, record, "maxOrder", 0)}
             style={{
               fontSize: isMobile ? 10 : 12,
               minWidth: "80px",
               width: "100%",
               padding: "6px 8px",
-              textAlign: "center",
+              textAlign: "left",
+              direction: "ltr",
               border: "1px solid #d9d9d9",
               borderRadius: "6px",
               backgroundColor: "#fff",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
               outline: "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
+              transition: "border-color 0.2s",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#1890ff")}
-            onBlur={(e) => (e.target.style.borderColor = "#d9d9d9")}
           />
         );
-
-      case "seller":
+  
+  case "seller":
         return (
           <Space size={4} align="center" wrap={false} style={{ whiteSpace: 'nowrap' }}>
             <Link
@@ -661,6 +900,8 @@ const FastTableCategory = ({
             key={record.psid}
             item={record}
             formData={formData}
+            setNodes={setNodes}
+            mode="category"  // ⭐ ADD THIS LINE
             onChange={() => {}}
             onClick={handleRowClick}
           />
@@ -679,6 +920,11 @@ const FastTableCategory = ({
       psid: isMobile ? 100 : 120,
       attributes: isMobile ? 100 : 120,
       price: isMobile ? 100 : 130,
+      secondaryCost: isMobile ? 100 : 130,
+      foreignCurrencyPrice: isMobile ? 100 : 130,
+      percentagePrice1: isMobile ? 100 : 130,
+      percentagePrice2: isMobile ? 100 : 130,
+      percentagePrice3: isMobile ? 100 : 130, 
       discount: isMobile ? 100 : 130,
       stock: isMobile ? 100 : 120,
       minOrder: isMobile ? 100 : 120,

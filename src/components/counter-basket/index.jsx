@@ -291,11 +291,11 @@ const CounterBasket = (props) => {
             size="md"
             radius="999999"
             variant="light"
-            color="green"
+            // color="#093572"
             onClick={increment}
             disabled={isPageLoading || localCount >= realMax}
           >
-            <IconPlus size={15} />
+            <IconPlus color="#093572" size={15} />
           </ActionIcon>
 
           <Input
@@ -313,7 +313,7 @@ const CounterBasket = (props) => {
               size="md"
               radius="999999"
               variant="light"
-              color="red"
+              // color="#093572"
               onClick={decrement}
               disabled={isPageLoading}
             >
@@ -324,7 +324,7 @@ const CounterBasket = (props) => {
               radius="999999"
               size="md"
               variant="light"
-              color="red"
+              color=""
               onClick={handleRemove}
               disabled={isPageLoading}
             >

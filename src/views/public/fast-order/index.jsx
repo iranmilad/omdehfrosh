@@ -32,7 +32,6 @@ import FiltersCategoryMode from "./filtersCategoryMode";
 import SearchComponentCategory from "./searchComponentCategory";
 import { FaRotate } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
-// import { verifyToken } from "../../../redux/auth/authusers/auth";
 import isEqual from "lodash/isEqual";
 
 import {
@@ -68,7 +67,6 @@ function FastOrder() {
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-
   const [loadingStates, setLoadingStates] = useState({
     searchComponent: false,
     filtersComponent: false,
@@ -90,8 +88,8 @@ function FastOrder() {
   const [pageSize, setPageSize] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [openedM, setOpenedM] = useState(false);  // modal state
-  const [isOpen, setIsOpen] = useState(false);    // collapse state
+  const [openedM, setOpenedM] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState([
     { id: 1, name: 'Nike' },
     { id: 2, name: 'Adidas' },
@@ -106,18 +104,15 @@ function FastOrder() {
   const [filterValues, setFilterValues] = useState({colors:[], sellers:[]});
 
   const [searchType, setSearchType] = useState("brand"); 
-  
-  const [icPriceLabels, setIcPriceLabels] = useState([]);
 
-  // Add state for filter modal
+  // ❌ REMOVED: const [icPriceLabels, setIcPriceLabels] = useState([]);
+
   const [filterModalOpened, setFilterModalOpened] = useState(false);
 
-  // cookie brand mode
   const COOKIE_NAME_BRAND_MODE = "search_filters_brand_fast_edit";
 
   const storedFilters_brand_modee = Cookies.get(COOKIE_NAME_BRAND_MODE);
 
-  // ✅ Load filters from cookies initially
   const getInitialFilters_brand_mode = () => {
     const storedFilters_brand_mode = Cookies.get(COOKIE_NAME_BRAND_MODE);
     if (storedFilters_brand_mode) {
@@ -150,15 +145,12 @@ function FastOrder() {
 
   // Staggered loading effect
   useEffect(() => {
-    // First component loads immediately
     setLoadingStates(prev => ({ ...prev, searchComponent: true }));
 
-    // Second component loads after 1 second
     const timer1 = setTimeout(() => {
       setLoadingStates(prev => ({ ...prev, filtersComponent: true }));
     }, 2000);
 
-    // Third component loads after 2 seconds
     const timer2 = setTimeout(() => {
       setLoadingStates(prev => ({ ...prev, tableComponent: true }));
     }, 3000);
@@ -170,56 +162,45 @@ function FastOrder() {
   }, []);
 
   useEffect(() => {
-    // Extract the search type from the URL pathname
     const pathSegments = location.pathname.split('/');
-    const urlSearchType = pathSegments[2]; // Assuming format: /fastorder/category/mobile or /fastorder/brand/...
+    const urlSearchType = pathSegments[2];
     
     if (urlSearchType === 'category' || urlSearchType === 'brand') {
       setSearchType(urlSearchType);
     }
-  }, [location.pathname]); // Re-run when pathname changes
+  }, [location.pathname]);
 
-//   useEffect(() => {
-//   if (hasCheckedAuth && user === null) {
-//     setShowLoginModal(true);
-//   } else {
-//     setShowLoginModal(false);
-//   }
-// }, [user, hasCheckedAuth]);
+  const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
 
-  // cookie category mode
-const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
-
-    // ✅ Load filters from cookies initially
-    const getInitialFilters_category_mode = () => {
-      const storedFilters_category_mode = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
-      if (storedFilters_category_mode) {
-        try {
-          return JSON.parse(storedFilters_category_mode);
-        } catch (error) {
-        }
+  const getInitialFilters_category_mode = () => {
+    const storedFilters_category_mode = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
+    if (storedFilters_category_mode) {
+      try {
+        return JSON.parse(storedFilters_category_mode);
+      } catch (error) {
       }
-      return {
-        searchType: "category",
-        uniqueIDClickedCategories: [],
-        uniqueIDClickedSubCategories: [],
-        uniqueIDClickedSubCategoriesBrands: [],
-        filters: {
-          color: "all",
-          province: "all",
-          stockStatus: "all",
-          minStock: "",
-          deliveryTime: "",
-          paymentType: "",
-          supplier: "",
-          sort: "bestPrice",
-          priceFormat: "hezar",
-        },
-      };
+    }
+    return {
+      searchType: "category",
+      uniqueIDClickedCategories: [],
+      uniqueIDClickedSubCategories: [],
+      uniqueIDClickedSubCategoriesBrands: [],
+      filters: {
+        color: "all",
+        province: "all",
+        stockStatus: "all",
+        minStock: "",
+        deliveryTime: "",
+        paymentType: "",
+        supplier: "",
+        sort: "bestPrice",
+        priceFormat: "hezar",
+      },
     };
+  };
 
-    const initialFilters_category_mode = getInitialFilters_category_mode();
-    const [filters_category_mode, setFilters_category_mode] = useState(initialFilters_category_mode.filters);
+  const initialFilters_category_mode = getInitialFilters_category_mode();
+  const [filters_category_mode, setFilters_category_mode] = useState(initialFilters_category_mode.filters);
   
   const [opened, setOpened] = useState(false);
 
@@ -228,100 +209,45 @@ const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
   else if(filters_brand_mode.priceFormat === "hezar") priceFormatLabel = "هزار تومان";
   else priceFormatLabel = "میلیون تومان";
 
-  // Table columns
-// Base column definitions
-const COLUMNS = [
-  { key: "image", label: "تصویر", width: "160px" },
-  { key: "name", label: "نام کالا", width: "160px" },
-  // { key: "psid", label: "آی‌دی مشخصه", width: "160px" },
-  { key: "price", label: "قیمت", width: "160px" }, // Insert ICPrice columns after this
-  { key: "discount", label: "با تخفیف", width: "160px" },
-  { key: "attributes", label: "ویژگی ها", width: "160px" },
-  { key: "stock", label: "موجودی", width: "160px" },
-  { key: "minOrder", label: "حداقل سفارش", width: "120px" },
-  { key: "maxOrder", label: "حداکثر سفارش", width: "120px" },
-  { key: "seller", label: "تامین کننده", width: "120px" },
-  { key: "deliveryTime", label: "زمان تحویل", width: "120px" },
-  // { key: "payment_type", label: "نوع پرداخت", width: "120px" },
-  // { key: "delivery", label: "محل ارسال", width: "120px" },
-  { key: "action", label: "عملیات", width: "120px" }
-];
+  // ✅ SIMPLIFIED: Table columns without ICPrice logic
+  const COLUMNS = [
+    { key: "image", label: "تصویر", width: "160px" },
+    { key: "name", label: "نام کالا", width: "160px" },
+    { key: "price", label: "قیمت", width: "160px" },
+    { key: "attributes", label: "ویژگی ها", width: "160px" },
+    { key: "stock", label: "موجودی", width: "160px" },
+    { key: "minOrder", label: "حداقل سفارش", width: "120px" },
+    { key: "maxOrder", label: "حداکثر سفارش", width: "120px" },
+    { key: "seller", label: "تامین کننده", width: "120px" },
+    { key: "deliveryTime", label: "زمان تحویل", width: "120px" },
+    { key: "action", label: "عملیات", width: "120px" }
+  ];
 
-    const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
-    const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings);
+  const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-// Function to extract unique ICPrice labels
-const extractICPriceLabels = (items, icLabels = new Set()) => {
-  if (!Array.isArray(items)) return icLabels; // Handle null/undefined
+  // ❌ REMOVED: All ICPrice extraction functions
+  // - extractICPriceLabels
+  // - getAllICPriceLabels
+  // - icPriceColumns logic
+  // - updatedColumns logic
 
-  items.forEach(item => {
-    if (item?.price?.ICPrice) {  // Ensure price and ICPrice exist
-      item.price.ICPrice.forEach(ic => icLabels.add(ic.label));
-    }
+  // ✅ SIMPLIFIED: Just use COLUMNS directly
+  const updatedColumns = COLUMNS;
 
-    // Recursively check deeper nodes
-    if (Array.isArray(item?.nodes)) {
-      extractICPriceLabels(item.nodes, icLabels);
-    }
-  });
+  // ❌ REMOVED: useEffect for extracting ICPrice labels
 
-  return icLabels;
-};
-
-// Get all unique ICPrice labels from brands
-const getAllICPriceLabels = (brands) => {
-  if (!Array.isArray(brands)) return [];
-
-  const icLabels = new Set();
-  
-  brands.forEach(brand => {
-    extractICPriceLabels(brand.items, icLabels);
-  });
-
-  return [...icLabels].map(label => ({
-    key: `ICPrice_${label}`,
-    label: `قیمت (${label.toUpperCase()})`,
-    width: "120px"
-  }));
-};
-
-// Example product data
-const productData = Array.isArray(nodes) ? nodes : [];
-
-// Extract ICPrice columns
-const icPriceColumns = getAllICPriceLabels(productData);
-
-// ✅ Find the index of "price" and insert ICPrice columns right after it
-const priceIndex = COLUMNS.findIndex(col => col.key === "price");
-const updatedColumns = [
-  ...COLUMNS.slice(0, priceIndex + 1),  // Columns before and including "price"
-  ...icPriceColumns,                   // Insert ICPrice columns here
-  ...COLUMNS.slice(priceIndex + 1)      // Remaining columns after "price"
-];
-
-useEffect(() => {
-  // Extract ICPrice columns only once (or when nodes change)
-  const icPriceColumns = getAllICPriceLabels(productData);
-
-  // Extract the keys from icPriceColumns
-  const icPriceKeys = icPriceColumns.map(column => column.key);
-
-  // Set the keys to the state
-  setIcPriceLabels(icPriceKeys);
-}, [productData]);  // Depend on `productData`, so it updates when productData changes
-
-  // Handle saving column visibility settings
   const handleSave = () => setOpened(false);
 
   const handleVisibleColumnsChange = (event, columnKey) => {
-    const isChecked = event.target.checked; // true = hiding, false = showing
+    const isChecked = event.target.checked;
     setVisibleColumns((prev) =>
       isChecked
-        ? prev.filter((key) => key !== columnKey) // Remove from visible (hide)
-        : [...prev, columnKey] // Add to visible (show)
+        ? prev.filter((key) => key !== columnKey)
+        : [...prev, columnKey]
     );
   };
 
@@ -351,137 +277,133 @@ useEffect(() => {
   useEffect(() => {
     const handleResize = () => {
       setIsLandscape(window.innerWidth > window.innerHeight);
-      setIsPortrait(window.innerHeight > window.innerWidth); // Update isPortrait on resize
+      setIsPortrait(window.innerHeight > window.innerWidth);
     };
   
     window.addEventListener("resize", handleResize);
-    // Initial calculation when the component mounts
     handleResize(); 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const saveFiltersSettings = () => {
+    if (!filterName.trim()) return;
 
-const saveFiltersSettings = () => {
-  if (!filterName.trim()) return;
+    const slug = searchType === "brand" ? "brand-fast-edit" : "category-fast-edit";
+    const COOKIE_NAME_BRAND_MODE = "search_filters_brand_fast_edit";
+    const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
 
-  const slug = searchType === "brand" ? "brand-fast-edit" : "category-fast-edit";
-  const COOKIE_NAME_BRAND_MODE = "search_filters_brand_fast_edit";
-  const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
+    const filterSettingsCookieKey =
+      searchType === "brand" ? COOKIE_NAME_BRAND_MODE : COOKIE_NAME_CATEGORY_MODE;
 
-  const filterSettingsCookieKey =
-    searchType === "brand" ? COOKIE_NAME_BRAND_MODE : COOKIE_NAME_CATEGORY_MODE;
+    const cookieRaw = Cookies.get(filterSettingsCookieKey);
+    let fullCookieData;
 
-  const cookieRaw = Cookies.get(filterSettingsCookieKey);
-  let fullCookieData;
-
-  try {
-    fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
-  } catch (error) {
-    fullCookieData = {};
-  }
-
-  // 🔁 Save and then refresh
-  dispatch(
-    saveFilterSettings({
-      slug,
-      filters: fullCookieData,
-      filterName: filterName.trim(),
-    })
-  ).then(() => {
-    // Re-fetch saved filters to refresh component
-    dispatch(getFilterSettings(slug));
-
-    if (saveStatus.state === "ok" ) {
-          setOpenedM(false); // Close modal after save
+    try {
+      fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
+    } catch (error) {
+      fullCookieData = {};
     }
 
-    setFilterName(""); // Reset input
-  });
-};
+    dispatch(
+      saveFilterSettings({
+        slug,
+        filters: fullCookieData,
+        filterName: filterName.trim(),
+      })
+    ).then(() => {
+      dispatch(getFilterSettings(slug));
 
-const handleDeleteSavedFilter = (id) => {
-  const slug = searchType === "brand" ? "brand-fast-edit" : "category-fast-edit";
-  dispatch(deleteFilterSettings({ slug, id }))
-    .then(() => {
-      dispatch(getFilterSettings(slug)); // refresh the list after deletion
+      if (saveStatus.state === "ok" ) {
+        setOpenedM(false);
+      }
+
+      setFilterName("");
     });
-};
+  };
 
-useEffect(() => {
-  const slug = searchType === "brand" ? "brand-fast-order" : "category-fast-order";
-  dispatch(getFilterSettings(slug));
-}, [searchType]);
+  const handleDeleteSavedFilter = (id) => {
+    const slug = searchType === "brand" ? "brand-fast-edit" : "category-fast-edit";
+    dispatch(deleteFilterSettings({ slug, id }))
+      .then(() => {
+        dispatch(getFilterSettings(slug));
+      });
+  };
 
-        useEffect(() => {
-          if (saveStatus && saveStatus?.state === "ok" ) {
-            notifications.show({
-              title: saveStatus.message,
-              color: "green",
-              autoClose: true
-            });
-          }
-          if (saveStatus && saveStatus?.state === "error" ) {
-              notifications.show({
-                title: saveStatus.message,
-                color: "red",
-                autoClose: true
-              });
-            }
-        }, [saveStatus]);
+  useEffect(() => {
+    const slug = searchType === "brand" ? "brand-fast-order" : "category-fast-order";
+    dispatch(getFilterSettings(slug));
+  }, [searchType]);
 
-        useEffect(() => {
-          if (
-            saveError && 
-              Number(saveError.status) !== 400 
-              && Number(saveError.status) !== 401 
-              && Number(saveError.status) !== 403
-              && Number(saveError.status) !== 404
-              && Number(saveError.status) !== 405
-              && Number(saveError.status) !== 408
-              && Number(saveError.status) !== 409
-              && Number(saveError.status) !== 410
-              && Number(saveError.status) !== 411
-              && Number(saveError.status) !== 412
-              && Number(saveError.status) !== 413
-              && Number(saveError.status) !== 414
-              && Number(saveError.status) !== 415
-              && Number(saveError.status) !== 416
-              && Number(saveError.status) !== 417
-              && Number(saveError.status) !== 422   
-              && Number(saveError.status) !== 429
-      ) {
-            notifications.show({
-              title: saveError.message,
-              color: "red",
-              autoClose: true
-            });
-          }
-        }, [saveError]);
-        
-      useEffect(() => {
-          if (saveError?.status === 401) {
-              setModalOpen(true);
-            setTimeout(() => {
-              setModalOpen(false);
-              dispatch(clearSaveFilterState())
-              navigate("/"); 
-            }, 4000);
-          }
+  useEffect(() => {
+    if (saveStatus && saveStatus?.state === "ok" ) {
+      notifications.show({
+        title: saveStatus.message,
+        color: "green",
+        autoClose: true
+      });
+    }
+    if (saveStatus && saveStatus?.state === "error" ) {
+      notifications.show({
+        title: saveStatus.message,
+        color: "red",
+        autoClose: true
+      });
+    }
+  }, [saveStatus]);
 
-          if (saveError?.status === 403) {
-              setModalOpen(true);
-            setTimeout(() => {
-              dispatch(clearSaveFilterState())
-              setModalOpen(false);
-            }, 4000);
-          }
-      }, [saveError, dispatch, navigate]);
+  useEffect(() => {
+    if (
+      saveError && 
+      Number(saveError.status) !== 400 
+      && Number(saveError.status) !== 401 
+      && Number(saveError.status) !== 403
+      && Number(saveError.status) !== 404
+      && Number(saveError.status) !== 405
+      && Number(saveError.status) !== 408
+      && Number(saveError.status) !== 409
+      && Number(saveError.status) !== 410
+      && Number(saveError.status) !== 411
+      && Number(saveError.status) !== 412
+      && Number(saveError.status) !== 413
+      && Number(saveError.status) !== 414
+      && Number(saveError.status) !== 415
+      && Number(saveError.status) !== 416
+      && Number(saveError.status) !== 417
+      && Number(saveError.status) !== 422   
+      && Number(saveError.status) !== 429
+    ) {
+      notifications.show({
+        title: saveError.message,
+        color: "red",
+        autoClose: true
+      });
+    }
+  }, [saveError]);
+  
+  useEffect(() => {
+    if (saveError?.status === 401) {
+      setModalOpen(true);
+      setTimeout(() => {
+        setModalOpen(false);
+        dispatch(clearSaveFilterState())
+        navigate("/"); 
+      }, 4000);
+    }
 
-      useEffect(() => {
-        if (saveError?.status) {
-          handleKnownErrors(saveError.status, setModalOpen, navigate);
-        }
-      }, [saveError, saveStatus]);
+    if (saveError?.status === 403) {
+      setModalOpen(true);
+      setTimeout(() => {
+        dispatch(clearSaveFilterState())
+        setModalOpen(false);
+      }, 4000);
+    }
+  }, [saveError, dispatch, navigate]);
+
+  useEffect(() => {
+    if (saveError?.status) {
+      handleKnownErrors(saveError.status, setModalOpen, navigate);
+    }
+  }, [saveError, saveStatus]);
 
   const form = useForm({
     initialValues: {
@@ -491,7 +413,6 @@ useEffect(() => {
       title: (value) => (value.trim() ? null : "نام الزامی است"),
     },
   });
-
 
   const [isFixed, setIsFixed] = useState(false);
   const componentRef = useRef(null);
@@ -507,15 +428,13 @@ useEffect(() => {
       const currentScrollY = window.scrollY;
 
       if (currentScrollY < lastScrollY.current) {
-        // Scrolling up
         if (currentScrollY > originalTop.current) {
-          setIsFixed(true); // stick to top
+          setIsFixed(true);
         } else {
-          setIsFixed(false); // back to original position
+          setIsFixed(false);
         }
       } else {
-        // Scrolling down
-        setIsFixed(false); // normal flow
+        setIsFixed(false);
       }
 
       lastScrollY.current = currentScrollY;
@@ -525,7 +444,6 @@ useEffect(() => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Loading placeholder component
   const LoadingPlaceholder = ({ height = "200px" }) => (
     <Box
       style={{
@@ -542,95 +460,84 @@ useEffect(() => {
     </Box>
   );
 
-
   return (
     <>
-        {/* <ErrorMessageModal
-            opened={modalOpen}
-            onClose={() => setModalOpen(false)}
-            message={saveError?.message}
-        />   */}
+      <Box >
+        <RowSelectionProvider>
+          <FastOrderContext.Provider 
+            value={{visibleColumns, setVisibleColumns, filters_brand_mode, filterValues, setFilters_brand_mode, setFilterValues, searchType }}>
+                
+            <FilterProvider>
 
-        <Box >
-          {/* Wrap everything with RowSelectionProvider */}
-          <RowSelectionProvider>
-            <FastOrderContext.Provider 
-              value={{visibleColumns, setVisibleColumns, filters_brand_mode, filterValues, setFilters_brand_mode, setFilterValues, searchType }}>
-                  
-                  <FilterProvider>
+              {loadingStates.searchComponent ? (
+                searchType === "brand" ? 
+                <div>
+                  <BrandRowSelectionProvider>
+                    <SearchComponentBrand
+                      filters={filters_brand_mode} 
+                      setFilters={setFilters_brand_mode}
+                      setNodesSubCategories={setNodesSubCategoriesData} 
+                      setNodes={setNodes} 
+                      setAvailableLocations={setAvailableLocations}
+                      searchType={searchType} 
+                      setSearchType={setSearchType} 
+                    />
+                  </BrandRowSelectionProvider>
+                </div>
+                :
+                <div>
+                  <CategoryRowSelectionProvider>
+                    <SearchComponentCategory 
+                      filters={filters_category_mode} 
+                      setFilters={setFilters_category_mode}
+                      setNodesSubCategories={setNodesSubCategoriesData} 
+                      setNodes={setNodes} 
+                      setAvailableLocations={setAvailableLocations}
+                      searchType={searchType} 
+                      setSearchType={setSearchType} 
+                    />
+                  </CategoryRowSelectionProvider>
+                </div>
+              ) : (
+                <LoadingPlaceholder height="120px" />
+              )}
 
-                {/* Search Component - Loads immediately */}
-                {loadingStates.searchComponent ? (
-                  searchType === "brand" ? 
-                  <div>
-                    <BrandRowSelectionProvider>
-                      <SearchComponentBrand
-                        filters={filters_brand_mode} 
-                        setFilters={setFilters_brand_mode}
-                        setNodesSubCategories={setNodesSubCategoriesData} 
-                        setNodes={setNodes} 
-                        setAvailableLocations={setAvailableLocations}
-                        searchType={searchType} 
-                        setSearchType={setSearchType} 
-                        />
-                    </BrandRowSelectionProvider>
-                  </div>
-                  :
-                  <div>
-                    <CategoryRowSelectionProvider>
-                      <SearchComponentCategory 
-                        filters={filters_category_mode} 
-                        setFilters={setFilters_category_mode}
-                        setNodesSubCategories={setNodesSubCategoriesData} 
-                        setNodes={setNodes} 
-                        setAvailableLocations={setAvailableLocations}
-                        searchType={searchType} 
-                        setSearchType={setSearchType} 
-                        />
-                    </CategoryRowSelectionProvider>
-                  </div>
-                ) : (
-                  <LoadingPlaceholder height="120px" />
-                )}
+              {loadingStates.filtersComponent ? (
+                <div
+                  ref={componentRef}
+                  style={{
+                    position: isFixed ? "fixed" : "static",
+                    top: isFixed ? 0 : "auto",
+                    left: 0,
+                    right: 0,
+                    zIndex: 999,
+                    background: isFixed ? "white" : "transparent",
+                  }}
+                >
+                  {searchType === "brand" ? (
+                    <FiltersBrandMode
+                      setFilters={setFilters_brand_mode}
+                      nodes={nodes}
+                      setNodesSubCategories={setNodesSubCategoriesData}
+                      setNodes={setNodes}
+                      filters={filters_brand_mode}
+                      searchType={searchType}
+                    />
+                  ) : (
+                    <FiltersCategoryMode
+                      setFilters={setFilters_category_mode}
+                      nodes={nodes}
+                      setNodesSubCategories={setNodesSubCategoriesData}
+                      setNodes={setNodes}
+                      filters={filters_category_mode}
+                      searchType={searchType}
+                    />
+                  )}
+                </div>
+              ) : (
+                <LoadingPlaceholder height="80px" />
+              )}
 
-                {/* Filters Component - Loads after 1 second */}
-                {loadingStates.filtersComponent ? (
-                  <div
-                    ref={componentRef}
-                    style={{
-                      position: isFixed ? "fixed" : "static",
-                      top: isFixed ? 0 : "auto",
-                      left: 0,
-                      right: 0,
-                      zIndex: 999,
-                      background: isFixed ? "white" : "transparent",
-                    }}
-                  >
-                    {searchType === "brand" ? (
-                      <FiltersBrandMode
-                        setFilters={setFilters_brand_mode}
-                        nodes={nodes}
-                        setNodesSubCategories={setNodesSubCategoriesData}
-                        setNodes={setNodes}
-                        filters={filters_brand_mode}
-                        searchType={searchType}
-                      />
-                    ) : (
-                      <FiltersCategoryMode
-                        setFilters={setFilters_category_mode}
-                        nodes={nodes}
-                        setNodesSubCategories={setNodesSubCategoriesData}
-                        setNodes={setNodes}
-                        filters={filters_category_mode}
-                        searchType={searchType}
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <LoadingPlaceholder height="80px" />
-                )}
-
-              {/* Table Controls and Content - Loads after 2 seconds */}
               {loadingStates.tableComponent ? (
                 <>
                   <Group
@@ -652,10 +559,22 @@ useEffect(() => {
                   </Group>
 
                   {
-                  searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
+                    searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
                     (
                       <>
-                        <FastTableBrand type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodes[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+                        {/* ✅ REMOVED: icPriceKeys prop */}
+                        <FastTableBrand 
+                          type="head" 
+                          isPortrait={isPortrait} 
+                          isLandscape={isLandscape} 
+                          filters_brand_mode={filters_brand_mode} 
+                          filterValues={filterValues} 
+                          availableLocations={availableLocations} 
+                          COLUMNS={updatedColumns} 
+                          nodes={nodes[0]?.items?.slice(0, 1) || []} 
+                          setVisibleColumns={setVisibleColumns} 
+                          visibleColumns={visibleColumns} 
+                        />
                         {nodes.map((item, index) => (
                           <React.Fragment key={index}>
                             <Flex h={40} align="center" justify="center" bg="#e5e7eb">
@@ -663,14 +582,40 @@ useEffect(() => {
                                 {item.label}
                               </Text>
                             </Flex>
-                            <FastTableBrand keyIndex={index} isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} setNodes={setNodes} availableLocations={availableLocations}  type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+                            {/* ✅ REMOVED: icPriceKeys prop */}
+                            <FastTableBrand 
+                              keyIndex={index} 
+                              isPortrait={isPortrait} 
+                              isLandscape={isLandscape} 
+                              filters_brand_mode={filters_brand_mode} 
+                              filterValues={filterValues} 
+                              setNodes={setNodes} 
+                              availableLocations={availableLocations}  
+                              type="data" 
+                              COLUMNS={updatedColumns} 
+                              nodes={item.items || []} 
+                              setVisibleColumns={setVisibleColumns} 
+                              visibleColumns={visibleColumns} 
+                            />
                           </React.Fragment>
                         ))}
-                       </>
+                      </>
                     ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
                     (
                       <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-                        <FastTableCategory type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+                        {/* ✅ REMOVED: icPriceKeys prop */}
+                        <FastTableCategory 
+                          type="head" 
+                          isPortrait={isPortrait} 
+                          isLandscape={isLandscape} 
+                          filters_category_mode={filters_category_mode} 
+                          filterValues={filterValues} 
+                          availableLocations={availableLocations} 
+                          COLUMNS={updatedColumns} 
+                          nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} 
+                          setVisibleColumns={setVisibleColumns} 
+                          visibleColumns={visibleColumns} 
+                        />
                         {nodesSubCategoriesData?.map((item, index) => (
                           <React.Fragment key={index}>
                             <Flex h={40} align="center" justify="center" bg="#e5e7eb">
@@ -678,7 +623,21 @@ useEffect(() => {
                                 {item.label}
                               </Text>
                             </Flex>
-                            <FastTableCategory isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} keyIndex={index} availableLocations={availableLocations}  setNodes={setNodesSubCategoriesData} type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+                            {/* ✅ REMOVED: icPriceKeys prop */}
+                            <FastTableCategory 
+                              isPortrait={isPortrait} 
+                              isLandscape={isLandscape} 
+                              filters_category_mode={filters_category_mode} 
+                              filterValues={filterValues} 
+                              keyIndex={index} 
+                              availableLocations={availableLocations}  
+                              setNodes={setNodesSubCategoriesData} 
+                              type="data" 
+                              COLUMNS={updatedColumns} 
+                              nodes={item.items || []} 
+                              setVisibleColumns={setVisibleColumns} 
+                              visibleColumns={visibleColumns} 
+                            />
                           </React.Fragment>
                         ))}
                       </Paper>
@@ -689,30 +648,29 @@ useEffect(() => {
                 <LoadingPlaceholder height="300px" />
               )}
 
-              {/* Column Visibility Modal */}
               <Modal
                 opened={opened}
                 onClose={() => setOpened(false)}
                 title="نمایش دادن ستون‌ها"
+                style={{zIndex: 1100}}
               >
                 <Stack>
-                {updatedColumns.map((column) => (
-                  <Checkbox
-                    key={column.key}
-                    label={column.label}
-                    checked={!visibleColumns.includes(column.key)} // Shows checked when NOT visible
-                    onChange={(event) => handleVisibleColumnsChange(event, column.key)} // Toggles correctly
-                  />
-                ))}
+                  {updatedColumns.map((column) => (
+                    <Checkbox
+                      key={column.key}
+                      label={column.label}
+                      checked={!visibleColumns.includes(column.key)}
+                      onChange={(event) => handleVisibleColumnsChange(event, column.key)}
+                    />
+                  ))}
                 </Stack>
               </Modal>
 
-              </FilterProvider>
+            </FilterProvider>
 
-            </FastOrderContext.Provider>
-          </RowSelectionProvider>
-        </Box>
-
+          </FastOrderContext.Provider>
+        </RowSelectionProvider>
+      </Box>
     </>
   );
 }

@@ -131,7 +131,7 @@ function PurchasePanel() {
       </div>
 
       {/* Order Limits */}
-      <Flex direction="column" align="start" gap="xs" className="py-4">
+      {/* <Flex direction="column" align="start" gap="xs" className="py-4">
         <Flex gap="sm">
           <Text size="13px" c="gray">
             حداقل سفارش
@@ -144,7 +144,7 @@ function PurchasePanel() {
           </Text>
           <Text size="13px">{maxOrder} عدد</Text>
         </Flex>
-      </Flex>
+      </Flex> */}
 
       {/* Counter Component */}
       <Counter

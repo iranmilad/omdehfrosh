@@ -174,6 +174,8 @@ const SearchComponentCategory = ({
         color: 'red',
         autoClose: 5000,
         position: 'top-right',
+        zIndex: 1100
+
       });
       return false;
     }
@@ -184,6 +186,8 @@ const SearchComponentCategory = ({
       message: message,
       color: 'red', 
       autoClose: 4000,
+      zIndex: 1100
+
     });
     return false;
   };
@@ -383,6 +387,8 @@ const SearchComponentCategory = ({
       message: `فیلتر "${filter.filterName || 'بدون نام'}" بارگذاری شد. تغییرات را اعمال کنید و سپس ذخیره کنید.`,
       color: 'blue',
       autoClose: 4000,
+      zIndex: 1100
+
     });
   }, [COOKIE_NAME, setFilters, setSearchType, setSelectedRow, dispatch]);
 
@@ -420,6 +426,7 @@ const SearchComponentCategory = ({
             message: result.payload.message,
             color: 'red',
             autoClose: 4000,
+            zIndex: 1100
           });
           return;
         }
@@ -435,6 +442,7 @@ const SearchComponentCategory = ({
           message: `فیلتر "${editingFilterName.trim()}" با موفقیت به‌روزرسانی شد.`,
           color: 'green',
           autoClose: 3000,
+          zIndex: 1100
         });
       } else if (result?.type === 'category/updateFilterSettings/rejected') {
         // Handle rejected case - let the error handling useEffect handle it
@@ -475,6 +483,8 @@ const SearchComponentCategory = ({
       message: 'تغییرات لغو شد و فیلترها به حالت اولیه بازگشتند.',
       color: 'gray',
       autoClose: 2000,
+      zIndex: 1100
+
     });
   }, [getInitialFilters, setFilters, setSelectedRow, COOKIE_NAME, dispatch, buildInitialFilterArray]);
 
@@ -653,6 +663,8 @@ const SearchComponentCategory = ({
           message: 'فیلتر با موفقیت حذف شد',
           color: 'green',
           autoClose: 3000,
+          zIndex: 1100
+
         });
       } else if (result?.payload?.status === "error") {
         // Handle validation errors if any
@@ -1111,21 +1123,19 @@ useEffect(() => {
       />
 
       {/* Add Filter Modal - Responsive */}
-      <Modal
-        opened={openedAddModal}
-        onClose={() => {
-          setOpenedAddModal(false);
-          setFilterName('');
-          // Clear any validation errors when manually closing
-          dispatch(clearSaveFilterState());
-        }}
-        title="افزودن فیلتر جدید - دسته بندی"
-        centered
-        position="center"
-        size={isMobile ? "sm" : "md"}
-        padding={isMobile ? "sm" : "md"}
-        withCloseButton={true}
-      >
+        <Modal
+          opened={openedAddModal}
+          onClose={() => {
+            setOpenedAddModal(false);
+            setFilterName('');
+            // Clear any validation errors when manually closing
+            dispatch(clearSaveFilterState());
+          }}
+          title="افزودن فیلتر جدید - دسته بندی"
+          centered
+          size={isMobile ? "sm" : "md"}
+          padding={isMobile ? "sm" : "md"}
+        >
         <TextInput
           label="نام فیلتر"
           placeholder="نام را وارد کنید"
@@ -1174,310 +1184,208 @@ useEffect(() => {
         />
 
         {/* Header - Responsive Layout */}
-        <Flex
-          direction={isMobile ? "column" : "row"}
-          justify={isMobile ? "flex-start" : "space-between"}
-          align={isMobile ? "stretch" : "center"}
-          gap={isMobile ? "" : "md"}
-          mb={isTablet ? "sm" : ""}
-        >
-          <div>
-            {/* <XTitle>سفارش سریع</XTitle> */}
-            {isEditMode && (
-              <Group gap="xs" mt="xs">
-                <Badge color="blue" variant="light" size="sm">
-                  حالت ویرایش: {editingFilterName}
-                </Badge>
-                <Group gap="xs">
-                  <ActionIcon
-                    variant="filled"
-                    color="green"
-                    size="sm"
-                    onClick={saveEditedFilter}
-                    title="ذخیره تغییرات"
-                    loading={updateLoading}
-                    disabled={updateLoading}
-                  >
-                    <IconDeviceFloppy size={14} />
-                  </ActionIcon>
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    onClick={cancelEditMode}
-                    title="لغو ویرایش"
-                  >
-                    <IconTrash size={14} />
-                  </ActionIcon>
-                </Group>
-              </Group>
-            )}
-          </div>
-          
           {/* Action Buttons - Responsive */}
           <Flex 
             direction={isMobile ? "column" : "row"}
             gap={isMobile ? "xs" : "sm"}
             align={isMobile ? "stretch" : "center"}
+            m={10}
           >
-            {/* Filter Settings Menu - Always show button, but with server verification */}
-            <Menu
-              shadow="md"
-              width={isMobile ? "90vw" : isTablet ? 350 : 400}
-              position={isMobile ? "bottom" : "bottom-start"}
-              offset={isMobile ? 5 : 10}
-              withinPortal={true}
-              opened={menuOpened}
-              onChange={setMenuOpened}
-              // onClose={() => setMenuOpened(false)}   // <-- close on outside click
-            >
-              <Menu.Dropdown>
-                <Menu.Label>فیلترهای ذخیره شده</Menu.Label>
+          {/* Filter Settings Modal - Centered */}
+          <Modal
+            opened={menuOpened}
+            onClose={() => setMenuOpened(false)}
+            title="فیلترهای ذخیره شده - دسته‌بندی"
+            centered
+            size={isMobile ? "sm" : "md"}
+            padding={isMobile ? "sm" : "md"}
+          >
+            <Stack spacing="md">
+              {/* Add New Filter Button */}
+              <Button
+                leftSection={<IconPlus size={16} />}
+                onClick={() => {
+                  setMenuOpened(false);
+                  setOpenedAddModal(true);
+                }}
+                fullWidth
+              >
+                افزودن فیلتر جدید
+              </Button>
 
-                {/* Add New Filter */}
-                <Menu.Item
-                  leftSection={<IconPlus size={16} />}
-                  onClick={() => setOpenedAddModal(true)}
-                >
-                  افزودن فیلتر جدید
-                </Menu.Item>
-
-                {/* If filters exist */}
-                {savedFilters && savedFilters.length > 0 && (
-                  <>
-                    <Menu.Divider />
-
-                    {/* Clear Selected Filters */}
-                    {checkedRows.size > 0 && (
-                      <>
-                        <Group p="xs" gap="xs" justify={isMobile ? "center" : "flex-start"}>
-                          <Button
-                            size="xs"
-                            variant="subtle"
-                            color="gray"
-                            onClick={clearSelectedFilters}
-                            fullWidth={isMobile}
-                            disabled={isEditMode}
-                            style={{ opacity: isEditMode ? 0.5 : 1 }}
-                          >
-                            پاک کردن انتخاب
-                          </Button>
-                        </Group>
-
-                        <Menu.Divider />
-                      </>
-                    )}
-
-                    {/* Filter List */}
-                    <Box
-                      style={{
-                        maxHeight: isMobile ? "250px" : "300px",
-                        overflowY: "auto",
-                        overflowX: "hidden",
-                      }}
-                    >
-                      {savedFilters.map((filter, index) => (
-                        <React.Fragment key={filter.id}>
-                          <Menu.Item>
-                            <Group justify="space-between" w="100%" wrap="nowrap">
-                              {/* Checkbox + Name */}
-                              <Group gap="xs" flex={1} maw="calc(100% - 60px)">
-                                <Checkbox
-                                  checked={isChecked(filter.id)}
-                                  onChange={(event) => {
-                                    event.stopPropagation();
-                                    if (isEditMode) return;
-
-                                    handleFilterCheckboxChange(
-                                      filter.id,
-                                      event.currentTarget.checked
-                                    );
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                  size={isMobile ? "sm" : "md"}
-                                  disabled={isEditMode}
-                                  style={{
-                                    opacity: isEditMode ? 0.5 : 1,
-                                    cursor: isEditMode ? "not-allowed" : "pointer",
-                                  }}
-                                />
-
-                                {/* Filter Name */}
-                                <Text
-                                  size={isMobile ? "xs" : "sm"}
-                                  fw={editingFilterId === filter.id ? 600 : 500}
-                                  c={editingFilterId === filter.id ? "blue" : undefined}
-                                  style={{
-                                    cursor: "pointer",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                    flex: 1,
-                                    opacity:
-                                      isEditMode && editingFilterId !== filter.id ? 0.6 : 1,
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-
-                                    if (isEditMode && editingFilterId !== filter.id) {
-                                      notifications.show({
-                                        title: "در حال ویرایش",
-                                        message:
-                                          "ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.",
-                                        color: "orange",
-                                        autoClose: 3000,
-                                      });
-                                      return;
-                                    }
-
-                                    const cookieValue = {
-                                      searchType: "category",
-                                      uniqueIDClickedCategories:
-                                        filter.uniqueIDClickedCategories || [],
-                                      uniqueIDClickedSubCategories:
-                                        filter.uniqueIDClickedSubCategories || [],
-                                      uniqueIDClickedSubCategoriesBrands:
-                                        filter.uniqueIDClickedSubCategoriesBrands || [],
-                                      filters: filter.filters || {},
-                                    };
-
-                                    Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), {
-                                      expires: 7,
-                                    });
-
-                                    setFilterCategoryStorage(
-                                      filter.uniqueIDClickedCategories || []
-                                    );
-                                    setFilterCategorySubCategoryStorage(
-                                      filter.uniqueIDClickedSubCategories || []
-                                    );
-                                    setFilterCategorySubCategoryBrandsStorage(
-                                      filter.uniqueIDClickedSubCategoriesBrands || []
-                                    );
-                                    setLocalFilters(filter.filters || {});
-
-                                    if (setFilters) setFilters(filter.filters || {});
-                                    if (setSearchType) setSearchType("category");
-
-                                    setSelectedRow(filter.id);
-
-                                    dispatch(
-                                      fetchFastOrderCategoryModeTableData([
-                                        {
-                                          searchType: "category",
-                                          uniqueIDClickedCategories:
-                                            filter.uniqueIDClickedCategories || [],
-                                          uniqueIDClickedSubCategories:
-                                            filter.uniqueIDClickedSubCategories || [],
-                                          uniqueIDClickedSubCategoriesBrands:
-                                            filter.uniqueIDClickedSubCategoriesBrands || [],
-                                          filters: filter.filters || {},
-                                        },
-                                      ])
-                                    );
-                                  }}
-                                  title={filter.filterName || "بدون نام"}
-                                >
-                                  {filter.filterName || "بدون نام"}
-                                </Text>
-                              </Group>
-
-                              {/* Edit + Delete Buttons */}
-                              <Group gap="xs" style={{ flexShrink: 0 }}>
-                                <ActionIcon
-                                  variant="subtle"
-                                  color="blue"
-                                  size={isMobile ? "sm" : "md"}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditFilter(filter);
-                                  }}
-                                  title="ویرایش"
-                                  disabled={isEditMode && editingFilterId !== filter.id}
-                                  style={{
-                                    opacity:
-                                      isEditMode && editingFilterId !== filter.id ? 0.5 : 1,
-                                  }}
-                                >
-                                  <IconEdit size={isMobile ? 12 : 14} />
-                                </ActionIcon>
-
-                                <ActionIcon
-                                  variant="subtle"
-                                  color="red"
-                                  size={isMobile ? "sm" : "md"}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-
-                                    if (isEditMode && editingFilterId !== filter.id) {
-                                      notifications.show({
-                                        title: "در حال ویرایش",
-                                        message:
-                                          "ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.",
-                                        color: "orange",
-                                        autoClose: 3000,
-                                      });
-                                      return;
-                                    }
-
-                                    handleDeleteSavedFilter(filter.id);
-                                  }}
-                                  disabled={
-                                    deleteLoadingId === filter.id ||
-                                    (isEditMode && editingFilterId !== filter.id)
-                                  }
-                                  title="حذف"
-                                  loading={deleteLoading && deleteLoadingId === filter.id}
-                                  style={{
-                                    opacity:
-                                      deleteLoadingId === filter.id ||
-                                      (isEditMode && editingFilterId !== filter.id)
-                                        ? 0.5
-                                        : 1,
-                                  }}
-                                >
-                                  <IconTrash size={isMobile ? 12 : 14} />
-                                </ActionIcon>
-                              </Group>
-                            </Group>
-                          </Menu.Item>
-
-                          {index < savedFilters.length - 1 && <Menu.Divider />}
-                        </React.Fragment>
-                      ))}
-                    </Box>
-                  </>
-                )}
-
-                {/* Empty State */}
-                {(!savedFilters || savedFilters.length === 0) && (
-                  <>
-                    <Menu.Divider />
-                    <Menu.Item disabled>
-                      <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
-                        فیلتری ذخیره نشده است
-                      </Text>
-                    </Menu.Item>
-                  </>
-                )}
-
-                {/* Bottom Close Button */}
-                <Menu.Divider />
-                <Box p="xs">
-                  <Button fullWidth onClick={() => setMenuOpened(false)}>
-                    بستن
+              {/* Clear Selection Button */}
+              {checkedRows.size > 0 && (
+                <>
+                  <Divider />
+                  <Button 
+                    size="sm" 
+                    variant="subtle" 
+                    color="gray"
+                    onClick={clearSelectedFilters}
+                    fullWidth
+                    disabled={isEditMode}
+                  >
+                    پاک کردن انتخاب ({checkedRows.size})
                   </Button>
-                </Box>
-              </Menu.Dropdown>
-            </Menu>
+                </>
+              )}
 
+              <Divider />
+
+              {/* Filters List */}
+              {savedFilters && savedFilters.length > 0 ? (
+                <Box style={{ 
+                  maxHeight: isMobile ? '300px' : '400px', 
+                  overflowY: 'auto',
+                  overflowX: 'hidden'
+                }}>
+                  <Stack spacing="xs">
+                    {savedFilters.map((filter, index) => (
+                      <Paper key={filter.id} p="sm" withBorder>
+                        <Group justify="space-between" w="100%" wrap="nowrap">
+                          <Group gap="xs" flex={1} maw="calc(100% - 60px)">
+                            <Checkbox
+                              checked={isChecked(filter.id)}
+                              onChange={(event) => {
+                                if (isEditMode) return;
+                                const isCurrentlyChecked = event.currentTarget.checked;
+                                handleFilterCheckboxChange(filter.id, isCurrentlyChecked);
+                              }}
+                              size={isMobile ? "sm" : "md"}
+                              disabled={isEditMode}
+                              style={{
+                                opacity: isEditMode ? 0.5 : 1,
+                                cursor: isEditMode ? 'not-allowed' : 'pointer'
+                              }}
+                            />
+                            <Text 
+                              size={isMobile ? "xs" : "sm"}
+                              fw={editingFilterId === filter.id ? 600 : 500}
+                              c={editingFilterId === filter.id ? "blue" : undefined}
+                              style={{ 
+                                cursor: 'pointer',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                flex: 1,
+                                opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
+                              }}
+                              onClick={() => {
+                                if (isEditMode && editingFilterId !== filter.id) {
+                                  notifications.show({
+                                    title: 'در حال ویرایش',
+                                    message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
+                                    color: 'orange',
+                                    autoClose: 3000,
+                                     zIndex: 1100
+                                  });
+                                  return;
+                                }
+
+                                const cookieValue = {
+                                  searchType: 'category',
+                                  filters: filter.filters || {},
+                                  uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
+                                  uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
+                                  uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
+                                };
+
+                                Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+                                
+                                setFilterCategoryStorage(filter.uniqueIDClickedCategories || []);
+                                setFilterCategorySubCategoryStorage(filter.uniqueIDClickedSubCategories || []);
+                                setFilterCategorySubCategoryBrandsStorage(filter.uniqueIDClickedSubCategoriesBrands || []);
+                                setLocalFilters(filter.filters || {});
+                                
+                                if (setFilters) setFilters(filter.filters || {});
+                                if (setSearchType) setSearchType('category');
+
+                                setSelectedRow(filter.id);
+
+                                const filterArray = [{
+                                  searchType: 'category',
+                                  uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
+                                  uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
+                                  uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
+                                  filters: filter.filters || {}
+                                }];
+
+                                dispatch(fetchFastOrderCategoryModeTableData(filterArray));
+                                
+                                setMenuOpened(false);
+                              }}
+                              title={filter.filterName || 'بدون نام'}
+                            >
+                              {filter.filterName || 'بدون نام'}
+                            </Text>
+                          </Group>
+                          
+                          <Group gap="xs" style={{ flexShrink: 0 }}>
+                            <ActionIcon
+                              variant="subtle"
+                              color="blue"
+                              size={isMobile ? "sm" : "md"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditFilter(filter);
+                              }}
+                              title="ویرایش"
+                              disabled={isEditMode && editingFilterId !== filter.id}
+                              style={{
+                                opacity: isEditMode && editingFilterId !== filter.id ? 0.5 : 1,
+                              }}
+                            >
+                              <IconEdit size={isMobile ? 12 : 14} />
+                            </ActionIcon>
+                            
+                            <ActionIcon
+                              variant="subtle"
+                              color="red"
+                              size={isMobile ? "sm" : "md"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isEditMode && editingFilterId !== filter.id) {
+                                  notifications.show({
+                                    title: 'در حال ویرایش',
+                                    message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
+                                    color: 'orange',
+                                    autoClose: 3000,
+                                    zIndex: 1100
+
+                                  });
+                                  return;
+                                }
+                                handleDeleteSavedFilter(filter.id);
+                              }}
+                              disabled={deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id)}
+                              loading={deleteLoading && deleteLoadingId === filter.id}
+                              title="حذف"
+                              style={{
+                                opacity: deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id) ? 0.5 : 1,
+                              }}
+                            >
+                              <IconTrash size={isMobile ? 12 : 14} />
+                            </ActionIcon>
+                          </Group>
+                        </Group>
+                      </Paper>
+                    ))}
+                  </Stack>
+                </Box>
+              ) : (
+                <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
+                  فیلتری ذخیره نشده است
+                </Text>
+              )}
+            </Stack>
+          </Modal>
 
             <ShareModal 
               filters={updateFiltersAndStore().thisFilter} 
               isMobile={isMobile}
             />
+
           </Flex>
-        </Flex>
 
         {/* Tabs - Responsive */}
 
@@ -1583,7 +1491,48 @@ useEffect(() => {
           )}
         </Tabs.Panel>
       </Tabs>
+        <Flex
+          direction={isMobile ? "column" : "row"}
+          justify={isMobile ? "flex-start" : "space-between"}
+          align={isMobile ? "stretch" : "center"}
+          gap={isMobile ? "" : "md"}
+          mb={isTablet ? "sm" : ""}
+        >
+          <div>
+            {/* <XTitle>سفارش سریع</XTitle> */}
+            {isEditMode && (
+              <Group gap="xs" mt="xs">
+                <Badge color="blue" variant="light" size="sm">
+                  حالت ویرایش: {editingFilterName}
+                </Badge>
+                <Group gap="xs">
+                  <ActionIcon
+                    variant="filled"
+                    color="green"
+                    size="sm"
+                    onClick={saveEditedFilter}
+                    title="ذخیره تغییرات"
+                    loading={updateLoading}
+                    disabled={updateLoading}
+                  >
+                    <IconDeviceFloppy size={14} />
+                  </ActionIcon>
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    onClick={cancelEditMode}
+                    title="لغو ویرایش"
+                  >
+                    <IconTrash size={14} />
+                  </ActionIcon>
+                </Group>
+              </Group>
+            )}
+          </div>
+          
 
+        </Flex>
       </Paper>
     </>
   );

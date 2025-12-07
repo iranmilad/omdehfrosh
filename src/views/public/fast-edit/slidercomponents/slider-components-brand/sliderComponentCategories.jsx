@@ -1,7 +1,7 @@
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-const SliderComponentCategories = ({ 
+const SliderComponentCategoriesFastEdit = ({ 
   items, 
   clickType, 
   searchType, 
@@ -13,17 +13,27 @@ const SliderComponentCategories = ({
 }) => {
   return (
     <Swiper 
-      modules={[FreeMode, Navigation]}       
-      freeMode={true} 
-      slidesPerView="auto" 
-      spaceBetween={6}              // Updated spacing
-      className="mt-2"              // Updated margin
-      style={{ width: "100%" }}
+      modules={[FreeMode, Navigation]}
+      freeMode={true}
+      slidesPerView="auto"
+      spaceBetween={6}
+      style={{ 
+        width: "100%",
+        margin: 0,
+        padding: 0
+      }}
+      className="!m-0 !p-0"
     >
       {items?.map((item, index) => (
         <SwiperSlide 
           key={index} 
-          style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}
+          style={{
+            width: "auto",
+            display: "flex",
+            margin: 0,
+            padding: 0
+          }}
+          className="!m-0 !p-0"
         >
           <SingleCategoryGroup 
             parentItem={item} 
@@ -74,7 +84,6 @@ export function SingleCategoryGroup({
 
   const onClick = (item, idBrand) => {
     if (searchType === "brand" && clickType === "brandCategories") {
-      // Check if the brand already exists in the storage
       const brandExists = (filterBrandsCategoryStorage || []).some(
         (member) => member.idBrand === idBrand
       );
@@ -82,43 +91,38 @@ export function SingleCategoryGroup({
       let newValIDCat;
 
       if (brandExists) {
-        // If the brand exists, update the list of categories
         const existingBrand = filterBrandsCategoryStorage.find(
           (member) => member.idBrand === idBrand
         );
 
-        // Check if the category already exists in the list for the specific brand
         const categoryExists = existingBrand.idCategories.includes(item.idCategory);
 
         if (categoryExists) {
-          // Remove the category if it's already active
           newValIDCat = existingBrand.idCategories.filter(
             (category) => category !== item.idCategory
           );
         } else {
-          // Add the category if it's not already active
           newValIDCat = [...existingBrand.idCategories, item.idCategory];
         }
 
-        // Update the storage by removing the old entry and replacing it with the new list of categories
         setFilterBrandsCategoryStorage((prevState) =>
-          prevState.map((member) =>
-            member.idBrand === idBrand
-              ? { ...member, idCategories: newValIDCat }
-              : member
-          ).filter((member) => member.idCategories.length > 0) // Filter out brands with no categories
+          prevState
+            .map((member) =>
+              member.idBrand === idBrand
+                ? { ...member, idCategories: newValIDCat }
+                : member
+            )
+            .filter((member) => member.idCategories.length > 0)
         );
       } else {
-        // If the brand doesn't exist, create a new entry with the category
         newValIDCat = [item.idCategory];
-
         setFilterBrandsCategoryStorage((prevState) => [
           ...prevState,
           { idBrand: idBrand, idCategories: newValIDCat }
         ]);
       }
     }
-  }
+  };
 
   // Comprehensive image validation function
   const isValidImage = (imageValue) => {
@@ -143,12 +147,10 @@ export function SingleCategoryGroup({
     // Hide the broken image and let the icon show instead
     e.target.style.display = 'none';
     // Find the parent container and show the fallback icon
-    const parent = e.target.closest('.image-container');
-    if (parent) {
-      const fallbackIcon = parent.querySelector('.fallback-icon');
-      if (fallbackIcon) {
-        fallbackIcon.style.display = 'flex';
-      }
+    const parent = e.target.parentElement;
+    const fallbackIcon = parent.querySelector('.fallback-icon');
+    if (fallbackIcon) {
+      fallbackIcon.style.display = 'block';
     }
   };
 
@@ -157,9 +159,9 @@ export function SingleCategoryGroup({
   return (
     <>
       {isActive && (
-        <div className="items-center border-gray-300 p-2 rounded-lg flex flex-col gap-4">
+        <div className="flex flex-col mt-2">
           {/* Categories Row */}
-          <div className="flex flex-row gap-2 justify-center">
+          <div className="flex flex-row flex-wrap gap-2">
             {parentItem.categories.map((category, index) => {
               const isActiveBorder = filterBrandsCategoryStorage.some(
                 (member) => 
@@ -176,29 +178,27 @@ export function SingleCategoryGroup({
                   onClick={() => onClick(category, parentItem.idBrand)}
                 >
                   <div
-                    className={`flex px-3 h-[32px] w-full gap-2 justify-center items-center border-[1.5px]
-                    ${isActiveBorder ? "border-red-600" : "border-none"} bg-gray-100`}
-                    style={{ borderRadius: '16px' }}
+                    className={`flex w-fit px-3 flex-row gap-2 justify-center items-center h-[35px] overflow-hidden border-[1.5px] bg-gray-100
+                      ${isActiveBorder ? "border-gray-400" : "border-none"}`}
+                    style={{ borderRadius: '18px' }}
                   >
-                    <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0 image-container relative flex items-center justify-center'>
-                      {showImage ? (
-                        <>
-                          <img
-                            className="w-[20px] h-[20px] object-cover rounded-full"
-                            src={category.image}
-                            alt={category.title}
-                            onError={(e) => handleImageError(e, category.title)}
-                            style={{ display: 'block' }}
-                          />
-                          <div className="fallback-icon w-[20px] h-[20px] bg-white rounded-full items-center justify-center absolute inset-0" style={{ display: 'none' }}>
-                            <CategoryIcon />
-                          </div>
-                        </>
-                      ) : (
-                        <CategoryIcon />
-                      )}
-                    </div>
-                    <span className="text-center text-[10px] font-medium leading-tight break-words">
+                    {showImage ? (
+                      <div className="relative flex-shrink-0">
+                        <img 
+                          className="w-[20px] h-[20px] object-cover" 
+                          src={category.image} 
+                          alt={category.title}
+                          onError={(e) => handleImageError(e, category.title)}
+                          style={{ display: 'block' }}
+                        />
+                        <div className="fallback-icon" style={{ display: 'none' }}>
+                          <CategoryIcon />
+                        </div>
+                      </div>
+                    ) : (
+                      <CategoryIcon />
+                    )}
+                    <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
                       {category.title}
                     </span>
                   </div>
@@ -212,4 +212,4 @@ export function SingleCategoryGroup({
   );
 }
 
-export default SliderComponentCategories;
+export default SliderComponentCategoriesFastEdit;

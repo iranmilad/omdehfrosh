@@ -42,6 +42,7 @@ import orderStatusUpdateReducer from './orders/orders/updateorderdelivered/updat
 import getAllOrdersByUserIdReducer from './orders/orders/getallordersbyuserid/getAllOrdersByUserIdSlice.js'
 
 import subscriptionsPlansGetReducer from './usermyaccounts/usermyaccounts/getsubscriptionplans/getSubscriptionPlansSlice.js'
+import updateOrderAddressReducer from "./orders/updateOrderAddress/updateOrderAddressSlice";
 
 
 import userMessagesByIdReducer from './usermyaccounts/usermyaccounts/getusermessages/getUserMessagesByIdSlice.js'
@@ -196,6 +197,7 @@ export default configureStore({
       getUserFavoritesList: getUserFavoritesListReducer,
       brandProducts: brandProductsReducer,
       search: searchReducer,
+      updateOrderAddress: updateOrderAddressReducer,
 
 
       submitComments: submitCommentReducer,

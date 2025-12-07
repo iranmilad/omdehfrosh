@@ -96,6 +96,9 @@ function BadgedSlider({ items = [] }) {
               {...item}
               defaultSellerId={item.sellerId || item.seller?.id}
               defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
+              stock={item.stock}
+              minOrder={item.minOrder}
+              maxOrder={item.maxOrder}
             />
           </SwiperSlide>
         ))}

@@ -6,18 +6,20 @@ import {
   getAllOrdersByUserId,
   updateOrderStatus,
   deleteOrder,
-  getOrderByReceiptID
-} from "../controllers/ordersController.js"; // Import controller functions
+  getOrderByReceiptID,
+  updateOrderAddress,
+  updateBasketOrdersAddress  // NEW
+} from "../controllers/ordersController.js";
 
 const router = express.Router();
 
-
-router.post(`/create`, createOrder); // Create a new order
-router.get(`/get/:id`, getOrder); // Get order details by ID
-router.get(`/getorderbyreceiptid/:receipt_id`, getOrderByReceiptID); // Get order details by ID
-router.get(`/allordersbyuserid`, getAllOrdersByUserId); // Get all orders
-router.put(`/updateorderstatus/:orderId`, updateOrderStatus); // Update order status
-router.delete(`/delete`, deleteOrder); // Delete an order
-
+router.post(`/create`, createOrder);
+router.get(`/get/:id`, getOrder);
+router.get(`/getorderbyreceiptid/:receipt_id`, getOrderByReceiptID);
+router.get(`/allordersbyuserid`, getAllOrdersByUserId);
+router.put(`/updateorderstatus/:orderId`, updateOrderStatus);
+router.put(`/updateaddress/:orderId`, updateOrderAddress);
+router.put(`/updatebasketaddress`, updateBasketOrdersAddress);  // NEW: Update all basket orders
+router.delete(`/delete`, deleteOrder);
 
 export default router;

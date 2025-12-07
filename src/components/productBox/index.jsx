@@ -44,10 +44,17 @@ function ProductBox({
   defaultSellerId,
   defaultCombinationId,
   attributes,
+  stock,
+  minOrder,
+  maxOrder
 }) {
   const { colors } = useMantineTheme();
   const { ref, width } = useElementSize();
   const [imageError, setImageError] = useState(false);
+
+  console.log("itemitemitem", stock)
+
+
 
 
   const handleImageError = () => {
@@ -298,6 +305,9 @@ function ProductBox({
                 productId={id} 
                 defaultSellerId={defaultSellerId}
                 defaultCombinationId={defaultCombinationId}
+                stock={stock}
+                minOrder={minOrder}
+                maxOrder={maxOrder}
               />
             </Box>
           </Flex>

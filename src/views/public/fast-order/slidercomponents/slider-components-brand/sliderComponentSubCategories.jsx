@@ -2,7 +2,7 @@ import { Box, Container } from '@mantine/core';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-const SliderComponentSubCategories = ({ 
+const SliderComponentSubCategoriesFastOrder = ({ 
   items,
   clickType,
   searchType,
@@ -269,4 +269,4 @@ export function SingleCategoryWithSubcategories({
   );
 }
 
-export default SliderComponentSubCategories;
+export default SliderComponentSubCategoriesFastOrder;

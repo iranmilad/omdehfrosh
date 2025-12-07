@@ -7,6 +7,11 @@ import { shallowEqual } from "@mantine/hooks";
 import { IconAlignCenter, IconAlignLeft, IconAlignRight, IconCategory } from "@tabler/icons-react";
 
 function Categories({ items, title, title_align }) {
+
+  console.log("cat items", items)
+
+
+
   // Early return if no items
   if (!items || items.length === 0) {
     return null;

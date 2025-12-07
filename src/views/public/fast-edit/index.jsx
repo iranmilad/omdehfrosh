@@ -74,7 +74,7 @@ function FastEdit() {
 
   const [searchType, setSearchType] = useState("brand"); 
   
-  const [icPriceLabels, setIcPriceLabels] = useState([]);
+  // ❌ REMOVED: const [icPriceLabels, setIcPriceLabels] = useState([]);
 
   const [errMessage, setErrMessage] = useState()
 
@@ -155,15 +155,19 @@ function FastEdit() {
   else if(filters_brand_mode.priceFormat === "hezar") priceFormatLabel = "هزار تومان";
   else priceFormatLabel = "میلیون تومان";
 
-  // Table columns
-  // Base column definitions
+  // ✅ SIMPLIFIED: Table columns without ICPrice
   const COLUMNS = [
     { key: "image", label: "تصویر", width: "160px" },
     { key: "shortName", label: "نام اختصاری کالا", width: "160px" },
     { key: "name", label: "نام کالا", width: "160px" },
-    // { key: "psid", label: "آی‌دی مشخصه", width: "160px" },
-    { key: "price", label: "قیمت", width: "160px" }, // Insert ICPrice columns after this
-    { key: "discount", label: "تخفیف", width: "160px" },
+    { key: "viewPrice", label: "قیمت قبلی", width: "160px" },
+    { key: "price", label: "قیمت", width: "160px" },
+    { key: "foreignCurrencyPrice", label: "قیمت ارزی", width: "160px" },
+    { key: "secondaryCost", label: "هزینه فرعی" }, 
+    { key: "percentagePrice1", label: "قیمت درصدی 1" }, // ⭐ قیمت عادی
+    { key: "percentagePrice2", label: "قیمت درصدی 2" }, // ⭐ قیمت تخفیف خورده
+    { key: "percentagePrice3", label: "قیمت درصدی 3" }, // ⭐ قیمت ویژه تولید کننده
+    // { key: "discount", label: "تخفیف", width: "160px" },
     { key: "attributes", label: "ویژگی ها", width: "160px" },
     { key: "stock", label: "موجودی", width: "160px" },
     { key: "minOrder", label: "حداقل سفارش", width: "120px" },
@@ -175,65 +179,16 @@ function FastEdit() {
     { key: "action", label: "عملیات", width: "120px" }
   ];
 
-  // Function to extract unique ICPrice labels
-  const extractICPriceLabels = (items, icLabels = new Set()) => {
-    if (!Array.isArray(items)) return icLabels; // Handle null/undefined
+  // ❌ REMOVED: extractICPriceLabels function
+  // ❌ REMOVED: getAllICPriceLabels function
+  // ❌ REMOVED: productData useMemo
+  // ❌ REMOVED: icPriceColumns
+  // ❌ REMOVED: priceIndex and updatedColumns logic
 
-    items.forEach(item => {
-      if (item?.price?.ICPrice) {  // Ensure price and ICPrice exist
-        item.price.ICPrice.forEach(ic => icLabels.add(ic.label));
-      }
+  // ✅ SIMPLIFIED: Just use COLUMNS directly
+  const updatedColumns = COLUMNS;
 
-      // Recursively check deeper nodes
-      if (Array.isArray(item?.nodes)) {
-        extractICPriceLabels(item.nodes, icLabels);
-      }
-    });
-
-    return icLabels;
-  };
-
-  // Get all unique ICPrice labels from brands
-  const getAllICPriceLabels = (brands) => {
-    if (!Array.isArray(brands)) return [];
-
-    const icLabels = new Set();
-    
-    brands.forEach(brand => {
-      extractICPriceLabels(brand.items, icLabels);
-    });
-
-    return [...icLabels].map(label => ({
-      key: `ICPrice_${label}`,
-      label: `قیمت (${label.toUpperCase()})`,
-      width: "120px"
-    }));
-  };
-
-  // Example product data
-  const productData = useMemo(() => (Array.isArray(nodes) ? nodes : []), [nodes]);
-
-  // Extract ICPrice columns
-  const icPriceColumns = getAllICPriceLabels(productData);
-
-  // ✅ Find the index of "price" and insert ICPrice columns right after it
-  const priceIndex = COLUMNS.findIndex(col => col.key === "price");
-  const updatedColumns = [
-    ...COLUMNS.slice(0, priceIndex + 1),  // Columns before and including "price"
-    ...icPriceColumns,                   // Insert ICPrice columns here
-    ...COLUMNS.slice(priceIndex + 1)      // Remaining columns after "price"
-  ];
-
-  useEffect(() => {
-    // Extract ICPrice columns only once (or when nodes change)
-    const icPriceColumns = getAllICPriceLabels(productData);
-
-    // Extract the keys from icPriceColumns
-    const icPriceKeys = icPriceColumns.map(column => column.key);
-
-    // Set the keys to the state
-    setIcPriceLabels(icPriceKeys);
-  }, [productData]);  // Depend on `productData`, so it updates when productData changes
+  // ❌ REMOVED: useEffect for extracting ICPrice labels
 
   // Handle saving column visibility settings
   const handleSave = () => setOpened(false);
@@ -436,9 +391,6 @@ if (authLoading) {
   return <DelayedFullScreenLoader />;
 }
 
-    
-  
-
 // Only show access denied modal after we've confirmed the user's status
 if (!user || user.role !== "supplier") {
   return (
@@ -478,7 +430,6 @@ if (!user || user.role !== "supplier") {
         <ErrorMessageModal
           opened={modalOpen}
           onClose={() => setModalOpen(false)}
-          // status={errors?.status}
           message={errMessage}
       />
       }
@@ -528,7 +479,6 @@ if (!user || user.role !== "supplier") {
                 </CategoryRowSelectionProvider>
               }
 
-          {/* ✅ Apply sticky behavior to filters (same as FastOrder) */}
           <div
             ref={componentRef}
             style={{
@@ -542,18 +492,15 @@ if (!user || user.role !== "supplier") {
           >
             {
               searchType === "brand" ?
-                <Paper id="fastorder-filters">
-                  <FiltersBrandMode
-                    setFilters={setFilters_brand_mode} 
-                    nodes={nodes} 
-                    setNodesSubCategories={setNodesSubCategoriesData} 
-                    setNodes={setNodes} 
-                    filters={filters_brand_mode} 
-                    searchType={searchType} 
-                  />
-              </Paper>
+                <FiltersBrandMode
+                  setFilters={setFilters_brand_mode} 
+                  nodes={nodes} 
+                  setNodesSubCategories={setNodesSubCategoriesData} 
+                  setNodes={setNodes} 
+                  filters={filters_brand_mode} 
+                  searchType={searchType} 
+                />
               :
-              <Paper id="fastorder-filters">
                 <FiltersCategoryMode
                   setFilters={setFilters_category_mode} 
                   nodes={nodes} 
@@ -562,7 +509,6 @@ if (!user || user.role !== "supplier") {
                   filters={filters_category_mode} 
                   searchType={searchType} 
                 />
-            </Paper>
             }
           </div>
 
@@ -583,26 +529,26 @@ if (!user || user.role !== "supplier") {
                     
             <RotateModal isPortrait={isPortrait} />
 
-            {/* {isPortrait && (
-              <Button 
-                leftSection={<FaRotate 
-                size={12} />} 
-                py={0} 
-                fz="ls"
-                color="red" 
-
-                >
-                <Text style={{ fontSize: "10px" }}>برای تجربه بهتر لطفا از حالت صفحه نمایش افقی استفاده کنید</Text>
-              </Button>
-            )} */}
-
           </Group>
 
         {
         searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
           (
             <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-              <FastTableBrand type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodes[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+              {/* ✅ REMOVED: icPriceKeys prop */}
+              <FastTableBrand 
+                type="head" 
+                isPortrait={isPortrait} 
+                setNodes={setNodes} 
+                isLandscape={isLandscape} 
+                filters_brand_mode={filters_brand_mode} 
+                filterValues={filterValues} 
+                availableLocations={availableLocations} 
+                COLUMNS={updatedColumns} 
+                nodes={nodes[0]?.items?.slice(0, 1) || []} 
+                setVisibleColumns={setVisibleColumns} 
+                visibleColumns={visibleColumns} 
+              />
               {nodes.map((item, index) => (
                 <React.Fragment key={index}>
                   <Flex h={40} align="center" justify="center" bg="#e5e7eb">
@@ -610,14 +556,40 @@ if (!user || user.role !== "supplier") {
                       {item.label}
                     </Text>
                   </Flex>
-                  <FastTableBrand keyIndex={index} isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_brand_mode={filters_brand_mode} filterValues={filterValues} setNodes={setNodes} availableLocations={availableLocations}  type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+                  {/* ✅ REMOVED: icPriceKeys prop */}
+                  <FastTableBrand 
+                    keyIndex={index} 
+                    isPortrait={isPortrait} 
+                    isLandscape={isLandscape} 
+                    filters_brand_mode={filters_brand_mode} 
+                    filterValues={filterValues} 
+                    setNodes={setNodes} 
+                    availableLocations={availableLocations}  
+                    type="data" 
+                    COLUMNS={updatedColumns} 
+                    nodes={item.items || []} 
+                    setVisibleColumns={setVisibleColumns} 
+                    visibleColumns={visibleColumns} 
+                  />
                 </React.Fragment>
               ))}
             </Paper>
           ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
           (
             <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-              <FastTableCategory type="head" isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} availableLocations={availableLocations} COLUMNS={updatedColumns} nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+              {/* ✅ REMOVED: icPriceKeys prop */}
+              <FastTableCategory 
+                type="head" 
+                isPortrait={isPortrait} 
+                isLandscape={isLandscape} 
+                filters_category_mode={filters_category_mode} 
+                filterValues={filterValues} 
+                availableLocations={availableLocations} 
+                COLUMNS={updatedColumns} 
+                nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} 
+                setVisibleColumns={setVisibleColumns} 
+                visibleColumns={visibleColumns} 
+              />
               {nodesSubCategoriesData?.map((item, index) => (
                 <React.Fragment key={index}>
                   <Flex h={40} align="center" justify="center" bg="#e5e7eb">
@@ -625,25 +597,40 @@ if (!user || user.role !== "supplier") {
                       {item.label}
                     </Text>
                   </Flex>
-                  <FastTableCategory isPortrait={isPortrait} isLandscape={isLandscape} icPriceKeys={icPriceLabels} filters_category_mode={filters_category_mode} filterValues={filterValues} keyIndex={index} availableLocations={availableLocations}  setNodes={setNodesSubCategoriesData} type="data" COLUMNS={updatedColumns} nodes={item.items || []} setVisibleColumns={setVisibleColumns} visibleColumns={visibleColumns} />
+                  {/* ✅ REMOVED: icPriceKeys prop */}
+                  <FastTableCategory 
+                    isPortrait={isPortrait} 
+                    isLandscape={isLandscape} 
+                    filters_category_mode={filters_category_mode} 
+                    filterValues={filterValues} 
+                    keyIndex={index} 
+                    availableLocations={availableLocations}  
+                    setNodes={setNodesSubCategoriesData} 
+                    type="data" 
+                    COLUMNS={updatedColumns} 
+                    nodes={item.items || []} 
+                    setVisibleColumns={setVisibleColumns} 
+                    visibleColumns={visibleColumns} 
+                  />
                 </React.Fragment>
               ))}
             </Paper>
           ) : null
         }
 
-          <Modal
-            opened={opened}
-            onClose={() => setOpened(false)}
-            title="نمایش دادن ستون‌ها"
-          >
+            <Modal
+              opened={opened}
+              onClose={() => setOpened(false)}
+              title="نمایش دادن ستون‌ها"
+              zIndex={1100}
+            >
             <Stack>
             {updatedColumns.map((column) => (
               <Checkbox
                 key={column.key}
                 label={column.label}
-                checked={!visibleColumns.includes(column.key)} // Shows checked when NOT visible
-                onChange={(event) => handleVisibleColumnsChange(event, column.key)} // Toggles correctly
+                checked={!visibleColumns.includes(column.key)}
+                onChange={(event) => handleVisibleColumnsChange(event, column.key)}
               />
             ))}
             </Stack>

@@ -5,7 +5,6 @@ import {
   Text,
   Stack,
   Button,
-  Stepper,
   Center,
   Loader,
   Alert,
@@ -27,6 +26,7 @@ import {
   IconAlertCircle,
   IconShoppingCartOff,
   IconSparkles,
+  IconMapPin,
 } from "@tabler/icons-react";
 import { NavLink, useNavigate } from "react-router";
 import PaymentCalc from "../../../components/payment_calc";
@@ -35,7 +35,6 @@ import { useEffect, useState, useCallback } from "react";
 import { setInitial } from "../../../redux/cart";
 import { useCookies } from "react-cookie";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
-import CartStepper from "../../../components/cartStepper";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import { Steps } from "antd";
 import { Grid as GridAnt } from 'antd';
@@ -44,20 +43,15 @@ import {
   UserOutlined,
   WalletOutlined,
   CheckCircleOutlined,
-  DeleteOutlined,
-  ShoppingOutlined,
-  LoadingOutlined,
-  WarningOutlined,
-  InboxOutlined,
-  MinusOutlined,
-  PlusOutlined,
 } from '@ant-design/icons';
-/* ---------------------- API Configuration ---------------------- */
-// You'll need to replace this with your actual API base URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+import AddressManagement from "../basket-info/AddressManagement";
+import ProductWithFallback, { EmptyCartComponent } from "./ProductWithFallback";
+import { fetchUserInfo } from "../../../redux/users/userinfo/userInfo";
+import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
+import { updateBasketOrdersAddress, updateOrderAddress } from "../../../redux/orders/updateOrderAddress/updateOrderAddressActions";
+import { notifications } from "@mantine/notifications";
 
 const { useBreakpoint } = GridAnt;
-
 
 /* ---------------------- Pretty SVG placeholder as DATA URI ---------------------- */
 const buildPlaceholderDataUri = (label = "تصویر در دسترس نیست") => {
@@ -138,55 +132,55 @@ const useSafeImageSrc = (raw) => {
 };
 
 /* ---------------------- Product wrapper ---------------------- */
-const ProductWithFallback = ({ onRemoveStart, ...props }) => {
+// const ProductWithFallback = ({ onRemoveStart, ...props }) => {
   
-  const getImageSource = (item) => {
-    if (item.items && Array.isArray(item.items) && item.items.length > 0) {
-      if (item.items[0]?.image) return item.items[0].image;
-    }
-    if (item.image) return item.image;
-    if (item.product?.image) return item.product.image;
-    if (item.img) return item.img;
-    return null;
-  };
+//   const getImageSource = (item) => {
+//     if (item.items && Array.isArray(item.items) && item.items.length > 0) {
+//       if (item.items[0]?.image) return item.items[0].image;
+//     }
+//     if (item.image) return item.image;
+//     if (item.product?.image) return item.product.image;
+//     if (item.img) return item.img;
+//     return null;
+//   };
 
-  const getProductName = (item) => {
-    if (item.items && Array.isArray(item.items) && item.items.length > 0) {
-      return item.items[0].name || item.items[0].title || "محصول";
-    }
-    if (item.name) return item.name;
-    if (item.title) return item.title;
-    if (item.product?.name) return item.product.name;
-    return "محصول";
-  };
+//   const getProductName = (item) => {
+//     if (item.items && Array.isArray(item.items) && item.items.length > 0) {
+//       return item.items[0].name || item.items[0].title || "محصول";
+//     }
+//     if (item.name) return item.name;
+//     if (item.title) return item.title;
+//     if (item.product?.name) return item.product.name;
+//     return "محصول";
+//   };
 
-  const rawSrc = getImageSource(props);
-  const safeSrc = useSafeImageSrc(rawSrc);
-  const productName = getProductName(props);
+//   const rawSrc = getImageSource(props);
+//   const safeSrc = useSafeImageSrc(rawSrc);
+//   const productName = getProductName(props);
 
-  return (
-    <Product
-      {...props}
-      name={productName}
-      image={safeSrc}
-      onRemoveStart={onRemoveStart}
-      ImageComponent={() => (
-        <img
-          src={safeSrc}
-          alt={productName}
-          style={{
-            width: "100%",
-            height: 200,
-            objectFit: "cover",
-            borderRadius: 12,
-            display: "block",
-          }}
-          loading="lazy"
-        />
-      )}
-    />
-  );
-};
+//   return (
+//     <Product
+//       {...props}
+//       name={productName}
+//       image={safeSrc}
+//       onRemoveStart={onRemoveStart}
+//       ImageComponent={() => (
+//         <img
+//           src={safeSrc}
+//           alt={productName}
+//           style={{
+//             width: "100%",
+//             height: 200,
+//             objectFit: "cover",
+//             borderRadius: 12,
+//             display: "block",
+//           }}
+//           loading="lazy"
+//         />
+//       )}
+//     />
+//   );
+// };
 
 /* ---------------------- Loading Component ---------------------- */
 const LoadingComponent = () => (
@@ -196,7 +190,7 @@ const LoadingComponent = () => (
       radius="xl" 
       shadow="sm"
       style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, var(--mantine-color-brand-5) 0%, var(--mantine-color-brand-8) 100%)',
         border: 'none'
       }}
     >
@@ -320,111 +314,110 @@ const CartErrorComponent = ({ onRetry }) => (
 );
 
 /* ---------------------- Empty Cart Component ---------------------- */
-const EmptyCartComponent = () => (
-  <Container size="lg" py="xl">
-    <Paper 
-      p="xl" 
-      radius="xl" 
-      shadow="sm"
-      style={{
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-        border: '1px solid #e2e8f0'
-      }}
-    >
-      <Center py="xl">
-        <Stack align="center" gap="xl">
-          <Box
-            style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <ThemeIcon 
-              size={120} 
-              radius="xl" 
-              style={{
-                background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)',
-                boxShadow: '0 12px 48px rgba(148, 163, 184, 0.2)',
-                animation: 'float 3s ease-in-out infinite'
-              }}
-            >
-              <IconShoppingCartOff size={60} color="#64748b" />
-            </ThemeIcon>
-            <IconSparkles 
-              size={20} 
-              color="#94a3b8"
-              style={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                animation: 'sparkle 2s ease-in-out infinite'
-              }}
-            />
-          </Box>
+// const EmptyCartComponent = () => (
+//   <Container size="lg" py="xl">
+//     <Paper 
+//       p="xl" 
+//       radius="xl" 
+//       shadow="sm"
+//       style={{
+//         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+//         border: '1px solid #e2e8f0'
+//       }}
+//     >
+//       <Center py="xl">
+//         <Stack align="center" gap="xl">
+//           <Box
+//             style={{
+//               position: 'relative',
+//               display: 'flex',
+//               alignItems: 'center',
+//               justifyContent: 'center'
+//             }}
+//           >
+//             <ThemeIcon 
+//               size={120} 
+//               radius="xl" 
+//               style={{
+//                 background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)',
+//                 boxShadow: '0 12px 48px rgba(148, 163, 184, 0.2)',
+//                 animation: 'float 3s ease-in-out infinite'
+//               }}
+//             >
+//               <IconShoppingCartOff size={60} color="#64748b" />
+//             </ThemeIcon>
+//             <IconSparkles 
+//               size={20} 
+//               color="#94a3b8"
+//               style={{
+//                 position: 'absolute',
+//                 top: 10,
+//                 right: 10,
+//                 animation: 'sparkle 2s ease-in-out infinite'
+//               }}
+//             />
+//           </Box>
           
-          <Box ta="center" maw={400}>
-            <Title 
-              order={2} 
-              mb="sm"
-              style={{
-                background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              سبد خرید خالی است
-            </Title>
-            <Text c="dimmed" mb="xl">
-              هنوز هیچ محصولی به سبد خرید اضافه نکرده‌اید
-            </Text>
-            <Button 
-              component={NavLink} 
-              to="/products" 
-              size="lg"
-              radius="xl"
-              style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: 'none'
-              }}
-            >
-              مشاهده محصولات
-            </Button>
-          </Box>
-        </Stack>
-      </Center>
-    </Paper>
-  </Container>
-);
+//           <Box ta="center" maw={400}>
+//             <Title 
+//               order={2} 
+//               mb="sm"
+//               style={{
+//                 background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+//                 WebkitBackgroundClip: 'text',
+//                 WebkitTextFillColor: 'transparent',
+//                 backgroundClip: 'text',
+//               }}
+//             >
+//               سبد خرید خالی است
+//             </Title>
+//             <Text c="dimmed" mb="xl">
+//               هنوز هیچ محصولی به سبد خرید اضافه نکرده‌اید
+//             </Text>
+//             <Button 
+//               component={NavLink} 
+//               to="/products" 
+//               size="lg"
+//               radius="xl"
+//               style={{
+//                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+//                 border: 'none'
+//               }}
+//             >
+//               مشاهده محصولات
+//             </Button>
+//           </Box>
+//         </Stack>
+//       </Center>
+//     </Paper>
+//   </Container>
+// );
 
 /* ---------------------- Enhanced Stepper Component ---------------------- */
 const EnhancedStepper = ({ active = 0 }) => {
-
-    const screensAnt = useBreakpoint();
+  const screensAnt = useBreakpoint();
 
   return (
-        <Steps
-          current={0}
-          size={screensAnt.md ? 'default' : 'small'}
-          style={{ 
-            marginBottom: 32,
-            background: 'white',
-            padding: screensAnt.md ? 24 : 12,
-            borderRadius: 16,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            fontSize: screensAnt.md ? '14px' : '12px'
-          }}
-          items={[
-            { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-            { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-            { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-            { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-          ]}
-        />
-  )
-}
+    <Steps
+      current={active}
+      size={screensAnt.md ? 'default' : 'small'}
+      style={{ 
+        marginBottom: 32,
+        background: 'white',
+        padding: screensAnt.md ? 24 : 12,
+        borderRadius: 16,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        fontSize: screensAnt.md ? '14px' : '12px'
+      }}
+      items={[
+        { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+        // { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+        { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+        { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+      ]}
+    />
+  );
+};
 
 /* ---------------------- ENHANCED Basket Component ---------------------- */
 const Basket = () => {
@@ -442,11 +435,24 @@ const Basket = () => {
   const [cartLoading, setCartLoading] = useState(false);
   const [cartError, setCartError] = useState(null);
   const [isFetching, setIsFetching] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
 
   // Get Redux cart items (real-time updates)
   const reduxItems = useSelector((state) => state.cart.items || []);
   const authState = useSelector((state) => state.auth);
   const { isVerified, loading: authLoading, error: authError, user } = authState;
+  const userInfo = useSelector((state) => state.user.userInfo);
+
+  console.log("r items", reduxItems)
+
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchUserInfo());
+      dispatch(getUserMyAccount());
+    }
+  }, [dispatch, user]);
+
 
   const shouldFetchCart = user && isVerified;
 
@@ -455,18 +461,10 @@ const Basket = () => {
     if (!Array.isArray(items)) return [];
     
     return items.filter(item => {
-      // Check if item exists and has required properties
       if (!item) return false;
-      
-      // Check if item has a valid product ID
       if (!item.productId) return false;
-      
-      // Check if item has a valid count > 0
       if (!item.count || item.count <= 0) return false;
-      
-      // Check if item has price information
       if (!item.price) return false;
-      
       return true;
     });
   };
@@ -504,7 +502,6 @@ const Basket = () => {
 
       const data = await response.json();
       
-      // Filter valid items before setting state
       const validCartItems = getValidCartItems(data.cart);
       
       setCartData({
@@ -512,9 +509,7 @@ const Basket = () => {
         cart: validCartItems
       });
       
-      // Update Redux store with valid items only
       dispatch(setInitial([...validCartItems]));
-      
       setInitialCartLoaded(true);
       
     } catch (error) {
@@ -531,7 +526,6 @@ const Basket = () => {
   const handleRemoveStart = useCallback(async () => {
     setIsRemoving(true);
     
-    // Wait a bit then force refetch to ensure we catch any updates
     setTimeout(async () => {
       await fetchCartData(false);
       setIsRemoving(false);
@@ -545,6 +539,56 @@ const Basket = () => {
     fetchCartData(true);
   }, [fetchCartData]);
 
+  const handleProceedToPayment = async () => {
+    if (!selectedAddress) {
+      notifications.show({
+        title: "خطا",
+        message: "لطفا یک آدرس برای تحویل انتخاب کنید",
+        color: "red",
+      });
+      return;
+    }
+
+    try {
+      // Show loading notification
+      const loadingNotification = notifications.show({
+        title: "در حال ثبت آدرس...",
+        message: "لطفا منتظر بمانید",
+        loading: true,
+        autoClose: false,
+      });
+
+      // Update address for ALL basket orders
+      const result = await dispatch(updateBasketOrdersAddress({
+        address: selectedAddress
+      })).unwrap();
+
+      // Hide loading notification
+      notifications.hide(loadingNotification);
+
+      if (result.success) {
+        notifications.show({
+          title: "موفق",
+          message: "آدرس با موفقیت ثبت شد",
+          color: "green",
+          autoClose: 2000,
+        });
+        
+        // Navigate to payment page
+        setTimeout(() => {
+          navigate("/payment");
+        }, 500);
+      }
+    } catch (error) {
+      notifications.show({
+        title: "خطا",
+        message: error?.message || "خطا در ثبت آدرس",
+        color: "red",
+        autoClose: 4000,
+      });
+      console.error("Error updating address:", error);
+    }
+  };
   // Initialize authentication check
   useEffect(() => {
     const initAuth = async () => {
@@ -577,7 +621,7 @@ const Basket = () => {
     }
   }, [shouldFetchCart, initialCartLoaded, fetchCartData]);
 
-  // Force refetch when component mounts (coming from other pages)
+  // Force refetch when component mounts
   useEffect(() => {
     if (shouldFetchCart && initialCartLoaded) {
       fetchCartData(false);
@@ -590,7 +634,6 @@ const Basket = () => {
   const isOverallLoading = isAuthLoading || isCartLoading;
   const isPageLoading = isOverallLoading || isRemoving || isFetching;
 
-  // Use Redux items as primary source, but ensure they're valid
   const validReduxItems = getValidCartItems(reduxItems);
   const validCartDataItems = getValidCartItems(cartData?.cart || []);
   const displayItems = validReduxItems.length > 0 ? validReduxItems : validCartDataItems;
@@ -600,17 +643,14 @@ const Basket = () => {
     return <LoadingComponent />;
   }
 
-  // Show auth error
   if (authError) {
     return <AuthErrorComponent />;
   }
 
-  // Show cart error
   if (cartError && !cartLoading) {
     return <CartErrorComponent onRetry={handleRetry} />;
   }
 
-  // Show empty cart - removed the undefined shouldForceEmpty variable
   if (!hasItems && !cartLoading) {
     return (
       <>
@@ -622,7 +662,8 @@ const Basket = () => {
     );
   }
 
-  // Show cart with items (using real-time Redux data)
+  console.log(userInfo)
+
   return (
     <>
       <style jsx global>{`
@@ -675,106 +716,99 @@ const Basket = () => {
           }
         />
         
-        <Container size="xl" py="md">
           <EnhancedStepper active={0} />
 
-          {hasItems && (
-            <Grid gutter="xl">
-              <Grid.Col span={{ lg: 8 }}>
+        {hasItems && (
+          <Grid gutter="xl">
+            {/* Main content area - Takes 8 columns */}
+            <Grid.Col span={{ base: 12, lg: 8 }}>
+              {/* Address Section - Remove radius */}
+              <Paper 
+                // p="xl" 
+                radius={0}
+                shadow="sm"
+                mb="xl"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                  // border: '1px solid #e2e8f0',
+                  animation: 'slideUp 0.6s ease-out'
+                }}
+              >
+                {userInfo && (
+                  <AddressManagement 
+                    onAddressSelect={setSelectedAddress}
+                    userInfo={userInfo}
+                  />
+                )}
+              </Paper>
+
+              {/* Products Section - Remove radius */}
+              <Paper 
+                // p="xl" 
+                radius={0}
+                shadow="sm"
+                // style={{
+                //   background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                //   // border: '1px solid #e2e8f0',
+                //   animation: 'slideUp 0.6s ease-out 0.2s both'
+                // }}
+              >
+                {/* <Group justify="space-between" align="center" mb="xl">
+                  <Group align="center" gap="md">
+                  </Group>
+                </Group> */}
+                
+                
+                <Stack>
+                  {displayItems.map((item, index) => (
+                    <Box
+                      key={`${item.productId}-${item.combinationsID || index}`}
+                      style={{
+                        animation: `slideUp 0.6s ease-out ${index * 0.1}s both`
+                      }}
+                    >
+                      <ProductWithFallback
+                        {...item}
+                        onRemoveStart={handleRemoveStart}
+                      />
+                    </Box>
+                  ))}
+                </Stack>
+              </Paper>
+            </Grid.Col>
+            
+            {/* Sidebar - Payment Section - Remove radius */}
+            <Grid.Col span={{ base: 12, lg: 4 }}>
+              <Box
+                style={{
+                  position: 'sticky',
+                  top: '2rem',
+                  animation: 'slideUp 0.6s ease-out 0.3s both'
+                }}
+              >
                 <Paper 
                   p="xl" 
-                  radius="xl" 
+                  radius={0}
                   shadow="sm"
                   style={{
                     background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                    border: '1px solid #e2e8f0',
-                    animation: 'slideUp 0.6s ease-out'
+                    // border: '1px solid #e2e8f0'
                   }}
                 >
-                  <Group justify="space-between" align="center" mb="xl">
-                    <Group align="center" gap="md">
-                      <ThemeIcon 
-                        size="lg" 
-                        radius="xl"
-                        style={{
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          animation: 'pulse 2s infinite'
-                        }}
-                      >
-                        <IconShoppingCart size={20} />
-                      </ThemeIcon>
-                      <Box>
-                        <Title order={2} fw={600} c="gray.8">
-                          محتویات سبد خرید
-                        </Title>
-                        <Text size="sm" c="dimmed">
-                          محصولات انتخابی شما
-                        </Text>
-                      </Box>
-                    </Group>
-                    {/* <Badge 
-                      size="lg" 
-                      radius="xl" 
-                      variant="light"
-                      style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white',
-                        border: 'none'
-                      }}
-                    >
-                      {displayItems.length} محصول
-                    </Badge> */}
-                  </Group>
-                  
-                  <Divider mb="xl" />
-                  
-                  <Stack gap="lg">
-                    {displayItems.map((item, index) => (
-                      <Box
-                        key={`${item.productId}-${item.combinationsID || index}`}
-                        style={{
-                          animation: `slideUp 0.6s ease-out ${index * 0.1}s both`
-                        }}
-                      >
-                        <ProductWithFallback
-                          {...item}
-                          onRemoveStart={handleRemoveStart}
-                        />
-                      </Box>
-                    ))}
-                  </Stack>
-                </Paper>
-              </Grid.Col>
-              
-              <GridCol span={{ lg: 4 }}>
-                <Box
-                  style={{
-                    position: 'sticky',
-                    top: '2rem',
-                    animation: 'slideUp 0.6s ease-out 0.3s both'
-                  }}
-                >
-                  <Paper 
-                    p="xl" 
-                    radius="xl" 
-                    shadow="sm"
-                    style={{
-                      background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                      border: '1px solid #e2e8f0'
+                  <PaymentCalc
+                    cartItems={displayItems}
+                    submit={{ 
+                      onClick: handleProceedToPayment,
+                      disabled: !selectedAddress
                     }}
                   >
-                    <PaymentCalc
-                      cartItems={displayItems}
-                      submit={{ to: "/basket-info", component: NavLink }}
-                    >
-                      ادامه فرآیند خرید
-                    </PaymentCalc>
-                  </Paper>
-                </Box>
-              </GridCol>
-            </Grid>
-          )}
-        </Container>
+                    ادامه فرآیند خرید
+                  </PaymentCalc>
+                </Paper>
+              </Box>
+            </Grid.Col>
+          </Grid>
+        )}
       </Box>
     </>
   );

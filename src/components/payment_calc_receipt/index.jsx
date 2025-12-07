@@ -1,46 +1,32 @@
-import {
-  Title,
-  Paper,
-  Stack,
-  Flex,
-  Divider,
-  Grid,
-  GridCol,
-  Button,
-  Text,
-  Image,
-} from "@mantine/core";
-import { IconArrowRight, IconCheck } from "@tabler/icons-react";
+import React, { useEffect } from 'react';
+import { Card, Typography, Space, Divider, Row, Col, Tag, Alert, Flex, Image } from 'antd';
+import { ShoppingOutlined, CheckCircleOutlined, InfoCircleOutlined, DollarOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Button } from '@mantine/core';
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
 import { fetchFinalReceipt } from "../../redux/cartfinalreceipt/cartfinalreceipt";
 import { updateFinalReceiptPaymentMethod } from "../../redux/cartfinalreceipt/cartfinalreceiptupdategateway/cartFinalReceiptUpdateGatewayActions";
 import { useNavigate } from "react-router";
 import { requestFinalReceipt } from "../../redux/cartfinalreceipt/cartfinalreceiptrequestreceipt/cartFinalReceiptRequestReceiptActions";
 import { notifications } from "@mantine/notifications";
 
-const PaymentCalcReceipt = ({ children, prev, gateway }) => {
+const { Title, Text } = Typography;
 
+const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   
   const { orderfinalreceipt, loadingfinalreceipt, errorfinalreceipt } = useSelector(
     (state) => state.cartfinalreceipt
   );
 
-  const navigate = useNavigate();
-
-  // Helper function to get orderId for a specific seller
   const getOrderIdForSeller = (sellerId) => {
     if (!orderfinalreceipt?.orderTracking) return null;
-    
     const tracking = orderfinalreceipt.orderTracking.find(
       track => track.supplierId === sellerId
     );
-    
     return tracking ? tracking.orderId : null;
   };
 
-  // Modified to accept sellerId for individual seller payment
   const applySettings = async (sellerId = null) => {
     dispatch(updateFinalReceiptPaymentMethod({ paymentMethod: gateway }));
     dispatch(fetchFinalReceipt());
@@ -48,13 +34,11 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
     let selectedSeller = null;
     let sellerOrderTracking = [];
     
-    // If sellerId is provided, find the specific seller from orderfinalreceipt
     if (sellerId && orderfinalreceipt?.sellers) {
       selectedSeller = orderfinalreceipt.sellers.find(
         sellerGroup => sellerGroup.seller.id === sellerId
       );
 
-      // Find all orderTracking entries for this specific seller
       if (orderfinalreceipt?.orderTracking) {
         sellerOrderTracking = orderfinalreceipt.orderTracking.filter(
           tracking => tracking.supplierId === sellerId
@@ -62,18 +46,16 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
       }
     }
     
-    // Navigate to payment-info with seller data and their specific orderTracking
     navigate("/payment-info", { 
       state: { 
         gateway: gateway, 
         sellerId: sellerId,
-        sellerData: selectedSeller, // Pass the entire seller object
-        orderTracking: sellerOrderTracking // Pass specific orderTracking for this seller
+        sellerData: selectedSeller,
+        orderTracking: sellerOrderTracking
       } 
     });
   };
 
-  // FIXED: Add order-specific receipt request using orderId
   const applyReceipt = async (sellerId) => {
     const orderId = getOrderIdForSeller(sellerId);
     
@@ -88,7 +70,7 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
 
     const response = await dispatch(requestFinalReceipt({ 
       vatRequested: true, 
-      orderId: orderId // Use orderId instead of supplierId
+      orderId: orderId
     }));
     
     if (response?.payload?.status === "OK") {
@@ -106,9 +88,8 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
     }
     
     dispatch(fetchFinalReceipt());
-  }
+  };
 
-  // FIXED: Add order-specific receipt removal using orderId
   const removeReceipt = async (sellerId) => {
     const orderId = getOrderIdForSeller(sellerId);
     
@@ -123,7 +104,7 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
 
     const response = await dispatch(requestFinalReceipt({ 
       vatRequested: false, 
-      orderId: orderId // Use orderId instead of supplierId
+      orderId: orderId
     }));
     
     if (response?.payload?.status === "OK") {
@@ -141,80 +122,8 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
     }
     
     dispatch(fetchFinalReceipt());
-  }
-
-  // ✅ NEW: Dynamic attribute rendering function
-  const renderAttributes = (attributes) => {
-    if (!attributes || !Array.isArray(attributes) || attributes.length === 0) {
-      return null;
-    }
-
-    // Define attribute name mappings (Persian labels)
-    const attributeLabels = {
-      'material': 'جنس',
-      'جنس': 'جنس',
-      'color': 'رنگ', 
-      'رنگ': 'رنگ',
-      'size': 'سایز',
-      'سایز': 'سایز',
-      'brand': 'برند',
-      'برند': 'برند',
-      'weight': 'وزن',
-      'وزن': 'وزن',
-      'capacity': 'ظرفیت',
-      'ظرفیت': 'ظرفیت',
-      'model': 'مدل',
-      'مدل': 'مدل'
-      // Add more mappings as needed
-    };
-
-    // Group all attributes from all attribute objects
-    const allAttributes = [];
-    
-    attributes.forEach(attrGroup => {
-      // Handle different possible attribute structures
-      Object.entries(attrGroup).forEach(([key, value]) => {
-        // Skip null, undefined, or empty values
-        if (value !== null && value !== undefined && value !== '') {
-          // Check if this is a known attribute
-          const label = attributeLabels[key] || key; // Use mapping or fallback to key
-          
-          allAttributes.push({
-            key,
-            label,
-            value,
-            isColor: key === 'color' || key === 'رنگ'
-          });
-        }
-      });
-    });
-
-    // Remove duplicates based on key
-    const uniqueAttributes = allAttributes.filter((attr, index, self) => 
-      index === self.findIndex(a => a.key === attr.key)
-    );
-
-    if (uniqueAttributes.length === 0) {
-      return null;
-    }
-
-    return (
-      <Text size="xs" c="gray">
-        {uniqueAttributes.map((attr, index) => (
-          <span key={attr.key}>
-            {attr.label}: {attr.isColor ? (
-              <span style={{ color: attr.value }}>⬤</span>
-            ) : (
-              attr.value
-            )}
-            {index < uniqueAttributes.length - 1 && ' | '}
-          </span>
-        ))}
-      </Text>
-    );
   };
 
-  // ✅ NEW: Alternative approach using a more structured method
   const renderAttributesStructured = (item) => {
     const attributes = item.item.attributes;
     
@@ -222,7 +131,6 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
       return null;
     }
 
-    // Collect all unique attributes
     const attributeMap = new Map();
 
     attributes.forEach(attrGroup => {
@@ -243,16 +151,17 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
       'color': 'رنگ', 
       'رنگ': 'رنگ',
       'size': 'سایز',
-      'سایز': 'سایز'
+      'سایز': 'سایز',
+      'brand': 'برند',
+      'برند': 'برند'
     };
 
     return (
-      <Text size="xs" c="gray">
-        {Array.from(attributeMap.entries()).map(([key, value], index) => {
+      <Space size={4} wrap>
+        {Array.from(attributeMap.entries()).map(([key, value]) => {
           const label = attributeLabels[key] || key;
           const isColor = key === 'color' || key === 'رنگ';
 
-          // Handle objects safely
           let displayValue;
           if (typeof value === "object") {
             displayValue = value.name || JSON.stringify(value); 
@@ -261,18 +170,30 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
           }
 
           return (
-            <span key={key}>
+            <Text key={key} type="secondary" style={{ fontSize: '12px' }}>
               {label}: {isColor ? (
-                <span style={{ color: displayValue }}>⬤</span>
+                <span style={{ 
+                  display: 'inline-block',
+                  width: '14px',
+                  height: '14px',
+                  borderRadius: '50%',
+                  backgroundColor: displayValue,
+                  border: '1px solid #d9d9d9',
+                  verticalAlign: 'middle',
+                  marginRight: '4px'
+                }} />
               ) : (
                 displayValue
               )}
-              {index < attributeMap.size - 1 && ' | '}
-            </span>
+            </Text>
           );
         })}
-      </Text>
+      </Space>
     );
+  };
+
+  const formatPrice = (price) => {
+    return price?.toLocaleString('fa-IR') || '0';
   };
   
   useEffect(() => {
@@ -280,151 +201,256 @@ const PaymentCalcReceipt = ({ children, prev, gateway }) => {
   }, [dispatch]);
 
   if (errorfinalreceipt) {
-    return <Text color="red">{errorfinalreceipt}</Text>;
+    return <Alert message="خطا" description={errorfinalreceipt} type="error" showIcon />;
   }
 
-
   return (
-    <>
-      <Grid mt="md" gutter="lg">
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px' }}>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        {/* Order Invoice Header */}
+        <Card 
+          style={{ 
+            borderRadius: '8px',
+            background: '#fff'
+          }}
+        >
+          <Title level={4} style={{ marginBottom: '12px', fontWeight: 'bold' }}>
+            صورتحساب سفارش
+          </Title>
+          
+          <Alert
+            message="فاکتور رسمی پس از پرداخت و ثبت سفارش، در صفحه جزئیات سفارش قابل دانلود است."
+            type="info"
+            showIcon
+            icon={<InfoCircleOutlined />}
+            style={{ 
+              backgroundColor: '#e3f2fd',
+              border: '1px solid #90caf9',
+              borderRadius: '8px'
+            }}
+          />
+        </Card>
+
+        {/* Seller Groups */}
         {orderfinalreceipt?.sellers?.length > 0 ? (
           orderfinalreceipt.sellers.map((sellerGroup) => (
-            <GridCol span={12} key={sellerGroup.seller.id}>
-              <Paper p="md" shadow="xs" fullWidth>
-                {/* Seller Header with Payment Button */}
-                <Flex justify="space-between" align="center" mb="md">
-                  <div>
-                    <Title order={3}>
-                      فروشنده: {sellerGroup.seller.label} (ID: {sellerGroup.seller.id})
-                    </Title>
-                    <Text size="sm" c="gray">
-                      مجموع قیمت از این فروشنده: {sellerGroup.priceApplyEachSeller} تومان
-                    </Text>
-
-                  </div>
-                  
-                  {/* Payment Button for this seller */}
-                  <Button 
-                    onClick={() => applySettings(sellerGroup.seller.id)} 
-                    h="40"
-                    style={{ minWidth: "80px" }}
-                  >
-                    {children}
-                  </Button>
-                </Flex>
+            <Card 
+              key={sellerGroup.seller.id}
+              style={{ 
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+              }}
+            >
+              {/* Seller Header */}
+              <Flex justify="space-between" align="center" style={{ marginBottom: '16px' }}>
+                <Space direction="vertical" size={0}>
+                  <Text strong style={{ fontSize: '16px' }}>
+                    <ShoppingOutlined style={{ marginLeft: '8px' }} />
+                    فروشنده: {sellerGroup.seller.label}
+                  </Text>
+                  <Text type="secondary" style={{ fontSize: '13px' }}>
+                    شناسه فروشنده: {sellerGroup.seller.id}
+                  </Text>
+                </Space>
                 
-                <Divider my="sm" />
-                <Stack>
-                  {sellerGroup.items.map((item, index) => (
-                    <Paper p="sm" key={index} fullWidth>
-                      <Flex justify="space-between" align="center">
-                        <Stack gap="xs">
-                          <Text size="sm" fw="600">
-                            {item.item.name}
-                          </Text>
-                          {!item.item.productId?.includes("subscription") && (
-                            // ✅ FIXED: Use dynamic attribute rendering
-                            renderAttributesStructured(item)
-                          )}
-                        </Stack>
-                      </Flex>
-                      <Flex justify="space-between" align="center" mt="xs">
-                        <Text size="sm" c="gray">
-                          قیمت:
-                        </Text>
-                        <Text size="sm" fw="bold">
-                          {item.item.priceWithVat.discountedPriceWithVat
-                            ? `${item.item.priceWithVat.discountedPriceWithVat} تومان`
-                            : `${item.item.priceWithVat.regularPriceWithVat} تومان`}
-                        </Text>
-                      </Flex>
-                    </Paper>
-                  ))}
-                                          
-                  <Flex>
-                    <GridCol>
-                      {sellerGroup.vatRequested ? (
-                        <Button
-                          onClick={() => removeReceipt(sellerGroup.seller.id)}
-                          h={35}
-                          w="120px"
-                          color="green"
-                          leftSection={<IconCheck size={14} />}
-                          style={{ fontSize: 10, fontWeight: 700, minWidth: 110 }}
-                        >
-                         حذف فاکتور 
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => applyReceipt(sellerGroup.seller.id)}
-                          h={35}
-                          w="100px"
-                          color="blue"
-                          style={{ fontSize: 8, fontWeight: 700, minWidth: 90 }}
-                        >
-                          درخواست فاکتور 
-                        </Button>
-                      )}
-                    </GridCol>
-                  </Flex>
-                </Stack>
-
-              </Paper>
-            </GridCol>
-          ))
-        ) : (
-          <Text>هیچ آیتمی موجود نیست</Text>
-        )}
-
-        {/* ✅ Summary displayed only once */}
-        {orderfinalreceipt?.sellers?.length > 0 && (
-          <GridCol span={12}>
-            <Title fw="600" c="gray.8" mb="sm">
-              خلاصه فاکتور
-            </Title>
-            <Paper py="xl" pos="relative" fullWidth>
-              <Stack gap="lg">
-                <Flex direction="row" justify="space-between">
-                  <Text size="sm" c="gray">
-                    مجموع سبد خرید
-                  </Text>
-                  <Text size="sm" fw="bold">
-                    {orderfinalreceipt?.totalPriceApply} تومان
-                  </Text>
-                </Flex>
-                <Flex direction="row" justify="space-between">
-                  <Text size="sm" c="gray">
-                    مجموع سبد خرید (با اعمال کد تخفیف)
-                  </Text>
-                  <Text size="sm" fw="bold">
-                    {orderfinalreceipt?.totalPriceToPay} تومان
-                  </Text>
-                </Flex>
-              </Stack>
-              <Divider my="lg" />
-            </Paper>
-          </GridCol>
-        )}
-
-        {/* Optional: Keep a "Pay All" button if you want to allow full cart payment */}
-        {/* {orderfinalreceipt?.sellers?.length > 1 && (
-          <GridCol span={12}>
-            <Paper p="md" shadow="xs">
-              <Flex justify="center">
                 <Button 
-                  onClick={() => applySettings()} 
-                  fullWidth 
-                  h="45"
-                  variant="outline"
+                  variant="filled"
+                  color="brand"
+                  onClick={() => applySettings(sellerGroup.seller.id)}
+                  style={{ 
+                    minWidth: '120px',
+                    fontWeight: 'bold',
+                    fontSize: '15px'
+                  }}
                 >
-                  پرداخت کل سبد خرید
+                  {children}
                 </Button>
               </Flex>
-            </Paper>
-          </GridCol>
-        )} */}
-      </Grid>
-    </>
+
+              <Divider style={{ margin: '12px 0' }} />
+
+              {/* Items List */}
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                {sellerGroup.items.map((item, index) => (
+                  <Card 
+                    key={index}
+                    type="inner"
+                    style={{ 
+                      backgroundColor: '#fafafa',
+                      borderRadius: '8px',
+                      border: '1px solid #f0f0f0'
+                    }}
+                  >
+                    <Row gutter={16} align="middle">
+                    <Col xs={4} sm={3}>
+                      <Image
+                        src={item.item.image}
+                        alt={item.item.name}
+                        style={{ 
+                          width: '100%',
+                          maxWidth: '60px',
+                          height: 'auto',
+                          aspectRatio: '1/1',
+                          objectFit: 'cover',
+                          borderRadius: '8px'
+                        }}
+                        preview={false}
+                        fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                      />
+                    </Col>
+                      <Col xs={20} sm={21}>
+                        <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                          <Text strong style={{ fontSize: '14px' }}>
+                            {item.item.name}
+                          </Text>
+                          
+                          {!item.item.productId?.includes("subscription") && (
+                            renderAttributesStructured(item)
+                          )}
+
+                          <Flex justify="space-between" align="center" style={{ marginTop: '8px' }}>
+                            <Text type="secondary" style={{ fontSize: '13px' }}>
+                              تعداد: {item.item.count}
+                            </Text>
+                            <Space size={8}>
+                              {item.item.priceWithVat.discountedPriceWithVat && 
+                               item.item.priceWithVat.discountedPriceWithVat !== item.item.priceWithVat.regularPriceWithVat && (
+                                <Text 
+                                  delete 
+                                  type="secondary" 
+                                  style={{ fontSize: '13px' }}
+                                >
+                                  {formatPrice(item.item.priceWithVat.regularPriceWithVat)} تومان
+                                </Text>
+                              )}
+                              <Text strong style={{ fontSize: '15px', color: '#000' }}>
+                                {formatPrice(item.item.priceWithVat.discountedPriceWithVat || item.item.priceWithVat.regularPriceWithVat)} تومان
+                              </Text>
+                            </Space>
+                          </Flex>
+                        </Space>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+
+                {/* VAT Request Button */}
+                <Flex justify="flex-start">
+                  {sellerGroup.vatRequested ? (
+                    <Button
+                      onClick={() => removeReceipt(sellerGroup.seller.id)}
+                      leftSection={<CheckCircleOutlined />}
+                      color="green"
+                      variant="filled"
+                      style={{ 
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      حذف فاکتور
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => applyReceipt(sellerGroup.seller.id)}
+                      leftSection={<FileTextOutlined />}
+                      variant="default"
+                      style={{ 
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      درخواست فاکتور
+                    </Button>
+                  )}
+                </Flex>
+
+                {/* Seller Total */}
+                <Card 
+                  style={{ 
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '8px',
+                    border: 'none'
+                  }}
+                >
+                  <Flex justify="space-between" align="center">
+                    <Text style={{ fontSize: '14px' }}>
+                      مجموع قیمت از این فروشنده
+                    </Text>
+                    <Text strong style={{ fontSize: '16px', color: '#000' }}>
+                      {formatPrice(sellerGroup.priceApplyEachSeller)} تومان
+                    </Text>
+                  </Flex>
+                </Card>
+              </Space>
+            </Card>
+          ))
+        ) : (
+          <Card>
+            <Alert message="هیچ آیتمی موجود نیست" type="warning" showIcon />
+          </Card>
+        )}
+
+        {/* Summary Section - Digikala Style */}
+        {orderfinalreceipt?.sellers?.length > 0 && (
+          <Card 
+            style={{ 
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+            }}
+          >
+            <Title level={5} style={{ marginBottom: '16px', fontWeight: 'bold' }}>
+              خلاصه فاکتور
+            </Title>
+
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              {/* Items Count */}
+              <Flex justify="space-between" align="center">
+                <Text type="secondary">
+                  قیمت کالا‌ها ({orderfinalreceipt.sellers.reduce((total, seller) => 
+                    total + seller.items.reduce((sum, item) => sum + item.item.count, 0), 0
+                  )} عدد)
+                </Text>
+                <Text strong style={{ fontSize: '14px' }}>
+                  {formatPrice(orderfinalreceipt.totalPriceApply)} تومان
+                </Text>
+              </Flex>
+
+              {/* Shipping */}
+              <Flex justify="space-between" align="center">
+                <Text type="secondary">هزینه ارسال</Text>
+                <Text strong style={{ fontSize: '14px' }}>رایگان</Text>
+              </Flex>
+
+              {/* Discount if exists */}
+              {orderfinalreceipt.totalPriceApply !== orderfinalreceipt.totalPriceToPay && (
+                <Flex justify="space-between" align="center">
+                  <Text style={{ color: '#4caf50' }}>سود شما از این خرید</Text>
+                  <Text strong style={{ fontSize: '15px', color: '#4caf50' }}>
+                    {formatPrice(orderfinalreceipt.totalPriceApply - orderfinalreceipt.totalPriceToPay)} تومان
+                  </Text>
+                </Flex>
+              )}
+
+              <Divider style={{ margin: '8px 0', borderColor: '#e0e0e0' }} />
+
+              {/* Final Total */}
+              <Flex justify="space-between" align="center">
+                <Text strong style={{ fontSize: '15px' }}>مبلغ قابل پرداخت</Text>
+                <Text strong style={{ fontSize: '18px', color: '#000' }}>
+                  {formatPrice(orderfinalreceipt.totalPriceToPay)} تومان
+                </Text>
+              </Flex>
+
+              {/* VAT Notice */}
+              <Flex align="flex-start" gap={8}>
+                <InfoCircleOutlined style={{ color: '#757575', fontSize: '16px', marginTop: '2px' }} />
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  قیمت‌ها شامل ۱۰٪ مالیات بر ارزش افزوده است.
+                </Text>
+              </Flex>
+            </Space>
+          </Card>
+        )}
+      </Space>
+    </div>
   );
 };
 

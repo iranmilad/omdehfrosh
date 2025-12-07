@@ -6,8 +6,90 @@ import jwt from "jsonwebtoken";
 import OrderJ2B from "../models/Orders_J2B.js";
 import OrderItemJ2B from "../models/OrderItemJ2B.js";
 
+// ordersController.js
 
+// NEW: Update address for all basket orders
+export const updateBasketOrdersAddress = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    
+    if (!user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
 
+    const { address } = req.body;
+
+    if (!address) {
+      return res.status(400).json({ message: "Address data is required" });
+    }
+
+    // Update ALL basket orders for this user
+    const result = await OrderJ2B.updateMany(
+      { 
+        user_id: user_id.toString(), 
+        status: "basket" 
+      },
+      { 
+        $set: { address: address } 
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ message: "No basket orders found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Address updated successfully for all basket orders",
+      updatedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error("Error updating basket orders address:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Keep the existing single order update function
+export const updateOrderAddress = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+    
+    if (!user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+
+    const { orderId } = req.params;
+    const { address } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ message: "Order ID is required" });
+    }
+
+    if (!address) {
+      return res.status(400).json({ message: "Address data is required" });
+    }
+
+    // Find and update the order
+    const updatedOrder = await OrderJ2B.findOneAndUpdate(
+      { id: orderId, user_id: user_id.toString() },
+      { address: address },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Address updated successfully",
+      order: updatedOrder
+    });
+  } catch (error) {
+    console.error("Error updating order address:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 // Create a new order
 export const createOrder = async (req, res) => {
   try {

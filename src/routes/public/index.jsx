@@ -324,10 +324,10 @@ export const PublicRoutes = [
                 path: "/product/:slug",
                 element: <Product />
             },
-            {
-                path: "/category/:slug",
-                element: <Category />
-            },
+            // {
+            //     path: "/category/:slug",
+            //     element: <Category />
+            // },
             {
                 path: "/basket",
                 element: <Basket />

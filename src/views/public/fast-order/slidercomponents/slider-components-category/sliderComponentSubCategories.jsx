@@ -13,7 +13,7 @@ const DEFAULT_SUBCATEGORY_PLACEHOLDER = 'data:image/svg+xml;base64,' + btoa(`
 </svg>
 `);
 
-const SliderComponentSubCategoriesCM = ({
+const SliderComponentSubCategoriesCMFastOrder = ({
   items,
   clickType,
   searchType,
@@ -180,4 +180,4 @@ export function SingleCategoryWithSubcategories({
   );
 }
 
-export default SliderComponentSubCategoriesCM;
+export default SliderComponentSubCategoriesCMFastOrder;

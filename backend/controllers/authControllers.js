@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import UserAccounts from '../models/User.js'
 import dotenv from "dotenv";
-import { verifySMSCode } from "../libs/verifySMSCode.js"; // Keep this import
+import { verifySMSCode } from "../libs/verifySMSCode.js";
 import { generateToken } from "../jwt/jwt_func.js";
 import getUserFromToken from "../libs/verifyToken.js";
 
@@ -14,14 +14,65 @@ export const signup = async (req, res) => {
 
     // Validate input
     if (!mobile || !name || !family || !nationalCode) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ 
+        message: "همه فیلدها الزامی هستند",
+        state: "error",
+        errors: {
+          mobile: !mobile ? "شماره موبایل الزامی است" : undefined,
+          name: !name ? "نام الزامی است" : undefined,
+          family: !family ? "نام خانوادگی الزامی است" : undefined,
+          nationalCode: !nationalCode ? "کد ملی الزامی است" : undefined,
+        }
+      });
+    }
+
+    // Validate national code format
+    if (!/^\d{10}$/.test(nationalCode)) {
+      return res.status(400).json({ 
+        message: "کد ملی نامعتبر است",
+        state: "error",
+        errors: {
+          nationalCode: "کد ملی باید 10 رقم باشد"
+        }
+      });
+    }
+
+    // Validate mobile format
+    const cleanMobile = mobile.replace(/\s+/g, "");
+    if (!/^09\d{9}$/.test(cleanMobile)) {
+      return res.status(400).json({ 
+        message: "شماره موبایل نامعتبر است",
+        state: "error",
+        errors: {
+          mobile: "شماره موبایل باید با 09 شروع شود و 11 رقم باشد"
+        }
+      });
     }
 
     // Check if the phone number is already registered
-    const existingUser = await UserAccounts.findOne({ mobile });
+    const existingUser = await UserAccounts.findOne({ mobile: cleanMobile });
    
     if (existingUser) {
-      return res.status(400).send()
+      return res.status(400).json({ 
+        message: "این شماره موبایل قبلا ثبت شده است",
+        state: "error",
+        errors: {
+          mobile: "این شماره موبایل قبلا ثبت شده است"
+        }
+      });
+    }
+
+    // Check if national code is already registered
+    const existingNationalCode = await UserAccounts.findOne({ nationalCode });
+   
+    if (existingNationalCode) {
+      return res.status(400).json({ 
+        message: "این کد ملی قبلا ثبت شده است",
+        state: "error",
+        errors: {
+          nationalCode: "این کد ملی قبلا ثبت شده است"
+        }
+      });
     }
 
     // Count total users to assign a new ID
@@ -31,11 +82,12 @@ export const signup = async (req, res) => {
     // Create new user with required fields
     const newUser = new UserAccounts({
       userId,
-      mobile,
+      mobile: cleanMobile,
       name,
       family,
       nationalCode,
-      role: "user", // Default role: user
+      role: "user",
+      isActive: false, // Will be activated after SMS verification
     });
 
     await newUser.save();
@@ -43,21 +95,51 @@ export const signup = async (req, res) => {
     // Generate JWT Token
     const token = generateToken(res, userId, newUser.role);
 
-    res.status(201).json({
+    // Return success response
+    return res.status(201).json({
       message: "ثبت نام با موفقیت انجام شد",
       state: "ok",
       userId: newUser.userId,
+      token: token
     });
 
   } catch (error) {
     console.error("Error registering user:", error);
-    res.status(500).json({ message: "Failed to process request", error: error.message });
+    
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const errors = {};
+      Object.keys(error.errors).forEach(key => {
+        errors[key] = error.errors[key].message;
+      });
+      
+      return res.status(400).json({ 
+        message: "خطا در اعتبارسنجی داده‌ها",
+        state: "error",
+        errors
+      });
+    }
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({ 
+        message: "این اطلاعات قبلا ثبت شده است",
+        state: "error",
+        errors: {
+          [field]: `این ${field === 'mobile' ? 'شماره موبایل' : 'کد ملی'} قبلا ثبت شده است`
+        }
+      });
+    }
+
+    return res.status(500).json({ 
+      message: "خطا در پردازش درخواست",
+      state: "error",
+      error: error.message 
+    });
   }
 };
 
-// REMOVED THE DUPLICATE FUNCTION - Using the imported one instead
-
-// Fixed login function
 export const login = async (req, res) => {
   try {
     const { mobile, code } = req.body;
@@ -67,19 +149,26 @@ export const login = async (req, res) => {
 
     // Check if verification failed
     if (!verificationResponse.success) {
-      return res.status(400).json({ message: verificationResponse.message });
+      return res.status(400).json({ 
+        message: verificationResponse.message,
+        state: "error"
+      });
     }
 
     // After successful verification, find the user in the database
     const user = await UserAccounts.findOne({ mobile });
 
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ 
+        message: "کاربر یافت نشد",
+        state: "error"
+      });
     }
 
-    // Check if the user is active
+    // Activate user on first successful login
     if (!user.isActive) {
-      return res.status(400).json({ message: "User is not active" });
+      user.isActive = true;
+      await user.save();
     }
 
     // Generate JWT token after successful verification and user validation
@@ -91,14 +180,19 @@ export const login = async (req, res) => {
 
     // Send the response with user data
     return res.json({
-      message: "Login successful",
+      message: "ورود موفقیت‌آمیز بود",
+      state: "ok",
       user: { id: user.userId, role: user.role, status: user.isActive },
       [user.role === "master" ? "token_master" : "token"]: token
     });
 
   } catch (error) {
     console.error("Error during login:", error);
-    res.status(500).json({ message: "Error logging in", error: error.message });
+    return res.status(500).json({ 
+      message: "خطا در ورود",
+      state: "error",
+      error: error.message 
+    });
   }
 };
 
@@ -106,26 +200,46 @@ export const verifyUser = (req, res) => {
   const user = getUserFromToken(req);
 
   if (!user || !user.user_id || !user.decoded) {
-    return res.status(401).json({ valid: false, message: "Unauthorized" });
+    return res.status(401).json({ 
+      valid: false, 
+      message: "Unauthorized" 
+    });
   }
 
   const { decoded } = user;
 
   try {
-    return res.json({ valid: true, user: decoded });
+    return res.json({ 
+      valid: true, 
+      user: decoded 
+    });
   } catch (error) {
-    return res.status(401).json({ valid: false, message: "Invalid or expired token" });
+    return res.status(401).json({ 
+      valid: false, 
+      message: "Invalid or expired token" 
+    });
   }
 };
 
 export const verifyTokenMaster = (req, res) => {
   const {decoded, user_id} = getUserFromToken(req, res);
 
-  if (!user_id) return res.status(401).json({ valid: false, message: "No token provided" });
+  if (!user_id) {
+    return res.status(401).json({ 
+      valid: false, 
+      message: "No token provided" 
+    });
+  }
 
   try {
-    return res.json({ valid: true, user: decoded });
+    return res.json({ 
+      valid: true, 
+      user: decoded 
+    });
   } catch (error) {
-    return res.status(401).json({ valid: false, message: "Invalid or expired token" });
+    return res.status(401).json({ 
+      valid: false, 
+      message: "Invalid or expired token" 
+    });
   }
 };

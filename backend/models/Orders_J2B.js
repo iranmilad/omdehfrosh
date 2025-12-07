@@ -29,7 +29,7 @@ const orderSchema = new mongoose.Schema(
       default: null,
     },
     user_id: {
-      type: String, // stored as string instead of ObjectId
+      type: String,
       default: null,
     },
     total_price: {
@@ -41,7 +41,7 @@ const orderSchema = new mongoose.Schema(
       default: 0,
     },
     discount_code_id: {
-      type: String, // stored as string instead of ObjectId
+      type: String,
       default: null,
     },
     status: {
@@ -65,11 +65,43 @@ const orderSchema = new mongoose.Schema(
       enum: ["cash", "credit", "check"],
       default: "cash",
     },
+    // NEW: Address field
+    address: {
+      type: Object,
+      default: null,
+      address_id: {
+        type: String,
+        default: null,
+      },
+      full_address: {
+        type: String,
+        default: null,
+      },
+      city: {
+        type: String,
+        default: null,
+      },
+      state: {
+        type: String,
+        default: null,
+      },
+      postal_code: {
+        type: String,
+        default: null,
+      },
+      recipient_name: {
+        type: String,
+        default: null,
+      },
+      recipient_phone: {
+        type: String,
+        default: null,
+      },
+    },
   },
   { timestamps: true }
 );
 
-// optional: disable version key (__v)
 orderSchema.set("versionKey", false);
 
 export default mongoose.model("OrderJ2B", orderSchema);
