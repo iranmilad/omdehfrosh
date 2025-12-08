@@ -112,7 +112,7 @@ const RowSeller = ({ item, index }) => {
                        item.buy_type ? item.buy_type : "تکی"}
               </Text>
             </Flex>
-            <Flex align="end" direction="column" gap="xs">
+            {/* <Flex align="end" direction="column" gap="xs">
               <Flex gap="4px" align="center">
                 <Text size="sm" c="gray">حداقل سفارش:</Text>
                 <Text size="sm" c="gray">{item.minOrder}</Text>
@@ -121,7 +121,7 @@ const RowSeller = ({ item, index }) => {
                 <Text size="sm" c="gray">حداکثر سفارش:</Text>
                 <Text size="sm" c="gray">{item.maxOrder}</Text>
               </Flex>
-            </Flex>
+            </Flex> */}
           </Flex>
         </GridCol>
         

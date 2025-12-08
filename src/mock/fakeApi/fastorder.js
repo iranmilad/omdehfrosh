@@ -224,6 +224,7 @@ export const categoriesFastOrder = [
     { 
         id: "0", 
         title: "موبایل", 
+        name: "mobile",
         idCategory: "category0", 
         subCategories: [
             {
@@ -270,6 +271,7 @@ export const categoriesFastOrder = [
     { 
         id: "1", 
         title: "کالای دیجیتال", 
+        name: "digital",
         idCategory: "category1", 
         subCategories: [
             {
@@ -362,6 +364,7 @@ export const categoriesFastOrder = [
     { 
         id: "2", 
         title: "لوازم برقی", 
+        name: "electrical",
         idCategory: "category2", 
         subCategories: [
             {
@@ -385,6 +388,7 @@ export const categoriesFastOrder = [
     { 
         id: "3", 
         title: "اکسسوری", 
+        name: "accessory",
         idCategory: "category3", 
         subCategories: [
             {
@@ -408,6 +412,7 @@ export const categoriesFastOrder = [
     { 
         id: "4", 
         title: "سایر کالاها", 
+        name: "others",
         idCategory: "category4", 
         subCategories: [
             {

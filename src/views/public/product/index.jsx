@@ -95,9 +95,9 @@ const Product = () => {
     <ProductContext.Provider
       value={{ options, setOptions, combinations, loading, product, slug, supplier }}
     >
-      <div className="my-8 lg:my-10">
+      <div className=" lg:my-10">
         <Paper pt="xl" px="xl">
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row">
             <div className="lg:w-4/12">
               <Flex gap="md" direction={{ base: "column", lg: "row" }}>
                 <IconBar favorite={product?.general?.addedToFavorite} data={product} />

@@ -1,7 +1,5 @@
 import {
-  Center,
   Drawer,
-  Loader,
   Text,
   Box,
   Flex,
@@ -13,18 +11,23 @@ import {
   Group,
   ScrollArea,
   Badge,
-  Skeleton
+  Skeleton,
+  Title
 } from "@mantine/core";
 import { NavLink, useNavigate } from "react-router";
 import { TextInput } from "@mantine/core";
 import { IconSearch, IconClock, IconTrash, IconChevronLeft } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-import { useDebouncedValue, useLocalStorage } from "@mantine/hooks";
+import { useDebouncedValue } from "@mantine/hooks";
 import { IconExternalLink, IconLayoutGridAdd, IconBuildingStore } from "@tabler/icons-react";
 import InfoBox from "../InfoBox";
 import { useDispatch, useSelector } from "react-redux";
 import { getSearchResults } from "../../redux/search/searchActions";
 import { clearSearchResults } from "../../redux/search/searchSlice.js"
+import { IoChevronBack } from "react-icons/io5";
+import { GoArrowRight } from "react-icons/go";
+
+
 
 function MobileSearch({ opened, close }) {
   const navigate = useNavigate();
@@ -32,11 +35,6 @@ function MobileSearch({ opened, close }) {
   
   const [value, setValue] = useState("");
   const [debounced] = useDebouncedValue(value, 500);
-  
-  // const [search, setSearch] = useLocalStorage({
-  //   key: "search",
-  //   defaultValue: [],
-  // });
 
   // Get search results from Redux
   const { results, loading, error } = useSelector((state) => state.search);
@@ -83,82 +81,35 @@ function MobileSearch({ opened, close }) {
   const hasBrands = transformedResults?.brands?.length > 0;
   const hasResults = hasProducts || hasCategories || hasBrands;
 
-  console.log('📱 MobileSearch Render:', {
-    value,
-    debounced,
-    hasResults,
-    loading,
-    rawResults: results,
-    transformedResults,
-    productsCount: transformedResults?.products?.length || 0,
-    categoriesCount: transformedResults?.categories?.length || 0,
-    brandsCount: transformedResults?.brands?.length || 0
-  });
-
   // Skeleton Loading Component
   const SkeletonLoading = () => (
-    <Box mt="lg">
+    <Box mt="xl">
       {/* Brands Skeleton */}
-      <Divider
-        labelPosition="left"
-        label={
-          <>
-            <Skeleton height={20} width={20} radius="sm" />
-            <Skeleton height={16} width={60} mr="sm" />
-          </>
-        }
-      />
-      <SimpleGrid cols={2} mt="md">
+      <Text size="sm" fw={600} c="dimmed" mb="xs">برندها</Text>
+      <SimpleGrid cols={2} spacing="xs" mb="xl">
         {[1, 2].map((i) => (
-          <Paper key={i} shadow="none" withBorder p="md">
-            <Flex align="center" justify="space-between">
-              <Skeleton height={16} width="60%" />
-              <Skeleton height={20} width={20} radius="sm" />
-            </Flex>
+          <Paper key={i} p="md" radius="md" withBorder>
+            <Skeleton height={16} width="70%" />
           </Paper>
         ))}
       </SimpleGrid>
 
       {/* Categories Skeleton */}
-      <Divider
-        mt="xl"
-        labelPosition="left"
-        label={
-          <>
-            <Skeleton height={20} width={20} radius="sm" />
-            <Skeleton height={16} width={70} mr="sm" />
-          </>
-        }
-      />
-      <SimpleGrid cols={3} mt="md">
+      <Text size="sm" fw={600} c="dimmed" mb="xs">دسته‌بندی‌ها</Text>
+      <SimpleGrid cols={3} spacing="xs" mb="xl">
         {[1, 2, 3].map((i) => (
-          <Paper key={i} shadow="none" withBorder p="md">
-            <Flex align="center" justify="space-between">
-              <Skeleton height={16} width="50%" />
-              <Skeleton height={20} width={20} radius="sm" />
-            </Flex>
+          <Paper key={i} p="md" radius="md" withBorder>
+            <Skeleton height={16} width="60%" />
           </Paper>
         ))}
       </SimpleGrid>
 
       {/* Products Skeleton */}
-      <Divider
-        mt="xl"
-        labelPosition="left"
-        label={
-          <>
-            <Skeleton height={20} width={20} radius="sm" />
-            <Skeleton height={16} width={70} mr="sm" />
-          </>
-        }
-      />
-      <Stack mt="md">
+      <Text size="sm" fw={600} c="dimmed" mb="xs">محصولات</Text>
+      <Stack spacing="xs">
         {[1, 2, 3, 4].map((i) => (
-          <Paper key={i} shadow="none" withBorder p="md">
-            <Flex justify="space-between" align="center">
-              <Skeleton height={16} width="70%" />
-              <Skeleton height={20} width={20} radius="sm" />
-            </Flex>
+          <Paper key={i} p="md" radius="md" withBorder>
+            <Skeleton height={16} width="80%" />
           </Paper>
         ))}
       </Stack>
@@ -166,195 +117,230 @@ function MobileSearch({ opened, close }) {
   );
 
   return (
-    <Drawer title="جستجو" opened={opened} onClose={close}>
+    <Drawer 
+      opened={opened} 
+      onClose={close}
+      position="bottom"
+      size="100%"
+      withCloseButton={false}
+      styles={{
+        root: { zIndex: 1001 },
+        inner: { zIndex: 1001 },
+        overlay: { zIndex: 1001 },
+        content: { height: '100%', zIndex: 1001 },
+        body: { 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          padding: 0,
+          zIndex: 1001
+        }
+      }}
+    >
+
+      {/* Search Input with جستجو and blue divider inside */}
+      <Box px="md" mb="md" style={{ zIndex: 1001 }}>
       <TextInput
-        leftSection={<IconSearch />}
-        placeholder="جستجو محصول مورد نظر"
-        variant="filled"
-        mb="md"
-        styles={{ 
-          input: { 
-            height: 45,
-            border: '2px solid #e9ecef',
-            '&:focus': {
-              borderColor: '#228be6'
-            }
-          } 
-        }}
+        leftSection={
+          <GoArrowRight 
+            size={24} 
+            style={{ strokeWidth: 1, fontWeight: '300' }} 
+            onClick={close}
+          />
+        }
+        placeholder="جستجو"
+        size="md"
+        radius="md"
         value={value}
-        onChange={(e) => {
-          console.log('✏️ MobileSearch input changed:', e.target.value);
-          setValue(e.target.value);
+        onChange={(e) => setValue(e.target.value)}
+        styles={{
+          root: { zIndex: 1001 },
+          input: {
+            border: "none",
+            backgroundColor: "white",
+            zIndex: 1001,
+            "&::placeholder": {
+              fontSize: "4px !important",  // force override
+              opacity: 0.7,
+            },
+          }
         }}
       />
-      
-      {debounced.length > 2 ? (
-        <>
-          {loading ? (
-            <SkeletonLoading />
-          ) : (
-            <>
-              {error ? (
-                <InfoBox shadow="0" back={false}>
-                  {error}
-                </InfoBox>
-              ) : hasResults ? (
-                <Box mt="lg">
-                  {/* Brands Section */}
-                  {hasBrands && (
-                    <>
-                      <Divider
-                        labelPosition="left"
-                        label={
-                          <>
-                            <IconBuildingStore />
-                            <Text mr="sm">برندها</Text>
-                          </>
-                        }
-                      />
-                      <SimpleGrid cols={2} mt="md">
-                        {transformedResults.brands.map((item, index) => (
-                          <Paper
-                            key={item.id || index}
-                            shadow="none"
-                            withBorder
-                            p="md"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => navgiateURL(`/brand/${item.slug || item.id}`)}
-                          >
-                            <Flex align="center" justify="space-between">
-                              <Text>{item.name}</Text>
-                              <ActionIcon component={NavLink} variant="white">
-                                <IconExternalLink />
-                              </ActionIcon>
-                            </Flex>
-                          </Paper>
-                        ))}
-                      </SimpleGrid>
-                    </>
-                  )}
 
-                  {/* Categories Section */}
-                  {hasCategories && (
-                    <>
-                      <Divider
-                        mt={hasBrands ? "xl" : "0"}
-                        labelPosition="left"
-                        label={
-                          <>
-                            <IconLayoutGridAdd />
-                            <Text mr="sm">دسته‌ها</Text>
-                          </>
-                        }
-                      />
-                      <SimpleGrid cols={3} mt="md">
-                        {transformedResults.categories.map((item, index) => (
-                          <Paper
-                            key={item.id || index}
-                            shadow="none"
-                            withBorder
-                            p="md"
-                            style={{ cursor: "pointer" }}
-                            onClick={() => navgiateURL(`/category/${item.slug || item.id}`)}
-                          >
-                            <Flex align="center" justify="space-between">
-                              <Text>{item.name || item.title}</Text>
-                              <ActionIcon component={NavLink} variant="white">
-                                <IconExternalLink />
-                              </ActionIcon>
-                            </Flex>
-                          </Paper>
-                        ))}
-                      </SimpleGrid>
-                    </>
-                  )}
 
-                  {/* Products Section */}
-                  {hasProducts && (
-                    <>
-                      <Divider
-                        mt="xl"
-                        labelPosition="left"
-                        label={
-                          <>
-                            <IconLayoutGridAdd />
-                            <Text mr="sm">محصولات</Text>
-                          </>
-                        }
-                      />
-                      <Stack mt="md">
-                        {transformedResults.products.map((item, index) => (
-                          <Paper
-                            style={{ cursor: "pointer" }}
-                            key={item.id || index}
-                            shadow="none"
-                            withBorder
-                            p="md"
-                            onClick={() => navgiateURL(`/product/${item.slug || item.id}`)}
-                          >
-                            <Flex align="start" gap="sm">
-                              <Flex justify="space-between" w="100%">
-                                <Text>{item.name || item.title}</Text>
-                                <ActionIcon variant="white">
-                                  <IconExternalLink />
-                                </ActionIcon>
+        <Box mb="xs" mt="">
+        <Divider
+          size="sm"
+          color="blue.6"
+          styles={{
+            root: {
+              opacity: 0.3,
+              zIndex: 1001
+            },
+          }}
+        />
+
+        </Box>
+      </Box>
+
+
+      {/* Scrollable Content */}
+      <ScrollArea flex={1} px="md" pb="md" style={{ zIndex: 1001 }}>
+        {debounced.length > 2 ? (
+          <>
+            {loading ? (
+              <SkeletonLoading />
+            ) : (
+              <>
+                {error ? (
+                  <InfoBox shadow="0" back={false}>
+                    {error}
+                  </InfoBox>
+                ) : hasResults ? (
+                  <Box style={{ zIndex: 1001 }}>
+                    {/* Brands Section */}
+                    {hasBrands && (
+                      <Box mb="xl" style={{ zIndex: 1001 }}>
+                        <Flex align="center" gap="xs" mb="xs">
+                          <IconBuildingStore size={18} color="#868e96" />
+                          <Text size="sm" fw={600} c="dimmed">برندها</Text>
+                          <Badge size="xs" variant="light" color="gray">
+                            {transformedResults.brands.length}
+                          </Badge>
+                        </Flex>
+                        <SimpleGrid cols={2} spacing="xs">
+                          {transformedResults.brands.map((item, index) => (
+                            <Paper
+                              key={item.id || index}
+                              p="md"
+                              radius="md"
+                              withBorder
+                              style={{ 
+                                cursor: "pointer",
+                                transition: 'all 0.2s',
+                                zIndex: 1001,
+                                '&:hover': {
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                                }
+                              }}
+                              onClick={() => navgiateURL(`/brand/${item.slug || item.id}`)}
+                            >
+                              <Flex align="center" justify="space-between">
+                                <Text size="sm" fw={500}>{item.name}</Text>
+                                <IconExternalLink size={16} color="#868e96" />
                               </Flex>
-                            </Flex>
-                          </Paper>
-                        ))}
-                      </Stack>
-                    </>
-                  )}
-                </Box>
-              ) : (
-                <InfoBox shadow="0" back={false}>
-                  چیزی یافت نشد
-                </InfoBox>
-              )}
-            </>
-          )}
-        </>
-      ) : (
-        <>
-          {/* Search History */}
-          <Group justify="space-between">
-            <Flex gap="sm" c="gray" fw="600" align="center">
-              <IconClock size={18} />
-              <Text size="sm">آخرین جستجو های شما</Text>
-            </Flex>
-            {/* {search.length > 0 && (
-              <ActionIcon
-                size="sm"
-                variant="light"
-                color="gray"
-                onClick={() => setSearch([])}
-              >
-                <IconTrash size={14} />
-              </ActionIcon>
-            )} */}
-          </Group>
-          <ScrollArea type="auto" mt="sm">
-            <Group>
-              {/* {search.map((item, index) => (
-                <Badge
-                  style={{ cursor: "pointer" }}
-                  key={index}
-                  onClick={() => {
-                    setValue(item);
-                    // The useEffect will trigger the search automatically
-                  }}
-                  size="lg"
-                  variant="outline"
-                  color="gray"
-                  rightSection={<IconChevronLeft size={14} />}
-                >
-                  {item}
-                </Badge>
-              ))} */}
-            </Group>
-          </ScrollArea>
-        </>
-      )}
+                            </Paper>
+                          ))}
+                        </SimpleGrid>
+                      </Box>
+                    )}
+
+                    {/* Categories Section */}
+                    {hasCategories && (
+                      <Box mb="xl" style={{ zIndex: 1001 }}>
+                        <Flex align="center" gap="xs" mb="xs">
+                          <IconLayoutGridAdd size={18} color="#868e96" />
+                          <Text size="sm" fw={600} c="dimmed">دسته‌بندی‌ها</Text>
+                          <Badge size="xs" variant="light" color="gray">
+                            {transformedResults.categories.length}
+                          </Badge>
+                        </Flex>
+                        <SimpleGrid cols={3} spacing="xs">
+                          {transformedResults.categories.map((item, index) => (
+                            <Paper
+                              key={item.id || index}
+                              p="md"
+                              radius="md"
+                              withBorder
+                              style={{ 
+                                cursor: "pointer",
+                                transition: 'all 0.2s',
+                                zIndex: 1001
+                              }}
+                              onClick={() => navgiateURL(`/category/${item.slug || item.id}`)}
+                            >
+                              <Flex align="center" justify="space-between">
+                                <Text size="xs" fw={500}>{item.name || item.title}</Text>
+                                <IconExternalLink size={14} color="#868e96" />
+                              </Flex>
+                            </Paper>
+                          ))}
+                        </SimpleGrid>
+                      </Box>
+                    )}
+
+                    {/* Products Section */}
+                    {hasProducts && (
+                      <Box style={{ zIndex: 1001 }}>
+                        <Flex align="center" gap="xs" mb="xs">
+                          <IconSearch size={18} color="#868e96" />
+                          <Text size="sm" fw={600} c="dimmed">محصولات</Text>
+                          <Badge size="xs" variant="light" color="gray">
+                            {transformedResults.products.length}
+                          </Badge>
+                        </Flex>
+                        <Stack spacing="xs">
+                          {transformedResults.products.map((item, index) => (
+                            <Paper
+                              key={item.id || index}
+                              p="md"
+                              radius="md"
+                              withBorder
+                              style={{ 
+                                cursor: "pointer",
+                                transition: 'all 0.2s',
+                                zIndex: 1001
+                              }}
+                              onClick={() => navgiateURL(`/product/${item.slug || item.id}`)}
+                            >
+                              <Flex justify="space-between" align="center">
+                                <Text size="sm" fw={500}>{item.name || item.title}</Text>
+                                <IconExternalLink size={16} color="#868e96" />
+                              </Flex>
+                            </Paper>
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  <Box mt="xl" ta="center">
+                    <IconSearch size={48} color="#ced4da" style={{ margin: '0 auto' }} />
+                    <Text mt="md" c="dimmed" size="sm">
+                      نتیجه‌ای یافت نشد
+                    </Text>
+                    <Text size="xs" c="dimmed" mt="xs">
+                      لطفاً عبارت دیگری را جستجو کنید
+                    </Text>
+                  </Box>
+                )}
+              </>
+            )}
+          </>
+        ) : (
+          <Box mt="md">
+            {/* Search History Section */}
+            {/* <Flex align="center" gap="xs" mb="md">
+              <IconClock size={18} color="#868e96" />
+              <Text size="sm" fw={600} c="dimmed">جستجوهای اخیر</Text>
+            </Flex> */}
+            
+            {/* <Box 
+              p="xl" 
+              ta="center"
+              style={{
+                backgroundColor: '#f8f9fa',
+                borderRadius: '12px'
+              }}
+            >
+              <Text size="sm" c="dimmed">
+                هیچ جستجوی اخیری وجود ندارد
+              </Text>
+            </Box> */}
+          </Box>
+        )}
+      </ScrollArea>
     </Drawer>
   );
 }

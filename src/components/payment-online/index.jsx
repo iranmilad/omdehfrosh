@@ -16,6 +16,25 @@ import {
   Title,
 } from "@mantine/core";
 import { getPaymentLink } from "../../redux/payment/getpaymentlink/getPaymentLinkActions";
+import { Steps } from "antd";
+import {
+  ShoppingCartOutlined,
+  UserOutlined,
+  WalletOutlined,
+  CheckCircleOutlined,
+  DeleteOutlined,
+  ShoppingOutlined,
+  LoadingOutlined,
+  WarningOutlined,
+  InboxOutlined,
+  MinusOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
+import { Grid as GridAnt } from 'antd';
+
+const { useBreakpoint } = GridAnt;
+
+
 
 // Default Product Image SVG Component
 const DefaultProductImage = ({ width = 60, height = 60, borderRadius = "4px" }) => (
@@ -138,7 +157,9 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  
+
+  const screensAnt = useBreakpoint();
+
   const { orderfinalreceipt, loadingfinalreceipt, errorfinalreceipt } = useSelector(
     (state) => state.cartfinalreceipt
   );
@@ -521,7 +542,28 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
           100% { transform: rotate(360deg); }
         }
       `}</style>
+
+        <Steps
+          current={3}
+          size={screensAnt.md ? 'default' : 'small'}
+          style={{ 
+            marginBottom: 32,
+            background: 'white',
+            padding: screensAnt.md ? 24 : 12,
+            borderRadius: 16,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            fontSize: screensAnt.md ? '14px' : '12px'
+          }}
+          items={[
+            { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            // { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+            { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+          ]}
+        />
       
+
+
       <Grid mt="md" gutter="lg">
         <GridCol span={12}>
           <Paper p="md" shadow="xs" fullWidth>

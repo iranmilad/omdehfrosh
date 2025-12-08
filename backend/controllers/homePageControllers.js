@@ -19,6 +19,44 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
+// Helper function to generate random mock inventory data
+const generateMockInventory = () => {
+  const stockOptions = [0, 5, 10, 15, 20, 25, 30, 50, 75, 100, 150, 200];
+  const minOrderOptions = [1, 2, 5, 10];
+  
+  const stock = stockOptions[Math.floor(Math.random() * stockOptions.length)];
+  const minOrder = minOrderOptions[Math.floor(Math.random() * minOrderOptions.length)];
+  
+  // maxOrder should be between minOrder and stock (if stock > 0)
+  let maxOrder;
+  if (stock === 0) {
+    maxOrder = 0;
+  } else if (stock <= minOrder) {
+    maxOrder = stock;
+  } else {
+    // Random value between minOrder and stock, favoring reasonable limits
+    const possibleMaxOrders = [minOrder * 2, minOrder * 5, minOrder * 10, stock];
+    maxOrder = Math.min(
+      possibleMaxOrders[Math.floor(Math.random() * possibleMaxOrders.length)],
+      stock
+    );
+  }
+  
+  return {
+    stock,
+    minOrder,
+    maxOrder
+  };
+};
+
+// Helper function to enrich products with mock inventory data
+const enrichProductsWithInventory = (products) => {
+  return products.map(product => ({
+    ...product.toObject ? product.toObject() : product,
+    ...generateMockInventory()
+  }));
+};
+
 // Combined home page data endpoint
 export const getHomePageData = async (req, res) => {
   try {
@@ -49,12 +87,12 @@ export const getHomePageData = async (req, res) => {
     // Process categories with user subscription logic
     let filteredCategories;
     if (!userData || !userData.user_id) {
-      // If no user data or user_id, show only "basic" as true, others false
-      filteredCategories = allCategories.map(cat => {
+      // If no user data or user_id, show first 3 categories as true, others based on "basic"
+      filteredCategories = allCategories.map((cat, index) => {
         const modelId = cat.subscriptionModel?.modelId;
         return {
           ...cat.toObject(),
-          display: modelId === "basic"
+          display: index < 3 || !modelId || modelId === "basic" // First 3 always true, or basic
         };
       });
     } else {
@@ -66,11 +104,39 @@ export const getHomePageData = async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const userSubscriptions = Object.keys(user.subscriptions || {});
+      // Get user subscriptions - handle different possible structures
+      let userSubscriptions = [];
+      if (user.subscriptions) {
+        if (typeof user.subscriptions === 'object') {
+          // If subscriptions is an object, get the keys
+          userSubscriptions = Object.keys(user.subscriptions);
+        } else if (Array.isArray(user.subscriptions)) {
+          // If subscriptions is an array
+          userSubscriptions = user.subscriptions;
+        }
+      }
+
+      console.log('User subscriptions:', userSubscriptions);
+      console.log('User data:', JSON.stringify(user.subscriptions, null, 2));
       
-      filteredCategories = allCategories.map(cat => {
+      filteredCategories = allCategories.map((cat, index) => {
         const modelId = cat.subscriptionModel?.modelId;
-        const isSubscribed = userSubscriptions.includes(modelId);
+        
+        // First 3 categories always show, or if no subscription model or modelId
+        if (index < 3 || !modelId) {
+          return {
+            ...cat.toObject(),
+            display: true
+          };
+        }
+
+        // Check if user has this subscription (case-insensitive)
+        const isSubscribed = userSubscriptions.some(
+          sub => sub.toLowerCase() === modelId.toLowerCase()
+        );
+        
+        console.log(`Category: ${cat.title}, ModelId: ${modelId}, IsSubscribed: ${isSubscribed}`);
+        
         return {
           ...cat.toObject(),
           display: isSubscribed
@@ -97,18 +163,22 @@ export const getHomePageData = async (req, res) => {
       };
     }
 
+    // Enrich featured products with mock inventory data
+    const enrichedFps = enrichProductsWithInventory(fps);
+    const shuffledFeaturedPromo = shuffleArray(enrichedFps);
+    const shuffledFeaturedProducts = shuffleArray(enrichedFps);
+
     // Structure the data as expected by the client
     const data = [
       { type: "wideslider", data: sliders },
-      { type: "featured_promo", data: shuffleArray(fps) },
+      { type: "featured_promo", data: shuffledFeaturedPromo },
       { type: "categories", data: filteredCategories },
       { type: "banners", data: banners },
       { type: "prices", data: priceLists },  
-      { type: "featured_promo", data: shuffleArray(fps) },
       { type: "productGrid", data: pg },
       { type: "trendProducts", data: allTrendingProducts },
       { type: "brands", data: processedBrands },
-      { type: "featured_products", data: shuffleArray(fps) }
+      { type: "featured_products", data: shuffledFeaturedProducts }
     ];
 
     res.json({ message: "ok", data });
@@ -125,13 +195,13 @@ export const getCategoriesByUserId = async (req, res) => {
     const userData = getUserFromToken(req, res);
     const allCategories = await Category.find({});
 
-    // If no user data or user_id, show only "basic" as true, others false
+    // If no user data or user_id, show first 3 as true, others based on "basic"
     if (!userData || !userData.user_id) {
-      const filteredCategories = allCategories.map(cat => {
+      const filteredCategories = allCategories.map((cat, index) => {
         const modelId = cat.subscriptionModel?.modelId;
         return {
           ...cat.toObject(),
-          display: modelId === "basic"
+          display: index < 3 || !modelId || modelId === "basic"
         };
       });
 
@@ -144,12 +214,33 @@ export const getCategoriesByUserId = async (req, res) => {
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const userSubscriptions = Object.keys(user.subscriptions || {});
+    // Get user subscriptions - handle different possible structures
+    let userSubscriptions = [];
+    if (user.subscriptions) {
+      if (typeof user.subscriptions === 'object') {
+        userSubscriptions = Object.keys(user.subscriptions);
+      } else if (Array.isArray(user.subscriptions)) {
+        userSubscriptions = user.subscriptions;
+      }
+    }
 
     // Map categories to determine display based on user's subscriptions
-    const filteredCategories = allCategories.map(cat => {
+    const filteredCategories = allCategories.map((cat, index) => {
       const modelId = cat.subscriptionModel?.modelId;
-      const isSubscribed = userSubscriptions.includes(modelId);
+      
+      // First 3 categories always show, or if no subscription model
+      if (index < 3 || !modelId) {
+        return {
+          ...cat.toObject(),
+          display: true
+        };
+      }
+
+      // Check if user has this subscription (case-insensitive)
+      const isSubscribed = userSubscriptions.some(
+        sub => sub.toLowerCase() === modelId.toLowerCase()
+      );
+      
       return {
         ...cat.toObject(),
         display: isSubscribed
@@ -187,7 +278,9 @@ export const getAllWideSliders = async (req, res) => {
 export const getAllFeaturedProducts = async (req, res) => {
   try {
     const fps = await FP.find();
-    res.status(200).json(fps);
+    // Enrich with mock inventory data
+    const enrichedFps = enrichProductsWithInventory(fps);
+    res.status(200).json(enrichedFps);
   } catch (err) {
     console.error("Error fetching wide fps:", err);
     res.status(500).json({ message: "Server error" });

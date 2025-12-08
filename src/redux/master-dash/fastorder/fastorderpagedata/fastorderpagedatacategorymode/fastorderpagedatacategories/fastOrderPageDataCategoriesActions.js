@@ -9,7 +9,7 @@ export const batchImportFastOrderPageCategories = createAsyncThunk(
       const response = await fetch(getApiUrl("/master-dash/fast-order-category-mode-page-data/batch-import"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        // credentials: "include",
         body: JSON.stringify( categoriesFastOrder ),
       });
 

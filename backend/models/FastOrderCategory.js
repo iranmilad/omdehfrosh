@@ -19,6 +19,7 @@ const FastOrderCategorySchema = new mongoose.Schema({
     idCategory: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     image: { type: String, required: true },
+    name: { type: String, required: true },
     subCategories: [SubCategorySchema]
 });
 

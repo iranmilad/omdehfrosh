@@ -4,38 +4,34 @@ import {
   Group,
   Image,
   Button,
-  Center,
   Text,
   Grid,
   Stack,
-  Title,
   Anchor,
   Box,
-  SimpleGrid,
-  GridCol,
-  Paper,
+  Flex,
+  Skeleton,
 } from "@mantine/core";
-import cashDelivery from "../../assets/services/cash-on-delivery.svg";
-import daysReturn from "../../assets/services/days-return.svg";
-import expressDelivery from "../../assets/services/express-delivery.svg";
-import originalProducts from "../../assets/services/original-products.svg";
-import support from "../../assets/services/support.svg";
 import { useSelector } from "react-redux";
-import {
-  IconBrandInstagram,
-  IconBrandTelegram,
-  IconBrandX,
-} from "@tabler/icons-react";
-import SocialLink from "../socialLink";
 
-const Footer = (props) => {
-  const bootstrap = useSelector((state) => state.global.bootstrap);
+const Footer = () => {
+  const { bootstrapData: bootstrap, loadingBootstrap } = useSelector((state) => state.bootstrap);
+
   return (
     <Box className="border-t pt-10 mt-32 bg-white z-30" id="footer">
       <Container>
+        {/* Header with Logo and Scroll Button */}
         <Group justify="space-between" w="100%">
-          <Stack spacing="xs">
-            <Image className="w-32 md:w-48" src={bootstrap?.logo} alt="" />
+          <Stack gap="xs">
+            {loadingBootstrap ? (
+              <Skeleton w={150} h={48} />
+            ) : (
+              <Image 
+                className="w-32 md:w-48" 
+                src={bootstrap?.data.logo} 
+                alt={bootstrap?.data.siteTitle || "Logo"} 
+              />
+            )}
           </Stack>
           <Button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -44,7 +40,7 @@ const Footer = (props) => {
             color="gray"
             style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
           >
-            برو به بالا
+            {bootstrap?.data.footer?.scrollButtonText || "برو به بالا"}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -57,78 +53,127 @@ const Footer = (props) => {
           </Button>
         </Group>
 
-        {/* Features section */}
-        <SimpleGrid
-          cols={{ base: 2, sm: 3, lg: "5" }}
-          justify="space-around"
-          align="center"
-          style={{ marginTop: "2rem", marginBottom: "2.5rem", gap: "1rem" }}
-        >
-          {[
-            cashDelivery,
-            daysReturn,
-            expressDelivery,
-            originalProducts,
-            support,
-          ].map((src, index) => (
-            <Stack key={index} align="center" spacing="xs">
-              <Image className="w-12 md:w-14" src={src} alt="" />
-              <Text size="xs" c="gray.6">
-                {
-                  [
-                    "پرداخت درب منزل",
-                    "ضمانت 7 روزه",
-                    "پست سریع",
-                    "ضمانت کالا",
-                    "پشتیبانی 24 ساعته",
-                  ][index]
-                }
-              </Text>
-            </Stack>
-          ))}
-        </SimpleGrid>
+        {/* Features Section */}
+        {bootstrap?.data.footer?.features && bootstrap.data.footer.features.length > 0 && (
+          <Grid gutter="md" mt={40} mb={40}>
+            {bootstrap.data.footer.features.map((feature, index) => (
+              <Grid.Col key={index} span={{ base: 6, xs: 4, sm: 2.4 }}>
+                <Stack align="center" gap="xs">
+                  <Image 
+                    src={feature.icon} 
+                    alt={feature.label}
+                    w={48}
+                    h={48}
+                    fit="contain"
+                  />
+                  <Text size="sm" ta="center">{feature.label}</Text>
+                </Stack>
+              </Grid.Col>
+            ))}
+          </Grid>
+        )}
 
-        <Grid gutter="xl">
-          {bootstrap?.menu?.footer.map((item, index) => (
-            <GridCol key={index} span={{ base: 6, lg: 3 }}>
-              <Stack>
-                <Title c="gray.8">{item.label}</Title>
-                {item.links.map((child, index2) => (
-                  <Anchor
-                  key={index2}
-                    href={child.url}
-                    underline="never"
-                    size="sm"
-                    c="dark"
-                  >
-                    {child.label}
-                  </Anchor>
-                ))}
-              </Stack>
-            </GridCol>
-          ))}
+        {/* Footer Menu Categories with Certificates Column */}
+        <Grid gutter="xl" mt={50} mb={60} align="start">
+          {/* Left Column - Footer Menu */}
+          <Grid.Col span={{ base: 12, md: 9 }}>
+            <Grid gutter="xl">
+              {bootstrap?.data.footer?.menuLinks?.map((item) => (
+                <Grid.Col key={item.id} span={{ base: 6, sm: 4, lg: 3 }}>
+                  <Stack>
+                    {item.links?.map((link) => (
+                      <Anchor
+                        key={link.id}
+                        href={link.url}
+                        underline="never"
+                        size="sm"
+                        c="dark"
+                      >
+                        {link.label}
+                      </Anchor>
+                    ))}
+                  </Stack>
+                </Grid.Col>
+              ))}
+            </Grid>
+          </Grid.Col>
+
+          {/* Right Column - Certificates/Trust Images (VERTICAL) */}
+          <Grid.Col span={{ base: 12, md: 3 }}>
+            <Flex direction="row" gap="md">
+              {bootstrap?.data.footer?.certificates?.map((cert, index) => (
+                <Anchor
+                  key={index}
+                  href={cert.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Image
+                    src={cert.image}
+                    alt={cert.alt || `Certificate ${index + 1}`}
+                    w={{ base: 100, sm: 120 }}
+                    fit="contain"
+                  />
+                </Anchor>
+              ))}
+            </Flex>
+          </Grid.Col>
         </Grid>
-        <Paper shadow="0" bg="gray.0" p="xl" my="xl">
-          <Title mb="lg" c="gray.8">
-            {bootstrap?.siteTitle}
-          </Title>
-          <Text size="sm" lh="2" c="gray.8" ta="justify">
-            {bootstrap?.footerAbout}
-          </Text>
-        </Paper>
 
+        {/* Bottom Bar with Copyright and Social Links */}
         <Group justify="space-between" pb={{ base: 100, md: "xl" }}>
-          <Text size="xs" c="gray" >
-            تمامی حقوق برای این فروشگاه محفوظ است
-          </Text>
-          <Group>
-            {bootstrap?.menu?.social ? (
-              <>
-                {bootstrap?.menu?.social[0]?.links.map((item, index) => <Anchor component="a" href={item.url} target="_blank" c="dark.6" size="20px" variant="text" key={item.id} dangerouslySetInnerHTML={{__html:item.icon}}></Anchor>)}
-              </>
-            ) : (
-              ""
+          <Group gap="xl">
+            {bootstrap?.data.footer?.contactPhone && (
+              <Text size="xs" c="gray" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <i className="bi bi-telephone" style={{ fontSize: 16 }}></i>
+                {bootstrap.data.footer.contactPhone}
+              </Text>
             )}
+            <Text size="xs" c="gray">
+              {bootstrap?.data.footer?.copyrightText || "تمامی حقوق برای این فروشگاه محفوظ است"}
+            </Text>
+          </Group>
+          
+          {/* Social Links */}
+          <Group gap="md">
+            {bootstrap?.data.menu?.social?.[0]?.links?.map((item) => (
+              <Anchor
+                key={item.id}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                c="dark.6"
+                style={{ 
+                  display: "flex", 
+                  alignItems: "center",
+                  transition: "color 0.2s ease"
+                }}
+                className="hover:text-blue-600"
+              >
+                {/* Detect if icon is Bootstrap Icon class (bi bi-*) or image URL */}
+                {item.icon?.startsWith("bi ") ? (
+                  <i 
+                    className={item.icon} 
+                    style={{ fontSize: 18 }}
+                    aria-label={item.label}
+                  ></i>
+                ) : item.icon?.startsWith("/") ? (
+                  <Image 
+                    src={item.icon} 
+                    w={24} 
+                    h={24} 
+                    fit="contain"
+                    alt={item.label}
+                  />
+                ) : (
+                  <i 
+                    className={item.icon} 
+                    style={{ fontSize: 24 }}
+                    aria-label={item.label}
+                  ></i>
+                )}
+              </Anchor>
+            ))}
           </Group>
         </Group>
       </Container>

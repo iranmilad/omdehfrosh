@@ -9,7 +9,7 @@ export const batchImportHomePageFeaturedProducts = createAsyncThunk(
       const response = await fetch(getApiUrl("/master-dash/featuredproducts/batch-import"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        // credentials: "include",
         body: JSON.stringify( {featuredproducts} ), // Send FeaturedProducts array as body
       });
 

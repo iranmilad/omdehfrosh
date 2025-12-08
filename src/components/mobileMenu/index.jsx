@@ -41,6 +41,7 @@ function MobileMenu({ toggle, menu }) {
           borderRadius: "10px",
           padding: "5px",
           marginRight: 3, // Add 3px marginRight for all levels
+          zIndex: 1001
         }}
       >
         {links.map((child) => (
@@ -70,7 +71,7 @@ function MobileMenu({ toggle, menu }) {
           mb="sm"
           styles={{ label: { fontSize: 16 } }}
           label={item.label}
-          leftSection={<ThemeIcon variant="transparent" p={0} c="inherit" dangerouslySetInnerHTML={{ __html: item.icon }} />}
+          // leftSection={<ThemeIcon variant="transparent" p={0} c="inherit" dangerouslySetInnerHTML={{ __html: item.icon }} />}
           onClick={(e) => handleClick(e, item.url)}
         >
           {item.links?.map((link) => (
@@ -80,7 +81,7 @@ function MobileMenu({ toggle, menu }) {
               onClick={(e) => handleClick(e, link.url)}
               mb="sm"
               c="gray.7"
-              leftSection={<ThemeIcon variant="transparent" p={0} c="inherit" dangerouslySetInnerHTML={{ __html: link.icon }} />}
+              // leftSection={<ThemeIcon variant="transparent" p={0} c="inherit" dangerouslySetInnerHTML={{ __html: link.icon }} />}
               label={
                 <Flex align="center" gap="xs">
                   <Text size="md" c="gray.7" component="span">

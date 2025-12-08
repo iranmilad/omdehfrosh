@@ -1,5 +1,64 @@
 import mongoose from "mongoose";
-import { number } from "yup";
+
+const AddressSchema = new mongoose.Schema({
+  addressId: {
+    type: String,
+    required: true,
+    default: () => new mongoose.Types.ObjectId().toString()
+  },
+  title: {
+    type: String,
+    required: [true, "Address title is required"],
+    trim: true,
+  },
+  // User information for this address
+  name: {
+    type: String,
+    required: [true, "Name is required"],
+    trim: true,
+  },
+  family: {
+    type: String,
+    required: [true, "Family name is required"],
+    trim: true,
+  },
+  mobile: {
+    type: String,
+    required: [true, "Mobile number is required"],
+    trim: true,
+  },
+  nationalCode: {
+    type: String,
+    required: [true, "National code is required"],
+    trim: true,
+  },
+  // Location information
+  province: {
+    type: String,
+    required: [true, "Province is required"],
+    trim: true,
+  },
+  city: {
+    type: String,
+    required: [true, "City is required"],
+    trim: true,
+  },
+  address: {
+    type: String,
+    required: [true, "Address is required"],
+    trim: true,
+  },
+  postalCode: {
+    type: String,
+    required: [true, "Postal code is required"],
+    match: [/^\d{10}$/, "Postal code must be 10 digits"],
+    trim: true,
+  },
+  isDefault: {
+    type: Boolean,
+    default: false,
+  },
+}, { _id: false });
 
 const UserAccountsSchema = new mongoose.Schema(
   {
@@ -47,10 +106,21 @@ const UserAccountsSchema = new mongoose.Schema(
       type: String,
       required: [false, "Country is required"],
       trim: true,
+      default: "ایران"
     },
+    // Social network for coordination
+    socialNetworkName: {
+      type: String,
+      trim: true,
+      default: "whatsapp"
+    },
+    socialNetworkMobile: {
+      type: String,
+      required: false,
+    },
+    // Deprecated fields - kept for backward compatibility
     province: {
       type: String,
-      required: [false, "Province is required"],
       trim: true,
     },
     city: {
@@ -59,22 +129,16 @@ const UserAccountsSchema = new mongoose.Schema(
     },
     address: {
       type: String,
-      required: [false, "Address is required"],
       trim: true,
     },
     postalCode: {
       type: String,
-      required: [false, "Postal code is required"],
-      match: [/^\d{10}$/, "Postal code must be 10 digits"],
       trim: true,
     },
-    socialNetworkName: {
-      type: String,
-      trim: true,
-    },
-    socialNetworkMobile: {
-      type: String,
-      trim: true,
+    // New addresses array
+    addresses: {
+      type: [AddressSchema],
+      default: [],
     },
     birthday: {
       type: String,

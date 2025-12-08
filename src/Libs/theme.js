@@ -21,17 +21,18 @@ const Theme = {
   colors: {
     brand: 
       [
-        "#f0f3fd", // very light bluish-lavender
-        "#e0e6fb", // soft pale periwinkle
-        "#c3c9f7", // light blue-violet
-        "#a6adf3", // medium periwinkle
-        "#8FA4E6", // soft cornflower blue accent
-        "#6A46D1", // core purple (kept)
-        "#4F79E4", // bright azure blue
-        "#3E68D4", // vivid royal blue
-        "#3256BA", // deep cobalt
-        "#2543A0"  // dark indigo-blue
+        "#e8f0fa", // very light icy blue
+        "#d2e0f3", // pale soft blue
+        "#b7cceb", // light calm blue
+        "#9bb7e2", // soft medium blue
+        "#7fa1d8", // balanced soft blue
+        "#5e87c8", // core cool blue
+        "#3f6db3", // deeper muted blue
+        "#255595", // rich dark blue
+        "#0f427a", // stronger navy-blue tone
+        "#093572"  // your target deep navy (#093572)
       ]
+
  
   },
   components: {

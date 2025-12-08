@@ -66,22 +66,30 @@ export const deleteFP = async (req, res) => {
   }
 };
 
+
 // Batch import FPs
 export const batchImportFPs = async (req, res) => {
   const fps = req.body.featuredproducts;
 
-
+  console.log("Importing FPs:", fps);
 
   try {
+    // Use bulkWrite to update existing or insert new
+    const operations = fps.map(fp => ({
+      updateOne: {
+        filter: { id: fp.id },
+        update: { $set: fp },
+        upsert: true  // Insert if doesn't exist, update if exists
+      }
+    }));
 
-    const result = await FP.insertMany(fps);
-
+    const result = await FP.bulkWrite(operations);
 
     res.status(201).json({
-      message: `${result.length} FPs imported successfully`,
-      fps: result
+      message: `${result.upsertedCount} FPs inserted, ${result.modifiedCount} updated`,
+      inserted: result.upsertedCount,
+      updated: result.modifiedCount
     });
-
 
   } catch (err) {
     console.error("Error importing FPs:", err);

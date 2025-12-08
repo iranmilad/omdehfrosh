@@ -1,3 +1,4 @@
+// backend\controllers\fastEditControllers.js
 import SingleProduct from "../models/SingleProduct.js";
 import jwt from "jsonwebtoken";
 import getUserFromToken from "../libs/verifyToken.js";

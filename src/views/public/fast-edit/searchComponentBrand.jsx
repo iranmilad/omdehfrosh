@@ -73,7 +73,7 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
   const [editingFilterName, setEditingFilterName] = useState('');
 
   // Menu control state
-  const [menuOpened, setMenuOpened] = useState(false);
+  // const [menuOpened, setMenuOpened] = useState(false);
 
   const [brands, setBrands] = useState({ parent: [], clickedBrands: [], categories: [] });
   
@@ -120,6 +120,9 @@ const SearchComponentBrand = ({ searchType, setSearchType, setAvailableLocations
   const [filterBrandsCategorySubCategoryStorage, setFilterBrandsCategorySubCategoryStorage] = useState(initialFilters.filterBrandsCategorySubCategoryStorage);
   
   const [localFilters, setLocalFilters] = useState(initialFilters.filters);
+
+
+  const [filterSettingsModalOpened, setFilterSettingsModalOpened] = useState(false);
 
   // filters in category mode
   const [filterCategoryStorage, setFilterCategoryStorage] = useState([]);
@@ -208,6 +211,7 @@ const buildInitialFilterArray = useCallback(() => {
     }
 
     setSelectedRow(filter.id);
+    setFilterSettingsModalOpened(false)
     setMenuOpened(false);
 
     // 🔥 MODIFIED: Send single filter as array with filters to API
@@ -738,89 +742,66 @@ useEffect(() => {
             align={isMobile ? "stretch" : "center"}
           >
             {/* Filter Settings Menu */}
-            {user && 
-            <Menu 
-              shadow="md" 
-              width={isMobile ? "90vw" : isTablet ? 350 : 400} 
-              position={isMobile ? "bottom" : "bottom-end"}
-              offset={isMobile ? 5 : 10}
-              opened={menuOpened}
-              onChange={setMenuOpened}
-            >
-              {/* <Menu.Target>
-                <Button 
-                  variant="light" 
-                  leftSection={!isMobile && <IconFilter size={16} />}
-                  size={isMobile ? "sm" : "md"}
-                  fullWidth={isMobile}
-                  compact={isMobile}
-                  styles={{
-                    root: {
-                      height: isMobile ? '32px' : '36px',
-                      fontSize: isMobile ? '11px' : '13px'
-                    }
-                  }}
-                >
-                  {isMobile ? "تنظیمات جستجو" : "تنظیمات جستجو"}
-                  {checkedRows.size > 0 && ` (${checkedRows.size})`}
-                </Button>
-              </Menu.Target> */}
+            {user && (
+              <Modal
+                opened={filterSettingsModalOpened}
+                onClose={() => setFilterSettingsModalOpened(false)}
+                title="فیلترهای ذخیره شده"
+                centered
+                size={isMobile ? "sm" : "md"}
+                padding={isMobile ? "sm" : "md"}
+              >
+                <Stack spacing="md">
+                  {/* Add New Filter Button */}
+                  <Button
+                    leftSection={<IconPlus size={16} />}
+                    onClick={() => {
+                      setFilterSettingsModalOpened(false);
+                      setOpenedAddModal(true);
+                    }}
+                    fullWidth
+                  >
+                    افزودن فیلتر جدید
+                  </Button>
 
-              <Menu.Dropdown>
-                <Menu.Label>فیلترهای ذخیره شده</Menu.Label>
-                
-                <Menu.Item
-                  leftSection={<IconPlus size={16} />}
-                  onClick={() => setOpenedAddModal(true)}
-                >
-                  افزودن فیلتر جدید
-                </Menu.Item>
+                  {/* Clear Selection Button */}
+                  {checkedRows.size > 0 && (
+                    <>
+                      <Divider />
+                      <Button 
+                        size="sm" 
+                        variant="subtle" 
+                        color="gray"
+                        onClick={clearSelectedFilters}
+                        fullWidth
+                        disabled={isEditMode}
+                      >
+                        پاک کردن انتخاب ({checkedRows.size})
+                      </Button>
+                    </>
+                  )}
 
-                {savedFilters && savedFilters.length > 0 && (
-                  <>
-                    <Menu.Divider />
-                    
-                    {checkedRows.size > 0 && (
-                      <>
-                        <Group p="xs" gap="xs" justify={isMobile ? "center" : "flex-start"}>
-                          <Button 
-                            size="xs" 
-                            variant="subtle" 
-                            color="gray"
-                            onClick={clearSelectedFilters}
-                            fullWidth={isMobile}
-                            disabled={isEditMode}
-                            style={{
-                              opacity: isEditMode ? 0.5 : 1
-                            }}
-                          >
-                            پاک کردن انتخاب
-                          </Button>
-                        </Group>
-                        <Menu.Divider />
-                      </>
-                    )}
-                    
+                  <Divider />
+
+                  {/* Filters List */}
+                  {savedFilters && savedFilters.length > 0 ? (
                     <Box style={{ 
-                      maxHeight: isMobile ? '250px' : '300px', 
+                      maxHeight: isMobile ? '300px' : '400px', 
                       overflowY: 'auto',
                       overflowX: 'hidden'
                     }}>
-                      {savedFilters.map((filter, index) => (
-                        <React.Fragment key={filter.id}>
-                          <Menu.Item>
+                      <Stack spacing="xs">
+                        {savedFilters.map((filter, index) => (
+                          <Paper key={filter.id} p="sm" withBorder>
                             <Group justify="space-between" w="100%" wrap="nowrap">
                               <Group gap="xs" flex={1} maw="calc(100% - 60px)">
                                 <Checkbox
                                   checked={isChecked(filter.id)}
                                   onChange={(event) => {
-                                    event.stopPropagation();
                                     if (isEditMode) return;
-                                    
                                     const isCurrentlyChecked = event.currentTarget.checked;
                                     handleFilterCheckboxChange(filter.id, isCurrentlyChecked);
                                   }}
-                                  onClick={(e) => e.stopPropagation()}
                                   size={isMobile ? "sm" : "md"}
                                   disabled={isEditMode}
                                   style={{
@@ -840,9 +821,7 @@ useEffect(() => {
                                     flex: 1,
                                     opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
                                   }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    
+                                  onClick={() => {
                                     if (isEditMode && editingFilterId !== filter.id) {
                                       notifications.show({
                                         title: 'در حال ویرایش',
@@ -853,40 +832,41 @@ useEffect(() => {
                                       return;
                                     }
 
-                                      const cookieValue = {
-                                        searchType: 'brand',
-                                        filters: filter.filters || {},
-                                        uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
-                                        uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
-                                        filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
-                                      };
+                                    const cookieValue = {
+                                      searchType: 'brand',
+                                      filters: filter.filters || {},
+                                      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+                                      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+                                      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+                                    };
 
-  Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-  
-  setFilterBrandStorage(filter.uniqueIDClickedBrands || []);
-  setFilterBrandsCategoryStorage(filter.uniqueIDClickedBrandsCategories || []);
-  setFilterBrandsCategorySubCategoryStorage(filter.filterBrandsCategorySubCategoryStorage || []);
-  setLocalFilters(filter.filters || {});
-  
-  if (setFilters) {
-    setFilters(filter.filters || {});
-  }
-  if (setSearchType) {
-    setSearchType('brand');
-  }
+                                    Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+                                    
+                                    setFilterBrandStorage(filter.uniqueIDClickedBrands || []);
+                                    setFilterBrandsCategoryStorage(filter.uniqueIDClickedBrandsCategories || []);
+                                    setFilterBrandsCategorySubCategoryStorage(filter.filterBrandsCategorySubCategoryStorage || []);
+                                    setLocalFilters(filter.filters || {});
+                                    
+                                    if (setFilters) {
+                                      setFilters(filter.filters || {});
+                                    }
+                                    if (setSearchType) {
+                                      setSearchType('brand');
+                                    }
 
-  setSelectedRow(filter.id);
+                                    setSelectedRow(filter.id);
 
-  // 🔥 MODIFIED: Send filter as array with filters to API
-  const filterArray = [{
-    searchType: 'brand',
-    uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
-    uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
-    filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
-    filters: filter.filters || {} // Include the filter's filters
-  }];
-  dispatch(fetchFastEditBrandModeTableData(filterArray));
-}}
+                                    const filterArray = [{
+                                      searchType: 'brand',
+                                      uniqueIDClickedBrands: filter.uniqueIDClickedBrands || [],
+                                      uniqueIDClickedBrandsCategories: filter.uniqueIDClickedBrandsCategories || [],
+                                      filterBrandsCategorySubCategoryStorage: filter.filterBrandsCategorySubCategoryStorage || [],
+                                      filters: filter.filters || {}
+                                    }];
+                                    dispatch(fetchFastEditBrandModeTableData(filterArray));
+                                    
+                                    setFilterSettingsModalOpened(false);
+                                  }}
                                   title={filter.filterName || 'بدون نام'}
                                 >
                                   {filter.filterName || 'بدون نام'}
@@ -901,6 +881,7 @@ useEffect(() => {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleEditFilter(filter);
+                                    setFilterSettingsModalOpened(false);
                                   }}
                                   title="ویرایش"
                                   disabled={isEditMode && editingFilterId !== filter.id}
@@ -932,48 +913,19 @@ useEffect(() => {
                                 </ActionIcon>
                               </Group>
                             </Group>
-                          </Menu.Item>
-                          {index < savedFilters.length - 1 && <Menu.Divider />}
-                        </React.Fragment>
-                      ))}
+                          </Paper>
+                        ))}
+                      </Stack>
                     </Box>
-                  </>
-                )}
-
-                {(!savedFilters || savedFilters.length === 0) && (
-                  <>
-                    <Menu.Divider />
-                    <Menu.Item disabled>
-                      <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
-                        فیلتری ذخیره نشده است
-                      </Text>
-                    </Menu.Item>
-                  </>
-                )}
-                              {(!savedFilters || savedFilters.length === 0) && (
-                  <>
-                    <Menu.Divider />
-                    <Menu.Item disabled>
-                      <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
-                        فیلتری ذخیره نشده است
-                      </Text>
-                    </Menu.Item>
-                  </>
-                )}
-
-                {/* --- Bottom Close Button --- */}
-                <Menu.Divider />
-                <Box p="xs">
-                  <Button
-                    fullWidth
-                    onClick={() => setMenuOpened(false)}
-                  >
-                    بستن
-                  </Button>
-                </Box>
-              </Menu.Dropdown>
-            </Menu>
-            }
+                  ) : (
+                    <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
+                      فیلتری ذخیره نشده است
+                    </Text>
+                  )}
+                </Stack>
+              </Modal>
+            )}
+            
 
             <ShareModal 
               filters={updateFiltersAndStore().thisFilter} 
@@ -1028,43 +980,41 @@ useEffect(() => {
           <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
             {/* Tab 1 - Takes 1/3 of space */}
             <Tabs.Tab value="brand" style={{ flex: '1 1 0', minWidth: 0 }}>
-              {isMobile ? "برند" : "جستجو بر اساس برند"}
+              {isMobile ? "برند" : "برند"}
             </Tabs.Tab>
             
             {/* Tab 2 - Takes 1/3 of space */}
             <Tabs.Tab value="category" style={{ flex: '1 1 0', minWidth: 0 }}>
-              {isMobile ? "دسته‌بندی" : "جستجو بر اساس دسته بندی"}
+              {isMobile ? "دسته‌بندی" : "دسته‌بندی"}
             </Tabs.Tab>
 
             {/* Filter Button - Takes 1/3 of space */}
-            <Button
-              variant="light"
-              size={isMobile ? "sm" : "md"}
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpened(!menuOpened);
-              }}
-              styles={{
-                root: {
-                  height: isMobile ? '32px' : '36px',
-                  padding: isMobile ? '8px 12px' : '10px 16px',
-                  fontSize: isMobile ? '11px' : '13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  flex: '1 1 0',  // Takes equal space with tabs
-                  minWidth: 0,
-                  border: '1px solid #d0d0d0',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    borderColor: '#a0a0a0'
-                  }
-                },
-              }}
-            >
-              <IconFilter size={16} />
-            </Button>
+          <Button
+            variant="light"
+            // leftSection={<IconFilter size={16} />}
+            size={isMobile ? "sm" : "md"}
+            onClick={() => setFilterSettingsModalOpened(true)}
+            styles={{
+              root: {
+                height: isMobile ? '32px' : '36px',
+                padding: isMobile ? '8px 12px' : '10px 16px',
+                fontSize: isMobile ? '11px' : '13px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                flex: '1 1 0',
+                minWidth: 0,
+                border: '1px solid #d0d0d0',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  borderColor: '#a0a0a0'
+                }
+              },
+            }}
+          >
+            <IconFilter size={16} />
+          </Button>
           </Tabs.List>
           
           <Tabs.Panel value="brand">

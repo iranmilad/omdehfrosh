@@ -2,20 +2,31 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router";
 import {
-  Loader,
-  Text,
-  Paper,
-  Stack,
-  Button,
-  Grid,
-  Flex,
   Container,
-  Badge,
-  Group,
+  Paper,
   Title,
+  Text,
+  Button,
+  Loader,
+  Stack,
+  Group,
+  Flex,
+  Badge,
+  Grid,
   Alert,
+  Divider,
+  Box,
 } from "@mantine/core";
-import { IconCheck, IconX, IconClock, IconPackage, IconUser, IconCreditCard, IconInfoCircle, IconArrowRight } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconX,
+  IconClock,
+  IconPackage,
+  IconUser,
+  IconCreditCard,
+  IconInfoCircle,
+  IconArrowRight,
+} from "@tabler/icons-react";
 import { verifyPayment } from "../../../redux/payment/verifypayment/verifyPaymentActions";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 
@@ -55,7 +66,7 @@ const PaymentStatusCheck = () => {
   const getPaymentStatusInfo = useCallback((isPaid) => {
     switch (isPaid) {
       case "paid":
-        return { color: "green", text: "پرداخت شده", icon: IconCheck };
+        return { color: "teal", text: "پرداخت شده", icon: IconCheck };
       case "prepaid":
         return { color: "orange", text: "مبلغ اولیه پرداخت شده", icon: IconClock };
       case "selfprepaid":
@@ -76,7 +87,7 @@ const PaymentStatusCheck = () => {
       case "shipped":
         return { color: "cyan", text: "ارسال شده" };
       case "delivered":
-        return { color: "green", text: "تحویل داده شده" };
+        return { color: "teal", text: "تحویل داده شده" };
       case "cancelled":
         return { color: "red", text: "لغو شده" };
       case "basket":
@@ -100,7 +111,6 @@ const PaymentStatusCheck = () => {
         setWebhookProcessing(true);
         
         try {
-
           const response = await fetch(getApiUrl("/payment/paymentwebhook"), {
             method: "POST",
             headers: {
@@ -253,9 +263,9 @@ const PaymentStatusCheck = () => {
   if (loading || webhookProcessing) {
     return (
       <Flex justify="center" align="center" h="60vh">
-        <Stack align="center" spacing="md">
-          <Loader variant="dots" size="lg" />
-          <Text size="md" c="gray">
+        <Stack align="center" gap="md">
+          <Loader size="lg" />
+          <Text size="sm" c="dimmed">
             {webhookProcessing ? "در حال پردازش پرداخت..." : "در حال بارگذاری اطلاعات سفارش..."}
           </Text>
         </Stack>
@@ -267,15 +277,15 @@ const PaymentStatusCheck = () => {
   if (error || webhookError) {
     return (
       <Container size="sm" mt="xl">
-        <Paper p="xl" radius="md" shadow="md" withBorder bg="red.0">
-          <Stack align="center" spacing="lg">
-            <IconX size={48} color="red" />
+        <Paper bg="red.0">
+          <Stack align="center" gap="lg">
+            <IconX size={48} color="var(--mantine-color-red-6)" />
             <Text size="lg" c="red" fw={500} ta="center">
               {webhookError || error}
             </Text>
             <Button 
               variant="light" 
-              color="blue"
+              color="brand"
               onClick={() => navigate("/account/orders")}
             >
               بازگشت به سفارش‌ها
@@ -290,15 +300,15 @@ const PaymentStatusCheck = () => {
   if (!paymentStatus?.order) {
     return (
       <Container size="sm" mt="xl">
-        <Paper p="xl" radius="md" shadow="md" withBorder bg="gray.0">
-          <Stack align="center" spacing="lg">
-            <IconClock size={48} color="gray" />
+        <Paper bg="gray.0">
+          <Stack align="center" gap="lg">
+            <IconClock size={48} color="var(--mantine-color-gray-6)" />
             <Text size="lg" c="gray" fw={500} ta="center">
               اطلاعات سفارش در دسترس نیست
             </Text>
             <Button 
               variant="light" 
-              color="blue"
+              color="brand"
               onClick={() => navigate("/account/orders")}
             >
               بازگشت به سفارش‌ها
@@ -311,81 +321,89 @@ const PaymentStatusCheck = () => {
 
   return (
     <Container size="md" mt="xl">
-      <Stack spacing="xl">
+      <Stack gap="lg">
         {/* Success/failure message from external gateway */}
         {completePaymentData && (
           <Alert
-            color={completePaymentData.status === 'OK' ? 'green' : 'red'}
+            color={completePaymentData.status === 'OK' ? 'teal' : 'red'}
             title={completePaymentData.status === 'OK' ? 'پرداخت موفق' : 'پرداخت ناموفق'}
-            icon={completePaymentData.status === 'OK' ? <IconCheck /> : <IconX />}
-            variant="filled"
+            icon={completePaymentData.status === 'OK' ? <IconCheck size={20} /> : <IconX size={20} />}
+            variant="light"
           >
-            {completePaymentData.status === 'OK' 
-              ? 'پرداخت شما با موفقیت در درگاه خارجی انجام شد و در حال پردازش است.' 
-              : 'پرداخت شما در درگاه خارجی ناموفق بود. می‌توانید دوباره تلاش کنید.'
-            }
-            {completePaymentData.body?.transaction_id && (
-              <Text size="sm" mt="xs">
-                شماره تراکنش: {completePaymentData.body.transaction_id}
+            <Stack gap="xs">
+              <Text size="sm">
+                {completePaymentData.status === 'OK' 
+                  ? 'پرداخت شما با موفقیت در درگاه خارجی انجام شد و در حال پردازش است.' 
+                  : 'پرداخت شما در درگاه خارجی ناموفق بود. می‌توانید دوباره تلاش کنید.'
+                }
               </Text>
-            )}
+              {completePaymentData.body?.transaction_id && (
+                <Text size="xs" c="dimmed">
+                  شماره تراکنش: {completePaymentData.body.transaction_id}
+                </Text>
+              )}
+            </Stack>
           </Alert>
         )}
 
-
-
         {/* Main Order Header */}
-        <Paper p="xl" radius="md" shadow="md" withBorder bg="gray.0">
-          <Stack spacing="lg" align="center">
-            <Title order={2} ta="center">
+        <Paper bg="gray.0">
+          <Stack gap="md" align="center">
+            <Title order={2} ta="center" size="h3">
               وضعیت سفارش
             </Title>
 
-            <Flex align="center" gap="md">
-              <StatusIcon size={32} color={overallStatusInfo.color} />
+            <Flex align="center" gap="sm">
+              <StatusIcon size={32} color={`var(--mantine-color-${overallStatusInfo.color}-6)`} />
               <Text size="xl" c={overallStatusInfo.color} fw={600}>
                 {overallStatusInfo.text}
               </Text>
             </Flex>
 
             {mainOrder && (
-              <Stack spacing="sm" w="100%">
-                <Group position="apart">
-                  <Text size="lg" c="blue" fw={500}>
+              <Stack gap="xs" w="100%">
+                <Flex justify="space-between" align="center">
+                  <Text size="lg" c="brand" fw={500}>
                     شماره سفارش: {mainOrder.id}
                   </Text>
-                  <Badge 
-                    color={getOrderStatusInfo(mainOrder.status).color}
-                    variant="light"
-                    size="lg"
-                  >
-                    {getOrderStatusInfo(mainOrder.status).text}
-                  </Badge>
-                </Group>
+                  <div style={{ marginTop: 8 }}>
+                    <Badge 
+                      color={getOrderStatusInfo(mainOrder.status).color}
+                      variant="light"
+                      size="lg"
+                      w="fit-content"
+                      style={{ whiteSpace: "nowrap" }}
+                    >
+                      {getOrderStatusInfo(mainOrder.status).text}
+                    </Badge>
+                  </div>
+                </Flex>
 
-                <Group position="apart">
-                  <Text size="md" c="gray.7">
+                <Divider my="xs" />
+
+                <Flex justify="space-between">
+                  <Text size="sm" c="dimmed">
                     مشتری: {mainOrder.customer_name}
                   </Text>
-                  <Text size="md" c="gray.7">
+                  <Text size="sm" c="dimmed">
                     مبلغ کل: {mainOrder.total_price?.toLocaleString()} تومان
                   </Text>
-                </Group>
+                </Flex>
 
-                <Group position="apart">
-                  <Text size="sm" c="gray.6">
+                <Flex justify="space-between">
+                  <Text size="xs" c="dimmed">
                     تلفن: {mainOrder.customer_phone_number}
                   </Text>
-                  <Text size="sm" c="gray.6">
+                  <Text size="xs" c="dimmed">
                     نوع تحویل: {mainOrder.delivery_type === "store_delivery" ? "تحویل از فروشگاه" : "ارسال پستی"}
                   </Text>
-                </Group>
+                </Flex>
               </Stack>
             )}
 
             {/* Payment Comment */}
             {mainOrder?.paymentComment && (
-              <Paper withBorder radius="md" p="md" bg="blue.0" w="100%">
+              <Paper w="100%" bg="blue.0" withBorder>
                 <Text size="sm" c="blue.8" ta="center">
                   پیام پرداخت: {mainOrder.paymentComment}
                 </Text>
@@ -395,8 +413,8 @@ const PaymentStatusCheck = () => {
         </Paper>
 
         {/* Order Items */}
-        <Stack spacing="md">
-          <Title order={3} c="gray.7">
+        <Stack gap="md">
+          <Title order={3} c="dimmed" size="h4">
             آیتم‌های سفارش ({orderItems.length} مورد)
           </Title>
 
@@ -408,29 +426,29 @@ const PaymentStatusCheck = () => {
             return (
               <Paper
                 key={`${item.id}-${index}`}
-                p="lg"
-                radius="md"
-                shadow="sm"
+                bg={item.isPaid === "paid" ? "teal.0" : item.isPaid === "unpaid" ? "red.0" : "orange.0"}
                 withBorder
-                bg={item.isPaid === "paid" ? "green.0" : item.isPaid === "unpaid" ? "red.0" : "orange.0"}
               >
-                <Stack spacing="md">
+                <Stack gap="sm">
                   <Flex justify="space-between" align="flex-start">
-                    <Group spacing="xs">
-                      <IconPackage size={20} color="gray" />
+                    <Group gap="xs">
+                      <IconPackage size={20} color="var(--mantine-color-gray-6)" />
                     </Group>
-                    <Group spacing="sm">
+                    <Group gap="xs">
                       <Badge 
                         color={orderStatusInfo.color}
                         variant="light"
+                        w="fit-content"
+                        style={{ whiteSpace: "nowrap" }}
                       >
                         {orderStatusInfo.text}
                       </Badge>
                       {item.isPaid !== "paid" && (
                         <Button
                           size="xs"
-                          color={item.isPaid === "unpaid" ? "blue" : "orange"}
+                          color={item.isPaid === "unpaid" ? "brand" : "orange"}
                           onClick={() => navigateToPayment(item.supplier_id, item.paymentMethod?.paymentMethod || "online")}
+                          style={{ whiteSpace: "nowrap" }}
                         >
                           {item.isPaid === "unpaid" ? "پرداخت" : "تکمیل پرداخت"}
                         </Button>
@@ -438,40 +456,40 @@ const PaymentStatusCheck = () => {
                     </Group>
                   </Flex>
 
-                  <Flex align="center" gap="sm">
-                    <ItemStatusIcon size={20} color={itemStatusInfo.color} />
-                    <Text c={itemStatusInfo.color} fw={500}>
+                  <Flex align="center" gap="xs">
+                    <ItemStatusIcon size={20} color={`var(--mantine-color-${itemStatusInfo.color}-6)`} />
+                    <Text c={itemStatusInfo.color} fw={500} size="sm">
                       {itemStatusInfo.text}
                     </Text>
                   </Flex>
 
                   <Grid>
                     <Grid.Col span={6}>
-                      <Stack spacing="xs">
-                        <Group spacing="xs">
-                          <IconUser size={16} color="gray" />
-                          <Text size="sm" c="gray.7">
+                      <Stack gap="xs">
+                        <Group gap="xs">
+                          <IconUser size={16} color="var(--mantine-color-gray-6)" />
+                          <Text size="xs" c="dimmed">
                             تامین‌کننده: {item.supplier_id}
                           </Text>
                         </Group>
-                        <Text size="sm" c="gray.7">
+                        <Text size="xs" c="dimmed">
                           تعداد: {item.quantity}
                         </Text>
-                        <Text size="sm" c="gray.7">
+                        <Text size="xs" c="dimmed">
                           قیمت واحد: {item.price?.toLocaleString()} تومان
                         </Text>
                       </Stack>
                     </Grid.Col>
                     <Grid.Col span={6}>
-                      <Stack spacing="xs">
-                        <Text size="sm" c="gray.7">
+                      <Stack gap="xs">
+                        <Text size="xs" c="dimmed">
                           تخفیف: {item.discount_price?.toLocaleString()} تومان
                         </Text>
-                        <Text size="lg" c="blue.8" fw={600}>
+                        <Text size="md" c="brand.8" fw={600}>
                           مبلغ کل: {item.totalPrice?.toLocaleString()} تومان
                         </Text>
                         {item.vatRequested && (
-                          <Badge color="green" variant="light" size="sm">
+                          <Badge color="teal" variant="light" size="sm" w="fit-content" style={{ whiteSpace: "nowrap" }}>
                             فاکتور درخواست شده
                           </Badge>
                         )}
@@ -480,41 +498,39 @@ const PaymentStatusCheck = () => {
                   </Grid>
 
                   {item.paymentMethod && (
-                    <Group spacing="xs">
-                      <IconCreditCard size={16} color="gray" />
-                      <Text size="sm" c="gray.7">
+                    <Group gap="xs">
+                      <IconCreditCard size={16} color="var(--mantine-color-gray-6)" />
+                      <Text size="xs" c="dimmed">
                         روش پرداخت: {item.paymentMethod.name === "melli" ? "بانک ملی" : item.paymentMethod.name}
                       </Text>
-                      <Badge variant="outline" size="sm">
+                      <Badge variant="outline" size="sm" w="fit-content" style={{ whiteSpace: "nowrap" }}>
                         {item.paymentMethod.paymentMethod === "online" ? "آنلاین" : "نقدی"}
                       </Badge>
                     </Group>
                   )}
 
                   {item.product_id && item.product_id.length > 0 && (
-                    <Paper p="sm" bg="gray.1" radius="sm">
-                      <Text size="xs" c="gray.6" mb="xs">محصولات:</Text>
-                      {item.product_id.map((product, prodIndex) => (
-                        <Group key={`${product.id}-${prodIndex}`} spacing="xs">
-                          <Text size="xs" c="gray.7">
+                    <Paper bg="gray.1" withBorder={false}>
+                      <Text size="xs" c="dimmed" mb="xs">محصولات:</Text>
+                      <Stack gap={4}>
+                        {item.product_id.map((product, prodIndex) => (
+                          <Text key={`${product.id}-${prodIndex}`} size="xs" c="dimmed">
                             کد محصول: {product.id}
                           </Text>
-                        </Group>
-                      ))}
+                        ))}
+                      </Stack>
                     </Paper>
                   )}
 
                   {item.vatLink && (
-                    <Group spacing="xs">
-                      <Text size="xs" c="blue.6">
-                        لینک فاکتور: {item.vatLink}
-                      </Text>
-                    </Group>
+                    <Text size="xs" c="brand.6">
+                      لینک فاکتور: {item.vatLink}
+                    </Text>
                   )}
 
                   {item.paymentComment && (
-                    <Paper p="sm" bg="blue.0" radius="sm">
-                      <Text size="sm" c="blue.8">
+                    <Paper bg="blue.0" withBorder={false}>
+                      <Text size="xs" c="blue.8">
                         پیام: {item.paymentComment}
                       </Text>
                     </Paper>
@@ -526,13 +542,13 @@ const PaymentStatusCheck = () => {
         </Stack>
 
         {/* Action Buttons */}
-        <Paper p="lg" radius="md" withBorder>
-          <Stack spacing="md">
+        <Paper>
+          <Stack gap="md">
             {(overallPaymentStatus === "prepaid" || overallPaymentStatus === "unpaid") && (
               <Button
                 fullWidth
                 size="lg"
-                color={overallPaymentStatus === "unpaid" ? "blue" : "orange"}
+                color={overallPaymentStatus === "unpaid" ? "brand" : "orange"}
                 onClick={() => navigateToPayment(null, "online")}
               >
                 {overallPaymentStatus === "unpaid" ? "پرداخت" : "تکمیل پرداخت"}
@@ -540,7 +556,7 @@ const PaymentStatusCheck = () => {
             )}
 
             {overallPaymentStatus === "paid" && (
-              <Text ta="center" c="green" size="lg" fw={500}>
+              <Text ta="center" c="teal" size="lg" fw={500}>
                 پرداخت با موفقیت کامل شد
               </Text>
             )}
@@ -555,7 +571,6 @@ const PaymentStatusCheck = () => {
               fullWidth
               variant="light"
               color="gray"
-              size="md"
               onClick={() => navigate("/account/orders")}
             >
               بازگشت به سفارش‌ها
@@ -565,22 +580,22 @@ const PaymentStatusCheck = () => {
 
         {/* Related Orders Section */}
         {filteredRelatedOrders.length > 0 && (
-          <Paper p="lg" radius="md" shadow="sm" withBorder mt="xl">
-            <Stack spacing="md">
-              <Group spacing="xs">
-                <IconInfoCircle size={20} color="blue" />
-                <Title order={4} c="blue">
+          <Paper mt="md">
+            <Stack gap="md">
+              <Group gap="xs">
+                <IconInfoCircle size={20} color="var(--mantine-color-brand-6)" />
+                <Title order={4} c="brand" size="h5">
                   سفارش‌های مرتبط ({filteredRelatedOrders.length} مورد)
                 </Title>
               </Group>
               
-              <Alert color="blue" variant="light">
+              <Alert color="brand" variant="light">
                 <Text size="sm">
                   این سفارش‌های مرتبط نیز برای حساب شما ثبت شده‌اند. برای مشاهده جزئیات هر سفارش روی آن کلیک کنید.
                 </Text>
               </Alert>
 
-              <Stack spacing="sm">
+              <Stack gap="xs">
                 {filteredRelatedOrders.map((relatedOrder) => {
                   const relatedStatusInfo = getOrderStatusInfo(relatedOrder.status);
                   const needsPayment = relatedOrder.status === "pending" || relatedOrder.status === "rejected";
@@ -588,23 +603,23 @@ const PaymentStatusCheck = () => {
                   return (
                     <Paper
                       key={relatedOrder.id}
-                      p="md"
-                      radius="sm"
-                      withBorder
                       bg={needsPayment ? "yellow.0" : "gray.0"}
                       style={{ cursor: "pointer" }}
                       onClick={() => navigateToRelatedOrder(relatedOrder.id)}
+                      withBorder
                     >
-                      <Group position="apart" align="center">
-                        <Stack spacing="xs" style={{ flex: 1 }}>
-                          <Group spacing="sm">
-                            <Text size="sm" fw={500} c="blue.8">
+                      <Flex justify="space-between" align="center">
+                        <Stack gap={4} style={{ flex: 1 }}>
+                          <Group gap="xs">
+                            <Text size="sm" fw={500} c="brand.8">
                               شماره سفارش: {relatedOrder.id}
                             </Text>
                             <Badge 
                               color={relatedStatusInfo.color}
                               variant="light"
                               size="sm"
+                              w="fit-content"
+                              style={{ whiteSpace: "nowrap" }}
                             >
                               {relatedStatusInfo.text}
                             </Badge>
@@ -620,12 +635,11 @@ const PaymentStatusCheck = () => {
                           )}
                         </Stack>
 
-                        <Group spacing="sm">
+                        <Group gap="xs">
                           {needsPayment && (
                             <Button
                               size="xs"
-                              color={relatedOrder.status === "pending" ? "blue" : "orange"}
-                              variant="filled"
+                              color={relatedOrder.status === "pending" ? "brand" : "orange"}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigateToRelatedOrder(relatedOrder.id);
@@ -634,9 +648,9 @@ const PaymentStatusCheck = () => {
                               پرداخت
                             </Button>
                           )}
-                          <IconArrowRight size={16} color="gray" />
+                          <IconArrowRight size={16} color="var(--mantine-color-gray-6)" />
                         </Group>
-                      </Group>
+                      </Flex>
                     </Paper>
                   );
                 })}

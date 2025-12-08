@@ -1,3 +1,4 @@
+// backend/models/SingleProduct.js
 import mongoose from "mongoose";
 
 const PriceHistorySchema = new mongoose.Schema({
@@ -21,6 +22,7 @@ const OptionSchema = new mongoose.Schema({
     children: [OptionChildSchema]
 });
 
+
 const SupplierSchema = new mongoose.Schema({
     id: { type: Number, required: true },
     name: { type: String, required: true },
@@ -36,6 +38,11 @@ const SupplierSchema = new mongoose.Schema({
         regularPrice: { type: Number, required: true },
         discountedPrice: { type: Number, required: true },
         discountPercent: { type: Number, default: null },
+        foreignCurrencyPrice: { type: Number, default: 0 },
+        secondaryCost: { type: Number, default: 0 },
+        percentagePrice1: { type: Number, default: 0 }, // ⭐ قیمت درصدی 1 (قیمت عادی)
+        percentagePrice2: { type: Number, default: 0 }, // ⭐ قیمت درصدی 2 (قیمت تخفیف خورده)
+        percentagePrice3: { type: Number, default: 0 }, // ⭐ قیمت درصدی 3 (قیمت ویژه تولید کننده)
         ICPrice: [
             {
                 ICID: { type: String, required: true },
@@ -96,7 +103,5 @@ const SingleProductSchema = new mongoose.Schema({
     combinations: [CombinationSchema]
 });
 
-
 const SingleProduct = mongoose.model("SingleProduct", SingleProductSchema);
 export default SingleProduct;
-

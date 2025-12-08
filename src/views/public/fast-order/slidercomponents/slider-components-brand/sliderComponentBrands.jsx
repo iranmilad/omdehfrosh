@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { FreeMode } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useBrandRowSelection } from '../../BrandRowSelectionContext';
@@ -28,7 +29,10 @@ const SliderComponentBrands = ({
 }) => {
 
   const { checkedRows } = useBrandRowSelection();
+  const navigate = useNavigate();
   const isSlideSelectionActive = checkedRows.size > 0;
+
+  console.log("SliderComponentBrands rendered with items:", items);
 
   const handleSelectAll = () => {
     if (clickType === "brands") {
@@ -40,6 +44,7 @@ const SliderComponentBrands = ({
         setFilterBrandStorage([]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
+        navigate('/fastorder/brand');
       } else {
         // Select all brands and clear category filters
         setFilterBrandStorage(allBrandIds);
@@ -56,10 +61,9 @@ const SliderComponentBrands = ({
     <Swiper 
       modules={[FreeMode]} 
       slidesPerView="auto" 
-      spaceBetween={6}            // ✅ Gap between boxes
+      spaceBetween={6}
       style={{ width: "100%" }}
     >
-
       {/* Brand items */}
       {items?.map((item) => (
         <SwiperSlide 
@@ -77,7 +81,8 @@ const SliderComponentBrands = ({
             setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
             filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
             setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-            isDisabled={isSlideSelectionActive} 
+            isDisabled={isSlideSelectionActive}
+            navigate={navigate}
           />
         </SwiperSlide>
       ))}
@@ -85,7 +90,7 @@ const SliderComponentBrands = ({
       {/* Select All Button */}
       <SwiperSlide style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}>
         <button
-          className={`flex h-[35px] px-4 gap-2 justify-center items-center border-2 
+          className={`flex h-[35px] px-3 gap-2 justify-center items-center border-2 
             ${allSelected ? "border-green-400 bg-green-50" : "border-none bg-gray-100"} 
             ${isSlideSelectionActive ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           style={{ borderRadius: '18px' }}
@@ -94,12 +99,11 @@ const SliderComponentBrands = ({
           }}
           disabled={isSlideSelectionActive}
         >
-          <span className="text-[9px] font-medium whitespace-nowrap">
+          <span className="text-xs leading-none font-medium whitespace-nowrap">
             انتخاب همه
           </span>
         </button>
       </SwiperSlide>
-
     </Swiper>
   );
 };
@@ -117,7 +121,8 @@ export function SingleCategory1({
   tab, 
   badge, 
   categories,
-  isDisabled
+  isDisabled,
+  navigate
 }) {
   const isActive = filterBrandStorage.includes(item.idBrand);
 
@@ -125,30 +130,28 @@ export function SingleCategory1({
     if (isDisabled) return;
     if (clickType === "brands") {
       if (isActive) {
-        // Deselecting current brand - clear all filters
+        // Deselecting current brand - clear all filters and go back to base
         setFilterBrandStorage([]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
+        navigate('/fastorder/brand');
       } else {
-        // Selecting new brand - set only this brand and clear category filters
+        // Selecting new brand - set only this brand, clear category filters, and update URL
         setFilterBrandStorage([item.idBrand]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
+        navigate(`/fastorder/brand/${item.name}`);
       }
     }
   };
 
-  // Helper function to get brand image source with fallback
   const getBrandImageSrc = (image) => {
-    // Check if image exists and is not empty
     if (image && image.trim() !== '') {
       return image;
     }
-    // Return default placeholder
     return DEFAULT_BRAND_IMAGE;
   };
 
-  // Handle image error by setting default placeholder
   const handleImageError = (e) => {
     e.target.src = DEFAULT_BRAND_IMAGE;
   };
@@ -163,11 +166,11 @@ export function SingleCategory1({
             onClick={onClick}
           >
             <div
-              className={`flex w-fit h-[35px] px-4 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100
-                ${!isDisabled && isActive ? "border-red-600" : "border-none"}`}
+              className={`flex w-fit h-[35px] px-3 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100
+                ${!isDisabled && isActive ? "border-gray-400" : "border-none"}`}
               style={{ borderRadius: '18px' }}
             >
-              <div className='w-full h-[25px] bg-white rounded-full'>
+              <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
                 <img  
                   className="w-full h-full object-cover"
                   src={getBrandImageSrc(item.image)}
@@ -175,7 +178,7 @@ export function SingleCategory1({
                   onError={handleImageError}
                 />
               </div>
-              <span className="text-center whitespace-nowrap text-[9px] w-full">
+              <span className="text-xs leading-none whitespace-nowrap">
                 {item.title}
               </span>
             </div>

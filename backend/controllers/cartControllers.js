@@ -381,8 +381,12 @@ export const getCart = async (req, res) => {
 
     const cartItems = [];
     let totalAmount = 0;
+    const orderIds = []; // NEW: Collect all order IDs
 
     for (const basketOrder of basketOrders) {
+      // NEW: Add order ID to the list
+      orderIds.push(basketOrder.id);
+
       // Get all order items for this basket - each item is now a unique product+combination
       const orderItems = await OrderItemJ2B.find({ order_id: basketOrder.id });
 
@@ -435,8 +439,9 @@ export const getCart = async (req, res) => {
           count: orderItem.quantity,
           max: supplier.maxOrder,
           min: supplier.minOrder,
-          stock: supplier.stock, // Added stock field at the same level as max/min
-          attributes: Object.keys(attributes).length > 0 ? [attributes] : []
+          stock: supplier.stock,
+          attributes: Object.keys(attributes).length > 0 ? [attributes] : [],
+          orderId: basketOrder.id // NEW: Add order ID to each cart item
         };
 
         cartItems.push(cartItem);
@@ -449,7 +454,13 @@ export const getCart = async (req, res) => {
     return res.json({
       message: "ok",
       cart: cartItems,
-      total: totalAmount
+      total: totalAmount,
+      orderIds: orderIds, // NEW: Return all order IDs
+      orders: basketOrders.map(order => ({ // NEW: Return order details
+        id: order.id,
+        supplier_id: order.supplier_id,
+        total_price: order.total_price
+      }))
     });
 
   } catch (error) {
@@ -730,6 +741,7 @@ export const removeFromCart = async (req, res) => {
     });
   }
 };
+
 export const updateCart = async (req, res) => {
   try {
     // Handle token validation properly
@@ -748,6 +760,8 @@ export const updateCart = async (req, res) => {
     const userIdNum = Number(user_id);
 
     const { productId, combinationsID, seller, count } = req.body;
+
+    console.log('Update Cart called with:', { user_id, productId, combinationsID, seller, count });
 
     if (!user_id || !productId || !combinationsID || !seller?.id || !count) {
       return res.status(400).json({

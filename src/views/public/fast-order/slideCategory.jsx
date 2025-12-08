@@ -106,7 +106,7 @@ function SlideCategory({
           );
           case "brand":
             return (
-              <div>
+              <>
               {/* brands slider */}
               <div>
                 <SliderComponentBrands 
@@ -152,7 +152,7 @@ function SlideCategory({
                     setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
                   />
                 </div>
-              </div>
+              </>
           );
           default: return null;
         }

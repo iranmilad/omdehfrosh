@@ -1,7 +1,19 @@
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-const SliderComponentSubCategoriesCM = ({ 
+// SVG icon created using data URL - Subcategory placeholder with folder icon
+const DEFAULT_SUBCATEGORY_PLACEHOLDER = 'data:image/svg+xml;base64,' + btoa(`
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="20" cy="20" r="20" fill="#F3F4F6"/>
+  <path d="M11 14h6l2 2h10v12H11V14z" fill="#D1D5DB" stroke="#9CA3AF" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M11 18h18v10H11V18z" fill="#E5E7EB"/>
+  <circle cx="16" cy="22" r="1" fill="#9CA3AF"/>
+  <circle cx="20" cy="22" r="1" fill="#9CA3AF"/>
+  <circle cx="24" cy="22" r="1" fill="#9CA3AF"/>
+</svg>
+`);
+
+const SliderComponentSubCategoriesCMFastEdit = ({ 
   items,
   clickType,
   searchType,
@@ -18,8 +30,8 @@ const SliderComponentSubCategoriesCM = ({
       modules={[FreeMode, Navigation]}       
       freeMode={true} 
       slidesPerView="auto" 
-      spaceBetween={6}              // Added gap between slides for spacing
-      className="mt-2"              // Added margin-top for some spacing above
+      spaceBetween={6}
+      className="mt-2"
       style={{ width: "100%" }}
     >
       {items?.map((item, index) => (
@@ -44,25 +56,6 @@ const SliderComponentSubCategoriesCM = ({
     </Swiper>
   );
 };
-
-// Enhanced SVG Icon Component for fallback
-const SubCategoryIcon = () => (
-  <svg 
-    width="25" 
-    height="25" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-[25px] h-[25px]"
-  >
-    <rect x="3" y="3" width="18" height="18" rx="2" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
-    <circle cx="8" cy="8" r="2" fill="#9CA3AF"/>
-    <circle cx="16" cy="8" r="2" fill="#9CA3AF"/>
-    <circle cx="8" cy="16" r="2" fill="#9CA3AF"/>
-    <circle cx="16" cy="16" r="2" fill="#9CA3AF"/>
-    <path d="M8 10 L8 14 M10 8 L14 8 M10 16 L14 16 M16 10 L16 14" stroke="#6B7280" strokeWidth="1"/>
-  </svg>
-);
 
 export function SingleCategoryWithSubcategories({ 
   parentItem, 
@@ -132,17 +125,18 @@ export function SingleCategoryWithSubcategories({
     return false;
   };
 
-  // Enhanced image error handler
+  // Helper function to get image source with fallback for subcategories
+  const getSubcategoryImageSrc = (image) => {
+    if (isValidImage(image)) {
+      return image;
+    }
+    return DEFAULT_SUBCATEGORY_PLACEHOLDER;
+  };
+
+  // Handle image error by setting default placeholder
   const handleImageError = (e, subcategoryName) => {
     console.warn(`Failed to load subcategory image: ${e.target.src} for subcategory: ${subcategoryName}`);
-    // Hide the broken image and let the icon show instead
-    e.target.style.display = 'none';
-    // Find the parent container and show the fallback icon
-    const parent = e.target.parentElement;
-    const fallbackIcon = parent.querySelector('.fallback-icon');
-    if (fallbackIcon) {
-      fallbackIcon.style.display = 'block';
-    }
+    e.target.src = DEFAULT_SUBCATEGORY_PLACEHOLDER;
   };
 
   const isActive = filterCategoryStorage.includes(parentItem.idCategory);
@@ -150,17 +144,14 @@ export function SingleCategoryWithSubcategories({
   return (
     <>
       {parentItem?.subCategories?.length > 0 && isActive && (
-        <div className="items-center border-gray-300 p-2 rounded-lg flex flex-col gap-4">
-          {/* Subcategories Row */}
-          <div className="flex flex-row gap-2 justify-center">
+        <div className="flex flex-col mt-2">
+          <div className="flex flex-row flex-wrap gap-2">
             {parentItem.subCategories.map((subcategory, subIndex) => {
               const isActiveBorder = filterCategorySubCategoryStorage.some(
                 (member) => 
                   member.idCategory === parentItem.idCategory &&
                   member.idSubCategories.includes(subcategory.idSubCategory)
               );
-
-              const showImage = isValidImage(subcategory.image);
 
               return (
                 <div 
@@ -169,27 +160,20 @@ export function SingleCategoryWithSubcategories({
                   onClick={() => onClick(subcategory, parentItem.idCategory)}
                 >
                   <div
-                    className={`flex w-fit px-2 flex-row gap-1 justify-center items-center h-[35px] overflow-hidden border-[1.5px] bg-gray-100
-                      ${isActiveBorder ? "border-red-600" : "border-none"}`}
-                    style={{ borderRadius: '18px' }}  // Rounded corners same as others
+                    className={`flex w-fit flex-row justify-center items-center px-3 gap-2 h-[35px] bg-gray-100 overflow-hidden border-[1.5px] ${
+                      isActiveBorder ? "border-gray-400" : "border-none"
+                    }`}
+                    style={{ borderRadius: '18px' }}
                   >
-                    {showImage ? (
-                      <div className="relative">
-                        <img 
-                          className="w-fit h-[25px] object-cover" 
-                          src={subcategory.image} 
-                          alt={subcategory.name}
-                          onError={(e) => handleImageError(e, subcategory.name)}
-                          style={{ display: 'block' }}
-                        />
-                        <div className="fallback-icon" style={{ display: 'none' }}>
-                          <SubCategoryIcon />
-                        </div>
-                      </div>
-                    ) : (
-                      <SubCategoryIcon />
-                    )}
-                    <span className="cursor-pointer text-center text-[8px] whitespace-nowrap">
+                    <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
+                      <img
+                        className="w-full h-full object-cover"
+                        src={getSubcategoryImageSrc(subcategory.image)}
+                        alt={subcategory.name}
+                        onError={(e) => handleImageError(e, subcategory.name)}
+                      />
+                    </div>
+                    <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
                       {subcategory.name}
                     </span>
                   </div>
@@ -203,4 +187,4 @@ export function SingleCategoryWithSubcategories({
   );
 }
 
-export default SliderComponentSubCategoriesCM;
+export default SliderComponentSubCategoriesCMFastEdit;

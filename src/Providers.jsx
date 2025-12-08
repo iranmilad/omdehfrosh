@@ -25,7 +25,7 @@ function Providers({ children }) {
   return (
     <DirectionProvider initialDirection="rtl">
     <MantineProvider theme={theme}>
-      <Notifications position="top-right" />
+      <Notifications position="top-right" zIndex={1100} />
       <NoInternet />
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>

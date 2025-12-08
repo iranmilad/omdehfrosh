@@ -324,10 +324,10 @@ export const PublicRoutes = [
                 path: "/product/:slug",
                 element: <Product />
             },
-            {
-                path: "/category/:slug",
-                element: <Category />
-            },
+            // {
+            //     path: "/category/:slug",
+            //     element: <Category />
+            // },
             {
                 path: "/basket",
                 element: <Basket />
@@ -448,7 +448,7 @@ export const PublicRoutes = [
                 element: <PriceLists />,
             },
             {
-                path: "/fastorder/:id?",
+                path: "/fastorder/:searchType?/:categoryName?",
                 element: <FastOrder />,
             },
             {

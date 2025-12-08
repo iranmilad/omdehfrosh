@@ -1,7 +1,6 @@
 import express from "express";
 import {
   getUserInfo,
-  // getUsers,
   registerUser, 
   updateUser, 
   userStockAlertInfoGet, 
@@ -10,29 +9,34 @@ import {
   addedToFavorites,
   addToFavorites,
   removeFromFavorites,
-  getUserFavoritesList
-  // updateUser,
-  // removeUser
-} from "../controllers/userControllers.js"; // Make sure this is updated to use the new controller
-
-
+  getUserFavoritesList,
+  // New address management functions
+  getUserAddresses,
+  addUserAddress,
+  updateUserAddress,
+  deleteUserAddress,
+  setDefaultAddress
+} from "../controllers/userControllers.js";
 
 const router = express.Router();
 
-// Routes for users
-// router.post(`${apiPrefix}`, getUsers); // Get all users
-router.post(`/add`, registerUser); // Add a user
-router.post(`/update`, updateUser); // Update a user
-router.get(`/getuserinfo`, getUserInfo); // Get user info
-router.get(`/userstockalertinfoget/:product_id`, userStockAlertInfoGet); // Get stock alert info for specific product
-router.post(`/userstockalertinfoset`, userStockAlertInfoSet); // Set/update stock alert (product_id comes from request body)
-router.get(`/userstockalertinforemove/:product_id`, userStockAlertInfoRemove); // Remove stock alert for specific product
-router.get(`/addedtofavorites/:productId`, addedToFavorites); // Check if product is in favorites
-router.post(`/addtofavorites/:productId`, addToFavorites); // Add product to favorites
-router.delete(`/removefromfavorites/:productId`, removeFromFavorites); // Remove product from favorites
-router.get(`/favorites`, getUserFavoritesList); // Get user info
+// Existing routes
+router.post(`/add`, registerUser);
+router.post(`/update`, updateUser);
+router.get(`/getuserinfo`, getUserInfo);
+router.get(`/userstockalertinfoget/:product_id`, userStockAlertInfoGet);
+router.post(`/userstockalertinfoset`, userStockAlertInfoSet);
+router.get(`/userstockalertinforemove/:product_id`, userStockAlertInfoRemove);
+router.get(`/addedtofavorites/:productId`, addedToFavorites);
+router.post(`/addtofavorites/:productId`, addToFavorites);
+router.delete(`/removefromfavorites/:productId`, removeFromFavorites);
+router.get(`/favorites`, getUserFavoritesList);
 
-
-// router.post(`${apiPrefix}/remove`, removeUser); // Remove a user
+// New address management routes
+router.get(`/addresses`, getUserAddresses); // Get all addresses
+router.post(`/addresses/add`, addUserAddress); // Add new address
+router.put(`/addresses/update/:addressId`, updateUserAddress); // Update address
+router.delete(`/addresses/delete/:addressId`, deleteUserAddress); // Delete address
+router.post(`/addresses/set-default/:addressId`, setDefaultAddress); // Set default address
 
 export default router;

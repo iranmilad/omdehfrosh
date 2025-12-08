@@ -13,7 +13,7 @@ const DEFAULT_BRAND_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
 </svg>
 `);
 
-const SliderComponentBrandsCM = ({ 
+const SliderComponentBrandsCMFastOrder = ({ 
   items, 
   clickType, 
   searchType, 
@@ -49,14 +49,14 @@ const SliderComponentBrandsCM = ({
     <Swiper 
       modules={[FreeMode]} 
       slidesPerView="auto" 
-      spaceBetween={6}           // ✅ Small gap between slides
-      className="mt-2"           // ✅ Added top margin
+      spaceBetween={6}
+      className="mt-2"
       style={{ width: "100%" }}
     >
       {filteredItems?.map((item) => (
         <SwiperSlide 
           key={item.idBrand} 
-          style={{ width: "auto", display: "flex", margin: 0, padding: 0 }} // ✅ Align slides
+          style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}
         >
           <SingleCategory1 
             parentItem={item}
@@ -256,20 +256,20 @@ export function SingleCategory1({
                   onClick={() => onClick(subcategory, brand, parentItem)}
                 >
                   <div
-                    className={`flex w-full h-[35px] px-2 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100 ${
-                      isBorderActive(subcategory, brand) ? "border-red-600" : "border-none"
+                    className={`flex w-full h-[35px] px-3 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100 ${
+                      isBorderActive(subcategory, brand) ? "border-gray-400" : "border-none"
                     }`}
                     style={{ borderRadius: '18px' }}
                   >
-                    <div className='w-fit h-[25px] bg-white rounded-full'>
+                    <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
                       <img  
-                        className="w-fit h-full object-cover"
+                        className="w-full h-full object-cover"
                         src={getBrandImageSrc(brand.image)}
                         alt={brand.name}
                         onError={handleImageError}
                       />
                     </div>
-                    <span className="cursor-pointer text-center whitespace-nowrap text-[9px]">
+                    <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
                       {brand.name}
                     </span>
                   </div>
@@ -280,7 +280,7 @@ export function SingleCategory1({
             {subcategory.brands && subcategory.brands.length > 0 && (
               <div className="flex-shrink-0">
                 <button
-                  className={`flex h-[35px] px-4 gap-2 justify-center items-center border-2 ${
+                  className={`flex h-[35px] px-3 gap-2 justify-center items-center border-2 ${
                     areAllBrandsSelectedInSubcategory(subcategory) 
                       ? "border-green-400 bg-green-50" 
                       : "border-none bg-gray-100"
@@ -288,7 +288,7 @@ export function SingleCategory1({
                   style={{ borderRadius: '18px' }}
                   onClick={() => handleSelectAllForSubcategory(subcategory, parentItem)}
                 >
-                  <span className="text-[9px] font-medium whitespace-nowrap">
+                  <span className="text-xs leading-none font-medium whitespace-nowrap">
                     انتخاب همه
                   </span>
                 </button>
@@ -301,4 +301,4 @@ export function SingleCategory1({
   );
 }
 
-export default SliderComponentBrandsCM;
+export default SliderComponentBrandsCMFastOrder;

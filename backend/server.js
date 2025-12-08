@@ -62,6 +62,8 @@ import userMessagesRoutes from './routes/userMessagesRoutes.js'
 import homePageRoutes from './routes/homePageRoutes.js'
 import compareListRoutes from './routes/compareRoutes.js'
 import brandsPageDataRoutes from './routes/brandspagedataRoutes.js'
+import bootstrapRoutes from './routes/bootstrapRoutes.js'
+
 
 import saveFilterSettingsRoutes from './routes/filterSettingsRoutes.js' 
 
@@ -127,6 +129,8 @@ app.use("/api/auth", authRoutes);
 // user routes
 app.use("/api/users", userRoutes); 
 app.use("/api/homepage", homeRoutes); 
+
+app.use("/api/bootstrap", bootstrapRoutes); 
 
 // sms routes
 app.use("/api/sms", smsRoutes); 

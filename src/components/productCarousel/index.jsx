@@ -30,7 +30,13 @@ function ProductCarousel(props) {
         return (
             <Box>
                 <Group justify="space-between" mb="md">
-                    <XTitle>{title || 'محصولات'}</XTitle>
+                    <Text 
+                        size="md" 
+                        fw="600"
+                        style={{ color: 'rgb(9, 54, 114)' }}
+                    >
+                        {title || 'محصولات'}
+                    </Text>
                 </Group>
                 <Box
                     p="xl"
@@ -97,7 +103,13 @@ function ProductCarousel(props) {
     return (
         <Box>
             <Group justify="space-between" mb="md">
-                <XTitle>{title || 'محصولات'}</XTitle>
+                <Text 
+                    size="md" 
+                    fw="600"
+                    style={{ color: 'rgb(9, 54, 114)' }}
+                >
+                    {title || 'محصولات'}
+                </Text>
                 {showNavigation && (
                     <Group>
                         <ActionIcon 
@@ -155,11 +167,16 @@ function ProductCarousel(props) {
                     1200: { slidesPerView: 5, spaceBetween: 10 }, // Larger screens
                 }}
             >
-                {items.map((item, index) => (
-                    <SwiperSlide key={item.id || item.url || index} style={{ height: 'auto' }}>
-                        <ProductBox {...item} />
-                    </SwiperSlide>
-                ))}
+            {items.map((item, index) => (
+            <SwiperSlide key={index} style={{ width: "250px", height: "auto" }}>
+                <ProductBox 
+                {...item}
+                defaultSellerId={item.sellerId || item.seller?.id}
+                defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
+                attributes={item.attributes}
+            />
+            </SwiperSlide>
+            ))}
             </Swiper>
         </Box>
     );

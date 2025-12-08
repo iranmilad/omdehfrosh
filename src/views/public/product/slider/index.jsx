@@ -10,7 +10,6 @@ import 'swiper/css/thumbs';
 import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
 import "./style.css"
 import { ActionIcon, Image, Text } from "@mantine/core";
-import ReactImageZoom from "react-image-zoom";
 import { IconChevronLeft, IconChevronRight, IconPhoto } from "@tabler/icons-react";
 
 const Slider = (props) => {
@@ -81,29 +80,28 @@ const Slider = (props) => {
   const shouldShowDefault = !hasAnyValidSlides || allImagesFailed;
   const slidesToShow = shouldShowDefault ? [defaultImage] : validSlides;
 
-  // Default image component
+  // Default image component with Digikala-style design
   const DefaultImageSlide = () => (
     <div 
       style={{
         width: '100%',
-        height: '450px',
+        height: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f8f9fa',
-        border: '2px dashed #dee2e6',
+        backgroundColor: '#ffffff',
         borderRadius: '8px',
         flexDirection: 'column',
-        gap: '16px'
+        // gap: '12px',
+        // padding: '20px'
       }}
     >
-      <IconPhoto size={64} color="#adb5bd" />
-      <Text size="lg" color="gray" weight={500}>تصویری وجود ندارد</Text>
-      <Text size="sm" color="gray">تصویر محصول در اینجا نمایش داده می‌شود</Text>
+      <IconPhoto size={48} color="#c5c5c5" strokeWidth={1.5} />
+      <Text size="sm" style={{ color: '#a1a3a8', fontWeight: 400 }}>تصویری وجود ندارد</Text>
     </div>
   );
 
-  // Render main slides
+  // Render main slides with Digikala-style
   const renderMainSlides = () => {
     if (shouldShowDefault) {
       return (
@@ -120,51 +118,48 @@ const Slider = (props) => {
       return (
         <SwiperSlide key={`slide-${originalIndex}-${slideIndex}`}>
           {imageErrors[originalIndex] ? (
-            // Individual image failed - show placeholder for this specific image
+            // Individual image failed - show placeholder with Digikala-style
             <div 
               style={{
                 width: '100%',
-                height: '450px',
+                height: '100%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#f8f9fa',
-                border: '2px dashed #dee2e6',
+                backgroundColor: '#ffffff',
                 borderRadius: '8px',
                 flexDirection: 'column',
-                gap: '12px'
+                // gap: '8px',
+                // padding: '20px'
               }}
             >
-              <IconPhoto size={48} color="#adb5bd" />
-              <Text size="sm" color="red">تصویر یافت نشد</Text>
-              <Text size="xs" color="gray" style={{ wordBreak: 'break-all', textAlign: 'center', maxWidth: '300px' }}>
-                {item}
-              </Text>
-              <Text size="xs" color="gray" style={{ textAlign: 'center' }}>
-                فایل تصویر در این مسیر وجود ندارد
-              </Text>
+              <IconPhoto size={40} color="#c5c5c5" strokeWidth={1.5} />
+              <Text size="xs" style={{ color: '#ef4056' }}>تصویر یافت نشد</Text>
             </div>
           ) : (
-            <img
-              src={getImagePath(item)}
-              alt={`Product image ${slideIndex + 1}`}
-              onError={() => handleImageError(originalIndex, item)}
-              onLoad={() => handleImageLoad(originalIndex, item)}
-              style={{
-                width: '100%',
-                height: '450px',
-                objectFit: 'contain',
-                backgroundColor: '#f9f9f9',
-                borderRadius: '8px'
-              }}
-            />
+            <picture style={{ width: '100%', height: '100%', display: 'block', lineHeight: 0 }}>
+              <img
+                src={getImagePath(item)}
+                alt={`Product image ${slideIndex + 1}`}
+                onError={() => handleImageError(originalIndex, item)}
+                onLoad={() => handleImageLoad(originalIndex, item)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '8px',
+                  display: 'inline-block'
+                }}
+              />
+            </picture>
           )}
         </SwiperSlide>
       );
     });
   };
 
-  // Render thumbnails
+  // Render thumbnails with Digikala-style
   const renderThumbnails = () => {
     return validSlides.map((item, thumbIndex) => {
       const originalIndex = props.slides.findIndex(slide => slide === item);
@@ -172,37 +167,44 @@ const Slider = (props) => {
         <SwiperSlide key={`thumb-${originalIndex}-${thumbIndex}`}>
           <div style={{ 
             cursor: 'pointer', 
-            border: '1px solid #ddd', 
-            borderRadius: '4px', 
+            border: '1px solid #e0e0e6', 
+            borderRadius: '8px', 
             overflow: 'hidden',
-            transition: 'border-color 0.2s ease'
-          }}>
+            transition: 'border-color 0.2s ease',
+            backgroundColor: '#ffffff',
+            height: '88px',
+            lineHeight: 0
+          }}
+          className="thumbnail-slide"
+          >
             {imageErrors[originalIndex] ? (
               <div 
                 style={{
                   width: '100%',
-                  height: '80px',
+                  height: '88px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: '#f5f5f5',
-                  fontSize: '12px',
-                  color: '#999'
+                  backgroundColor: '#f9f9f9'
                 }}
               >
-                <IconPhoto size={24} />
+                <IconPhoto size={24} color="#c5c5c5" strokeWidth={1.5} />
               </div>
             ) : (
-              <img 
-                src={getImagePath(item)}
-                alt={`Thumbnail ${thumbIndex + 1}`}
-                style={{
-                  width: '100%',
-                  height: '80px',
-                  objectFit: 'cover'
-                }}
-                onError={() => handleImageError(originalIndex, item)}
-              />
+              <picture style={{ width: '100%', height: '88px', display: 'block', lineHeight: 0 }}>
+                <img 
+                  src={getImagePath(item)}
+                  alt={`Thumbnail ${thumbIndex + 1}`}
+                  style={{
+                    width: '100%',
+                    height: '88px',
+                    objectFit: 'contain',
+                    display: 'inline-block',
+                    backgroundColor: '#ffffff'
+                  }}
+                  onError={() => handleImageError(originalIndex, item)}
+                />
+              </picture>
             )}
           </div>
         </SwiperSlide>
@@ -211,8 +213,12 @@ const Slider = (props) => {
   };
 
   return (
-    <div className="w-full">
-      <div className="relative">
+    <div className="w-full" style={{ backgroundColor: '#ffffff', borderRadius: '8px' }}>
+      <div className="relative" style={{ 
+        // padding: '16px 16px 0 16px',
+        backgroundColor: '#ffffff',
+        borderRadius: '8px 8px 0 0'
+      }}>
         {/* Only show navigation if there are multiple slides */}
         {slidesToShow.length > 1 && (
           <>
@@ -223,15 +229,18 @@ const Slider = (props) => {
               onClick={handlePrev}
               style={{
                 position: 'absolute',
-                left: '10px',
+                left: '24px',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 10,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                color: 'white'
+                backgroundColor: '#ffffff',
+                color: '#3f4064',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                border: '1px solid #e0e0e6'
               }}
+              className="slider-nav-btn"
             >
-              <IconChevronLeft size={18} />
+              <IconChevronLeft size={20} />
             </ActionIcon>
 
             <ActionIcon
@@ -241,15 +250,18 @@ const Slider = (props) => {
               onClick={handleNext}
               style={{
                 position: 'absolute',
-                right: '10px',
+                right: '24px',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 10,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                color: 'white'
+                backgroundColor: '#ffffff',
+                color: '#3f4064',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                border: '1px solid #e0e0e6'
               }}
+              className="slider-nav-btn"
             >
-              <IconChevronRight size={18} />
+              <IconChevronRight size={20} />
             </ActionIcon>
           </>
         )}
@@ -261,6 +273,10 @@ const Slider = (props) => {
           thumbs={{swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null}} 
           modules={[FreeMode, Thumbs, Navigation]}
           allowTouchMove={slidesToShow.length > 1}
+          style={{ 
+            height: '450px',
+            borderRadius: '8px'
+          }}
         >
           {renderMainSlides()}
         </Swiper>
@@ -270,19 +286,37 @@ const Slider = (props) => {
       {hasAnyValidSlides && validSlides.length > 1 && !shouldShowDefault && (
         <Swiper
           onSwiper={setThumbsSwiper}
-          spaceBetween={10}
+          spaceBetween={12}
           slidesPerView={4}
           freeMode={true}
           watchSlidesProgress={true}
           modules={[FreeMode, Navigation, Thumbs]}
           className="imagesPreview"
-          style={{ marginTop: '10px' }}
+          style={{ 
+            // marginTop: '12px',
+            // padding: '0 16px 16px 16px',
+            backgroundColor: '#ffffff',
+            borderRadius: '0 0 8px 8px'
+          }}
         >
           {renderThumbnails()}
         </Swiper>
       )}
 
-
+      <style jsx>{`
+        .slider-nav-btn:hover {
+          background-color: #f5f5f5 !important;
+        }
+        
+        .thumbnail-slide:hover {
+          border-color: #19bfd3 !important;
+        }
+        
+        .swiper-slide-thumb-active .thumbnail-slide {
+          border-color: #ef394e !important;
+          border-width: 2px !important;
+        }
+      `}</style>
     </div>
   );
 };

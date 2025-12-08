@@ -2,7 +2,7 @@ import { Box, Container } from '@mantine/core';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-const SliderComponentSubCategories = ({ 
+const SliderComponentSubCategoriesFastOrder = ({ 
   items,
   clickType,
   searchType,
@@ -16,48 +16,54 @@ const SliderComponentSubCategories = ({
 }) => {
 
   return (
-    <Container fluid>
-      <Box w="100%" pos="relative">
-        <Swiper 
-          modules={[FreeMode, Navigation]}       
-          freeMode={true} 
-          slidesPerView="auto" 
-          spaceBetween={8}          // Add spacing between slides
-          className="mt-2"          // Add margin top for spacing
-          style={{ width: "100%" }}
-          loop={true}
-        >
-          {items?.map((item, index) => (
-            <SwiperSlide key={index} style={{ width: "auto" }}>
-              <SingleCategoryWithSubcategories 
-                parentItem={item} 
-                clickType={clickType}
-                searchType={searchType}
-                tab={tab}
-                filterBrandStorage={filterBrandStorage}
-                setFilterBrandStorage={setFilterBrandStorage}
-                filterBrandsCategoryStorage={filterBrandsCategoryStorage}
-                setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
-                setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-              />
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </Box>
-    </Container>
+    <div style={{ width: "100%", margin: 0, padding: 0 }}>
+      <Swiper 
+        modules={[FreeMode, Navigation]}       
+        freeMode={true} 
+        slidesPerView="auto" 
+        spaceBetween={6}
+        className="mt-2 !m-0 !p-0"
+        style={{ 
+          width: "100%",
+          margin: 0,
+          padding: 0
+        }}
+        loop={true}
+      >
+        {items?.map((item, index) => (
+          <SwiperSlide 
+            key={index} 
+            style={{ width: "auto", margin: 0, padding: 0 }}
+            className="!m-0 !p-0"
+          >
+            <SingleCategoryWithSubcategories 
+              parentItem={item} 
+              clickType={clickType}
+              searchType={searchType}
+              tab={tab}
+              filterBrandStorage={filterBrandStorage}
+              setFilterBrandStorage={setFilterBrandStorage}
+              filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+              setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+              filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+              setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+            />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
   );
 };
 
 // Enhanced SVG Icon Component for subcategory fallback
 const SubCategoryIcon = () => (
   <svg 
-    width="25" 
-    height="25" 
+    width="20" 
+    height="20" 
     viewBox="0 0 24 24" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    className="w-[25px] h-[25px] rounded-full"
+    className="w-[20px] h-[20px] rounded-full"
   >
     <circle cx="12" cy="12" r="11" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
     <circle cx="8" cy="8" r="2" fill="#9CA3AF"/>
@@ -189,76 +195,78 @@ export function SingleCategoryWithSubcategories({
   return (
     <>
       {shouldShow && (
-        <div className="items-center justify-center border-gray-300 rounded-lg flex flex-row gap-2">
-          {/* Categories mapped horizontally */}
-          {parentItem.categories.map((category, index) => {
-            const isCategoryActive = filterBrandsCategoryStorage.some(
-              (entry) => entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
-            );
+        <div className="flex flex-col mt-2">
+          <div className="flex flex-row flex-wrap gap-2">
+            {/* Categories mapped horizontally */}
+            {parentItem.categories.map((category, index) => {
+              const isCategoryActive = filterBrandsCategoryStorage.some(
+                (entry) => entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
+              );
 
-            if (!isCategoryActive) return null;
+              if (!isCategoryActive) return null;
 
-            return (
-              <div key={index} className="flex flex-col items-center rounded-lg">
-                {/* Subcategories row */}
-                <div className="flex flex-row gap-2">
-                  {category.subCategories.map((subCategory, subIndex) => {
-                    const isActiveBorder = filterBrandsCategorySubCategoryStorage.some(
-                      (member) =>
-                        member.idBrand === parentItem.idBrand &&
-                        member.idSubCategories.some(
-                          (categoryEntry) =>
-                            categoryEntry.idCategory === category.idCategory &&
-                            categoryEntry.idSubCategories.includes(subCategory.idSubCategory)
-                        )
-                    );
+              return (
+                <div key={index} className="flex flex-col items-center rounded-lg">
+                  {/* Subcategories row */}
+                  <div className="flex flex-row gap-2">
+                    {category.subCategories.map((subCategory, subIndex) => {
+                      const isActiveBorder = filterBrandsCategorySubCategoryStorage.some(
+                        (member) =>
+                          member.idBrand === parentItem.idBrand &&
+                          member.idSubCategories.some(
+                            (categoryEntry) =>
+                              categoryEntry.idCategory === category.idCategory &&
+                              categoryEntry.idSubCategories.includes(subCategory.idSubCategory)
+                          )
+                      );
 
-                    const showImage = isValidImage(subCategory.image);
+                      const showImage = isValidImage(subCategory.image);
 
-                    return (
-                      <div
-                        key={subIndex}
-                        className="text-sm w-fit flex flex-row items-center justify-center cursor-pointer"
-                        onClick={() => onClick(category, subCategory, parentItem.idBrand)}
-                      >
+                      return (
                         <div
-                          className={`flex px-3 h-[32px] w-full gap-2 justify-center items-center border-[1.5px]
-                          ${isActiveBorder ? "border-red-600" : "border-none"} bg-gray-100`}
-                          style={{ borderRadius: '16px' }}
+                          key={subIndex}
+                          className="text-sm w-fit flex flex-row items-center justify-center cursor-pointer"
+                          onClick={() => onClick(category, subCategory, parentItem.idBrand)}
                         >
-                          <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0 image-container relative flex items-center justify-center'>
-                            {showImage ? (
-                              <>
-                                <img
-                                  className="w-[20px] h-[20px] object-cover rounded-full"
-                                  src={subCategory.image}
-                                  alt={subCategory.name}
-                                  onError={(e) => handleImageError(e, subCategory.name)}
-                                  style={{ display: 'block' }}
-                                />
-                                <div className="fallback-icon w-[20px] h-[20px] bg-white rounded-full items-center justify-center absolute inset-0" style={{ display: 'none' }}>
-                                  <SubCategoryIcon />
-                                </div>
-                              </>
-                            ) : (
-                              <SubCategoryIcon />
-                            )}
+                          <div
+                            className={`flex px-3 h-[35px] w-full gap-2 justify-center items-center border-[1.5px]
+                            ${isActiveBorder ? "border-gray-400" : "border-none"} bg-gray-100`}
+                            style={{ borderRadius: '18px' }}
+                          >
+                            <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0 image-container relative flex items-center justify-center'>
+                              {showImage ? (
+                                <>
+                                  <img
+                                    className="w-[20px] h-[20px] object-cover rounded-full"
+                                    src={subCategory.image}
+                                    alt={subCategory.name}
+                                    onError={(e) => handleImageError(e, subCategory.name)}
+                                    style={{ display: 'block' }}
+                                  />
+                                  <div className="fallback-icon w-[20px] h-[20px] bg-white rounded-full items-center justify-center absolute inset-0" style={{ display: 'none' }}>
+                                    <SubCategoryIcon />
+                                  </div>
+                                </>
+                              ) : (
+                                <SubCategoryIcon />
+                              )}
+                            </div>
+                            <span className="text-xs leading-none whitespace-nowrap">
+                              {subCategory.name}
+                            </span>
                           </div>
-                          <span className="text-center text-[10px] font-medium leading-tight break-words">
-                            {subCategory.name}
-                          </span>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </>
   );
 }
 
-export default SliderComponentSubCategories;
+export default SliderComponentSubCategoriesFastOrder;

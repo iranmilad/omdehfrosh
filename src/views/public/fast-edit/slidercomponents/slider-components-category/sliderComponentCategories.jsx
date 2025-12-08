@@ -8,24 +8,21 @@ const DEFAULT_CATEGORY_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background circle -->
   <circle cx="20" cy="20" r="20" fill="#F8F9FA"/>
-  <!-- Category/folder icon -->
-  <path d="M8 12 L16 12 L18 14 L32 14 C33.1 14 34 14.9 34 16 L34 26 C34 27.1 33.1 28 32 28 L8 28 C6.9 28 6 27.1 6 26 L6 14 C6 12.9 6.9 12 8 12 Z" fill="#E9ECEF" stroke="#ADB5BD" stroke-width="1"/>
-  <!-- Grid/category symbol -->
-  <rect x="12" y="18" width="4" height="4" fill="#6C757D"/>
-  <rect x="18" y="18" width="4" height="4" fill="#6C757D"/>
-  <rect x="24" y="18" width="4" height="4" fill="#6C757D"/>
-  <rect x="12" y="24" width="4" height="4" fill="#6C757D"/>
-  <rect x="18" y="24" width="4" height="4" fill="#6C757D"/>
-  <rect x="24" y="24" width="4" height="4" fill="#6C757D"/>
+  <!-- Category icon -->
+  <rect x="10" y="10" width="20" height="20" rx="2" fill="#E9ECEF" stroke="#ADB5BD" stroke-width="1"/>
+  <rect x="13" y="13" width="6" height="6" rx="1" fill="#9CA3AF"/>
+  <rect x="21" y="13" width="6" height="6" rx="1" fill="#9CA3AF"/>
+  <rect x="13" y="21" width="6" height="6" rx="1" fill="#9CA3AF"/>
+  <rect x="21" y="21" width="6" height="6" rx="1" fill="#9CA3AF"/>
 </svg>
 `);
 
-const SliderComponentCategoriesCM = ({ 
+const SliderComponentCategoriesCMFastEdit = ({ 
   items, 
   clickType, 
   searchType, 
   tab, 
-  filterCategoryStorage = [], // Add default value
+  filterCategoryStorage = [],
   setFilterCategoryStorage,
   filterCategorySubCategoryStorage,
   setFilterCategorySubCategoryStorage,
@@ -75,8 +72,8 @@ const SliderComponentCategoriesCM = ({
     <Swiper 
       modules={[FreeMode]} 
       slidesPerView="auto" 
-      spaceBetween={6}            // ✅ Gap between boxes
-      className="mt-2"            // Add margin top for spacing
+      spaceBetween={6}
+      className="mt-2"
       style={{ width: "100%" }}
     >
       {/* Category items */}
@@ -106,8 +103,8 @@ const SliderComponentCategoriesCM = ({
       {/* Select All Button */}
       <SwiperSlide style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}>
         <button
-          className={`flex h-[35px] px-4 gap-2 justify-center items-center border-[1.5px] 
-            ${allSelected ? "border-green-400 bg-green-50" : "border-transparent bg-gray-100"} 
+          className={`flex h-[35px] px-3 gap-2 justify-center items-center border-2 
+            ${allSelected ? "border-green-400 bg-green-50" : "border-none bg-gray-100"} 
             ${isSlideSelectionActive ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           style={{ borderRadius: '18px' }}
           onClick={() => {
@@ -115,7 +112,7 @@ const SliderComponentCategoriesCM = ({
           }}
           disabled={isSlideSelectionActive}
         >
-          <span className="text-[9px] font-medium whitespace-nowrap">
+          <span className="text-xs leading-none font-medium whitespace-nowrap">
             انتخاب همه
           </span>
         </button>
@@ -129,7 +126,7 @@ export function SingleCategoryGroupCM({
   searchType,
   clickType, 
   tab,
-  filterCategoryStorage = [], // Add default value
+  filterCategoryStorage = [],
   setFilterCategoryStorage,
   filterCategorySubCategoryStorage,
   setFilterCategorySubCategoryStorage,
@@ -164,11 +161,9 @@ export function SingleCategoryGroupCM({
 
   // Helper function to get category image source with fallback
   const getCategoryImageSrc = (image) => {
-    // Check if image exists and is not empty
     if (image && image.trim() !== '') {
       return image;
     }
-    // Return default placeholder
     return DEFAULT_CATEGORY_IMAGE;
   };
 
@@ -180,36 +175,28 @@ export function SingleCategoryGroupCM({
   const isActive = filterCategoryStorage.includes(parentItem.idCategory);
 
   return (
-    <div className="flex flex-col">
-      <div className="w-full">
-        <div
-          className={`flex flex-col items-center justify-center flex-shrink-0
-            ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-          onClick={() => onClick(parentItem)}
-        >
-          <div
-            className={`flex w-fit h-[35px] px-4 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100
-              ${!isDisabled && isActive ? "border-red-600" : "border-transparent"}`}
-            style={{ borderRadius: '18px' }}
-          >
-            <div className='w-full h-[25px] bg-white rounded-full'>
-              <img 
-                className="w-full h-full object-cover" 
-                src={getCategoryImageSrc(parentItem.image)}
-                alt={parentItem.title}
-                onError={handleImageError}
-                onLoad={() => {
-                }}
-              />
-            </div>
-            <span className="text-center whitespace-nowrap text-[9px] w-full">
-              {parentItem.title ? parentItem.title : 'No title'}
-            </span>
-          </div>
+    <div className="flex items-center justify-center">
+      <div
+        className={`flex flex-row justify-center items-center w-fit bg-gray-100 px-3 gap-2 h-[35px] overflow-hidden border-[1.5px]
+          ${!isDisabled && isActive ? "border-gray-400" : "border-none"}
+          ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+        style={{ borderRadius: '18px' }}
+        onClick={() => onClick(parentItem)}
+      >
+        <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
+          <img 
+            className="w-full h-full object-cover" 
+            src={getCategoryImageSrc(parentItem.image)} 
+            alt={parentItem.title} 
+            onError={handleImageError}
+          />
         </div>
+        <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
+          {parentItem.title}
+        </span>
       </div>
     </div>
   );
 }
 
-export default SliderComponentCategoriesCM
+export default SliderComponentCategoriesCMFastEdit
