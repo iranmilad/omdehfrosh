@@ -116,7 +116,7 @@ const SearchComponentBrand = ({
     (state) => state.fastOrderTableDataBrandModeSavedFilters || {}
   );
   
-  const COOKIE_NAME = "search_filters_brand_fast_edit";
+  const COOKIE_NAME = "search_filters_brand_fast_order";
 
   // Enhanced helper function to handle token expiration and update global auth state
   const handleTokenExpiration = async (error) => {

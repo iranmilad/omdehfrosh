@@ -95,7 +95,7 @@ useEffect(() => {
         stock: item.stock ?? 0,
         minOrder: item.minOrder ?? 0,
         maxOrder: item.maxOrder ?? 0,
-        priceLabel: filters_brand_mode.priceFormat,
+        priceLabel: filters_brand_mode?.priceFormat || 'hezar',
         deliveryTime: {
           label: item?.deliveryTime?.label ?? "کمتر از یک روز",
           value: item?.deliveryTime?.value ?? "in1day",
@@ -249,109 +249,52 @@ const handleInputBlur = (e, record, key, defaultValue = 0) => {
     const displayItem = record;
     
     switch (column.key) {
-      case "image":
-        const hasValidImage = displayItem.images && 
-          displayItem.images.length > 0 && 
-          displayItem.images[0] && 
-          displayItem.images[0].trim() !== "" &&
-          !imageErrors[record.psid];
+case "image":
+  const hasValidImage = displayItem.images && 
+    displayItem.images.length > 0 && 
+    displayItem.images[0] && 
+    displayItem.images[0].trim() !== "" &&
+    !imageErrors[record.psid];
 
-        const hasChildren = record.children && record.children.length > 0;
-        const isExpanded = expandedRowKeys.includes(record.key);
-
-        return (
-          <div 
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              width: '100%', 
-              height: '100%',
-              cursor: hasChildren ? 'pointer' : 'default',
-              position: 'relative'
-            }}
-            onClick={hasChildren ? (e) => {
-              e.stopPropagation();
-              if (isExpanded) {
-                setExpandedRowKeys(expandedRowKeys.filter(key => key !== record.key));
-              } else {
-                setExpandedRowKeys([...expandedRowKeys, record.key]);
-              }
-            } : undefined}
-          >
-            {hasValidImage ? (
-              <div style={{ position: 'relative' }}>
-                <Image 
-                  src={displayItem.images[0]} 
-                  width={40} 
-                  height={40}
-                  preview={false}
-                  fallback="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='40' height='40' fill='%23f8f9fa'/%3E%3C/svg%3E"
-                  onError={() => {
-                    setImageErrors(prev => ({ ...prev, [record.psid]: true }));
-                  }}
-                  style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
-                />
-                {hasChildren && !isPrinting && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: -2,
-                    right: -2,
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    backgroundColor: isExpanded ? '#1890ff' : '#fff',
-                    border: '2px solid #1890ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 8,
-                    color: isExpanded ? '#fff' : '#1890ff',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    {isExpanded ? <DownOutlined /> : <RightOutlined />}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <div style={{ 
-                  width: 40, 
-                  height: 40, 
-                  backgroundColor: '#f8f9fa', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  borderRadius: 4,
-                  border: '1px solid #e9ecef'
-                }}>
-                  <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
-                </div>
-                {hasChildren && !isPrinting && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: -2,
-                    right: -2,
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    backgroundColor: isExpanded ? '#1890ff' : '#fff',
-                    border: '2px solid #1890ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 8,
-                    color: isExpanded ? '#fff' : '#1890ff',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    {isExpanded ? <DownOutlined /> : <RightOutlined />}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        );
-
+  return (
+    <div 
+      style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        width: '100%', 
+        height: '100%',
+        position: 'relative'
+      }}
+    >
+      {hasValidImage ? (
+        <Image 
+          src={displayItem.images[0]} 
+          width={40} 
+          height={40}
+          preview={false}
+          fallback="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='40' height='40' fill='%23f8f9fa'/%3E%3C/svg%3E"
+          onError={() => {
+            setImageErrors(prev => ({ ...prev, [record.psid]: true }));
+          }}
+          style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
+        />
+      ) : (
+        <div style={{ 
+          width: 40, 
+          height: 40, 
+          backgroundColor: '#f8f9fa', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          borderRadius: 4,
+          border: '1px solid #e9ecef'
+        }}>
+          <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
+        </div>
+      )}
+    </div>
+  );
       case "name":
         return (
           <NavLink
@@ -370,21 +313,57 @@ const handleInputBlur = (e, record, key, defaultValue = 0) => {
             </Text>
           </NavLink>
         );
-
-      case "shortName":
-        return (
-          <Text
-            style={{
-              fontSize: isMobile ? 10 : 12,
-              whiteSpace: 'normal',
-              wordBreak: 'break-word',
-            }}
-            ellipsis={{ tooltip: record.shortName, rows: 2 }}
-          >
-            {record.shortName}
-          </Text>
-        );
-
+case "shortName":
+  const hasChildren = record.children && record.children.length > 0;
+  const isExpanded = expandedRowKeys.includes(record.key);
+  
+  return (
+    <div 
+      style={{ 
+        position: 'relative',
+        cursor: hasChildren ? 'pointer' : 'default'
+      }}
+      onClick={hasChildren ? (e) => {
+        e.stopPropagation();
+        if (isExpanded) {
+          setExpandedRowKeys(expandedRowKeys.filter(key => key !== record.key));
+        } else {
+          setExpandedRowKeys([...expandedRowKeys, record.key]);
+        }
+      } : undefined}
+    >
+      <Text
+        style={{
+          fontSize: isMobile ? 10 : 12,
+          whiteSpace: 'normal',
+          wordBreak: 'break-word',
+        }}
+        ellipsis={{ tooltip: record.shortName, rows: 2 }}
+      >
+        {record.shortName}
+      </Text>
+      {hasChildren && !isPrinting && (
+        <div style={{
+          position: 'absolute',
+          bottom: -2,
+          right: -2,
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          backgroundColor: isExpanded ? '#1890ff' : '#fff',
+          border: '2px solid #1890ff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 8,
+          color: isExpanded ? '#fff' : '#1890ff',
+          transition: 'all 0.3s ease',
+        }}>
+          {isExpanded ? <DownOutlined /> : <RightOutlined />}
+        </div>
+      )}
+    </div>
+  );
       case "psid":
         return (
           <Text style={{ fontSize: isMobile ? 10 : 12, whiteSpace: 'nowrap' }}>
@@ -938,10 +917,10 @@ case "action":
     title: (
       <div style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
         <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600 }}>{column.label}</div>
-        {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
+        {column.key === 'price' && filters_brand_mode?.priceFormat === 'million' && (
           <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>میلیون تومان</Text>
         )}
-        {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
+        {column.key === 'price' && filters_brand_mode?.priceFormat === 'hezar' && (
           <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>هزار تومان</Text>
         )}
       </div>

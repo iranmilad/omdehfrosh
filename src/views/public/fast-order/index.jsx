@@ -109,7 +109,7 @@ function FastOrder() {
 
   const [filterModalOpened, setFilterModalOpened] = useState(false);
 
-  const COOKIE_NAME_BRAND_MODE = "search_filters_brand_fast_edit";
+  const COOKIE_NAME_BRAND_MODE = "search_filters_brand_fast_order";
 
   const storedFilters_brand_modee = Cookies.get(COOKIE_NAME_BRAND_MODE);
 
@@ -170,7 +170,7 @@ function FastOrder() {
     }
   }, [location.pathname]);
 
-  const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
+  const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_order";
 
   const getInitialFilters_category_mode = () => {
     const storedFilters_category_mode = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
@@ -288,9 +288,9 @@ function FastOrder() {
   const saveFiltersSettings = () => {
     if (!filterName.trim()) return;
 
-    const slug = searchType === "brand" ? "brand-fast-edit" : "category-fast-edit";
-    const COOKIE_NAME_BRAND_MODE = "search_filters_brand_fast_edit";
-    const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
+    const slug = searchType === "brand" ? "brand-fast-order" : "category-fast-order";
+    const COOKIE_NAME_BRAND_MODE = "search_filters_brand_fast_order";
+    const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_order";
 
     const filterSettingsCookieKey =
       searchType === "brand" ? COOKIE_NAME_BRAND_MODE : COOKIE_NAME_CATEGORY_MODE;

@@ -21,6 +21,7 @@ import {
   Center,
   Loader,
   Overlay,
+  Badge,
 } from "@mantine/core";
 import { IconSettings, IconFilter } from "@tabler/icons-react";
 import FastTable from "./fasttablebrand";
@@ -43,12 +44,293 @@ import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import RotateModal from "../../../components/rotatemodal";
-import { BrandRowSelectionProvider } from "./BrandRowSelectionContext";
-import { CategoryRowSelectionProvider } from "./CategoryRowSelectionContext";
+import { BrandRowSelectionProvider, useBrandRowSelection } from "./BrandRowSelectionContext";
+import { CategoryRowSelectionProvider, useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import ColumnVisibilityManager from "./ColumnVisibilityManager";
 import { useMediaQuery } from "@mantine/hooks";
 
 const FastOrderContext = createContext();
+
+// ✅ NEW: Separate component for Brand Mode content (inside BrandRowSelectionProvider)
+function FastEditBrandContent({ 
+  user,
+  filters_brand_mode,
+  setFilters_brand_mode,
+  setNodesSubCategories,
+  setNodes,
+  setAvailableLocations,
+  searchType,
+  setSearchType,
+  filterSettingsModalOpened,
+  setFilterSettingsModalOpened,
+  nodes,
+  updatedColumns,
+  visibleColumns,
+  setVisibleColumns,
+  isPortrait,
+  isLandscape,
+  filterValues,
+  availableLocations
+}) {
+  const { checkedRows } = useBrandRowSelection();
+
+  return (
+    <>
+      <div>
+        <SearchComponentBrand
+          filters={filters_brand_mode} 
+          setFilters={setFilters_brand_mode}
+          setNodesSubCategories={setNodesSubCategories} 
+          setNodes={setNodes} 
+          setAvailableLocations={setAvailableLocations}
+          searchType={searchType} 
+          setSearchType={setSearchType}
+          filterSettingsModalOpened={filterSettingsModalOpened}
+          setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+        />
+      </div>
+
+      <Group
+        id="fastorder-tablesettings"
+        mt="2px"
+        justify="flex-start"
+        align="center"
+        bg="white"
+        p="md"
+        style={{
+          borderRadius: '8px',
+        }}
+      >
+        <Flex gap="sm">
+          <Flex>
+            <ColumnVisibilityManager
+              columns={updatedColumns}
+              visibleColumns={visibleColumns}
+              setVisibleColumns={setVisibleColumns}
+            />
+          </Flex>
+
+          <Flex>
+            {user && (
+              <Button
+                leftSection={<IconFilter size={16} />}
+                onClick={() => setFilterSettingsModalOpened(true)}
+                py={0}
+                styles={{
+                  root: {
+                    backgroundColor: checkedRows.size > 0 ? '#28a745' : '#093572',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: checkedRows.size > 0 ? '#218838' : '#0a4080',
+                    },
+                  },
+                }}
+              >
+                فیلترها
+                {checkedRows.size > 0 && (
+                  <Badge 
+                    color="white" 
+                    size="sm" 
+                    ml={8}
+                    styles={{
+                      root: {
+                        backgroundColor: 'rgba(255,255,255,0.3)',
+                        color: 'white',
+                      },
+                    }}
+                  >
+                    {checkedRows.size}
+                  </Badge>
+                )}
+              </Button>
+            )}
+          </Flex>
+        </Flex>
+      </Group>
+
+      {nodes !== null && nodes?.length > 0 && (
+        <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+          <FastTableBrand 
+            type="head" 
+            isPortrait={isPortrait} 
+            setNodes={setNodes} 
+            isLandscape={isLandscape} 
+            filters_brand_mode={filters_brand_mode} 
+            filterValues={filterValues} 
+            availableLocations={availableLocations} 
+            COLUMNS={updatedColumns} 
+            nodes={nodes[0]?.items?.slice(0, 1) || []} 
+            setVisibleColumns={setVisibleColumns} 
+            visibleColumns={visibleColumns} 
+          />
+          {nodes.map((item, index) => (
+            <React.Fragment key={index}>
+              <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                <Text size="18px" c="dark">
+                  {item.label}
+                </Text>
+              </Flex>
+              <FastTableBrand 
+                keyIndex={index} 
+                isPortrait={isPortrait} 
+                isLandscape={isLandscape} 
+                filters_brand_mode={filters_brand_mode} 
+                filterValues={filterValues} 
+                setNodes={setNodes} 
+                availableLocations={availableLocations}  
+                type="data" 
+                COLUMNS={updatedColumns} 
+                nodes={item.items || []} 
+                setVisibleColumns={setVisibleColumns} 
+                visibleColumns={visibleColumns} 
+              />
+            </React.Fragment>
+          ))}
+        </Paper>
+      )}
+    </>
+  );
+}
+
+// ✅ FIXED: Category Mode content with green button indicator
+function FastEditCategoryContent({ 
+  user,
+  filters_category_mode,
+  setFilters_category_mode,
+  setNodesSubCategories,
+  setNodes,
+  setAvailableLocations,
+  searchType,
+  setSearchType,
+  filterSettingsModalOpened,
+  setFilterSettingsModalOpened,
+  nodesSubCategoriesData,
+  updatedColumns,
+  visibleColumns,
+  setVisibleColumns,
+  isPortrait,
+  isLandscape,
+  filterValues,
+  availableLocations
+}) {
+  const { checkedRows } = useCategoryRowSelection(); // ✅ NOW IT'S INSIDE THE PROVIDER
+
+  return (
+    <>
+      <div>
+        <SearchComponentCategory 
+          filters={filters_category_mode} 
+          setFilters={setFilters_category_mode}
+          setNodesSubCategories={setNodesSubCategories} 
+          setNodes={setNodes} 
+          setAvailableLocations={setAvailableLocations}
+          searchType={searchType} 
+          setSearchType={setSearchType}
+          filterSettingsModalOpened={filterSettingsModalOpened}
+          setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+        />
+      </div>
+
+      <Group
+        id="fastorder-tablesettings"
+        mt="2px"
+        justify="flex-start"
+        align="center"
+        bg="white"
+        p="md"
+        style={{
+          borderRadius: '8px',
+        }}
+      >
+        <Flex gap="sm">
+          <Flex>
+            <ColumnVisibilityManager
+              columns={updatedColumns}
+              visibleColumns={visibleColumns}
+              setVisibleColumns={setVisibleColumns}
+            />
+          </Flex>
+
+          <Flex>
+            {user && (
+              <Button
+                leftSection={<IconFilter size={16} />}
+                onClick={() => setFilterSettingsModalOpened(true)}
+                py={0}
+                styles={{
+                  root: {
+                    backgroundColor: checkedRows.size > 0 ? '#28a745' : '#093572',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: checkedRows.size > 0 ? '#218838' : '#0a4080',
+                    },
+                  },
+                }}
+              >
+                فیلترها
+                {checkedRows.size > 0 && (
+                  <Badge 
+                    color="white" 
+                    size="sm" 
+                    ml={8}
+                    styles={{
+                      root: {
+                        backgroundColor: 'rgba(255,255,255,0.3)',
+                        color: 'white',
+                      },
+                    }}
+                  >
+                    {checkedRows.size}
+                  </Badge>
+                )}
+              </Button>
+            )}
+          </Flex>
+        </Flex>
+      </Group>
+
+      {nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 && (
+        <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+          <FastTableCategory 
+            type="head" 
+            isPortrait={isPortrait} 
+            isLandscape={isLandscape} 
+            filters_category_mode={filters_category_mode} 
+            filterValues={filterValues} 
+            availableLocations={availableLocations} 
+            COLUMNS={updatedColumns} 
+            nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} 
+            setVisibleColumns={setVisibleColumns} 
+            visibleColumns={visibleColumns} 
+          />
+          {nodesSubCategoriesData?.map((item, index) => (
+            <React.Fragment key={index}>
+              <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                <Text size="18px" c="dark">
+                  {item.label}
+                </Text>
+              </Flex>
+              <FastTableCategory 
+                isPortrait={isPortrait} 
+                isLandscape={isLandscape} 
+                filters_category_mode={filters_category_mode} 
+                filterValues={filterValues} 
+                keyIndex={index} 
+                availableLocations={availableLocations}  
+                setNodes={setNodesSubCategories} 
+                type="data" 
+                COLUMNS={updatedColumns} 
+                nodes={item.items || []} 
+                setVisibleColumns={setVisibleColumns} 
+                visibleColumns={visibleColumns} 
+              />
+            </React.Fragment>
+          ))}
+        </Paper>
+      )}
+    </>
+  );
+}
 
 function FastEdit() {
 
@@ -155,9 +437,10 @@ function FastEdit() {
   const [filters_category_mode, setFilters_category_mode] = useState(initialFilters_category_mode.filters);
 
   let priceFormatLabel = 'تومان';
-  if(filters_brand_mode.priceFormat === "tooman") priceFormatLabel = "تومان";
-  else if(filters_brand_mode.priceFormat === "hezar") priceFormatLabel = "هزار تومان";
-  else priceFormatLabel = "میلیون تومان";
+  if(filters_brand_mode?.priceFormat === "tooman") priceFormatLabel = "تومان";
+  else if(filters_brand_mode?.priceFormat === "hezar") priceFormatLabel = "هزار تومان";
+  else if(filters_brand_mode?.priceFormat === "million") priceFormatLabel = "میلیون تومان";
+  else priceFormatLabel = "هزار تومان"; // default fallback
 
   const COLUMNS = [
     { key: "image", label: "تصویر", width: "160px" },
@@ -426,165 +709,51 @@ function FastEdit() {
               {
                 searchType === "brand" ? 
                 <BrandRowSelectionProvider>
-                  <div>
-                    <SearchComponentBrand
-                      filters={filters_brand_mode} 
-                      setFilters={setFilters_brand_mode}
-                      setNodesSubCategories={setNodesSubCategoriesData} 
-                      setNodes={setNodes} 
-                      setAvailableLocations={setAvailableLocations}
-                      searchType={searchType} 
-                      setSearchType={setSearchType}
-                      filterSettingsModalOpened={filterSettingsModalOpened}
-                      setFilterSettingsModalOpened={setFilterSettingsModalOpened}
-                    />
-                  </div>
+                  <FastEditBrandContent
+                    user={user}
+                    filters_brand_mode={filters_brand_mode}
+                    setFilters_brand_mode={setFilters_brand_mode}
+                    setNodesSubCategories={setNodesSubCategoriesData}
+                    setNodes={setNodes}
+                    setAvailableLocations={setAvailableLocations}
+                    searchType={searchType}
+                    setSearchType={setSearchType}
+                    filterSettingsModalOpened={filterSettingsModalOpened}
+                    setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+                    nodes={nodes}
+                    updatedColumns={updatedColumns}
+                    visibleColumns={visibleColumns}
+                    setVisibleColumns={setVisibleColumns}
+                    isPortrait={isPortrait}
+                    isLandscape={isLandscape}
+                    filterValues={filterValues}
+                    availableLocations={availableLocations}
+                  />
                 </BrandRowSelectionProvider>
                 :
                 <CategoryRowSelectionProvider>
-                  <div>
-                    <SearchComponentCategory 
-                      filters={filters_category_mode} 
-                      setFilters={setFilters_category_mode}
-                      setNodesSubCategories={setNodesSubCategoriesData} 
-                      setNodes={setNodes} 
-                      setAvailableLocations={setAvailableLocations}
-                      searchType={searchType} 
-                      setSearchType={setSearchType}
-                      filterSettingsModalOpened={filterSettingsModalOpened}
-                      setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+                  <FastEditCategoryContent
+                    user={user}
+                    filters_category_mode={filters_category_mode}
+                    setFilters_category_mode={setFilters_category_mode}
+                    setNodesSubCategories={setNodesSubCategoriesData}
+                    setNodes={setNodes}
+                    setAvailableLocations={setAvailableLocations}
+                    searchType={searchType}
+                    setSearchType={setSearchType}
+                    filterSettingsModalOpened={filterSettingsModalOpened}
+                    setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+                    nodesSubCategoriesData={nodesSubCategoriesData}
+                    updatedColumns={updatedColumns}
+                    visibleColumns={visibleColumns}
+                    setVisibleColumns={setVisibleColumns}
+                    isPortrait={isPortrait}
+                    isLandscape={isLandscape}
+                    filterValues={filterValues}
+                    availableLocations={availableLocations}
                   />
-                  </div>
                 </CategoryRowSelectionProvider>
               }
-
-        <Group
-          id="fastorder-tablesettings"
-          mt="2px"
-          justify="flex-start"
-          align="center"
-          bg="white"
-          p="md"
-          style={{
-            borderRadius: '8px',
-          }}
-        >
-          <Flex gap="sm">
-            <Flex>
-              <ColumnVisibilityManager
-                columns={updatedColumns}
-                visibleColumns={visibleColumns}
-                setVisibleColumns={setVisibleColumns}
-              >
-              </ColumnVisibilityManager>
-            </Flex>
-
-            <Flex>
-              {user && (
-                <Button
-                  leftSection={<IconFilter size={16} />}
-                  onClick={() => setFilterSettingsModalOpened(true)}
-                  py={0}
-                  styles={{
-                    root: {
-                      backgroundColor: '#093572',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: '#0a4080',
-                      },
-                    },
-                  }}
-                >
-                  فیلترها
-                </Button>
-              )}
-            </Flex>
-          </Flex>
-        </Group>
-
-        {
-        searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
-          (
-            <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-              <FastTableBrand 
-                type="head" 
-                isPortrait={isPortrait} 
-                setNodes={setNodes} 
-                isLandscape={isLandscape} 
-                filters_brand_mode={filters_brand_mode} 
-                filterValues={filterValues} 
-                availableLocations={availableLocations} 
-                COLUMNS={updatedColumns} 
-                nodes={nodes[0]?.items?.slice(0, 1) || []} 
-                setVisibleColumns={setVisibleColumns} 
-                visibleColumns={visibleColumns} 
-              />
-              {nodes.map((item, index) => (
-                <React.Fragment key={index}>
-                  <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                    <Text size="18px" c="dark">
-                      {item.label}
-                    </Text>
-                  </Flex>
-                  <FastTableBrand 
-                    keyIndex={index} 
-                    isPortrait={isPortrait} 
-                    isLandscape={isLandscape} 
-                    filters_brand_mode={filters_brand_mode} 
-                    filterValues={filterValues} 
-                    setNodes={setNodes} 
-                    availableLocations={availableLocations}  
-                    type="data" 
-                    COLUMNS={updatedColumns} 
-                    nodes={item.items || []} 
-                    setVisibleColumns={setVisibleColumns} 
-                    visibleColumns={visibleColumns} 
-                  />
-                </React.Fragment>
-              ))}
-            </Paper>
-          ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
-          (
-            <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-              <FastTableCategory 
-                type="head" 
-                isPortrait={isPortrait} 
-                isLandscape={isLandscape} 
-                filters_category_mode={filters_category_mode} 
-                filterValues={filterValues} 
-                availableLocations={availableLocations} 
-                COLUMNS={updatedColumns} 
-                nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} 
-                setVisibleColumns={setVisibleColumns} 
-                visibleColumns={visibleColumns} 
-              />
-              {nodesSubCategoriesData?.map((item, index) => (
-                <React.Fragment key={index}>
-                  <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                    <Text size="18px" c="dark">
-                      {item.label}
-                    </Text>
-                  </Flex>
-                  <FastTableCategory 
-                    isPortrait={isPortrait} 
-                    isLandscape={isLandscape} 
-                    filters_category_mode={filters_category_mode} 
-                    filterValues={filterValues} 
-                    keyIndex={index} 
-                    availableLocations={availableLocations}  
-                    setNodes={setNodesSubCategoriesData} 
-                    type="data" 
-                    COLUMNS={updatedColumns} 
-                    nodes={item.items || []} 
-                    setVisibleColumns={setVisibleColumns} 
-                    visibleColumns={visibleColumns} 
-                  />
-                </React.Fragment>
-              ))}
-            </Paper>
-          ) : null
-        }
-
 
           </FilterProvider>
 

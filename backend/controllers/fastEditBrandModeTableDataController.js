@@ -104,26 +104,17 @@ export const getFastEditBrandModeTableData = async (req, res) => {
 
         // If no valid brand IDs found, return empty results
         if (finalBrandIds.length === 0) {
-            // Still return brands and filters for UI
+            // Still return brands for UI (filters removed)
             const allLocations = await FastOrderLocation.find({idSupplier: String(user_id)});
             const sortedLocations = allLocations[0]?.locations || [];
             const allFastEditBrands = await FastOrderBrand.find().lean();
-            const allFastEditFilters = await FastOrderFilter.find().lean();
             
             // ⭐ Remove all _id, __v, and ICPrice fields recursively
             const cleanBrands = removeIdFields(allFastEditBrands);
-            const cleanFilters = removeIdFields(allFastEditFilters);
-            
-            const newFilters = {
-                sellers: cleanFilters[0]?.sellers || [],
-                colors: cleanFilters[0]?.colors || [],
-                deliveryTime: cleanFilters[0]?.deliveryTime || []
-            };
 
             return res.status(200).json({
                 products: [],
                 brands: cleanBrands,
-                filters: newFilters,
                 supplierLocations: sortedLocations,
                 meta: {
                     totalFilters: req.body.length,
@@ -209,25 +200,16 @@ export const getFastEditBrandModeTableData = async (req, res) => {
         const allLocations = await FastOrderLocation.find({idSupplier: String(user_id)});
         const sortedLocations = allLocations[0]?.locations || [];
 
-        // Get brands and filters
+        // Get brands (filters removed)
         const allFastEditBrands = await FastOrderBrand.find().lean();
-        const allFastEditFilters = await FastOrderFilter.find().lean();
         
         // ⭐ Remove all _id, __v, and ICPrice fields recursively
         const cleanBrands = removeIdFields(allFastEditBrands);
-        const cleanFilters = removeIdFields(allFastEditFilters);
         const cleanProducts = removeIdFields(sortedProducts);
-        
-        const newFilters = {
-            sellers: cleanFilters[0]?.sellers || [],
-            colors: cleanFilters[0]?.colors || [],
-            deliveryTime: cleanFilters[0]?.deliveryTime || []
-        };
 
         res.status(200).json({
             products: cleanProducts,
             brands: cleanBrands,
-            filters: newFilters,
             supplierLocations: sortedLocations,
             meta: {
                 totalFilters: req.body.length,

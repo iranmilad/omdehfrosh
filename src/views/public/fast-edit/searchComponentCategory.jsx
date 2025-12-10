@@ -93,6 +93,7 @@ const SearchComponentCategory = ({
   const [filterBrandsCategoryStorage, setFilterBrandsCategoryStorage] = useState(initialFilters.uniqueIDClickedBrandsCategories);
   const [filterBrandsCategorySubCategoryStorage, setFilterBrandsCategorySubCategoryStorage] = useState(initialFilters.filterBrandsCategorySubCategoryStorage);
   
+  // Keep local filters state for UI - not sent to backend
   const [localFilters, setLocalFilters] = useState(initialFilters.filters);
 
   // filters in category mode
@@ -108,16 +109,16 @@ const SearchComponentCategory = ({
   const lastFetchParams = useRef(null);
   const hasLoadedInitialFilters = useRef(false);
 
-  // Helper functions to build filter arrays
+  // Helper functions to build filter arrays (without filters property)
   const buildCurrentFilterArray = useCallback(() => {
     return [{
       searchType,
       uniqueIDClickedCategories: filterCategoryStorage,
       uniqueIDClickedSubCategories: filterCategorySubCategoryStorage,
       uniqueIDClickedSubCategoriesBrands: filterCategorySubCategoryBrandsStorage,
-      filters: filters || localFilters
+      // filters property removed
     }];
-  }, [searchType, filterCategoryStorage, filterCategorySubCategoryStorage, filterCategorySubCategoryBrandsStorage, filters, localFilters]);
+  }, [searchType, filterCategoryStorage, filterCategorySubCategoryStorage, filterCategorySubCategoryBrandsStorage]);
 
   const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
     return Array.from(checkedRowIds)
@@ -128,9 +129,9 @@ const SearchComponentCategory = ({
         uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
         uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
         uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
-        filters: filter.filters || filters || localFilters
+        // filters property removed
       }));
-  }, [savedFilters, checkedRows, filters, localFilters]);
+  }, [savedFilters, checkedRows]);
 
   const updateFiltersAndStore = useCallback(() => {
     let thisFilter = {};
@@ -149,7 +150,7 @@ const SearchComponentCategory = ({
       thisFilter.uniqueIDClickedSubCategoriesBrands = filterCategorySubCategoryBrandsStorage;
     }
 
-    thisFilter.filters = filters;
+    // filters property removed
     if (id) thisFilter.userId = id;
 
     Cookies.set(COOKIE_NAME, JSON.stringify(thisFilter), { expires: 7 });
@@ -164,8 +165,7 @@ const SearchComponentCategory = ({
   }, [
     brands, 
     category,
-    searchType, 
-    filters,
+    searchType,
     filterBrandStorage, 
     filterBrandsCategoryStorage, 
     filterBrandsCategorySubCategoryStorage,
@@ -176,7 +176,7 @@ const SearchComponentCategory = ({
     COOKIE_NAME
   ]);
 
-  // Modified useEffect for checked rows - now uses array format
+  // Modified useEffect for checked rows - now uses array format (without filters)
   useEffect(() => {
     if (checkedRows.size > 0) {
       const checkedFiltersArray = buildCheckedFiltersArray();
@@ -186,7 +186,7 @@ const SearchComponentCategory = ({
     }
   }, [checkedRows, dispatch, buildCheckedFiltersArray]);
 
-  // OPTIMIZED: Combined data fetching effect with duplicate prevention - Modified to use array format
+  // OPTIMIZED: Combined data fetching effect with duplicate prevention - Modified to use array format (without filters)
   useEffect(() => {
     const currentParams = {
       searchType,
@@ -196,7 +196,7 @@ const SearchComponentCategory = ({
       checkedRowsSize: checkedRows.size,
       checkedRowIds: Array.from(checkedRows).sort().join(','),
       hasCheckedRows: checkedRows.size > 0,
-      filters: JSON.stringify(filters || localFilters)
+      // filters removed
     };
 
     // Skip if parameters haven't changed
@@ -208,13 +208,13 @@ const SearchComponentCategory = ({
 
     // Always make an API request when there are changes
     if (checkedRows.size > 0) {
-      // When checkboxes are selected, fetch data based on checked rows with filters
+      // When checkboxes are selected, fetch data based on checked rows (without filters)
       const checkedFiltersArray = buildCheckedFiltersArray();
       if (checkedFiltersArray.length > 0) {
         dispatch(fetchFastEditCategoryModeTableData(checkedFiltersArray));
       }
     } else {
-      // When no checkboxes are selected, fetch normal filtered data as array with filters
+      // When no checkboxes are selected, fetch normal filtered data as array (without filters)
       const currentFiltersArray = buildCurrentFilterArray();
       dispatch(fetchFastEditCategoryModeTableData(currentFiltersArray));
     }
@@ -226,8 +226,7 @@ const SearchComponentCategory = ({
     filterCategorySubCategoryBrandsStorage,
     checkedRows,
     checkedRows.size,
-    filters,
-    localFilters,
+    // filters removed
     buildCheckedFiltersArray,
     buildCurrentFilterArray
   ]);
@@ -241,14 +240,14 @@ const SearchComponentCategory = ({
     }
   }, [dispatch, user]);
 
-  // Save to cookies whenever relevant state changes
+  // Save to cookies whenever relevant state changes (includes filters for UI state)
   useEffect(() => {
     const dataToSave = {
       searchType: searchType,
       uniqueIDClickedCategories: filterCategoryStorage,
       uniqueIDClickedSubCategories: filterCategorySubCategoryStorage,
       uniqueIDClickedSubCategoriesBrands: filterCategorySubCategoryBrandsStorage,
-      filters: localFilters,
+      filters: localFilters, // Save for UI state, but won't be sent to backend
     };
     
     Cookies.set(COOKIE_NAME, JSON.stringify(dataToSave), { expires: 7 });
@@ -257,11 +256,11 @@ const SearchComponentCategory = ({
     filterCategoryStorage, 
     filterCategorySubCategoryStorage, 
     filterCategorySubCategoryBrandsStorage, 
-    localFilters,
+    localFilters, // Re-added
     COOKIE_NAME
   ]);
 
-  // Load filters from cookies on component mount - Modified to use array format
+  // Load filters from cookies on component mount - Modified to use array format (without filters)
   useEffect(() => {
     const storedFilters = Cookies.get(COOKIE_NAME);
 
@@ -272,10 +271,11 @@ const SearchComponentCategory = ({
         setFilterCategoryStorage(parsedFilters.uniqueIDClickedCategories || []);
         setFilterCategorySubCategoryStorage(parsedFilters.uniqueIDClickedSubCategories || []);
         setFilterCategorySubCategoryBrandsStorage(parsedFilters.uniqueIDClickedSubCategoriesBrands || []);
-        setLocalFilters(parsedFilters.filters || {});
+        setLocalFilters(parsedFilters.filters || initialFilters.filters); // Restore local filters
         
+        // Sync filters with parent component
         if (setFilters) {
-          setFilters(parsedFilters.filters || {});
+          setFilters(parsedFilters.filters || initialFilters.filters);
         }
         
         if (setSearchType && parsedFilters.searchType) {
@@ -288,7 +288,7 @@ const SearchComponentCategory = ({
             uniqueIDClickedCategories: parsedFilters.uniqueIDClickedCategories || [],
             uniqueIDClickedSubCategories: parsedFilters.uniqueIDClickedSubCategories || [],
             uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || [],
-            filters: parsedFilters.filters || {}
+            // filters removed
           }];
           dispatch(fetchFastEditCategoryModeTableData(filterArray));
         }, 0);
@@ -315,13 +315,13 @@ const SearchComponentCategory = ({
     }
   }, [tableData, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
 
-  // Clear filters when checkboxes are active - Modified to use array format
+  // Clear filters when checkboxes are active - Modified to use array format (filters kept for UI)
   useEffect(() => {
     if (checkedRows.size > 0) {
       setFilterCategoryStorage([]);
       setFilterCategorySubCategoryStorage([]);
       setFilterCategorySubCategoryBrandsStorage([]);
-      setLocalFilters({ ...initialFilters.filters });
+      setLocalFilters({ ...initialFilters.filters }); // Reset to default
 
       if (setFilters) {
         setFilters({ ...initialFilters.filters });
@@ -397,78 +397,92 @@ const SearchComponentCategory = ({
         />
 
         {/* Tabs */}
-        <Tabs 
-          styles={{ 
-            panel: { marginTop: isMobile ? "15px" : "20px" },
-            list: {
-              overflowX: 'auto',
-              flexWrap: 'nowrap',
-              justifyContent: 'space-between',
-              display: 'flex',
-              width: '100%',
-              gap: isMobile ? '8px' : '12px',
-              flexDirection: 'row',
-              border: '1px solid #e0e0e0',
-              borderRadius: '8px',
-              padding: isMobile ? '8px' : '12px',
-              backgroundColor: '#fafafa'
-            },
-            tab: {
-              fontSize: isMobile ? '12px' : '14px',
-              padding: isMobile ? '8px 12px' : '10px 16px',
-              whiteSpace: 'nowrap',
-              flex: '1 1 0',
-              textAlign: 'center',
-              minWidth: 0,
-              border: '1px solid transparent',
-              transition: 'all 0.2s ease',
-              '&[data-active]': {
-                backgroundColor: '#093572',
-                color: 'white',
-                borderColor: '#093572',
-              },
-              '&[data-active]:hover': {
-                backgroundColor: '#0a4080',
-              },
-            }
-          }} 
-          variant="pills" 
-          defaultValue="brand" 
-          value={searchType} 
-          onChange={setSearchType}
-          orientation="horizontal"
-        >
-          <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
-            {/* Tab 1 - Takes 1/2 of space */}
-            <Tabs.Tab value="brand" style={{ flex: '1 1 0', minWidth: 0 }}>
-              {isMobile ? "برند" : "برند"}
-            </Tabs.Tab>
-            
-            {/* Tab 2 - Takes 1/2 of space */}
-            <Tabs.Tab value="category" style={{ flex: '1 1 0', minWidth: 0 }}>
-              {isMobile ? "دسته‌بندی" : "دسته‌بندی"}
-            </Tabs.Tab>
-          </Tabs.List>
-          
-          <Tabs.Panel value="category">
-            {!loading && searchType === "category" && tableData && (
-              <SlideCategory 
-                tab={category} 
-                items={tableData?.category} 
-                searchType={searchType}
-                click={setCategory} 
-                filterCategoryStorage={filterCategoryStorage}
-                setFilterCategoryStorage={setFilterCategoryStorage}
-                filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                isMobile={isMobile}
-                isTablet={isTablet}
-              />
-            )}
-          </Tabs.Panel>
-        </Tabs>
+<Tabs 
+  styles={{ 
+    panel: { 
+      marginTop: isMobile ? "15px" : "20px" 
+    },
+    list: {
+      overflowX: 'auto',
+      flexWrap: 'nowrap',
+      justifyContent: 'space-between',
+      display: 'flex',
+      width: '100%',
+      gap: isMobile ? '8px' : '12px',
+      flexDirection: 'row',
+      border: '1px solid #e0e0e0',
+      borderRadius: '8px',
+      padding: isMobile ? '8px' : '12px',
+      backgroundColor: '#fafafa'
+    },
+    tab: {
+      fontSize: isMobile ? '12px' : '14px',
+      padding: isMobile ? '8px 12px' : '10px 16px',
+      whiteSpace: 'nowrap',
+      flex: '1 1 0',
+      textAlign: 'center',
+      minWidth: 0,
+      transition: 'all 0.2s ease',
+    }
+  }} 
+  variant="pills" 
+  defaultValue="brand" 
+  value={searchType} 
+  onChange={setSearchType}
+  orientation="horizontal"
+>
+  <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
+    {/* ✅ Brand Tab - Inline styles */}
+    <Tabs.Tab 
+      value="brand" 
+      style={{ 
+        flex: '1 1 0', 
+        minWidth: 0,
+        border: searchType === 'brand' ? '1px solid #093572' : '1px solid #e0e0e0',
+        borderRadius: '6px',
+        backgroundColor: searchType === 'brand' ? '#093572' : 'white',
+        color: searchType === 'brand' ? 'white' : '#333',
+      }}
+    >
+      {isMobile ? "برند" : "برند"}
+    </Tabs.Tab>
+    
+    {/* ✅ Category Tab - Inline styles */}
+    <Tabs.Tab 
+      value="category" 
+      style={{ 
+        flex: '1 1 0', 
+        minWidth: 0,
+        border: searchType === 'category' ? '1px solid #093572' : '1px solid #e0e0e0',
+        borderRadius: '6px',
+        backgroundColor: searchType === 'category' ? '#093572' : 'white',
+        color: searchType === 'category' ? 'white' : '#333',
+      }}
+    >
+      {isMobile ? "دسته‌بندی" : "دسته‌بندی"}
+    </Tabs.Tab>
+  </Tabs.List>
+  
+  {/* Panel for Category Mode */}
+  <Tabs.Panel value="category">
+    {!loading && searchType === "category" && tableData && (
+      <SlideCategory 
+        tab={category} 
+        items={tableData?.category} 
+        searchType={searchType}
+        click={setCategory} 
+        filterCategoryStorage={filterCategoryStorage}
+        setFilterCategoryStorage={setFilterCategoryStorage}
+        filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+        setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+        filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+        setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+        isMobile={isMobile}
+        isTablet={isTablet}
+      />
+    )}
+  </Tabs.Panel>
+</Tabs>
 
       </Paper>
     </>

@@ -115,7 +115,7 @@ const SearchComponentCategory = ({
   const [brands, setBrands] = useState({ parent: [], clickedBrands: [], categories: [] });
   const [category, setCategory] = useState({ parent: [], clickedCategories: [], subCategory: [], brands: [] });
 
-  const COOKIE_NAME = "search_filters_category_fast_edit";
+  const COOKIE_NAME = "search_filters_category_fast_order";
 
   // Enhanced helper function to handle token expiration and update global auth state
   const handleTokenExpiration = async (error) => {

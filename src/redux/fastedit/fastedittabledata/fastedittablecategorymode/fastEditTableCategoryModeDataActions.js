@@ -8,37 +8,34 @@ export const fetchFastEditCategoryModeTableData = createAsyncThunk(
 
     console.log('🔥 Fast Edit Category Redux Action - Received payload:', payload);
 
-    // Get current filters from state (if needed as fallback)
-    const state = getState();
-    const currentFilters = state.filters || {};
-
     const token = localStorage.getItem("user");
 
     // Handle both array and object formats
     let requestBody;
     
     if (Array.isArray(payload)) {
-      // New array format - ensure each item has filters
-      requestBody = payload.map(item => ({
-        ...item,
-        filters: item.filters || currentFilters // Use item filters if provided, otherwise use current filters
-      }));
+      // New array format - remove filters from each item
+      requestBody = payload.map(item => {
+        const { filters, ...itemWithoutFilters } = item;
+        return itemWithoutFilters;
+      });
     } else {
-      // Old object format - convert to array and add filters
+      // Old object format - convert to array and remove filters
       const {
         searchType, 
         uniqueIDClickedCategories, 
         uniqueIDClickedSubCategories, 
         uniqueIDClickedSubCategoriesBrands,
-        filters, // Check if filters are already in payload
+        filters, // Extract filters to exclude it
+        ...rest
       } = payload;
       
       requestBody = [{
         searchType: searchType || 'category', 
         uniqueIDClickedCategories: uniqueIDClickedCategories || [], 
         uniqueIDClickedSubCategories: uniqueIDClickedSubCategories || [], 
-        uniqueIDClickedSubCategoriesBrands: uniqueIDClickedSubCategoriesBrands || [],
-        filters: filters || currentFilters // Use payload filters or current filters
+        uniqueIDClickedSubCategoriesBrands: uniqueIDClickedSubCategoriesBrands || []
+        // filters removed
       }];
     }
 
@@ -49,10 +46,10 @@ export const fetchFastEditCategoryModeTableData = createAsyncThunk(
           'Authorization': `Bearer ${token}`, 
           "Content-Type": "application/json"      
         }),
-        body: JSON.stringify(requestBody) // Send the processed array
+        body: JSON.stringify(requestBody) // Send the processed array without filters
       });
 
-      console.log('🔥 Fast Edit Category Redux Action - Sending to API:', requestBody);
+      console.log('🔥 Fast Edit Category Redux Action - Sending to API (without filters):', requestBody);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

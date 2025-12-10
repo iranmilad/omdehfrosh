@@ -41,6 +41,7 @@ import { logout, verifyTokenSilent } from "../../redux/auth/authusers/auth";
 import Notifications from "../notifications";
 import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
+import { ChevronDown, LucideChevronDownCircle, LucideChevronDownSquare } from "lucide-react";
 
 const Header = () => {
   const location = useLocation();
@@ -224,58 +225,73 @@ const Header = () => {
       >
         <div className="relative gap-x-4 bg-white py-2 pb-2" style={{ zIndex: 1000 }}>
           <Container>
-            <Flex w="100%" justify="space-between" align="center" gap={{ base: 'xs', sm: 'sm', md: 'md' }}>
-              <Box style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "80px", sm: "100px", md: "146px" }}>
-                <Anchor component={NavLink} to="/">
-                  {loadingBootstrap ? (
-                    <Skeleton h={{ base: 36, sm: 42, md: 48 }} w="100%" />
-                  ) : (
-                    <Image src={bootstrap?.data.logo} h={{ base: "36px", sm: "42px", md: "48px" }} w="100%" fit="contain" alt={bootstrap?.data.siteTitle || "Logo"} />
-                  )}
-                </Anchor>
-              </Box>
+            <Flex  justify="space-between" align="">
+             <Flex align="center" gap={4}>
 
-              <Box
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  maxWidth: '600px',
-                  cursor: 'pointer',
-                  border: window.innerWidth <= 768 ? 'none' : '1px solid #dee2e6',
-                  borderRadius: '9px',
-                  padding: '2px 8px',
-                  outline: 'none',
-                  overflow: 'hidden',
-                  zIndex: 1000
-                }}
-                onClick={mobileSearchDrawer[1].toggle}
-                tabIndex={-1}
-              >
-                <Search />
-              </Box>
-              
-
-
-
-
-              <Box style={{ flex: 1 }} />
-
-              <Flex gap={{ base: 'xs', sm: 'sm', md: 'md' }} align="center" style={{ flexShrink: 0, zIndex: 1000 }}>
-                <Box visibleFrom="sm">
-                  <Menu shadow="md" position="bottom-end" trigger="hover" openDelay={100} closeDelay={200}
-                    styles={{ dropdown: { minWidth: 192, padding: "15px", maxHeight: '500px', overflowY: 'auto', zIndex: 1001 } }}
-                  >
-                    <MenuTarget>
-                      <ActionIcon h={{ base: 40, md: 45 }} w={{ base: 40, md: 45 }} variant="light" size="xl">
-                        <IconMenu2 size={18} />
-                      </ActionIcon>
-                    </MenuTarget>
-                    <MenuDropdown>
-                      <DropDownMenu menuItems={mainMenu} />
-                    </MenuDropdown>
-                  </Menu>
+                <Box style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "80px", sm: "100px", md: "146px" }}>
+                  <Anchor component={NavLink} to="/">
+                    {loadingBootstrap ? (
+                      <Skeleton h={{ base: 36, sm: 42, md: 48 }} w="100%" />
+                    ) : (
+                      <Image src={bootstrap?.data.logo} h={{ base: "36px", sm: "42px", md: "48px" }} w="100%" fit="contain" alt={bootstrap?.data.siteTitle || "Logo"} />
+                    )}
+                  </Anchor>
                 </Box>
 
+                <Box
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    maxWidth: '600px',
+                    cursor: 'pointer',
+                    border: window.innerWidth <= 768 ? 'none' : '1px solid #dee2e6',
+                    borderRadius: '9px',
+                    padding: '2px 8px',
+                    outline: 'none',
+                    overflow: 'hidden',
+                    zIndex: 1000
+                  }}
+                  onClick={mobileSearchDrawer[1].toggle}
+                  tabIndex={-1}
+                >
+                  <Search />
+                </Box>
+
+                <Box>
+                  <Box visibleFrom="sm">
+                    <Menu shadow="md" position="bottom-end" trigger="hover" openDelay={100} closeDelay={200}
+                      styles={{ dropdown: { minWidth: 192, padding: "15px", maxHeight: '500px', overflowY: 'auto', zIndex: 1001 } }}
+                    >
+                      <MenuTarget>
+                      <Flex align="center" gap={2} dir="rtl">
+                        <span style={{ fontSize: "16px", color: "#1a1a1a" }}>
+                          دسته‌بندی‌ها
+                        </span>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="#4A4A4A"
+                          style={{ marginTop: 2 }}
+                        >
+                          <path d="M7 10l5 5 5-5H7z" />
+                        </svg>
+
+
+                      </Flex>
+
+                      
+                      </MenuTarget>
+                      <MenuDropdown>
+                        <DropDownMenu menuItems={mainMenu} />
+                      </MenuDropdown>
+                    </Menu>
+                  </Box>
+
+                </Box>
+              </Flex>
+              
+              <Flex gap={{ base: 'xs', sm: 'sm', md: 'md' }} align="center" style={{ zIndex: 1000 }}>
                 <Box visibleFrom="sm"><Notifications /></Box>
                 
                 {authLoading ? (

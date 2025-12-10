@@ -33,24 +33,49 @@ const Footer = () => {
               />
             )}
           </Stack>
-          <Button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            size="md"
-            variant="outline"
-            color="gray"
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-          >
-            {bootstrap?.data.footer?.scrollButtonText || "برو به بالا"}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="#9c9c9c"
-              viewBox="0 0 256 256"
-            >
-              <path d="M128,26A102,102,0,1,0,230,128,102.12,102.12,0,0,0,128,26Zm0,192a90,90,0,1,1,90-90A90.1,90.1,0,0,1,128,218Zm44.24-78.24a6,6,0,1,1-8.48,8.48L128,112.49,92.24,148.24a6,6,0,0,1-8.48-8.48l40-40a6,6,0,0,1,8.48,0Z"></path>
-            </svg>
-          </Button>
+<Button
+  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+  variant="outline"
+  styles={{
+    root: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-around',
+      padding: '0.25rem 1.0rem',
+      borderRadius: '8px',
+      border: '1px solid #d1d5db',
+      backgroundColor: 'white',
+      cursor: 'pointer',
+      '&:hover': {
+        backgroundColor: '#f9fafb'
+      }
+    }
+  }}
+>
+  <Flex gap={6}>
+
+    <Flex>
+      <Text c="#9ca3af" size="sm" fw={400}>
+        { "بازگشت به بالا"}
+      </Text>
+    </Flex>
+    <Flex>
+
+    <svg
+      width="24"
+      height="18"
+      fill="none"
+      stroke="#9ca3af"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      >
+      <path d="m18 15-6-6-6 6"/>
+    </svg>
+    </Flex>
+  </Flex>
+</Button>
         </Group>
 
         {/* Features Section */}
