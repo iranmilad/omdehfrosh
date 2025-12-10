@@ -30,18 +30,15 @@ const SliderComponentSubCategoriesCMFastOrder = ({
       modules={[FreeMode, Navigation]}
       freeMode={true}
       slidesPerView="auto"
-      spaceBetween={6}
+      spaceBetween={8}
+      className="mt-2 !m-0 !p-0"
       style={{ width: "100%" }}
     >
       {items?.map((item, index) => (
         <SwiperSlide
           key={index}
-          style={{
-            width: "auto",
-            display: "flex",
-            margin: 0,
-            padding: 0
-          }}
+          style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}
+          className="!m-0 !p-0"
         >
           <SingleCategoryWithSubcategories
             parentItem={item}
@@ -116,16 +113,34 @@ export function SingleCategoryWithSubcategories({
     }
   };
 
+  // Comprehensive image validation function
+  const isValidImage = (imageValue) => {
+    if (imageValue == null) return false;
+    if (Array.isArray(imageValue)) {
+      if (imageValue.length === 0) return false;
+      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
+    }
+    if (typeof imageValue === 'string') {
+      const trimmed = imageValue.trim();
+      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  };
+
   // Helper function to get image source with fallback for subcategories
   const getSubcategoryImageSrc = (image) => {
-    if (image && image.trim() !== '') {
+    if (isValidImage(image)) {
       return image;
     }
     return DEFAULT_SUBCATEGORY_PLACEHOLDER;
   };
 
   // Handle image error by setting default placeholder
-  const handleImageError = (e) => {
+  const handleImageError = (e, subcategoryName) => {
+    console.warn(`Failed to load subcategory image: ${e.target.src} for subcategory: ${subcategoryName}`);
     e.target.src = DEFAULT_SUBCATEGORY_PLACEHOLDER;
   };
 
@@ -149,24 +164,48 @@ export function SingleCategoryWithSubcategories({
               return (
                 <div
                   key={subIndex}
-                  className="text-sm w-fit flex flex-col items-center cursor-pointer"
+                  className="cursor-pointer"
                   onClick={() => onClick(subcategory, parentItem.idCategory)}
                 >
                   <div
-                    className={`flex w-fit flex-row justify-center items-center px-3 gap-2 h-[35px] bg-gray-100 overflow-hidden border-[1.5px] ${
-                      isActiveBorder ? "border-gray-400" : "border-none"
-                    }`}
-                    style={{ borderRadius: '18px' }}
+                    className="flex items-center justify-center whitespace-nowrap"
+                    style={{
+                      height: '40px',
+                      paddingTop: '4px',
+                      paddingBottom: '4px',
+                      paddingLeft: '8px',
+                      paddingRight: '8px',
+                      backgroundColor: 'rgb(247, 247, 248)',
+                      borderRadius: '100px',
+                      border: isActiveBorder 
+                        ? '0.666667px solid rgb(9, 54, 114)' 
+                        : '0.666667px solid rgb(250, 250, 250)',
+                      fontSize: '16px',
+                      fontWeight: isActiveBorder ? 700 : 400,
+                      color: 'rgb(77, 80, 83)',
+                      gap: '8px',
+                      flexDirection: 'row'
+                    }}
                   >
-                    <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
+                    <div 
+                      className='rounded-full overflow-hidden flex-shrink-0'
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        lineHeight: 0
+                      }}
+                    >
                       <img
-                        className="w-full h-full object-cover"
+                        className="w-full inline-block"
+                        style={{ objectFit: 'cover', width: '24px', height: '24px' }}
                         src={getSubcategoryImageSrc(subcategory.image)}
                         alt={subcategory.name}
-                        onError={handleImageError}
+                        onError={(e) => handleImageError(e, subcategory.name)}
+                        width="24"
+                        height="24"
                       />
                     </div>
-                    <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
+                    <span className="leading-none">
                       {subcategory.name}
                     </span>
                   </div>

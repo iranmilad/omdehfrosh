@@ -20,7 +20,7 @@ const SliderComponentSubCategoriesFastEdit = ({
         modules={[FreeMode, Navigation]}       
         freeMode={true} 
         slidesPerView="auto" 
-        spaceBetween={6}
+        spaceBetween={8}
         className="mt-2 !m-0 !p-0"
         style={{ 
           width: "100%",
@@ -57,12 +57,12 @@ const SliderComponentSubCategoriesFastEdit = ({
 // Enhanced SVG Icon Component for subcategory fallback
 const SubCategoryIcon = () => (
   <svg 
-    width="20" 
-    height="20" 
+    width="24" 
+    height="24" 
     viewBox="0 0 24 24" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    className="w-[20px] h-[20px] rounded-full"
+    className="w-[24px] h-[24px] rounded-full"
   >
     <circle cx="12" cy="12" r="11" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
     <circle cx="8" cy="8" r="2" fill="#9CA3AF"/>
@@ -224,25 +224,49 @@ export function SingleCategoryWithSubcategories({
                       return (
                         <div
                           key={subIndex}
-                          className="text-sm w-fit flex flex-row items-center justify-center cursor-pointer"
+                          className="cursor-pointer"
                           onClick={() => onClick(category, subCategory, parentItem.idBrand)}
                         >
                           <div
-                            className={`flex px-3 h-[35px] w-full gap-2 justify-center items-center border-[1.5px]
-                            ${isActiveBorder ? "border-gray-400" : "border-none"} bg-gray-100`}
-                            style={{ borderRadius: '18px' }}
+                            className="flex items-center justify-center whitespace-nowrap"
+                            style={{
+                              height: '40px',
+                              paddingTop: '4px',
+                              paddingBottom: '4px',
+                              paddingLeft: '8px',
+                              paddingRight: '8px',
+                              backgroundColor: 'rgb(247, 247, 248)',
+                              borderRadius: '100px',
+                              border: isActiveBorder 
+                                ? '0.666667px solid rgb(9, 54, 114)' 
+                                : '0.666667px solid rgb(250, 250, 250)',
+                              fontSize: '16px',
+                              fontWeight: isActiveBorder ? 700 : 400,
+                              color: 'rgb(77, 80, 83)',
+                              gap: '8px',
+                              flexDirection: 'row'
+                            }}
                           >
-                            <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0 image-container relative flex items-center justify-center'>
+                            <div 
+                              className='rounded-full overflow-hidden flex-shrink-0 image-container relative'
+                              style={{ 
+                                width: '24px', 
+                                height: '24px',
+                                lineHeight: 0
+                              }}
+                            >
                               {showImage ? (
                                 <>
                                   <img
-                                    className="w-[20px] h-[20px] object-cover rounded-full"
+                                    className="w-full inline-block"
+                                    style={{ objectFit: 'cover', display: 'block', width: '24px', height: '24px' }}
                                     src={subCategory.image}
                                     alt={subCategory.name}
                                     onError={(e) => handleImageError(e, subCategory.name)}
-                                    style={{ display: 'block' }}
+                                    width="24"
+                                    height="24"
                                   />
-                                  <div className="fallback-icon w-[20px] h-[20px] bg-white rounded-full items-center justify-center absolute inset-0" style={{ display: 'none' }}>
+                                  <div className="fallback-icon absolute inset-0 items-center justify-center" style={{ display: 'none' }}>
                                     <SubCategoryIcon />
                                   </div>
                                 </>
@@ -250,7 +274,7 @@ export function SingleCategoryWithSubcategories({
                                 <SubCategoryIcon />
                               )}
                             </div>
-                            <span className="text-xs leading-none whitespace-nowrap">
+                            <span className="leading-none">
                               {subCategory.name}
                             </span>
                           </div>

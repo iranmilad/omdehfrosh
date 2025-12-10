@@ -1,3 +1,4 @@
+// FastEdit.jsx - Refactored version
 import { useState, useEffect, useCallback, useId, createContext, useContext, useMemo, useRef } from "react";
 import XTitle from "../../../components/title";
 import OrderRow, { Attributes } from "./orderRow";
@@ -21,7 +22,7 @@ import {
   Loader,
   Overlay,
 } from "@mantine/core";
-import { IconSettings } from "@tabler/icons-react";
+import { IconSettings, IconFilter } from "@tabler/icons-react";
 import FastTable from "./fasttablebrand";
 import FastTableCategory from "./fasttablecategory";
 import FastTableBrand from "./fasttablebrand";
@@ -44,6 +45,8 @@ import { verifyToken } from "../../../redux/auth/authusers/auth";
 import RotateModal from "../../../components/rotatemodal";
 import { BrandRowSelectionProvider } from "./BrandRowSelectionContext";
 import { CategoryRowSelectionProvider } from "./CategoryRowSelectionContext";
+import ColumnVisibilityManager from "./ColumnVisibilityManager";
+import { useMediaQuery } from "@mantine/hooks";
 
 const FastOrderContext = createContext();
 
@@ -61,6 +64,7 @@ function FastEdit() {
 
   const [modalOpen, setModalOpen] = useState(false);
 
+  // ✅ KEEP: visibleColumns state (managed by ColumnVisibilityManager)
   const [visibleColumns, setVisibleColumns] = useState([]);
   const [nodes, setNodes ] = useState(null);
   const [nodesSubCategoriesData, setNodesSubCategoriesData] = useState(null);
@@ -72,18 +76,21 @@ function FastEdit() {
 
   const [filterValues, setFilterValues] = useState({colors:[], sellers:[]});
 
-  const [searchType, setSearchType] = useState("brand"); 
+  const [searchType, setSearchType] = useState("brand");
   
-  // ❌ REMOVED: const [icPriceLabels, setIcPriceLabels] = useState([]);
+  // ✅ NEW: Filter settings modal state
+  const [filterSettingsModalOpened, setFilterSettingsModalOpened] = useState(false);
 
   const [errMessage, setErrMessage] = useState()
 
   const navigate = useNavigate();
 
+  // Responsive breakpoints
+  const isMobile = useMediaQuery("(max-width: 480px)");
+
   // cookie brand mode
   const COOKIE_NAME_BRAND_MODE = "search_filters_brand_fast_edit";
 
-  // ✅ Load filters from cookies initially
   const getInitialFilters_brand_mode = () => {
     const storedFilters_brand_mode = Cookies.get(COOKIE_NAME_BRAND_MODE);
     if (storedFilters_brand_mode) {
@@ -117,7 +124,6 @@ function FastEdit() {
   // cookie category mode
   const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
 
-  // ✅ Load filters from cookies initially
   const getInitialFilters_category_mode = () => {
     const storedFilters_category_mode = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
     if (storedFilters_category_mode) {
@@ -148,14 +154,11 @@ function FastEdit() {
   const initialFilters_category_mode = getInitialFilters_category_mode();
   const [filters_category_mode, setFilters_category_mode] = useState(initialFilters_category_mode.filters);
 
-  const [opened, setOpened] = useState(false);
-
   let priceFormatLabel = 'تومان';
   if(filters_brand_mode.priceFormat === "tooman") priceFormatLabel = "تومان";
   else if(filters_brand_mode.priceFormat === "hezar") priceFormatLabel = "هزار تومان";
   else priceFormatLabel = "میلیون تومان";
 
-  // ✅ SIMPLIFIED: Table columns without ICPrice
   const COLUMNS = [
     { key: "image", label: "تصویر", width: "160px" },
     { key: "shortName", label: "نام اختصاری کالا", width: "160px" },
@@ -164,10 +167,9 @@ function FastEdit() {
     { key: "price", label: "قیمت", width: "160px" },
     { key: "foreignCurrencyPrice", label: "قیمت ارزی", width: "160px" },
     { key: "secondaryCost", label: "هزینه فرعی" }, 
-    { key: "percentagePrice1", label: "قیمت درصدی 1" }, // ⭐ قیمت عادی
-    { key: "percentagePrice2", label: "قیمت درصدی 2" }, // ⭐ قیمت تخفیف خورده
-    { key: "percentagePrice3", label: "قیمت درصدی 3" }, // ⭐ قیمت ویژه تولید کننده
-    // { key: "discount", label: "تخفیف", width: "160px" },
+    { key: "percentagePrice1", label: "قیمت درصدی 1" },
+    { key: "percentagePrice2", label: "قیمت درصدی 2" },
+    { key: "percentagePrice3", label: "قیمت درصدی 3" },
     { key: "attributes", label: "ویژگی ها", width: "160px" },
     { key: "stock", label: "موجودی", width: "160px" },
     { key: "minOrder", label: "حداقل سفارش", width: "120px" },
@@ -179,28 +181,7 @@ function FastEdit() {
     { key: "action", label: "عملیات", width: "120px" }
   ];
 
-  // ❌ REMOVED: extractICPriceLabels function
-  // ❌ REMOVED: getAllICPriceLabels function
-  // ❌ REMOVED: productData useMemo
-  // ❌ REMOVED: icPriceColumns
-  // ❌ REMOVED: priceIndex and updatedColumns logic
-
-  // ✅ SIMPLIFIED: Just use COLUMNS directly
   const updatedColumns = COLUMNS;
-
-  // ❌ REMOVED: useEffect for extracting ICPrice labels
-
-  // Handle saving column visibility settings
-  const handleSave = () => setOpened(false);
-
-  const handleVisibleColumnsChange = (event, columnKey) => {
-    const isChecked = event.target.checked; // true = hiding, false = showing
-    setVisibleColumns((prev) =>
-      isChecked
-        ? prev.filter((key) => key !== columnKey) // Remove from visible (hide)
-        : [...prev, columnKey] // Add to visible (show)
-    );
-  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -228,11 +209,10 @@ function FastEdit() {
   useEffect(() => {
     const handleResize = () => {
       setIsLandscape(window.innerWidth > window.innerHeight);
-      setIsPortrait(window.innerHeight > window.innerWidth); // Update isPortrait on resize
+      setIsPortrait(window.innerHeight > window.innerWidth);
     };
   
     window.addEventListener("resize", handleResize);
-    // Initial calculation when the component mounts
     handleResize(); 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -283,13 +263,12 @@ function FastEdit() {
     if (!brandModeUpdate || brandModeUpdate.state !== "error") return;
 
     if (Array.isArray(brandModeUpdate.errors) && brandModeUpdate.errors.length > 0) {
-      // Combine all error messages with red style for err.label
       const combinedMessage = brandModeUpdate.errors
         .map((err) => {
           const label = err.label ? `<span style="color: red;">${err.label}</span>` : "خطا";
           return `• ${label}: ${err.message}`;
         })
-        .join("<br />"); // Using <br /> for line breaks between each error
+        .join("<br />");
 
         const additionalMessage = brandModeUpdate.product.general.title
 
@@ -301,7 +280,7 @@ function FastEdit() {
           <div style={{ color: "", marginTop: 2, fontWeight: '', fontSize: '12px' }} dangerouslySetInnerHTML={{ __html: combinedMessage }} />
         </div>,
         color: "red",
-        autoClose: true, // optional: keep open longer for multiple messages
+        autoClose: true,
       });
 
     } else {
@@ -345,7 +324,6 @@ function FastEdit() {
     }
   }, [errorBrandModeUpdate])
 
-  // ✅ Add sticky filters functionality (same as FastOrder)
   const [isFixed, setIsFixed] = useState(false);
   const componentRef = useRef(null);
   const lastScrollY = useRef(0);
@@ -360,15 +338,13 @@ function FastEdit() {
       const currentScrollY = window.scrollY;
 
       if (currentScrollY < lastScrollY.current) {
-        // Scrolling up
         if (currentScrollY > originalTop.current) {
-          setIsFixed(true); // stick to top
+          setIsFixed(true);
         } else {
-          setIsFixed(false); // back to original position
+          setIsFixed(false);
         }
       } else {
-        // Scrolling down
-        setIsFixed(false); // normal flow
+        setIsFixed(false);
       }
 
       lastScrollY.current = currentScrollY;
@@ -380,51 +356,50 @@ function FastEdit() {
 
   const [openedM, setOpenedM] = useState(false);
 
-// Add this before the main return statement, after all the useEffects
   useEffect(() => {
     if (authError) {
-      setOpened(true);
+      setOpenedM(true);
     }
   }, [authError]);
-// Show loading while authentication is being verified
-if (authLoading) {
-  return <DelayedFullScreenLoader />;
-}
 
-// Only show access denied modal after we've confirmed the user's status
-if (!user || user.role !== "supplier") {
-  return (
-    <Modal
-      opened={true}
-      onClose={() => {}}
-      title="ورود به حساب کاربری"
-      centered
-      withCloseButton={false}
-      closeOnClickOutside={false}
-      zIndex={50}
-    >
-      <Stack>
-        <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>
-        <Button
-          onClick={() => navigate("/login")}
-          variant="filled"
-          color="blue"
-          fullWidth
-        >
-          ورود به حساب کاربری
-        </Button>
-      </Stack>
-    </Modal>
-  );
-}
+  if (authLoading) {
+    return <DelayedFullScreenLoader />;
+  }
 
-// Remove the redundant check at the bottom
-// if (user.role === "supplier") { ... }
+  if (!user || user.role !== "supplier") {
+    return (
+      <Modal
+        opened={true}
+        onClose={() => {}}
+        title="ورود به حساب کاربری"
+        centered
+        withCloseButton={false}
+        closeOnClickOutside={false}
+        zIndex={50}
+      >
+        <Stack>
+          <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>
+          <Button
+            onClick={() => navigate("/login")}
+            variant="filled"
+            color="blue"
+            fullWidth
+          >
+            ورود به حساب کاربری
+          </Button>
+        </Stack>
+      </Modal>
+    );
+  }
+  
   
   if (user.role === "supplier") {
 
   return (
     <>
+      {/* ✅ FIXED: RotateModal at root level - ALWAYS renders when isPortrait is true */}
+      {/* <RotateModal isPortrait={isPortrait} /> */}
+
       {
         !loadingBrandModeUpdate &&
         <ErrorMessageModal
@@ -459,7 +434,9 @@ if (!user || user.role !== "supplier") {
                       setNodes={setNodes} 
                       setAvailableLocations={setAvailableLocations}
                       searchType={searchType} 
-                      setSearchType={setSearchType} 
+                      setSearchType={setSearchType}
+                      filterSettingsModalOpened={filterSettingsModalOpened}
+                      setFilterSettingsModalOpened={setFilterSettingsModalOpened}
                     />
                   </div>
                 </BrandRowSelectionProvider>
@@ -473,69 +450,62 @@ if (!user || user.role !== "supplier") {
                       setNodes={setNodes} 
                       setAvailableLocations={setAvailableLocations}
                       searchType={searchType} 
-                      setSearchType={setSearchType} 
+                      setSearchType={setSearchType}
+                      filterSettingsModalOpened={filterSettingsModalOpened}
+                      setFilterSettingsModalOpened={setFilterSettingsModalOpened}
                   />
                   </div>
                 </CategoryRowSelectionProvider>
               }
 
-          <div
-            ref={componentRef}
-            style={{
-              position: isFixed ? "fixed" : "static",
-              top: isFixed ? 0 : "auto",
-              left: 0,
-              right: 0,
-              zIndex: 999,
-              background: isFixed ? "white" : "transparent",
-            }}
-          >
-            {
-              searchType === "brand" ?
-                <FiltersBrandMode
-                  setFilters={setFilters_brand_mode} 
-                  nodes={nodes} 
-                  setNodesSubCategories={setNodesSubCategoriesData} 
-                  setNodes={setNodes} 
-                  filters={filters_brand_mode} 
-                  searchType={searchType} 
-                />
-              :
-                <FiltersCategoryMode
-                  setFilters={setFilters_category_mode} 
-                  nodes={nodes} 
-                  setNodesSubCategories={setNodesSubCategoriesData} 
-                  setNodes={setNodes} 
-                  filters={filters_category_mode} 
-                  searchType={searchType} 
-                />
-            }
-          </div>
+        <Group
+          id="fastorder-tablesettings"
+          mt="2px"
+          justify="flex-start"
+          align="center"
+          bg="white"
+          p="md"
+          style={{
+            borderRadius: '8px',
+          }}
+        >
+          <Flex gap="sm">
+            <Flex>
+              <ColumnVisibilityManager
+                columns={updatedColumns}
+                visibleColumns={visibleColumns}
+                setVisibleColumns={setVisibleColumns}
+              >
+              </ColumnVisibilityManager>
+            </Flex>
 
-          <Group
-            id="fastorder-tablesettings"
-            mt="lg"
-            mb="sm"
-            justify="center"
-            align="center"
-          >
-            <Button
-              leftSection={<IconSettings size={16} />}
-              onClick={() => setOpened(true)}
-              py={0}
-            >
-              نمایش ستون‌ها
-            </Button>
-                    
-            <RotateModal isPortrait={isPortrait} />
-
-          </Group>
+            <Flex>
+              {user && (
+                <Button
+                  leftSection={<IconFilter size={16} />}
+                  onClick={() => setFilterSettingsModalOpened(true)}
+                  py={0}
+                  styles={{
+                    root: {
+                      backgroundColor: '#093572',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: '#0a4080',
+                      },
+                    },
+                  }}
+                >
+                  فیلترها
+                </Button>
+              )}
+            </Flex>
+          </Flex>
+        </Group>
 
         {
         searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
           (
             <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-              {/* ✅ REMOVED: icPriceKeys prop */}
               <FastTableBrand 
                 type="head" 
                 isPortrait={isPortrait} 
@@ -556,7 +526,6 @@ if (!user || user.role !== "supplier") {
                       {item.label}
                     </Text>
                   </Flex>
-                  {/* ✅ REMOVED: icPriceKeys prop */}
                   <FastTableBrand 
                     keyIndex={index} 
                     isPortrait={isPortrait} 
@@ -577,7 +546,6 @@ if (!user || user.role !== "supplier") {
           ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
           (
             <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-              {/* ✅ REMOVED: icPriceKeys prop */}
               <FastTableCategory 
                 type="head" 
                 isPortrait={isPortrait} 
@@ -597,7 +565,6 @@ if (!user || user.role !== "supplier") {
                       {item.label}
                     </Text>
                   </Flex>
-                  {/* ✅ REMOVED: icPriceKeys prop */}
                   <FastTableCategory 
                     isPortrait={isPortrait} 
                     isLandscape={isLandscape} 
@@ -618,23 +585,6 @@ if (!user || user.role !== "supplier") {
           ) : null
         }
 
-            <Modal
-              opened={opened}
-              onClose={() => setOpened(false)}
-              title="نمایش دادن ستون‌ها"
-              zIndex={1100}
-            >
-            <Stack>
-            {updatedColumns.map((column) => (
-              <Checkbox
-                key={column.key}
-                label={column.label}
-                checked={!visibleColumns.includes(column.key)}
-                onChange={(event) => handleVisibleColumnsChange(event, column.key)}
-              />
-            ))}
-            </Stack>
-          </Modal>
 
           </FilterProvider>
 

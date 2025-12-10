@@ -72,7 +72,7 @@ const SliderComponentCategoriesCMFastEdit = ({
     <Swiper 
       modules={[FreeMode]} 
       slidesPerView="auto" 
-      spaceBetween={6}
+      spaceBetween={8}
       className="mt-2"
       style={{ width: "100%" }}
     >
@@ -103,16 +103,31 @@ const SliderComponentCategoriesCMFastEdit = ({
       {/* Select All Button */}
       <SwiperSlide style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}>
         <button
-          className={`flex h-[35px] px-3 gap-2 justify-center items-center border-2 
-            ${allSelected ? "border-green-400 bg-green-50" : "border-none bg-gray-100"} 
+          className={`flex items-center justify-center whitespace-nowrap
             ${isSlideSelectionActive ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-          style={{ borderRadius: '18px' }}
+          style={{
+            height: '40px',
+            paddingTop: '4px',
+            paddingBottom: '4px',
+            paddingLeft: '8px',
+            paddingRight: '8px',
+            backgroundColor: 'rgb(247, 247, 248)',
+            borderRadius: '100px',
+            border: allSelected 
+              ? '0.666667px solid rgb(9, 54, 114)' 
+              : '0.666667px solid rgb(250, 250, 250)',
+            fontSize: '16px',
+            fontWeight: allSelected ? 700 : 400,
+            color: 'rgb(77, 80, 83)',
+            gap: '8px',
+            flexDirection: 'row'
+          }}
           onClick={() => {
             if (!isSlideSelectionActive) handleSelectAll();
           }}
           disabled={isSlideSelectionActive}
         >
-          <span className="text-xs leading-none font-medium whitespace-nowrap">
+          <span className="leading-none">
             انتخاب همه
           </span>
         </button>
@@ -175,25 +190,52 @@ export function SingleCategoryGroupCM({
   const isActive = filterCategoryStorage.includes(parentItem.idCategory);
 
   return (
-    <div className="flex items-center justify-center">
-      <div
-        className={`flex flex-row justify-center items-center w-fit bg-gray-100 px-3 gap-2 h-[35px] overflow-hidden border-[1.5px]
-          ${!isDisabled && isActive ? "border-gray-400" : "border-none"}
-          ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-        style={{ borderRadius: '18px' }}
-        onClick={() => onClick(parentItem)}
-      >
-        <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
-          <img 
-            className="w-full h-full object-cover" 
-            src={getCategoryImageSrc(parentItem.image)} 
-            alt={parentItem.title} 
-            onError={handleImageError}
-          />
+    <div className="flex flex-col">
+      <div className="w-full">
+        <div
+          className={`flex items-center justify-center whitespace-nowrap
+            ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+          style={{
+            height: '40px',
+            paddingTop: '4px',
+            paddingBottom: '4px',
+            paddingLeft: '8px',
+            paddingRight: '8px',
+            backgroundColor: 'rgb(247, 247, 248)',
+            borderRadius: '100px',
+            border: !isDisabled && isActive 
+              ? '0.666667px solid rgb(9, 54, 114)' 
+              : '0.666667px solid rgb(250, 250, 250)',
+            fontSize: '16px',
+            fontWeight: !isDisabled && isActive ? 700 : 400,
+            color: 'rgb(77, 80, 83)',
+            gap: '8px',
+            flexDirection: 'row'
+          }}
+          onClick={() => onClick(parentItem)}
+        >
+          <div 
+            className='rounded-full overflow-hidden flex-shrink-0'
+            style={{ 
+              width: '24px', 
+              height: '24px',
+              lineHeight: 0
+            }}
+          >
+            <img 
+              className="w-full inline-block" 
+              style={{ objectFit: 'cover', width: '24px', height: '24px' }}
+              src={getCategoryImageSrc(parentItem.image)} 
+              alt={parentItem.title} 
+              onError={handleImageError}
+              width="24"
+              height="24"
+            />
+          </div>
+          <span className="leading-none">
+            {parentItem.title}
+          </span>
         </div>
-        <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
-          {parentItem.title}
-        </span>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 // GET /bootstrap
 export const getBootstrap = async (req, res) => {
   try {
+    
     const bootstrap = {
       siteTitle: "فروشگاه ما",
       logo: "/uploads/assets/logo.png",

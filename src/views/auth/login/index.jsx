@@ -73,6 +73,10 @@ const Login = () => {
   
   const { getUserFavoritesListData, loadingGetUserFavoritesList, errorGetUserFavoritesList } = useSelector((state) => state.getUserFavoritesList);
 
+  // ✅ NEW: Countdown timer state
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+
   useEffect(() => {
     // Use silent versions to prevent console errors
     dispatch(verifyTokenSilent());
@@ -114,6 +118,25 @@ const Login = () => {
       navigate(redirectPath, { replace: true });
     }
   }, [user, user_master, isVerified, isVerifiedMaster, navigate, redirectURL]);
+
+  // ✅ NEW: Countdown timer effect
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (countdown === 0 && !canResend) {
+      setCanResend(true);
+    }
+  }, [countdown, canResend]);
+
+  // ✅ NEW: Format countdown as MM:SS
+  const formatCountdown = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
   
   const form = useForm({
     mode: "uncontrolled",
@@ -337,6 +360,10 @@ const Login = () => {
       setErrors({});
       setStateMessage("ok"); // Reset state message on success
       
+      // ✅ NEW: Start countdown timer
+      setCountdown(120); // 2 minutes = 120 seconds
+      setCanResend(false);
+      
     } catch (error) {
       console.error('SMS request failed:', error);
       // Only set errors for non-auth related errors
@@ -345,6 +372,25 @@ const Login = () => {
       }
     }
   }
+
+  // ✅ NEW: Handle resend SMS
+  const handleResendSMS = async () => {
+    if (!canResend) return;
+    
+    const sanitizedValue = form.getValues().mobile.replace(/\s+/g, "");
+    
+    try {
+      const result = await sendSMSCode(sanitizedValue);
+      
+      if (result && result.state === "ok") {
+        // Restart countdown timer
+        setCountdown(120);
+        setCanResend(false);
+      }
+    } catch (error) {
+      console.error('Resend SMS failed:', error);
+    }
+  };
 
   async function submitLogin(value) {
     const sanitizedMobile = form.getValues().mobile.replace(/\s+/g, "");
@@ -514,14 +560,30 @@ const Login = () => {
                     <Text c="red" size="xs">
                       {formCode.errors.code}
                     </Text>
-                    <Button
-                      p="0"
-                      variant="transparent"
-                      mt="lg"
-                      onClick={() => setType("enter")}
-                    >
-                      تغییر شماره موبایل
-                    </Button>
+                    <Flex justify="space-between" align="center" mt="lg">
+                      <Button
+                        p="0"
+                        variant="transparent"
+                        onClick={() => setType("enter")}
+                      >
+                        تغییر شماره موبایل
+                      </Button>
+                      {/* ✅ NEW: Resend SMS button with countdown */}
+                      {canResend ? (
+                        <Button
+                          p="0"
+                          variant="transparent"
+                          onClick={handleResendSMS}
+                          loading={smsLoading}
+                        >
+                          درخواست پیامک مجدد
+                        </Button>
+                      ) : (
+                        <Text size="sm" c="dimmed">
+                          درخواست مجدد تا {formatCountdown(countdown)}
+                        </Text>
+                      )}
+                    </Flex>
                     <Button
                       type="submit"
                       mt="md"

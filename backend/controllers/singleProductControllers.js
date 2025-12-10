@@ -16,7 +16,6 @@ export const getAllSingleProducts = async (req, res) => {
   }
 };
 
-// Get a single product by ID
 export const getSingleProductById = async (req, res) => {
   const { productId } = req.params; // keep this name in URL: /product/:productId
 
@@ -31,14 +30,35 @@ export const getSingleProductById = async (req, res) => {
     // Example: related products by same subCategoryId
     const relatedProducts = await HomePageProduct.find().limit(10);
 
+    // Convert to plain object and remove _id and ICPrice fields recursively
+    const productObj = singleProduct.toObject();
+    const cleanedProduct = removeUnwantedFields(productObj);
+    const cleanedRelatedProducts = relatedProducts.map(p => removeUnwantedFields(p.toObject()));
+
     res.json({
-      ...singleProduct.toObject(),
-      relatedProducts,
+      ...cleanedProduct,
+      relatedProducts: cleanedRelatedProducts,
     });
   } catch (error) {
     res.status(500).json({ message: "Error retrieving single product", error });
   }
 };
+
+// Helper function to recursively remove unwanted fields
+function removeUnwantedFields(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUnwantedFields(item));
+  } else if (obj !== null && typeof obj === 'object') {
+    const newObj = {};
+    for (const key in obj) {
+      if (key !== '_id' && key !== '__v' && key !== 'ICPrice') {
+        newObj[key] = removeUnwantedFields(obj[key]);
+      }
+    }
+    return newObj;
+  }
+  return obj;
+}
 
 
 

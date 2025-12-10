@@ -49,7 +49,7 @@ const SliderComponentBrandsCMFastOrder = ({
     <Swiper 
       modules={[FreeMode]} 
       slidesPerView="auto" 
-      spaceBetween={6}
+      spaceBetween={8}
       className="mt-2"
       style={{ width: "100%" }}
     >
@@ -229,75 +229,129 @@ export function SingleCategory1({
     );
   };
 
+  // Comprehensive image validation function
+  const isValidImage = (imageValue) => {
+    if (imageValue == null) return false;
+    if (Array.isArray(imageValue)) {
+      if (imageValue.length === 0) return false;
+      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
+    }
+    if (typeof imageValue === 'string') {
+      const trimmed = imageValue.trim();
+      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  };
+
   // Helper function to get brand image source with fallback
   const getBrandImageSrc = (image) => {
-    // Check if image exists and is not empty
-    if (image && image.trim() !== '') {
+    if (isValidImage(image)) {
       return image;
     }
-    // Return default placeholder
     return DEFAULT_BRAND_IMAGE;
   };
 
   // Handle image error by setting default placeholder
-  const handleImageError = (e) => {
+  const handleImageError = (e, brandName) => {
+    console.warn(`Failed to load brand image: ${e.target.src} for brand: ${brandName}`);
     e.target.src = DEFAULT_BRAND_IMAGE;
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      {parentItem?.subCategories.map((subcategory, subcategoryIndex) => (
-        <div key={subcategoryIndex} className="flex flex-col gap-2">
-          <div className="flex flex-row flex-wrap gap-2">
-            {subcategory.brands.map((brand, brandIndex) => (
-              <div key={`${subcategoryIndex}-${brandIndex}`} className="flex-shrink-0">
-                <div
-                  className="flex flex-col gap-1 items-center justify-center cursor-pointer"
-                  onClick={() => onClick(subcategory, brand, parentItem)}
-                >
-                  <div
-                    className={`flex w-full h-[35px] px-3 gap-2 justify-center items-center overflow-hidden border-[1.5px] bg-gray-100 ${
-                      isBorderActive(subcategory, brand) ? "border-gray-400" : "border-none"
-                    }`}
-                    style={{ borderRadius: '18px' }}
-                  >
-                    <div className='w-[20px] h-[20px] bg-white rounded-full flex-shrink-0'>
-                      <img  
-                        className="w-full h-full object-cover"
-                        src={getBrandImageSrc(brand.image)}
-                        alt={brand.name}
-                        onError={handleImageError}
-                      />
-                    </div>
-                    <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
-                      {brand.name}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+    <>
+      {parentItem?.subCategories?.length > 0 && (
+        <div className="flex flex-row flex-wrap gap-2">
+          {parentItem.subCategories.map((subcategory, subcategoryIndex) => (
+            <>
+              {subcategory.brands.map((brand, brandIndex) => {
+                const isActiveBorder = isBorderActive(subcategory, brand);
 
-            {subcategory.brands && subcategory.brands.length > 0 && (
-              <div className="flex-shrink-0">
-                <button
-                  className={`flex h-[35px] px-3 gap-2 justify-center items-center border-2 ${
-                    areAllBrandsSelectedInSubcategory(subcategory) 
-                      ? "border-green-400 bg-green-50" 
-                      : "border-none bg-gray-100"
-                  }`}
-                  style={{ borderRadius: '18px' }}
-                  onClick={() => handleSelectAllForSubcategory(subcategory, parentItem)}
-                >
-                  <span className="text-xs leading-none font-medium whitespace-nowrap">
-                    انتخاب همه
-                  </span>
-                </button>
-              </div>
-            )}
-          </div>
+                return (
+                  <div key={`${subcategoryIndex}-${brandIndex}`} className="flex-shrink-0">
+                    <div
+                      className="flex items-center justify-center whitespace-nowrap cursor-pointer"
+                      style={{
+                        height: '40px',
+                        paddingTop: '4px',
+                        paddingBottom: '4px',
+                        paddingLeft: '8px',
+                        paddingRight: '8px',
+                        backgroundColor: 'rgb(247, 247, 248)',
+                        borderRadius: '100px',
+                        border: isActiveBorder 
+                          ? '0.666667px solid rgb(9, 54, 114)' 
+                          : '0.666667px solid rgb(250, 250, 250)',
+                        fontSize: '16px',
+                        fontWeight: isActiveBorder ? 700 : 400,
+                        color: 'rgb(77, 80, 83)',
+                        gap: '8px',
+                        flexDirection: 'row'
+                      }}
+                      onClick={() => onClick(subcategory, brand, parentItem)}
+                    >
+                      <div 
+                        className='rounded-full overflow-hidden flex-shrink-0'
+                        style={{ 
+                          width: '24px', 
+                          height: '24px',
+                          lineHeight: 0
+                        }}
+                      >
+                        <img
+                          className="w-full inline-block"
+                          style={{ objectFit: 'cover', width: '24px', height: '24px' }}
+                          src={getBrandImageSrc(brand.image)}
+                          alt={brand.name}
+                          onError={(e) => handleImageError(e, brand.name)}
+                          width="24"
+                          height="24"
+                        />
+                      </div>
+                      <span className="leading-none">
+                        {brand.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {subcategory.brands && subcategory.brands.length > 0 && (
+                <div className="flex-shrink-0">
+                  <button
+                    className="flex items-center justify-center whitespace-nowrap cursor-pointer"
+                    style={{
+                      height: '40px',
+                      paddingTop: '4px',
+                      paddingBottom: '4px',
+                      paddingLeft: '8px',
+                      paddingRight: '8px',
+                      backgroundColor: 'rgb(247, 247, 248)',
+                      borderRadius: '100px',
+                      border: areAllBrandsSelectedInSubcategory(subcategory) 
+                        ? '0.666667px solid rgb(9, 54, 114)' 
+                        : '0.666667px solid rgb(250, 250, 250)',
+                      fontSize: '16px',
+                      fontWeight: areAllBrandsSelectedInSubcategory(subcategory) ? 700 : 400,
+                      color: 'rgb(77, 80, 83)',
+                      gap: '8px',
+                      flexDirection: 'row'
+                    }}
+                    onClick={() => handleSelectAllForSubcategory(subcategory, parentItem)}
+                  >
+                    <span className="leading-none">
+                      انتخاب همه
+                    </span>
+                  </button>
+                </div>
+              )}
+            </>
+          ))}
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 }
 

@@ -5,10 +5,25 @@ import FastOrderLocation from '../models/FastOrderLocation.js';
 import FiltersSettingsBrand from '../models/SearchBrandSchema.js'
 
 
-export const getFastOrderBrandModeTableData = async (req, res) => {
-    console.log("Received request body:", req.body);
+// ⭐ Helper function to recursively remove _id, __v, and ICPrice fields
+const removeIdFields = (obj) => {
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeIdFields(item));
+  } else if (obj !== null && typeof obj === 'object') {
+    const newObj = {};
+    for (const key in obj) {
+      if (key !== '_id' && key !== '__v' && key !== 'ICPrice') { // ⭐ Added ICPrice
+        newObj[key] = removeIdFields(obj[key]);
+      }
+    }
+    return newObj;
+  }
+  return obj;
+};
 
-    // Handle array of filter objects
+export const getFastOrderBrandModeTableData = async (req, res) => {
+    console.log("Received request body:", JSON.stringify(req.body));
+
     if (!Array.isArray(req.body)) {
         return res.status(400).json({ message: "Request body must be an array of filter objects" });
     }
@@ -18,13 +33,11 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
     }
 
     try {
-        // Collect all unique brand IDs from all filter objects
         const allUniqueBrandIds = new Set();
         const allUniqueBrandCategories = new Set();
         const allFilterStorage = [];
         let primarySearchType = null;
 
-        // Process each filter object
         req.body.forEach((filterObj, index) => {
             const { 
                 searchType, 
@@ -33,18 +46,15 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
                 filterBrandsCategorySubCategoryStorage,
             } = filterObj;
 
-            // Validate search type for each filter
             if (searchType !== "brand") {
                 console.warn(`Filter ${index}: Invalid search type "${searchType}", skipping`);
                 return;
             }
 
-            // Set primary search type from first valid filter
             if (!primarySearchType) {
                 primarySearchType = searchType;
             }
 
-            // Collect brand IDs
             if (Array.isArray(uniqueIDClickedBrands)) {
                 uniqueIDClickedBrands.forEach(brandId => {
                     if (brandId && brandId.trim()) {
@@ -53,7 +63,6 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
                 });
             }
 
-            // Collect brand categories
             if (Array.isArray(uniqueIDClickedBrandsCategories)) {
                 uniqueIDClickedBrandsCategories.forEach(category => {
                     if (category) {
@@ -62,7 +71,6 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
                 });
             }
 
-            // Collect filter storage
             if (Array.isArray(filterBrandsCategorySubCategoryStorage)) {
                 filterBrandsCategorySubCategoryStorage.forEach(storage => {
                     if (storage) {
@@ -72,7 +80,6 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
             }
         });
 
-        // Convert Sets back to arrays
         const finalBrandIds = Array.from(allUniqueBrandIds);
         const finalBrandCategories = Array.from(allUniqueBrandCategories).map(cat => {
             try {
@@ -90,22 +97,25 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
             filterStorageCount: allFilterStorage.length
         });
 
-        // If no valid brand IDs found, return empty results
         if (finalBrandIds.length === 0) {
             console.log("No valid brand IDs found, returning empty results");
             
-            // Still return brands and filters for UI
-            const allFastEditBrands = await FastOrderBrand.find();
-            const allFastEditFilters = await FastOrderFilter.find();
+            const allFastEditBrands = await FastOrderBrand.find().lean();
+            const allFastEditFilters = await FastOrderFilter.find().lean();
+            
+            // ⭐ Remove all _id, __v, and ICPrice fields recursively
+            const cleanBrands = removeIdFields(allFastEditBrands);
+            const cleanFilters = removeIdFields(allFastEditFilters);
+            
             const newFilters = {
-                sellers: allFastEditFilters[0]?.sellers || [],
-                colors: allFastEditFilters[0]?.colors || [],
-                deliveryTime: allFastEditFilters[0]?.deliveryTime || []
+                sellers: cleanFilters[0]?.sellers || [],
+                colors: cleanFilters[0]?.colors || [],
+                deliveryTime: cleanFilters[0]?.deliveryTime || []
             };
 
             return res.status(200).json({
                 products: [],
-                brands: allFastEditBrands,
+                brands: cleanBrands,
                 filters: newFilters,
                 meta: {
                     totalFilters: req.body.length,
@@ -115,14 +125,12 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
             });
         }
 
-        // Find products using the combined brand IDs
         const products = await SingleProduct.find({
             "general.brandId": { $in: finalBrandIds }
         }).lean();
 
         console.log(`Found ${products.length} products for brand IDs:`, finalBrandIds);
 
-        // Group by brand
         const sortedProductsMap = new Map();
 
         products.forEach(product => {
@@ -138,64 +146,64 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
                 });
             }
 
-            // Get the first combination and first supplier
             const firstCombination = product.combinations[0];  
             const firstSupplier = firstCombination.suppliers[0];  
 
             const { id, name, ...restSupplierData } = firstSupplier;
 
-            // Process product combinations and collect all suppliers
             product.combinations.map(combination => {
                 if (!combination.suppliers || combination.suppliers.length === 0) return;
 
                 combination.suppliers.map(item => {
                     allSuppliers.push({
-                        ...item, // Spread supplier details
-                        combinationsID: combination.id, // Attach combination ID
-                        attributes: combination.options, // Add attributes
+                        ...item,
+                        combinationsID: combination.id,
+                        attributes: combination.options,
                     });
                 });
             });
 
-            // Remove the first supplier from all suppliers
             allSuppliersF = allSuppliers.filter(supplier => supplier.psid !== firstSupplier.psid);
 
-            // Create the primary supplier object with nodes
             const supplierWithProductID = {
-                ...restSupplierData, // Remaining supplier data (excluding id & name)
-                seller: { id, label: name }, // New seller field
-                productId: product.id, // Add product ID
-                id: product.id, // Add product ID
-                combinationsID: firstCombination.id, // Add combination ID
-                attributes: firstCombination.options, // Add attributes
+                ...restSupplierData,
+                seller: { id, label: name },
+                productId: product.id,
+                id: product.id,
+                combinationsID: firstCombination.id,
+                attributes: firstCombination.options,
                 name: product.general.title,
                 nodes: allSuppliersF.map(supplier => ({
                     ...supplier,
                     seller: { id: supplier.id, label: supplier.name },
                     name: product.general.title,
-                    id: product.id, // Add product ID
-                    productId: product.id, // Add product ID
+                    id: product.id,
+                    productId: product.id,
                 }))
             };
 
-            // Push the processed supplier into sortedProductsMap
             sortedProductsMap.get(brandId).items.push(supplierWithProductID);
         });
 
         const sortedProducts = Array.from(sortedProductsMap.values());
 
-        // Get brands and filters
-        const allFastEditBrands = await FastOrderBrand.find();
-        const allFastEditFilters = await FastOrderFilter.find();
+        const allFastEditBrands = await FastOrderBrand.find().lean();
+        const allFastEditFilters = await FastOrderFilter.find().lean();
+        
+        // ⭐ Remove all _id, __v, and ICPrice fields recursively
+        const cleanBrands = removeIdFields(allFastEditBrands);
+        const cleanFilters = removeIdFields(allFastEditFilters);
+        const cleanProducts = removeIdFields(sortedProducts);
+        
         const newFilters = {
-            sellers: allFastEditFilters[0]?.sellers || [],
-            colors: allFastEditFilters[0]?.colors || [],
-            deliveryTime: allFastEditFilters[0]?.deliveryTime || []
+            sellers: cleanFilters[0]?.sellers || [],
+            colors: cleanFilters[0]?.colors || [],
+            deliveryTime: cleanFilters[0]?.deliveryTime || []
         };
 
         res.status(200).json({
-            products: sortedProducts,
-            brands: allFastEditBrands,
+            products: cleanProducts,
+            brands: cleanBrands,
             filters: newFilters,
             meta: {
                 totalFilters: req.body.length,
@@ -215,8 +223,10 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
 };
 
 export const fetchTableDataByIds = async (req, res) => {
-    const { searchType } = req.query; // ✅ from query string
-    const { ids } = req.body;         // ✅ from POST body
+    const { searchType } = req.query;
+    const { ids } = req.body;
+
+    console.log(JSON.stringify(req.body))
 
   if (searchType !== "brand") {
     return res.status(400).json({ message: "Only 'brand' search type is supported currently" });
@@ -227,38 +237,31 @@ export const fetchTableDataByIds = async (req, res) => {
   }
 
   try {
-    // Step 1: Find the saved filters by their IDs
     const savedFiltersDoc = await FiltersSettingsBrand.findOne({
       "searches.id": { $in: ids }
-    });
+    }).lean();
 
     if (!savedFiltersDoc) {
       return res.status(404).json({ message: "No saved filters found" });
     }
 
-    // Step 2: Extract the selected filters
     const selectedFilters = savedFiltersDoc.searches.filter(search => 
       ids.includes(search.id)
     );
 
-
-    // Step 3: Merge all the brand IDs from selected filters
     const allBrandIds = new Set();
     const allBrandCategories = [];
     const allBrandSubCategories = [];
 
     selectedFilters.forEach(filter => {
-      // Add brand IDs
       if (filter.uniqueIDClickedBrands) {
         filter.uniqueIDClickedBrands.forEach(brandId => allBrandIds.add(brandId));
       }
 
-      // Add brand categories
       if (filter.uniqueIDClickedBrandsCategories) {
         allBrandCategories.push(...filter.uniqueIDClickedBrandsCategories);
       }
 
-      // Add brand subcategories
       if (filter.filterBrandsCategorySubCategoryStorage) {
         allBrandSubCategories.push(...filter.filterBrandsCategorySubCategoryStorage);
       }
@@ -270,12 +273,10 @@ export const fetchTableDataByIds = async (req, res) => {
       return res.status(400).json({ message: "No brand IDs found in saved filters" });
     }
 
-    // Step 4: Fetch products using the merged brand IDs (same logic as getFastOrderBrandModeTableData)
     const products = await SingleProduct.find({
       "general.brandId": { $in: uniqueIDClickedBrands }
     }).lean();
 
-    // Step 5: Process products (same logic as getFastOrderBrandModeTableData)
     const sortedProductsMap = new Map();
 
     products.forEach(product => {
@@ -291,65 +292,64 @@ export const fetchTableDataByIds = async (req, res) => {
         });
       }
 
-      // Get the first combination and first supplier
       const firstCombination = product.combinations[0];  
       const firstSupplier = firstCombination.suppliers[0];  
 
       const { id, name, ...restSupplierData } = firstSupplier;
 
-      // Process product combinations and collect all suppliers
       product.combinations.map(combination => {
         if (!combination.suppliers || combination.suppliers.length === 0) return;
 
         combination.suppliers.map(item => {
           allSuppliers.push({
-            ...item, // Spread supplier details
-            combinationsID: combination.id, // Attach combination ID
-            attributes: combination.options, // Add attributes
+            ...item,
+            combinationsID: combination.id,
+            attributes: combination.options,
           });
         });
       });
 
-      // Remove the first supplier from all suppliers
       allSuppliersF = allSuppliers.filter(supplier => supplier.psid !== firstSupplier.psid);
 
-      // Create the primary supplier object with nodes
       const supplierWithProductID = {
-        ...restSupplierData, // Remaining supplier data (excluding id & name)
-        seller: { id, label: name }, // New seller field
-        productId: product.id, // Add product ID
-        id: product.id, // Add product ID
-        combinationsID: firstCombination.id, // Add combination ID
-        attributes: firstCombination.options, // Add attributes
+        ...restSupplierData,
+        seller: { id, label: name },
+        productId: product.id,
+        id: product.id,
+        combinationsID: firstCombination.id,
+        attributes: firstCombination.options,
         name: product.general.title,
         nodes: allSuppliersF.map(supplier => ({
           ...supplier,
           seller: { id: supplier.id, label: supplier.name },
           name: product.general.title,
-          id: product.id, // Add product ID
-          productId: product.id, // Add product ID
+          id: product.id,
+          productId: product.id,
         }))
       };
 
-      // Push the processed supplier into sortedProductsMap
       sortedProductsMap.get(brandId).items.push(supplierWithProductID);
     });
 
     const sortedProducts = Array.from(sortedProductsMap.values());
 
-    // Step 6: Get brands and filters (same as getFastOrderBrandModeTableData)
-    const allFastEditBrands = await FastOrderBrand.find();
-    const allFastEditFilters = await FastOrderFilter.find();
+    const allFastEditBrands = await FastOrderBrand.find().lean();
+    const allFastEditFilters = await FastOrderFilter.find().lean();
+    
+    // ⭐ Remove all _id, __v, and ICPrice fields recursively
+    const cleanBrands = removeIdFields(allFastEditBrands);
+    const cleanFilters = removeIdFields(allFastEditFilters);
+    const cleanProducts = removeIdFields(sortedProducts);
+    
     const newFilters = {
-      sellers: allFastEditFilters[0]?.sellers || [],
-      colors: allFastEditFilters[0]?.colors || [],
-      deliveryTime: allFastEditFilters[0]?.deliveryTime || []
+      sellers: cleanFilters[0]?.sellers || [],
+      colors: cleanFilters[0]?.colors || [],
+      deliveryTime: cleanFilters[0]?.deliveryTime || []
     };
 
-
     res.status(200).json({
-      products: sortedProducts,
-      brands: allFastEditBrands,
+      products: cleanProducts,
+      brands: cleanBrands,
       filters: newFilters,
       appliedFilters: selectedFilters.map(f => ({ id: f.id, name: f.filterName }))
     });

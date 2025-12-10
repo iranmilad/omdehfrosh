@@ -16,7 +16,7 @@ const SliderComponentCategoriesFastOrder = ({
       modules={[FreeMode, Navigation]}
       freeMode={true}
       slidesPerView="auto"
-      spaceBetween={6}
+      spaceBetween={8}
       style={{ 
         width: "100%",
         margin: 0,
@@ -54,12 +54,12 @@ const SliderComponentCategoriesFastOrder = ({
 // Enhanced SVG Icon Component for fallback
 const CategoryIcon = () => (
   <svg 
-    width="20" 
-    height="20" 
+    width="24" 
+    height="24" 
     viewBox="0 0 24 24" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    className="w-[20px] h-[20px]"
+    className="w-[24px] h-[24px]"
   >
     <rect x="3" y="3" width="18" height="18" rx="2" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
     <rect x="6" y="6" width="5" height="5" rx="1" fill="#9CA3AF"/>
@@ -174,31 +174,64 @@ export function SingleCategoryGroup({
               return (
                 <div 
                   key={index} 
-                  className="text-sm w-fit flex flex-col items-center cursor-pointer"
+                  className="cursor-pointer"
                   onClick={() => onClick(category, parentItem.idBrand)}
                 >
                   <div
-                    className={`flex w-fit px-3 flex-row gap-2 justify-center items-center h-[35px] overflow-hidden border-[1.5px] bg-gray-100
-                      ${isActiveBorder ? "border-gray-400" : "border-none"}`}
-                    style={{ borderRadius: '18px' }}
+                    className="flex items-center justify-center whitespace-nowrap"
+                    style={{
+                      height: '40px',
+                      paddingTop: '4px',
+                      paddingBottom: '4px',
+                      paddingLeft: '8px',
+                      paddingRight: '8px',
+                      backgroundColor: 'rgb(247, 247, 248)',
+                      borderRadius: '100px',
+                      border: isActiveBorder 
+                        ? '0.666667px solid rgb(9, 54, 114)' 
+                        : '0.666667px solid rgb(250, 250, 250)',
+                      fontSize: '16px',
+                      fontWeight: isActiveBorder ? 700 : 400,
+                      color: 'rgb(77, 80, 83)',
+                      gap: '8px',
+                      flexDirection: 'row'
+                    }}
                   >
                     {showImage ? (
-                      <div className="relative flex-shrink-0">
+                      <div 
+                        className='rounded-full overflow-hidden flex-shrink-0 relative'
+                        style={{ 
+                          width: '24px', 
+                          height: '24px',
+                          lineHeight: 0
+                        }}
+                      >
                         <img 
-                          className="w-[20px] h-[20px] object-cover" 
+                          className="w-full inline-block" 
+                          style={{ objectFit: 'cover', display: 'block', width: '24px', height: '24px' }}
                           src={category.image} 
                           alt={category.title}
                           onError={(e) => handleImageError(e, category.title)}
-                          style={{ display: 'block' }}
+                          width="24"
+                          height="24"
                         />
                         <div className="fallback-icon" style={{ display: 'none' }}>
                           <CategoryIcon />
                         </div>
                       </div>
                     ) : (
-                      <CategoryIcon />
+                      <div 
+                        className='rounded-full overflow-hidden flex-shrink-0'
+                        style={{ 
+                          width: '24px', 
+                          height: '24px',
+                          lineHeight: 0
+                        }}
+                      >
+                        <CategoryIcon />
+                      </div>
                     )}
-                    <span className="cursor-pointer text-xs leading-none whitespace-nowrap">
+                    <span className="leading-none">
                       {category.title}
                     </span>
                   </div>

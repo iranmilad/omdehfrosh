@@ -49,10 +49,37 @@ const generateMockInventory = () => {
   };
 };
 
+// Helper function to convert Mongoose documents to plain objects
+const toPlainObject = (obj) => {
+  if (obj && typeof obj.toObject === 'function') {
+    return obj.toObject();
+  }
+  if (obj && typeof obj.toJSON === 'function') {
+    return obj.toJSON();
+  }
+  return obj;
+};
+
+// Helper function to recursively remove unwanted fields
+const removeUnwantedFields = (obj) => {
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUnwantedFields(item));
+  } else if (obj !== null && typeof obj === 'object') {
+    const newObj = {};
+    for (const key in obj) {
+      if (key !== '_id' && key !== '__v') {
+        newObj[key] = removeUnwantedFields(obj[key]);
+      }
+    }
+    return newObj;
+  }
+  return obj;
+};
+
 // Helper function to enrich products with mock inventory data
 const enrichProductsWithInventory = (products) => {
   return products.map(product => ({
-    ...product.toObject ? product.toObject() : product,
+    ...toPlainObject(product),
     ...generateMockInventory()
   }));
 };
@@ -91,7 +118,7 @@ export const getHomePageData = async (req, res) => {
       filteredCategories = allCategories.map((cat, index) => {
         const modelId = cat.subscriptionModel?.modelId;
         return {
-          ...cat.toObject(),
+          ...toPlainObject(cat),
           display: index < 3 || !modelId || modelId === "basic" // First 3 always true, or basic
         };
       });
@@ -125,7 +152,7 @@ export const getHomePageData = async (req, res) => {
         // First 3 categories always show, or if no subscription model or modelId
         if (index < 3 || !modelId) {
           return {
-            ...cat.toObject(),
+            ...toPlainObject(cat),
             display: true
           };
         }
@@ -138,7 +165,7 @@ export const getHomePageData = async (req, res) => {
         console.log(`Category: ${cat.title}, ModelId: ${modelId}, IsSubscribed: ${isSubscribed}`);
         
         return {
-          ...cat.toObject(),
+          ...toPlainObject(cat),
           display: isSubscribed
         };
       });
@@ -147,7 +174,7 @@ export const getHomePageData = async (req, res) => {
     // Process trending products (merge all products arrays)
     const allTrendingProducts = tp.reduce((acc, item) => {
       if (Array.isArray(item.products)) {
-        acc.push(...item.products);
+        acc.push(...item.products.map(p => toPlainObject(p)));
       }
       return acc;
     }, []);
@@ -163,26 +190,36 @@ export const getHomePageData = async (req, res) => {
       };
     }
 
-    // Enrich featured products with mock inventory data
+    // Enrich featured products with mock inventory data and convert to plain objects
     const enrichedFps = enrichProductsWithInventory(fps);
     const shuffledFeaturedPromo = shuffleArray(enrichedFps);
     const shuffledFeaturedProducts = shuffleArray(enrichedFps);
 
+    // Convert all remaining Mongoose documents to plain objects
+    const plainSliders = sliders.map(s => toPlainObject(s));
+    const plainBanners = banners.map(b => toPlainObject(b));
+    const plainPriceLists = priceLists.map(p => toPlainObject(p));
+    const plainPg = pg.map(p => toPlainObject(p));
+
     // Structure the data as expected by the client
     const data = [
-      { type: "wideslider", data: sliders },
+      { type: "wideslider", data: plainSliders },
       { type: "featured_promo", data: shuffledFeaturedPromo },
       { type: "categories", data: filteredCategories },
-      { type: "banners", data: banners },
-      { type: "prices", data: priceLists },  
-      { type: "productGrid", data: pg },
+      { type: "banners", data: plainBanners },
+      { type: "prices", data: plainPriceLists },  
+      { type: "productGrid", data: plainPg },
       { type: "trendProducts", data: allTrendingProducts },
       { type: "brands", data: processedBrands },
       { type: "featured_products", data: shuffledFeaturedProducts }
     ];
 
-    res.json({ message: "ok", data });
+    // Remove all _id and __v fields from the entire response
+    const cleanedData = removeUnwantedFields(data);
 
+    res.json({ message: "ok", data: cleanedData });
+
+    
   } catch (err) {
     console.error("Error fetching home page data:", err);
     res.status(500).json({ message: "Server error" });

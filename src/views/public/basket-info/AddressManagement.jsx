@@ -144,6 +144,8 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
       address: '',
       postalCode: '',
     });
+      setIsAddressListOpen(false); 
+
     setIsModalOpen(true);
   };
 
@@ -413,6 +415,8 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
                             leftSection={<IconEdit size={14} />}
                             onClick={(e) => {
                               e.stopPropagation();
+                                    setIsAddressListOpen(false); 
+
                               handleEditAddress(address);
                             }}
                           >

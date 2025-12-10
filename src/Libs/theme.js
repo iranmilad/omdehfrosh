@@ -17,7 +17,7 @@ const Theme = {
   fontFamilyMonospace: "IranYekan, sans-serif",
   primaryColor: "brand",
   defaultRadius: "8px",
-  primaryShade: 5,
+  primaryShade: 9,
   colors: {
     brand: 
       [

@@ -1,3 +1,4 @@
+// backend/controllers/fastEditCategoryModeControllers.js
 import FastOrderFilter from '../models/FastOrderFilter.js'
 import FastOrderBrand from '../models/FastOrderBrand.js';
 import SingleProduct from '../models/SingleProduct.js';
@@ -5,9 +6,24 @@ import FastOrderCategory from '../models/FastOrderCategory.js';
 import FastOrderLocation from '../models/FastOrderLocation.js';
 import FiltersSettingsCategory from '../models/SeachCategorySchema.js'
 
+// ⭐ Helper function to recursively remove _id, __v, and ICPrice fields
+const removeIdFields = (obj) => {
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeIdFields(item));
+  } else if (obj !== null && typeof obj === 'object') {
+    const newObj = {};
+    for (const key in obj) {
+      if (key !== '_id' && key !== '__v' && key !== 'ICPrice') {
+        newObj[key] = removeIdFields(obj[key]);
+      }
+    }
+    return newObj;
+  }
+  return obj;
+};
 
 export const getFastOrderCategoryModeTableData = async (req, res) => {
-    console.log("Received request body:", req.body);
+    console.log("Received request body:",JSON.stringify(req.body));
 
     // Handle array of filter objects
     if (!Array.isArray(req.body)) {
@@ -92,34 +108,39 @@ export const getFastOrderCategoryModeTableData = async (req, res) => {
             }
         });
 
-        // console.log("Processed category filters:", {
-        //     searchType: primarySearchType,
-        //     totalFilterObjects: req.body.length,
-        //     finalCategoryIds,
-        //     finalSubCategoriesCount: finalSubCategories.length,
-        //     finalSubCategoryBrandsCount: finalSubCategoryBrands.length
-        // });
+        console.log("Processed category filters:", {
+            searchType: primarySearchType,
+            totalFilterObjects: req.body.length,
+            finalCategoryIds,
+            finalSubCategoriesCount: finalSubCategories.length,
+            finalSubCategoryBrandsCount: finalSubCategoryBrands.length
+        });
 
         // If no valid category IDs found, return empty results
         if (finalCategoryIds.length === 0) {
-            // console.log("No valid category IDs found, returning empty results");
+            console.log("No valid category IDs found, returning empty results");
             
             // Still return brands, filters, and categories for UI
-            const allFastEditBrands = await FastOrderBrand.find();
-            const allFastEditFilters = await FastOrderFilter.find();
-            const allCats = await FastOrderCategory.find();
+            const allFastEditBrands = await FastOrderBrand.find().lean();
+            const allFastEditFilters = await FastOrderFilter.find().lean();
+            const allCats = await FastOrderCategory.find().lean();
+            
+            // ⭐ Remove all _id, __v, and ICPrice fields recursively
+            const cleanBrands = removeIdFields(allFastEditBrands);
+            const cleanFilters = removeIdFields(allFastEditFilters);
+            const cleanCategories = removeIdFields(allCats);
             
             const newFilters = {
-                sellers: allFastEditFilters[0]?.sellers || [],
-                colors: allFastEditFilters[0]?.colors || [],
-                deliveryTime: allFastEditFilters[0]?.deliveryTime || []
+                sellers: cleanFilters[0]?.sellers || [],
+                colors: cleanFilters[0]?.colors || [],
+                deliveryTime: cleanFilters[0]?.deliveryTime || []
             };
 
             return res.status(200).json({
                 products: [],
-                brands: allFastEditBrands,
+                brands: cleanBrands,
                 filters: newFilters,
-                category: allCats,
+                category: cleanCategories,
                 meta: {
                     totalFilters: req.body.length,
                     processedCategoryIds: finalCategoryIds,
@@ -133,7 +154,7 @@ export const getFastOrderCategoryModeTableData = async (req, res) => {
             "general.categoryId": { $in: finalCategoryIds }
         }).lean();
 
-        // console.log(`Found ${products.length} products for category IDs:`, finalCategoryIds);
+        console.log(`Found ${products.length} products for category IDs:`, finalCategoryIds);
 
         // Group by category
         const sortedProductsMap = new Map();
@@ -198,21 +219,27 @@ export const getFastOrderCategoryModeTableData = async (req, res) => {
         const sortedProducts = Array.from(sortedProductsMap.values());
 
         // Get brands, filters, and categories
-        const allFastEditBrands = await FastOrderBrand.find();
-        const allFastEditFilters = await FastOrderFilter.find();
-        const allCats = await FastOrderCategory.find();
+        const allFastEditBrands = await FastOrderBrand.find().lean();
+        const allFastEditFilters = await FastOrderFilter.find().lean();
+        const allCats = await FastOrderCategory.find().lean();
+        
+        // ⭐ Remove all _id, __v, and ICPrice fields recursively
+        const cleanBrands = removeIdFields(allFastEditBrands);
+        const cleanFilters = removeIdFields(allFastEditFilters);
+        const cleanCategories = removeIdFields(allCats);
+        const cleanProducts = removeIdFields(sortedProducts);
         
         const newFilters = {
-            sellers: allFastEditFilters[0]?.sellers || [],
-            colors: allFastEditFilters[0]?.colors || [],
-            deliveryTime: allFastEditFilters[0]?.deliveryTime || []
+            sellers: cleanFilters[0]?.sellers || [],
+            colors: cleanFilters[0]?.colors || [],
+            deliveryTime: cleanFilters[0]?.deliveryTime || []
         };
 
         res.status(200).json({
-            products: sortedProducts,
-            brands: allFastEditBrands,
+            products: cleanProducts,
+            brands: cleanBrands,
             filters: newFilters,
-            category: allCats,
+            category: cleanCategories,
             meta: {
                 totalFilters: req.body.length,
                 processedCategoryIds: finalCategoryIds,
@@ -228,13 +255,13 @@ export const getFastOrderCategoryModeTableData = async (req, res) => {
             error: error.message 
         });
     }
+
 };
 
 
 export const fetchTableDataByIds = async (req, res) => {
     const { searchType } = req.query;
     const { ids } = req.body; 
-
 
     if (searchType !== "category") {
         return res.status(400).json({ message: "Only 'category' search type is supported currently" });
@@ -248,7 +275,7 @@ export const fetchTableDataByIds = async (req, res) => {
         // Step 1: Find the saved filters by their IDs
         const savedFiltersDoc = await FiltersSettingsCategory.findOne({
             "searches.id": { $in: ids }
-        });
+        }).lean();
 
         if (!savedFiltersDoc) {
             return res.status(404).json({ message: "No saved filters found" });
@@ -355,20 +382,24 @@ export const fetchTableDataByIds = async (req, res) => {
         const sortedProducts = Array.from(sortedProductsMap.values());
 
         // Step 6: Get categories and filters
-        const allFastEditCategories = await FastOrderCategory.find();
-        const allFastEditFilters = await FastOrderFilter.find();
+        const allFastEditCategories = await FastOrderCategory.find().lean();
+        const allFastEditFilters = await FastOrderFilter.find().lean();
+        
+        // ⭐ Remove all _id, __v, and ICPrice fields recursively
+        const cleanCategories = removeIdFields(allFastEditCategories);
+        const cleanFilters = removeIdFields(allFastEditFilters);
+        const cleanProducts = removeIdFields(sortedProducts);
+        
         const newFilters = {
-            sellers: allFastEditFilters[0]?.sellers || [],
-            colors: allFastEditFilters[0]?.colors || [],
-            deliveryTime: allFastEditFilters[0]?.deliveryTime || []
+            sellers: cleanFilters[0]?.sellers || [],
+            colors: cleanFilters[0]?.colors || [],
+            deliveryTime: cleanFilters[0]?.deliveryTime || []
         };
 
-
         res.status(200).json({
-            products: sortedProducts,
-            category: allFastEditCategories, // Changed from 'brands' to 'category'
+            products: cleanProducts,
+            category: cleanCategories,
             filters: newFilters,
-            // Optional: include metadata about which filters were applied
             appliedFilters: selectedFilters.map(f => ({ id: f.id, name: f.filterName }))
         });
 

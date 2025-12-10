@@ -7,7 +7,10 @@ import getUserFromToken from "../libs/verifyToken.js";
 
 export const updateProduct = async (req, res) => {
   const { updateData, itemId } = req.body;
+
   const psid = itemId;
+
+  console.log("herererere",JSON.stringify(req.body))
   const { user_id, decoded, role } = getUserFromToken(req, res);
 
   if (role === 'supplier') {

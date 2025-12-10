@@ -16,13 +16,35 @@ const CountdownTimer = ({ shamsiDate }) => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
+    // ✅ FIX: Validate shamsiDate before using
+    if (!shamsiDate || typeof shamsiDate !== 'string') {
+      console.warn('CountdownTimer: Invalid shamsiDate provided:', shamsiDate);
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+
     const today = new persianDate().toArray().slice(0, 3); 
-    const targetDate = shamsiDate.split("-").map(Number);
+    
+    // ✅ FIX: Add error handling for split operation
+    let targetDate;
+    try {
+      targetDate = shamsiDate.split("-").map(Number);
+      
+      // Validate the split result
+      if (targetDate.length !== 3 || targetDate.some(isNaN)) {
+        console.warn('CountdownTimer: Invalid date format:', shamsiDate);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+    } catch (error) {
+      console.error('CountdownTimer: Error parsing date:', error);
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
 
     const calculateTimeLeft = () => {
       const days = daysBetween(today, targetDate);
       const now = new Date();
-      
 
       if (days === 0) {
         const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
@@ -35,7 +57,6 @@ const CountdownTimer = ({ shamsiDate }) => {
           seconds: Math.floor((diff / 1000) % 60),
         };
       }
-
 
       const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days, 0, 0, 0);
       const diff = midnight - now;
@@ -55,6 +76,11 @@ const CountdownTimer = ({ shamsiDate }) => {
     const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
     return () => clearInterval(timer);
   }, [shamsiDate]);
+
+  // ✅ FIX: Don't render if no valid date
+  if (!shamsiDate || typeof shamsiDate !== 'string') {
+    return null;
+  }
 
   return (
     <Flex gap="xs" align="center">

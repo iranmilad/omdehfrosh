@@ -460,219 +460,219 @@ function FastOrder() {
     </Box>
   );
 
-  return (
-    <>
-      <Box >
-        <RowSelectionProvider>
-          <FastOrderContext.Provider 
-            value={{visibleColumns, setVisibleColumns, filters_brand_mode, filterValues, setFilters_brand_mode, setFilterValues, searchType }}>
-                
-            <FilterProvider>
 
-              {loadingStates.searchComponent ? (
-                searchType === "brand" ? 
-                <div>
-                  <BrandRowSelectionProvider>
-                    <SearchComponentBrand
-                      filters={filters_brand_mode} 
-                      setFilters={setFilters_brand_mode}
-                      setNodesSubCategories={setNodesSubCategoriesData} 
-                      setNodes={setNodes} 
-                      setAvailableLocations={setAvailableLocations}
-                      searchType={searchType} 
-                      setSearchType={setSearchType} 
-                    />
-                  </BrandRowSelectionProvider>
-                </div>
-                :
-                <div>
-                  <CategoryRowSelectionProvider>
-                    <SearchComponentCategory 
-                      filters={filters_category_mode} 
-                      setFilters={setFilters_category_mode}
-                      setNodesSubCategories={setNodesSubCategoriesData} 
-                      setNodes={setNodes} 
-                      setAvailableLocations={setAvailableLocations}
-                      searchType={searchType} 
-                      setSearchType={setSearchType} 
-                    />
-                  </CategoryRowSelectionProvider>
-                </div>
-              ) : (
-                <LoadingPlaceholder height="120px" />
-              )}
+return (
+  <>
+    {/* ✅ FIXED: RotateModal at root level */}
+    {/* <RotateModal isPortrait={isPortrait} /> */}
 
-              {loadingStates.filtersComponent ? (
-                <div
-                  ref={componentRef}
-                  style={{
-                    position: isFixed ? "fixed" : "static",
-                    top: isFixed ? 0 : "auto",
-                    left: 0,
-                    right: 0,
-                    zIndex: 999,
-                    background: isFixed ? "white" : "transparent",
-                  }}
-                >
-                  {searchType === "brand" ? (
-                    <FiltersBrandMode
-                      setFilters={setFilters_brand_mode}
-                      nodes={nodes}
-                      setNodesSubCategories={setNodesSubCategoriesData}
-                      setNodes={setNodes}
-                      filters={filters_brand_mode}
-                      searchType={searchType}
-                    />
-                  ) : (
-                    <FiltersCategoryMode
-                      setFilters={setFilters_category_mode}
-                      nodes={nodes}
-                      setNodesSubCategories={setNodesSubCategoriesData}
-                      setNodes={setNodes}
-                      filters={filters_category_mode}
-                      searchType={searchType}
-                    />
-                  )}
-                </div>
-              ) : (
-                <LoadingPlaceholder height="80px" />
-              )}
+    <Box >
+      <RowSelectionProvider>
+        <FastOrderContext.Provider 
+          value={{visibleColumns, setVisibleColumns, filters_brand_mode, filterValues, setFilters_brand_mode, setFilterValues, searchType }}>
+              
+          <FilterProvider>
 
-              {loadingStates.tableComponent ? (
-                <>
-                  <Group
-                    id="fastorder-tablesettings"
-                    mt="lg"
-                    mb="sm"
-                    justify="center"
-                    align="center"
-                  >
-                    <Button
-                      leftSection={<IconSettings size={16} />}
-                      onClick={() => setOpened(true)}
-                      py={0}
-                    >
-                      نمایش ستون‌ها
-                    </Button>
+            {loadingStates.searchComponent ? (
+              searchType === "brand" ? 
+              <div>
+                <BrandRowSelectionProvider>
+                  <SearchComponentBrand
+                    filters={filters_brand_mode} 
+                    setFilters={setFilters_brand_mode}
+                    setNodesSubCategories={setNodesSubCategoriesData} 
+                    setNodes={setNodes} 
+                    setAvailableLocations={setAvailableLocations}
+                    searchType={searchType} 
+                    setSearchType={setSearchType} 
+                  />
+                </BrandRowSelectionProvider>
+              </div>
+              :
+              <div>
+                <CategoryRowSelectionProvider>
+                  <SearchComponentCategory 
+                    filters={filters_category_mode} 
+                    setFilters={setFilters_category_mode}
+                    setNodesSubCategories={setNodesSubCategoriesData} 
+                    setNodes={setNodes} 
+                    setAvailableLocations={setAvailableLocations}
+                    searchType={searchType} 
+                    setSearchType={setSearchType} 
+                  />
+                </CategoryRowSelectionProvider>
+              </div>
+            ) : (
+              <LoadingPlaceholder height="120px" />
+            )}
 
-                    <RotateModal isPortrait={isPortrait} />
-                  </Group>
-
-                  {
-                    searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
-                    (
-                      <>
-                        {/* ✅ REMOVED: icPriceKeys prop */}
-                        <FastTableBrand 
-                          type="head" 
-                          isPortrait={isPortrait} 
-                          isLandscape={isLandscape} 
-                          filters_brand_mode={filters_brand_mode} 
-                          filterValues={filterValues} 
-                          availableLocations={availableLocations} 
-                          COLUMNS={updatedColumns} 
-                          nodes={nodes[0]?.items?.slice(0, 1) || []} 
-                          setVisibleColumns={setVisibleColumns} 
-                          visibleColumns={visibleColumns} 
-                        />
-                        {nodes.map((item, index) => (
-                          <React.Fragment key={index}>
-                            <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                              <Text size="18px" c="dark">
-                                {item.label}
-                              </Text>
-                            </Flex>
-                            {/* ✅ REMOVED: icPriceKeys prop */}
-                            <FastTableBrand 
-                              keyIndex={index} 
-                              isPortrait={isPortrait} 
-                              isLandscape={isLandscape} 
-                              filters_brand_mode={filters_brand_mode} 
-                              filterValues={filterValues} 
-                              setNodes={setNodes} 
-                              availableLocations={availableLocations}  
-                              type="data" 
-                              COLUMNS={updatedColumns} 
-                              nodes={item.items || []} 
-                              setVisibleColumns={setVisibleColumns} 
-                              visibleColumns={visibleColumns} 
-                            />
-                          </React.Fragment>
-                        ))}
-                      </>
-                    ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
-                    (
-                      <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-                        {/* ✅ REMOVED: icPriceKeys prop */}
-                        <FastTableCategory 
-                          type="head" 
-                          isPortrait={isPortrait} 
-                          isLandscape={isLandscape} 
-                          filters_category_mode={filters_category_mode} 
-                          filterValues={filterValues} 
-                          availableLocations={availableLocations} 
-                          COLUMNS={updatedColumns} 
-                          nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} 
-                          setVisibleColumns={setVisibleColumns} 
-                          visibleColumns={visibleColumns} 
-                        />
-                        {nodesSubCategoriesData?.map((item, index) => (
-                          <React.Fragment key={index}>
-                            <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                              <Text size="18px" c="dark">
-                                {item.label}
-                              </Text>
-                            </Flex>
-                            {/* ✅ REMOVED: icPriceKeys prop */}
-                            <FastTableCategory 
-                              isPortrait={isPortrait} 
-                              isLandscape={isLandscape} 
-                              filters_category_mode={filters_category_mode} 
-                              filterValues={filterValues} 
-                              keyIndex={index} 
-                              availableLocations={availableLocations}  
-                              setNodes={setNodesSubCategoriesData} 
-                              type="data" 
-                              COLUMNS={updatedColumns} 
-                              nodes={item.items || []} 
-                              setVisibleColumns={setVisibleColumns} 
-                              visibleColumns={visibleColumns} 
-                            />
-                          </React.Fragment>
-                        ))}
-                      </Paper>
-                    ) : null
-                  }
-                </>
-              ) : (
-                <LoadingPlaceholder height="300px" />
-              )}
-
-              <Modal
-                opened={opened}
-                onClose={() => setOpened(false)}
-                title="نمایش دادن ستون‌ها"
-                style={{zIndex: 1100}}
+            {loadingStates.filtersComponent ? (
+              <div
+                ref={componentRef}
+                style={{
+                  position: isFixed ? "fixed" : "static",
+                  top: isFixed ? 0 : "auto",
+                  left: 0,
+                  right: 0,
+                  zIndex: 999,
+                  background: isFixed ? "white" : "transparent",
+                }}
               >
-                <Stack>
-                  {updatedColumns.map((column) => (
-                    <Checkbox
-                      key={column.key}
-                      label={column.label}
-                      checked={!visibleColumns.includes(column.key)}
-                      onChange={(event) => handleVisibleColumnsChange(event, column.key)}
-                    />
-                  ))}
-                </Stack>
-              </Modal>
+                {searchType === "brand" ? (
+                  <FiltersBrandMode
+                    setFilters={setFilters_brand_mode}
+                    nodes={nodes}
+                    setNodesSubCategories={setNodesSubCategoriesData}
+                    setNodes={setNodes}
+                    filters={filters_brand_mode}
+                    searchType={searchType}
+                  />
+                ) : (
+                  <FiltersCategoryMode
+                    setFilters={setFilters_category_mode}
+                    nodes={nodes}
+                    setNodesSubCategories={setNodesSubCategoriesData}
+                    setNodes={setNodes}
+                    filters={filters_category_mode}
+                    searchType={searchType}
+                  />
+                )}
+              </div>
+            ) : (
+              <LoadingPlaceholder height="80px" />
+            )}
 
-            </FilterProvider>
+            {loadingStates.tableComponent ? (
+              <>
+                <Group
+                  id="fastorder-tablesettings"
+                  mt="lg"
+                  mb="sm"
+                  justify="center"
+                  align="center"
+                >
+                  <Button
+                    leftSection={<IconSettings size={16} />}
+                    onClick={() => setOpened(true)}
+                    py={0}
+                  >
+                    نمایش ستون‌ها
+                  </Button>
 
-          </FastOrderContext.Provider>
-        </RowSelectionProvider>
-      </Box>
-    </>
-  );
+                  {/* ❌ REMOVED: Don't put RotateModal here */}
+                </Group>
+
+                {
+                  searchType === "brand" && nodes !== null && nodes?.length > 0 ? 
+                  (
+                    <>
+                      <FastTableBrand 
+                        type="head" 
+                        isPortrait={isPortrait} 
+                        isLandscape={isLandscape} 
+                        filters_brand_mode={filters_brand_mode} 
+                        filterValues={filterValues} 
+                        availableLocations={availableLocations} 
+                        COLUMNS={updatedColumns} 
+                        nodes={nodes[0]?.items?.slice(0, 1) || []} 
+                        setVisibleColumns={setVisibleColumns} 
+                        visibleColumns={visibleColumns} 
+                      />
+                      {nodes.map((item, index) => (
+                        <React.Fragment key={index}>
+                          <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                            <Text size="18px" c="dark">
+                              {item.label}
+                            </Text>
+                          </Flex>
+                          <FastTableBrand 
+                            keyIndex={index} 
+                            isPortrait={isPortrait} 
+                            isLandscape={isLandscape} 
+                            filters_brand_mode={filters_brand_mode} 
+                            filterValues={filterValues} 
+                            setNodes={setNodes} 
+                            availableLocations={availableLocations}  
+                            type="data" 
+                            COLUMNS={updatedColumns} 
+                            nodes={item.items || []} 
+                            setVisibleColumns={setVisibleColumns} 
+                            visibleColumns={visibleColumns} 
+                          />
+                        </React.Fragment>
+                      ))}
+                    </>
+                  ) : searchType === "category" && nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 ? 
+                  (
+                    <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+                      <FastTableCategory 
+                        type="head" 
+                        isPortrait={isPortrait} 
+                        isLandscape={isLandscape} 
+                        filters_category_mode={filters_category_mode} 
+                        filterValues={filterValues} 
+                        availableLocations={availableLocations} 
+                        COLUMNS={updatedColumns} 
+                        nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} 
+                        setVisibleColumns={setVisibleColumns} 
+                        visibleColumns={visibleColumns} 
+                      />
+                      {nodesSubCategoriesData?.map((item, index) => (
+                        <React.Fragment key={index}>
+                          <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                            <Text size="18px" c="dark">
+                              {item.label}
+                            </Text>
+                          </Flex>
+                          <FastTableCategory 
+                            isPortrait={isPortrait} 
+                            isLandscape={isLandscape} 
+                            filters_category_mode={filters_category_mode} 
+                            filterValues={filterValues} 
+                            keyIndex={index} 
+                            availableLocations={availableLocations}  
+                            setNodes={setNodesSubCategoriesData} 
+                            type="data" 
+                            COLUMNS={updatedColumns} 
+                            nodes={item.items || []} 
+                            setVisibleColumns={setVisibleColumns} 
+                            visibleColumns={visibleColumns} 
+                          />
+                        </React.Fragment>
+                      ))}
+                    </Paper>
+                  ) : null
+                }
+              </>
+            ) : (
+              <LoadingPlaceholder height="300px" />
+            )}
+
+            <Modal
+              opened={opened}
+              onClose={() => setOpened(false)}
+              title="نمایش دادن ستون‌ها"
+              zIndex={1100}
+            >
+              <Stack>
+                {updatedColumns.map((column) => (
+                  <Checkbox
+                    key={column.key}
+                    label={column.label}
+                    checked={!visibleColumns.includes(column.key)}
+                    onChange={(event) => handleVisibleColumnsChange(event, column.key)}
+                  />
+                ))}
+              </Stack>
+            </Modal>
+
+          </FilterProvider>
+
+        </FastOrderContext.Provider>
+      </RowSelectionProvider>
+    </Box>
+  </>
+);
 }
 
 export const useFastOrder = () => useContext(FastOrderContext)
