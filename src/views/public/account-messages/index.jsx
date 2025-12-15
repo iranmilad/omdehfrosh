@@ -56,7 +56,7 @@ function Account_Messages() {
       try {
         await dispatch(verifyToken()).unwrap();
       } catch (error) {
-        console.log('Auth verification failed:', error);
+        // console.log('Auth verification failed:', error);
       } finally {
         setAuthCheckComplete(true);
       }

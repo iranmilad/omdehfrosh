@@ -95,6 +95,8 @@ import BrandsData from "../../views/public/master-dashboard/brandsdata/homepageb
 import AddBatchBrandsData from "../../views/public/master-dashboard/brandsdata/homepagebanners/addbatchbrandsdata"
 import Bootstrap from "../../views/public/master-dashboard/bootstrap/bootstrap"
 import AddBatchBootstrap from "../../views/public/master-dashboard/bootstrap/bootstrap/addbatchbootstrap"
+import WalletPaymentPage from "../../views/public/walletpayment"
+import CODPaymentPage from "../../views/public/codpayment"
 
 export const PublicRoutes = [
     {
@@ -340,6 +342,10 @@ export const PublicRoutes = [
                 path: "/payment",
                 element: <PaymentMethod />
             },
+              {
+                path: '/wallet-payment',
+                element: <WalletPaymentPage />
+            },
             {
                 path: "/payment-sellers/:receipt_id",
                 element: <PaymentSellers />
@@ -371,6 +377,10 @@ export const PublicRoutes = [
             {
                 path: 'payment-info-cod',
                 element: <PaymentInfoCod />
+            },
+            {
+                path: 'cod-payment',
+                element: <CODPaymentPage />
             },
             {
                 path: 'fake-gateway',

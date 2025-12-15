@@ -4,7 +4,7 @@ function SummaryEntry({ data }) {
   
   return (
     <>
-      <div className="text-zinc-700 text-lg md:text-xl">
+      <div className="text-zinc-700 text-lg md:text-lg">
         {data.general.title}
       </div>
       <div className="text-zinc-400 text-xs mt-2">

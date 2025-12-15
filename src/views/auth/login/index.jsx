@@ -34,6 +34,7 @@ import { handleForbiddenError, handleKnownErrors } from '../../../Libs/errorstat
 import { getUserFavoritesList } from "../../../redux/users/getuserfavouriteslist/listActions";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
+import { useMediaQuery } from '@mantine/hooks';
 
 const validationSchema = yup.object().shape({
   mobile: yup
@@ -57,6 +58,12 @@ const Login = () => {
   const redirectURL = QueryString.parse(location.search);
   const dispatch = useDispatch();
 
+  // Responsive size hooks
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const buttonSize = isMobile ? 'sm' : 'md';
+  const textSize = isMobile ? 'xs' : 'sm';
+  const headingSize = isMobile ? 'lg' : 'xl';
+
   // Replace useSend with local state for both SMS and Login
   const [smsLoading, setSmsLoading] = useState(false);
   const [smsData, setSmsData] = useState(null);
@@ -73,12 +80,10 @@ const Login = () => {
   
   const { getUserFavoritesListData, loadingGetUserFavoritesList, errorGetUserFavoritesList } = useSelector((state) => state.getUserFavoritesList);
 
-  // ✅ NEW: Countdown timer state
   const [countdown, setCountdown] = useState(0);
   const [canResend, setCanResend] = useState(true);
 
   useEffect(() => {
-    // Use silent versions to prevent console errors
     dispatch(verifyTokenSilent());
     dispatch(clearUserInfo());
   }, [dispatch]);
@@ -87,11 +92,9 @@ const Login = () => {
     const isAuthenticated = (user && isVerified) || (user_master && isVerifiedMaster);
     
     if (isAuthenticated && !cookies.userFavorites) {
-      // Dispatch action to get user's favorites list
       dispatch(getUserFavoritesList())
         .unwrap()
         .then((favoritesData) => {
-          // Cache favorites in cookies for 7 days
           const expirationDate = new Date();
           expirationDate.setDate(expirationDate.getDate() + 7);
           
@@ -108,9 +111,7 @@ const Login = () => {
     }
   }, [user, user_master, isVerified, isVerifiedMaster, dispatch, cookies.userFavorites, setCookie]);
 
-  // Redirect logic
   useEffect(() => {
-    // Check if user is authenticated (either regular user or master)
     const isAuthenticated = (user && isVerified) || (user_master && isVerifiedMaster);
     
     if (isAuthenticated) {
@@ -119,7 +120,6 @@ const Login = () => {
     }
   }, [user, user_master, isVerified, isVerifiedMaster, navigate, redirectURL]);
 
-  // ✅ NEW: Countdown timer effect
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => {
@@ -131,7 +131,6 @@ const Login = () => {
     }
   }, [countdown, canResend]);
 
-  // ✅ NEW: Format countdown as MM:SS
   const formatCountdown = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -161,7 +160,6 @@ const Login = () => {
     validate: yupResolver(codeValidationSchema)
   });
 
-  // Custom SMS sending function with direct fetch
   const sendSMSCode = async (mobile) => {
     setSmsLoading(true);
     setSmsData(null);
@@ -217,7 +215,6 @@ const Login = () => {
     }
   };
 
-  // Custom login function with direct fetch
   const loginUser = async (mobile, code) => {
     setLoginLoading(true);
     setLoginData(null);
@@ -251,7 +248,6 @@ const Login = () => {
         };
       }
 
-      // Handle token storage based on API response
       if ("token" in data) {
         if (data.token) {
           localStorage.setItem("user", data.token);
@@ -291,7 +287,6 @@ const Login = () => {
     }
   };
 
-  // Handle SMS response notifications
   useEffect(() => {
     if (smsData && smsData?.state === "ok") {
       notifications.show({
@@ -309,7 +304,6 @@ const Login = () => {
     }
   }, [smsData]);
 
-  // Handle error notifications (only for non-auth errors)
   useEffect(() => {
     const authErrorStatuses = [400, 401, 403, 404, 405, 406, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 422, 429];
     const isEmpty = (obj) => Object.keys(obj).length === 0;
@@ -325,7 +319,6 @@ const Login = () => {
     }
   }, [errors]);
 
-  // Handle specific error modals
   useEffect(() => {
     if (errors?.status && ![401, 404, 500].includes(errors.status)) {
       handleKnownErrors(errors.status, setModalOpen, navigate);
@@ -353,27 +346,23 @@ const Login = () => {
         return;
       }
 
-      // Success - move to code input and reset state message
       formCode.setValues({ code: "" });
       formCode.setFieldError("code", "");
       setType("code");
       setErrors({});
-      setStateMessage("ok"); // Reset state message on success
+      setStateMessage("ok");
       
-      // ✅ NEW: Start countdown timer
-      setCountdown(120); // 2 minutes = 120 seconds
+      setCountdown(120);
       setCanResend(false);
       
     } catch (error) {
       console.error('SMS request failed:', error);
-      // Only set errors for non-auth related errors
       if (error && ![401, 404, 500].includes(error?.status)) {
         setErrors(error);
       }
     }
   }
 
-  // ✅ NEW: Handle resend SMS
   const handleResendSMS = async () => {
     if (!canResend) return;
     
@@ -383,7 +372,6 @@ const Login = () => {
       const result = await sendSMSCode(sanitizedValue);
       
       if (result && result.state === "ok") {
-        // Restart countdown timer
         setCountdown(120);
         setCanResend(false);
       }
@@ -407,25 +395,21 @@ const Login = () => {
       if (result.state === "error") {
         formCode.setFieldError("code", result.error?.error || result.error?.message || "خطا در ورود به سیستم");
         
-        // Only set errors for non-auth related errors
         if (result.error && ![401, 404, 500].includes(result.error?.status)) {
           setErrors(result.error);
         }
         return;
       }
 
-      // Success - handle the response
       const data = result.data;
       
       if (data?.user) {
         if (data.user.status === true) {
           setType("success");
 
-          // Load favorites after successful login
           dispatch(getUserFavoritesList())
             .unwrap()
             .then((favoritesData) => {
-              // Cache favorites in cookies for 7 days
               const expirationDate = new Date();
               expirationDate.setDate(expirationDate.getDate() + 7);
               
@@ -456,12 +440,10 @@ const Login = () => {
       
     } catch (error) {
       console.error('Login request failed:', error);
-      // Only set errors for non-auth related errors
       if (error && ![401, 404, 500].includes(error?.status)) {
         setErrors(error);
       }
       
-      // Show user-friendly error message
       formCode.setFieldError("code", error?.message || "خطا در ورود به سیستم");
     }
   }
@@ -473,15 +455,51 @@ const Login = () => {
         onClose={() => setModalOpen(false)}
         message={errors?.message}
       />
-      <Box bg="gray.1" h="100vh" w="100%" className="flex items-center justify-center">
-        <Center w={{base: "85%",xs:"65%",sm:"50%",md:"40%",lg:"40%",xl:"450px"}} className="flex-col relative z-10">
+      <Box 
+        bg="white" 
+        style={{
+          minHeight: '100vh',
+          minHeight: '100dvh',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+          overflowY: 'auto'
+        }}
+      >
+        <Center 
+          w={{
+            base: "100%",
+            xs: "90%",
+            sm: "80%",
+            md: "70%",
+            lg: "500px",
+            xl: "500px"
+          }}
+          maw={500}
+          style={{
+            flexDirection: 'column',
+            position: 'relative',
+            zIndex: 10,
+            width: '100%'
+          }}
+        >
           <Image
-            w={160}
+            w={{ base: 120, xs: 140, sm: 160 }}
+            mb={{ base: 'md', sm: 'lg' }}
             src={bootstrap?.logo}
           />
-          <Paper className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
+          <Paper 
+            className="bg-white rounded-2xl shadow-box-sm w-full h-auto min-h-max"
+            p={{ base: 'md', sm: 'lg' }}
+            style={{
+              width: '100%',
+              maxWidth: '100%'
+            }}
+          >
             <Flex justify="space-between" align="center">
-              <Text c="dark" size="xl" fw="bold">ورود</Text>
+              <Text c="dark" size={headingSize} fw="bold">ورود</Text>
             </Flex>
             
             {type === "enter" && (
@@ -514,6 +532,7 @@ const Login = () => {
                       variant="filled"
                       fullWidth
                       loading={smsLoading}
+                      size={buttonSize}
                     >
                       ادامه
                     </Button>
@@ -523,6 +542,7 @@ const Login = () => {
                       fullWidth
                       component={NavLink}
                       to="/register"
+                      size={buttonSize}
                     >
                       ثبت نام
                     </Button>          
@@ -547,7 +567,7 @@ const Login = () => {
               <>
                 <div className="flex flex-col gap-y-1 pt-5">
                   <form onSubmit={formCode.onSubmit((values) => submitLogin(values))}>
-                    <Text mb="sm" size="sm">
+                    <Text mb="sm" size={textSize}>
                       کد تایید پیامک شده را وارد کنید
                     </Text>
                     <Center>
@@ -555,31 +575,39 @@ const Login = () => {
                         type="number"
                         key={formCode.key("code")}
                         {...formCode.getInputProps("code")}
+                        size={buttonSize}
                       />
                     </Center>
-                    <Text c="red" size="xs">
+                    <Text c="red" size="xs" mt="xs">
                       {formCode.errors.code}
                     </Text>
-                    <Flex justify="space-between" align="center" mt="lg">
+                    <Flex 
+                      justify="space-between" 
+                      align="center" 
+                      mt="lg"
+                      direction={{ base: 'column', xs: 'row' }}
+                      gap={{ base: 'xs', xs: 0 }}
+                    >
                       <Button
                         p="0"
                         variant="transparent"
                         onClick={() => setType("enter")}
+                        size={buttonSize}
                       >
                         تغییر شماره موبایل
                       </Button>
-                      {/* ✅ NEW: Resend SMS button with countdown */}
                       {canResend ? (
                         <Button
                           p="0"
                           variant="transparent"
                           onClick={handleResendSMS}
                           loading={smsLoading}
+                          size={buttonSize}
                         >
                           درخواست پیامک مجدد
                         </Button>
                       ) : (
-                        <Text size="sm" c="dimmed">
+                        <Text size={textSize} c="dimmed">
                           درخواست مجدد تا {formatCountdown(countdown)}
                         </Text>
                       )}
@@ -590,6 +618,7 @@ const Login = () => {
                       variant="filled"
                       fullWidth
                       loading={loginLoading || loadingGetUserFavoritesList}
+                      size={buttonSize}
                     >
                       ورود
                     </Button>
@@ -611,7 +640,7 @@ const Login = () => {
             
             {type === "unverified" && (
               <Alert mt="xl" variant="light" color="blue" title="در حال تایید حساب کاربری">
-                <Text size="sm">حساب کاربری شما تایید نشده است. لطفاً منتظر تایید توسط مدیریت باشید.</Text>
+                <Text size={textSize}>حساب کاربری شما تایید نشده است. لطفاً منتظر تایید توسط مدیریت باشید.</Text>
                 <Center>
                   <Button size="xs" mt="md" color="blue" component={NavLink} to="/">
                     بازگشت به صفحه اصلی
@@ -622,7 +651,7 @@ const Login = () => {
             
             {type === "pending" && (
               <Alert mt="xl" variant="light" color="cyan" title="پیام سیستم">
-                <Text size="sm">این حساب کاربری در انتظار تایید میباشد</Text>
+                <Text size={textSize}>این حساب کاربری در انتظار تایید میباشد</Text>
                 <Button size="xs" mt="md" color="cyan" component="a" href="tel:01234567890">
                   تلفن پشیبانی 09123456789
                 </Button>
@@ -631,7 +660,7 @@ const Login = () => {
             
             {type === "deactive" && (
               <Alert mt="xl" variant="light" color="orange" title="حساب کاربری غیر فعال">
-                <Text size="sm">این حساب کاربری غیر فعال است. در صورت فعال نشدن با پشتیبانی تماس بگیرید</Text>
+                <Text size={textSize}>این حساب کاربری غیر فعال است. در صورت فعال نشدن با پشتیبانی تماس بگیرید</Text>
                 <Button size="xs" mt="md" color="orange" component="a" href="tel:01234567890">
                   تلفن پشیبانی 09123456789
                 </Button>

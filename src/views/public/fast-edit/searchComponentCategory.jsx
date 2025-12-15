@@ -335,7 +335,7 @@ const SearchComponentCategory = ({
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
-  console.log("render SearchComponentCategory Fast Edit", tableData);
+  // console.log("render SearchComponentCategory Fast Edit", tableData);
 
   return (
     <>
@@ -397,92 +397,92 @@ const SearchComponentCategory = ({
         />
 
         {/* Tabs */}
-<Tabs 
-  styles={{ 
-    panel: { 
-      marginTop: isMobile ? "15px" : "20px" 
-    },
-    list: {
-      overflowX: 'auto',
-      flexWrap: 'nowrap',
-      justifyContent: 'space-between',
-      display: 'flex',
-      width: '100%',
-      gap: isMobile ? '8px' : '12px',
-      flexDirection: 'row',
-      border: '1px solid #e0e0e0',
-      borderRadius: '8px',
-      padding: isMobile ? '8px' : '12px',
-      backgroundColor: '#fafafa'
-    },
-    tab: {
-      fontSize: isMobile ? '12px' : '14px',
-      padding: isMobile ? '8px 12px' : '10px 16px',
-      whiteSpace: 'nowrap',
-      flex: '1 1 0',
-      textAlign: 'center',
-      minWidth: 0,
-      transition: 'all 0.2s ease',
-    }
-  }} 
-  variant="pills" 
-  defaultValue="brand" 
-  value={searchType} 
-  onChange={setSearchType}
-  orientation="horizontal"
->
-  <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
-    {/* ✅ Brand Tab - Inline styles */}
-    <Tabs.Tab 
-      value="brand" 
-      style={{ 
-        flex: '1 1 0', 
-        minWidth: 0,
-        border: searchType === 'brand' ? '1px solid #093572' : '1px solid #e0e0e0',
-        borderRadius: '6px',
-        backgroundColor: searchType === 'brand' ? '#093572' : 'white',
-        color: searchType === 'brand' ? 'white' : '#333',
-      }}
-    >
-      {isMobile ? "برند" : "برند"}
-    </Tabs.Tab>
-    
-    {/* ✅ Category Tab - Inline styles */}
-    <Tabs.Tab 
-      value="category" 
-      style={{ 
-        flex: '1 1 0', 
-        minWidth: 0,
-        border: searchType === 'category' ? '1px solid #093572' : '1px solid #e0e0e0',
-        borderRadius: '6px',
-        backgroundColor: searchType === 'category' ? '#093572' : 'white',
-        color: searchType === 'category' ? 'white' : '#333',
-      }}
-    >
-      {isMobile ? "دسته‌بندی" : "دسته‌بندی"}
-    </Tabs.Tab>
-  </Tabs.List>
-  
-  {/* Panel for Category Mode */}
-  <Tabs.Panel value="category">
-    {!loading && searchType === "category" && tableData && (
-      <SlideCategory 
-        tab={category} 
-        items={tableData?.category} 
-        searchType={searchType}
-        click={setCategory} 
-        filterCategoryStorage={filterCategoryStorage}
-        setFilterCategoryStorage={setFilterCategoryStorage}
-        filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-        setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-        filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-        setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-        isMobile={isMobile}
-        isTablet={isTablet}
-      />
-    )}
-  </Tabs.Panel>
-</Tabs>
+        <Tabs 
+          styles={{ 
+            panel: { 
+              marginTop: isMobile ? "15px" : "20px" 
+            },
+            list: {
+              overflowX: 'auto',
+              flexWrap: 'nowrap',
+              justifyContent: 'space-between',
+              display: 'flex',
+              width: '100%',
+              gap: isMobile ? '8px' : '12px',
+              flexDirection: 'row',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              padding: isMobile ? '8px' : '12px',
+              backgroundColor: '#fafafa'
+            },
+            tab: {
+              fontSize: isMobile ? '12px' : '14px',
+              padding: isMobile ? '8px 12px' : '10px 16px',
+              whiteSpace: 'nowrap',
+              flex: '1 1 0',
+              textAlign: 'center',
+              minWidth: 0,
+              transition: 'all 0.2s ease',
+            }
+          }} 
+          variant="pills" 
+          defaultValue="brand" 
+          value={searchType} 
+          onChange={setSearchType}
+          orientation="horizontal"
+        >
+          <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
+            {/* ✅ Brand Tab - Inline styles */}
+            <Tabs.Tab 
+              value="brand" 
+              style={{ 
+                flex: '1 1 0', 
+                minWidth: 0,
+                border: searchType === 'brand' ? '1px solid #093572' : '1px solid #e0e0e0',
+                borderRadius: '6px',
+                backgroundColor: searchType === 'brand' ? '#093572' : 'white',
+                color: searchType === 'brand' ? 'white' : '#333',
+              }}
+            >
+              {isMobile ? "برند" : "برند"}
+            </Tabs.Tab>
+            
+            {/* ✅ Category Tab - Inline styles */}
+            <Tabs.Tab 
+              value="category" 
+              style={{ 
+                flex: '1 1 0', 
+                minWidth: 0,
+                border: searchType === 'category' ? '1px solid #093572' : '1px solid #e0e0e0',
+                borderRadius: '6px',
+                backgroundColor: searchType === 'category' ? '#093572' : 'white',
+                color: searchType === 'category' ? 'white' : '#333',
+              }}
+            >
+              {isMobile ? "دسته‌بندی" : "دسته‌بندی"}
+            </Tabs.Tab>
+          </Tabs.List>
+          
+          {/* Panel for Category Mode */}
+          <Tabs.Panel value="category">
+            {!loading && searchType === "category" && tableData && (
+              <SlideCategory 
+                tab={category} 
+                items={tableData?.category} 
+                searchType={searchType}
+                click={setCategory} 
+                filterCategoryStorage={filterCategoryStorage}
+                setFilterCategoryStorage={setFilterCategoryStorage}
+                filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                isMobile={isMobile}
+                isTablet={isTablet}
+              />
+            )}
+          </Tabs.Panel>
+        </Tabs>
 
       </Paper>
     </>

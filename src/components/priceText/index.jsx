@@ -6,7 +6,7 @@ const PriceText = (props) => {
   return (
     <Flex align="center" justify="end"
     >
-      <NumberFormatter className="price_text" style={{ fontWeight:"600", fontSize:fontSize || "20px"}}  value={+children} thousandSeparator {...others} />
+      <NumberFormatter className="price_text" style={{ fontWeight:"700", fontSize:fontSize || "10px"}}  value={+children} thousandSeparator {...others} />
       <svg style={{ width: "20px", height: "20px", marginRight: "4px", fill: "#6c757d" }}>
         <symbol
           id="toman"

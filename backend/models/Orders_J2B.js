@@ -65,7 +65,17 @@ const orderSchema = new mongoose.Schema(
       enum: ["cash", "credit", "check"],
       default: "cash",
     },
-    // NEW: Address field
+    // NEW: Payment type field
+    payment_type: {
+      type: String,
+      enum: ["gateway", "wallet", "cash", "credit"],
+      default: "gateway",
+    },
+    // NEW: Wallet transaction ID (only populated for wallet payments)
+    payment_wallet_transactionid: {
+      type: String,
+      default: null,
+    },
     address: {
       type: Object,
       default: null,

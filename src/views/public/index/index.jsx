@@ -31,7 +31,7 @@ function Home() {
   const { user } = useSelector((state) => state.auth);
 
 
-  console.log("homeData", homeData)
+  // console.log("homeData", homeData)
 
   useEffect(() => {
     // You can add additional conditions like cache expiration here

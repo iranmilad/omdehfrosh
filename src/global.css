@@ -101,6 +101,38 @@ body {
   -webkit-font-variant-numeric: normal;
   -moz-font-variant-numeric: normal;
 }
+
+/* ✅ APPLY PERSIAN FONT TO ALL ELEMENTS */
+* {
+  font-family: var(--primary-font-family) !important;
+  font-variant-numeric: normal !important;
+  -webkit-font-variant-numeric: normal !important;
+  -moz-font-variant-numeric: normal !important;
+}
+
+/* ✅ ENSURE INPUTS, BUTTONS, AND FORM ELEMENTS USE PERSIAN FONT */
+input,
+textarea,
+select,
+button,
+.mantine-Input-input,
+.mantine-Button-root,
+.mantine-Text-root,
+.mantine-Title-root,
+.mantine-Badge-root,
+.mantine-Menu-item,
+.mantine-Select-input,
+.mantine-NumberInput-input {
+  font-family: var(--primary-font-family) !important;
+  font-variant-numeric: normal !important;
+}
+
+/* ✅ FORCE PERSIAN NUMBERS IN ALL TEXT ELEMENTS */
+p, span, div, h1, h2, h3, h4, h5, h6, a, label, td, th, li {
+  font-family: var(--primary-font-family) !important;
+  font-variant-numeric: normal !important;
+}
+
 .bottom-nav-btn {
   position: relative;
   overflow: hidden;

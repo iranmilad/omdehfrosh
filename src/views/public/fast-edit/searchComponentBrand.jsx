@@ -28,7 +28,7 @@ import isEqual from "lodash/isEqual";
 import { useBrandRowSelection } from "./BrandRowSelectionContext";
 import SavedFiltersModalBrandMode from "./savedfilters/brandmode/SavedFiltersModalBrand";
 
-const SearchComponentBrand = ({ 
+const SearchComponentBrandFastEdit = ({ 
   searchType, 
   setSearchType, 
   setAvailableLocations, 
@@ -341,7 +341,7 @@ const SearchComponentBrand = ({
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
-  console.log("render SearchComponentBrand Fast Edit", filters);
+  // console.log("render SearchComponentBrand Fast Edit", filters);
 
   return (
     <>
@@ -515,4 +515,4 @@ const SearchComponentBrand = ({
   );
 };
 
-export default SearchComponentBrand;
+export default SearchComponentBrandFastEdit;

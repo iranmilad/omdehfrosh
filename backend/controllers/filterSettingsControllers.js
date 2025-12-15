@@ -49,20 +49,20 @@ export const createFilterSettingBrandMode = async (req, res) => {
     // res.status(403).json({message: "با xc ایجاد شد"});
 
 
-    res.status(201).json({ 
-      message: "خطا رخ داده است",
-      state: "error",
-      error: {
-        "inputBox": "حروف راd بfه فارسی وارد sdsd"
-      } 
-    });
+    // res.status(201).json({ 
+    //   message: "خطا رخ داده است",
+    //   state: "error",
+    //   error: {
+    //     "inputBox": "حروف راd بfه فارسی وارد sdsd"
+    //   } 
+    // });
     
 
-    //   res.status(201).json({ 
-    //   message: "ثبت موفق",
-    //   state: "ok",
-    //   data: userFilters
-    // });
+      res.status(201).json({ 
+      message: "ثبت موفق",
+      state: "ok",
+      data: userFilters
+    });
     
 
   } catch (error) {
@@ -245,19 +245,19 @@ export const createFilterSettingCategoryMode = async (req, res) => {
 
     await userFilters.save();
 
-    //   res.status(201).json({ 
-    //   message: "ثبت موفق",
-    //   state: "ok",
-    //   data: userFilters
-    // });
-
-    res.status(201).json({ 
-      message: "خطا رخ داده است",
-      state: "error",
-      error: {
-        "inputBox": "حروف را به فارسی وارد کنید"
-      } 
+      res.status(201).json({ 
+      message: "ثبت موفق",
+      state: "ok",
+      data: userFilters
     });
+
+    // res.status(201).json({ 
+    //   message: "خطا رخ داده است",
+    //   state: "error",
+    //   error: {
+    //     "inputBox": "حروف را به فارسی وارد کنید"
+    //   } 
+    // });
 
 
     // res.status(400).json({ 

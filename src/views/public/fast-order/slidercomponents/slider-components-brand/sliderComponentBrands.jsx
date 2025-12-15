@@ -32,7 +32,7 @@ const SliderComponentBrands = ({
   const navigate = useNavigate();
   const isSlideSelectionActive = checkedRows.size > 0;
 
-  console.log("SliderComponentBrands rendered with items:", items);
+  // console.log("SliderComponentBrands rendered with items:", items);
 
   const handleSelectAll = () => {
     if (clickType === "brands") {

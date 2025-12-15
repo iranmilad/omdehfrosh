@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Container,
   Group,
@@ -13,9 +13,31 @@ import {
   Skeleton,
 } from "@mantine/core";
 import { useSelector } from "react-redux";
+import ImageIcon from '../../resources/defaultImageIcon'
+import { useState } from "react"; // Make sure useState is imported
+
 
 const Footer = () => {
+
+  const [logoError, setLogoError] = useState(false);
+  const [socialIconErrors, setSocialIconErrors] = useState({});
+  const isValidLogo = (logo) => {
+    if (!logo) return false;
+    if (Array.isArray(logo) && (logo.length === 0 || logo[0] === "")) return false;
+    if (typeof logo === 'string' && logo.trim() === "") return false;
+    return true;
+  };
+
   const { bootstrapData: bootstrap, loadingBootstrap } = useSelector((state) => state.bootstrap);
+
+
+
+
+  const handleSocialIconError = (itemId) => {
+  setSocialIconErrors(prev => ({ ...prev, [itemId]: true }));
+};
+
+
 
   return (
     <Box className="border-t pt-10 mt-32 bg-white z-30" id="footer">
@@ -25,57 +47,63 @@ const Footer = () => {
           <Stack gap="xs">
             {loadingBootstrap ? (
               <Skeleton w={150} h={48} />
-            ) : (
+            ) : isValidLogo(bootstrap?.data.logo) && !logoError ? (
               <Image 
                 className="w-32 md:w-48" 
                 src={bootstrap?.data.logo} 
-                alt={bootstrap?.data.siteTitle || "Logo"} 
+                alt={bootstrap?.data.siteTitle || "Logo"}
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <ImageIcon 
+                size={window.innerWidth < 768 ? 128 : 192} 
+                color="#6B7280" 
               />
             )}
           </Stack>
-<Button
-  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-  variant="outline"
-  styles={{
-    root: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-around',
-      padding: '0.25rem 1.0rem',
-      borderRadius: '8px',
-      border: '1px solid #d1d5db',
-      backgroundColor: 'white',
-      cursor: 'pointer',
-      '&:hover': {
-        backgroundColor: '#f9fafb'
-      }
-    }
-  }}
->
-  <Flex gap={6}>
+          <Button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            variant="outline"
+            styles={{
+              root: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                padding: '0.25rem 1.0rem',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#f9fafb'
+                }
+              }
+            }}
+          >
+            <Flex gap={6}>
 
-    <Flex>
-      <Text c="#9ca3af" size="sm" fw={400}>
-        { "بازگشت به بالا"}
-      </Text>
-    </Flex>
-    <Flex>
+              <Flex>
+                <Text c="#9ca3af" size="sm" fw={400}>
+                  { "بازگشت به بالا"}
+                </Text>
+              </Flex>
+              <Flex>
 
-    <svg
-      width="24"
-      height="18"
-      fill="none"
-      stroke="#9ca3af"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      >
-      <path d="m18 15-6-6-6 6"/>
-    </svg>
-    </Flex>
-  </Flex>
-</Button>
+              <svg
+                width="24"
+                height="18"
+                fill="none"
+                stroke="#9ca3af"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                >
+                <path d="m18 15-6-6-6 6"/>
+              </svg>
+              </Flex>
+            </Flex>
+          </Button>
         </Group>
 
         {/* Features Section */}
@@ -159,47 +187,73 @@ const Footer = () => {
             </Text>
           </Group>
           
-          {/* Social Links */}
-          <Group gap="md">
-            {bootstrap?.data.menu?.social?.[0]?.links?.map((item) => (
-              <Anchor
-                key={item.id}
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                c="dark.6"
-                style={{ 
-                  display: "flex", 
-                  alignItems: "center",
-                  transition: "color 0.2s ease"
-                }}
-                className="hover:text-blue-600"
-              >
-                {/* Detect if icon is Bootstrap Icon class (bi bi-*) or image URL */}
-                {item.icon?.startsWith("bi ") ? (
-                  <i 
-                    className={item.icon} 
-                    style={{ fontSize: 18 }}
-                    aria-label={item.label}
-                  ></i>
-                ) : item.icon?.startsWith("/") ? (
-                  <Image 
-                    src={item.icon} 
-                    w={24} 
-                    h={24} 
-                    fit="contain"
-                    alt={item.label}
-                  />
-                ) : (
-                  <i 
-                    className={item.icon} 
-                    style={{ fontSize: 24 }}
-                    aria-label={item.label}
-                  ></i>
-                )}
-              </Anchor>
-            ))}
-          </Group>
+{/* Social Links */}
+<Group gap="md">
+  {(() => {
+    console.log('=== SOCIAL LINKS DEBUG ===');
+    console.log('bootstrap?.data.menu?.social:', bootstrap?.data.menu?.social);
+    console.log('social[0]:', bootstrap?.data.menu?.social?.[0]);
+    console.log('links:', bootstrap?.data.menu?.social?.[0]?.links);
+    
+    const links = bootstrap?.data.menu?.social?.[0]?.links;
+    if (links) {
+      links.forEach((item, index) => {
+        console.log(`Link ${index}:`, {
+          id: item.id,
+          label: item.label,
+          icon: item.icon,
+          iconType: item.icon?.startsWith("bi ") ? 'bootstrap' : 
+                    item.icon?.startsWith("/") ? 'image' : 
+                    item.icon ? 'other-class' : 'none',
+          url: item.url
+        });
+      });
+    }
+    return null;
+  })()}
+  
+  {bootstrap?.data.menu?.social?.[0]?.links?.map((item) => (
+    <Anchor
+      key={item.id}
+      href={item.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      c="dark.6"
+      style={{ 
+        display: "flex", 
+        alignItems: "center",
+        transition: "color 0.2s ease"
+      }}
+      className="hover:text-blue-600"
+    >
+      {/* Detect if icon is Bootstrap Icon class (bi bi-*) or image URL */}
+      {item.icon?.startsWith("bi ") ? (
+        <i 
+          className={item.icon} 
+          style={{ fontSize: 18 }}
+          aria-label={item.label}
+        ></i>
+      ) : item.icon?.startsWith("/") && !socialIconErrors[item.id] ? (
+        <Image 
+          src={item.icon} 
+          w={24} 
+          h={24} 
+          fit="contain"
+          alt={item.label}
+          onError={() => handleSocialIconError(item.id)}
+        />
+      ) : item.icon && !item.icon.startsWith("bi ") && !item.icon.startsWith("/") ? (
+        <i 
+          className={item.icon} 
+          style={{ fontSize: 24 }}
+          aria-label={item.label}
+        ></i>
+      ) : (
+        <ImageIcon size={24} color="#6B7280" />
+      )}
+    </Anchor>
+  ))}
+</Group>
         </Group>
       </Container>
     </Box>

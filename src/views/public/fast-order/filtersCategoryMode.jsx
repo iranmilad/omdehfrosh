@@ -23,7 +23,7 @@ import {
   LoadingOverlay,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconFilter, IconChevronDown, IconCheck } from "@tabler/icons-react";
+import { IconFilter, IconChevronDown, IconCheck, IconBookmark, IconSettings } from "@tabler/icons-react";
 import { FreeMode } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import iranStates from "../../../Libs/iranStates";
@@ -32,6 +32,10 @@ import { useFastOrder } from ".";
 import { useFilterContext } from "./filterscontext";
 import { useLocation, useParams } from "react-router";
 import { IoSettingsSharp } from "react-icons/io5";
+import SavedFiltersModalCategoryMode from "./savedfilters/categorymode/SavedFiltersModalCategoryModeFastOrder";
+import 'swiper/css';
+import 'swiper/css/free-mode';
+
 
 const colors = [
   { label: "قرمز", value: "#FF0000" },
@@ -155,8 +159,7 @@ function ChevronSelect({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              justifyContent: "center", // ⬅ centers text vertically/horizontally
-              textAlign: "center",       // ⬅ ensures perfect middle alignment
+              textAlign: "center",
             }
           }}
           style={{
@@ -324,8 +327,8 @@ const ColorCombobox = ({
               padding: "0 8px",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center", // ⬅ centers text vertically/horizontally
-              textAlign: "center",       // ⬅ ensures perfect middle alignment
+              justifyContent: "center",
+              textAlign: "center",
             }
           }}
           style={{
@@ -407,7 +410,24 @@ const ColorCombobox = ({
   );
 };
 
-function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSubCategories, searchType, setSearchType }) {
+function FiltersCategoryMode({ 
+  setFilters, 
+  nodes, 
+  filters, 
+  setNodes, 
+  setNodesSubCategories, 
+  searchType, 
+  setSearchType,
+  onCookieUpdate ,
+  // Props for saved filters
+  COOKIE_NAME,
+  getInitialFilters,
+  setFilterCategoryStorage,
+  setFilterCategorySubCategoryStorage,
+  setFilterCategorySubCategoryBrandsStorage,
+  setLocalFilters,
+  localFilters
+}) {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const supplierId = params.get("supplierid") || "";
@@ -415,9 +435,12 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
   const isMobile = useMediaQuery("(max-width: 480px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
-  const { filterValues } = useFastOrder();
+  const { filterValues, setOpened } = useFastOrder();
 
   const { filtersContext, setFiltersContext, brandsContext = { parent: [] } } = useFilterContext();
+
+  // State for saved filters modal
+  const [savedFiltersModalOpened, setSavedFiltersModalOpened] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -547,241 +570,304 @@ function FiltersCategoryMode({ setFilters, nodes, filters, setNodes, setNodesSub
     : [];
 
   return (
-    <Paper 
-      mt={{ base: "xs", md: "xs" }} 
-      id="fastorder-search"
-      p={isMobile ? "sm" : "md"}
-      style={{ 
-        overflow: 'hidden'
-      }}
-    >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Swiper
-          modules={[FreeMode]}
-          spaceBetween={8}
-          slidesPerView="auto"
-          freeMode={true}
-          style={{ 
-            height: '35px',
-            overflow: 'visible'
-          }}
-        >
-          {/* Apply Filter Button */}
-          <SwiperSlide style={buttonSlideStyle}>
-            <Button
-              type="submit"
-              size="xs"
-              style={{
+    <>
+      <Paper 
+        mt={{ base: "xs", md: "xs" }} 
+        id="fastorder-search"
+        p={isMobile ? "sm" : "md"}
+        style={{ 
+          overflow: 'hidden'
+        }}
+      >
+              {/* Saved Filters Modal */}
+      {COOKIE_NAME && getInitialFilters && (
+        <SavedFiltersModalCategoryMode
+          opened={savedFiltersModalOpened}
+          onClose={() => setSavedFiltersModalOpened(false)}
+          isMobile={isMobile}
+          COOKIE_NAME={COOKIE_NAME}
+          getInitialFilters={getInitialFilters}
+          setFilterCategoryStorage={setFilterCategoryStorage}
+          setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+          setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+          setLocalFilters={setLocalFilters}
+          setFilters={setFilters}
+          setSearchType={setSearchType}
+          filters={filters}
+          localFilters={localFilters}
+            onCookieUpdate={onCookieUpdate}  // ✅ ENSURE THIS IS PASSED
+
+        />
+      )}
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <Swiper
+            modules={[FreeMode]}
+            spaceBetween={8}
+            slidesPerView="auto"
+            freeMode={true}
+            style={{ 
+              height: '35px',
+              overflow: 'visible'
+            }}
+          >
+
+
+            {/* ✅ NEW: Column Settings Button */}
+            <SwiperSlide style={buttonSlideStyle}>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={() => setOpened(true)}
+                style={{
+                  height: "32px",
+                  minHeight: "32px",
+                  maxHeight: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0 12px"
+                }}
+              >
+                <IconSettings size={16} />
+              </Button>
+            </SwiperSlide>
+
+            {/* Saved Filters Button */}
+            <SwiperSlide style={buttonSlideStyle}>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={() => setSavedFiltersModalOpened(true)}
+                style={{
+                  height: "32px",
+                  minHeight: "32px",
+                  maxHeight: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0 12px"
+                }}
+              >
+                <IconBookmark size={16} />
+              </Button>
+            </SwiperSlide>
+            {/* Apply Filter Button */}
+            <SwiperSlide style={buttonSlideStyle}>
+              <Button
+                type="submit"
+                size="xs"
+                style={{
+                  height: "32px",
+                  minHeight: "32px",
+                  maxHeight: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0 12px"
+                }}
+              >
+                <IoSettingsSharp size={16} />
+              </Button>
+            </SwiperSlide>
+            {/* Delivery Time Filter */}
+            <SwiperSlide style={selectSlideStyle}>
+              <div className="flex items-center h-full">
+                <div style={{ flex: 1 }}>
+                  <ChevronSelect
+                    placeholder="ارسال"
+                    allLabel="همه بازه‌های ارسال"
+                    data={[
+                      { label: "همه", value: "all" },
+                      { label: "< 3 ساعت", value: "3hr" },
+                      { label: "< 1 روز", value: "1d" },
+                      { label: "تا 3 روز", value: "3d" },
+                      { label: "تا 1 هفته", value: "7d" },
+                      { label: "تا 15 روز", value: "15d" },
+                      { label: "تا 30 روز", value: "30d" },
+                      { label: "بیش از 30 روز", value: "30d+" },
+                    ]}
+                    value={form.values.deliveryTime}
+                    onChange={(v) => form.setFieldValue("deliveryTime", v)}
+                    dropdownId="deliveryTime"
+                  />
+                </div>
+              </div>
+            </SwiperSlide>
+            
+            {/* Min Stock Filter */}
+            <SwiperSlide style={selectSlideStyle}>
+              <ChevronSelect
+                placeholder="موجودی"
+                allLabel="همه موجودی"
+                data={[
+                  { label: "همه", value: "all" },
+                  { label: "5", value: "5" },
+                  { label: "10", value: "10" },
+                  { label: "20", value: "20" },
+                  { label: "50", value: "50" },
+                  { label: "100", value: "100" },
+                ]}
+                value={form.values.minStock}
+                onChange={(v) => form.setFieldValue("minStock", v)}
+                dropdownId="minStock"
+                style={{ minWidth: "100px" }}
+              />
+            </SwiperSlide>
+
+            {/* Supplier Filter */}
+            <SwiperSlide style={selectSlideStyle}>
+              <ChevronSelect
+                placeholder="تامین"
+                allLabel="همه تامین‌کنندگان"
+                data={[
+                  { label: "همه", value: "all" },
+                  ...sellersData
+                ]}
+                value={isSupplierFixed ? supplierId : form.values.supplier}
+                onChange={(v) => {
+                  if (!isSupplierFixed) form.setFieldValue("supplier", v);
+                }}
+                disabled={isSupplierFixed}
+                searchable={true}
+                dropdownId="supplier"
+                style={{ minWidth: "120px" }}
+              />
+            </SwiperSlide>
+
+            {/* Province Filter */}
+            <SwiperSlide 
+              style={switchSlideStyle}
+              onClick={(e) => handleSlideClick(e, 'province')}
+            >
+              <div style={{
                 height: "32px",
                 minHeight: "32px",
-                maxHeight: "32px",
+                width: "140px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                padding: "0 12px"
-              }}
-            >
-              <IoSettingsSharp size={16} />
-            </Button>
-          </SwiperSlide>
-
-          {/* Delivery Time Filter */}
-          <SwiperSlide style={selectSlideStyle}>
-            <div className="flex items-center h-full">
-              <div style={{ flex: 1 }}>
-                <ChevronSelect
-                  placeholder="ارسال"
-                  allLabel="همه بازه‌های ارسال"
-                  data={[
-                    { label: "همه", value: "all" },
-                    { label: "< 3 ساعت", value: "3hr" },
-                    { label: "< 1 روز", value: "1d" },
-                    { label: "تا 3 روز", value: "3d" },
-                    { label: "تا 1 هفته", value: "7d" },
-                    { label: "تا 15 روز", value: "15d" },
-                    { label: "تا 30 روز", value: "30d" },
-                    { label: "بیش از 30 روز", value: "30d+" },
-                  ]}
-                  value={form.values.deliveryTime}
-                  onChange={(v) => form.setFieldValue("deliveryTime", v)}
-                  // size="xs"
-                  dropdownId="deliveryTime"
+                justifyContent: "space-between",
+                padding: "0 12px",
+                border: "1px solid #dee2e6",
+                borderRadius: "8px",
+                cursor: "pointer",
+                backgroundColor: "transparent"
+              }}>
+                <Text size="xs" style={{ flexShrink: 0 }}>
+                  استان من
+                </Text>
+                <Switch
+                  checked={form.values.province === "mylocation"}
+                  readOnly
+                  size="xs"
+                  styles={(theme) => ({
+                    root: {
+                      pointerEvents: 'none',
+                    },
+                    track: {
+                      backgroundColor: form.values.province === "mylocation"
+                        ? theme.colors.blue[6]
+                        : theme.colors.gray[4],
+                      cursor: 'pointer',
+                    },
+                    thumb: {
+                      backgroundColor: theme.white,
+                    },
+                  })}
                 />
               </div>
-            </div>
-          </SwiperSlide>
-          
-          {/* Min Stock Filter */}
-          <SwiperSlide style={selectSlideStyle}>
-            <ChevronSelect
-              placeholder="موجودی"
-              allLabel="همه موجودی"
-              data={[
-                { label: "همه", value: "all" },
-                { label: "5", value: "5" },
-                { label: "10", value: "10" },
-                { label: "20", value: "20" },
-                { label: "50", value: "50" },
-                { label: "100", value: "100" },
-              ]}
-              value={form.values.minStock}
-              onChange={(v) => form.setFieldValue("minStock", v)}
-              dropdownId="minStock"
-              style={{ minWidth: "100px" }}
-            />
-          </SwiperSlide>
+            </SwiperSlide>
 
-          {/* Supplier Filter */}
-          <SwiperSlide style={selectSlideStyle}>
-            <ChevronSelect
-              placeholder="تامین"
-              allLabel="همه تامین‌کنندگان"
-              data={[
-                { label: "همه", value: "all" },
-                ...sellersData
-              ]}
-              value={isSupplierFixed ? supplierId : form.values.supplier}
-              onChange={(v) => {
-                if (!isSupplierFixed) form.setFieldValue("supplier", v);
-              }}
-              disabled={isSupplierFixed}
-              searchable={true}
-              dropdownId="supplier"
-              style={{ minWidth: "120px" }}
-            />
-          </SwiperSlide>
+            {/* Stock Status Filter */}
+            <SwiperSlide 
+              style={switchSlideStyle}
+              onClick={(e) => handleSlideClick(e, 'stockStatus')}
+            >
+              <div style={{
+                height: "32px",
+                minHeight: "32px",
+                width: "120px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 12px",
+                border: "1px solid #dee2e6",
+                borderRadius: "8px",
+                cursor: "pointer",
+                backgroundColor: "transparent"
+              }}>
+                <Text size="xs" style={{ flexShrink: 0 }}>
+                  ناموجود
+                </Text>
+                <Switch
+                  checked={!form.values.stockStatus}
+                  readOnly
+                  size="xs"
+                  styles={(theme) => ({
+                    root: {
+                      pointerEvents: 'none',
+                    },
+                    track: {
+                      backgroundColor: !form.values.stockStatus
+                        ? theme.colors.red[6]
+                        : theme.colors.gray[4],
+                      cursor: 'pointer',
+                    },
+                    thumb: {
+                      backgroundColor: theme.white,
+                    },
+                  })}
+                />
+              </div>
+            </SwiperSlide>
 
-          {/* Province Filter */}
-          <SwiperSlide 
-            style={switchSlideStyle}
-            onClick={(e) => handleSlideClick(e, 'province')}
-          >
-            <div style={{
-              height: "32px",
-              minHeight: "32px",
-              width: "140px", // Fixed width
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between", // Space between label and switch
-              padding: "0 12px",
-              border: "1px solid #dee2e6",
-              borderRadius: "8px",
-              cursor: "pointer",
-              backgroundColor: "transparent"
-            }}>
-              <Text size="xs" style={{ flexShrink: 0 }}>
-                استان من
-              </Text>
-              <Switch
-                checked={form.values.province === "mylocation"}
-                readOnly
-                size="xs"
-                styles={(theme) => ({
-                  root: {
-                    pointerEvents: 'none',
-                  },
-                  track: {
-                    backgroundColor: form.values.province === "mylocation"
-                      ? theme.colors.blue[6]
-                      : theme.colors.gray[4],
-                    cursor: 'pointer',
-                  },
-                  thumb: {
-                    backgroundColor: theme.white,
-                  },
-                })}
-              />
-            </div>
-          </SwiperSlide>
+            {/* Sale Type Filter */}
+            <SwiperSlide 
+              style={switchSlideStyle}
+              onClick={(e) => handleSlideClick(e, 'saleType')}
+            >
+              <div style={{
+                height: "32px",
+                minHeight: "32px",
+                width: "130px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 12px",
+                border: "1px solid #dee2e6",
+                borderRadius: "8px",
+                cursor: "pointer",
+                backgroundColor: "transparent"
+              }}>
+                <Text size="xs" style={{ flexShrink: 0 }}>
+                  پیش‌فروش
+                </Text>
+                <Switch
+                  checked={form.values.saleType === "credit"}
+                  readOnly
+                  size="xs"
+                  styles={(theme) => ({
+                    root: {
+                      pointerEvents: 'none',
+                    },
+                    track: {
+                      backgroundColor: form.values.saleType === "credit" 
+                        ? theme.colors.grape[6] 
+                        : theme.colors.gray[4],
+                      cursor: 'pointer',
+                    },
+                    thumb: {
+                      backgroundColor: theme.white,
+                    },
+                  })}
+                />
+              </div>
+            </SwiperSlide>
+          </Swiper>
+        </form>
+      </Paper>
 
-          {/* Stock Status Filter */}
-          <SwiperSlide 
-            style={switchSlideStyle}
-            onClick={(e) => handleSlideClick(e, 'stockStatus')}
-          >
-            <div style={{
-              height: "32px",
-              minHeight: "32px",
-              width: "120px", // Fixed width
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 12px",
-              border: "1px solid #dee2e6",
-              borderRadius: "8px",
-              cursor: "pointer",
-              backgroundColor: "transparent"
-            }}>
-              <Text size="xs" style={{ flexShrink: 0 }}>
-                ناموجود
-              </Text>
-              <Switch
-                checked={!form.values.stockStatus}
-                readOnly
-                size="xs"
-                styles={(theme) => ({
-                  root: {
-                    pointerEvents: 'none',
-                  },
-                  track: {
-                    backgroundColor: !form.values.stockStatus
-                      ? theme.colors.red[6]
-                      : theme.colors.gray[4],
-                    cursor: 'pointer',
-                  },
-                  thumb: {
-                    backgroundColor: theme.white,
-                  },
-                })}
-              />
-            </div>
-          </SwiperSlide>
 
-          {/* Sale Type Filter */}
-          <SwiperSlide 
-            style={switchSlideStyle}
-            onClick={(e) => handleSlideClick(e, 'saleType')}
-          >
-            <div style={{
-              height: "32px",
-              minHeight: "32px",
-              width: "130px", // Fixed width
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 12px",
-              border: "1px solid #dee2e6",
-              borderRadius: "8px",
-              cursor: "pointer",
-              backgroundColor: "transparent"
-            }}>
-              <Text size="xs" style={{ flexShrink: 0 }}>
-                پیش‌فروش
-              </Text>
-              <Switch
-                checked={form.values.saleType === "credit"}
-                readOnly
-                size="xs"
-                styles={(theme) => ({
-                  root: {
-                    pointerEvents: 'none',
-                  },
-                  track: {
-                    backgroundColor: form.values.saleType === "credit" 
-                      ? theme.colors.grape[6] 
-                      : theme.colors.gray[4],
-                    cursor: 'pointer',
-                  },
-                  thumb: {
-                    backgroundColor: theme.white,
-                  },
-                })}
-              />
-            </div>
-          </SwiperSlide>
-        </Swiper>
-      </form>
-    </Paper>
+    </>
   );
 }
 

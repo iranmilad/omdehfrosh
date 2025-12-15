@@ -1167,3 +1167,162 @@ export const getSubscriptionPlansByUserId = async (req, res) => {
   }
 };
 
+
+
+
+export const getWalletBalance = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+
+    console.log(user_id)
+
+    if (!user_id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const userAccount = await UserMyAccount.findOne({ userId: user_id });
+
+    console.log(userAccount)
+
+    if (!userAccount) {
+      return res.status(404).json({ message: "User account not found" });
+    }
+
+    return res.status(200).json({
+      wallet: userAccount.wallet,
+      balance: userAccount.wallet?.balance || 0
+    });
+
+  } catch (error) {
+    console.error("Error fetching wallet balance:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const deductFromWallet = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+
+    if (!user_id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const { amount, description } = req.body;
+
+    console.log(JSON.stringify({amount, description}))
+
+
+
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
+
+    const userAccount = await UserMyAccount.findOne({ userId: user_id });
+
+    if (!userAccount) {
+      return res.status(404).json({ message: "User account not found" });
+    }
+
+    // Check sufficient balance
+    if (userAccount.wallet.balance < amount) {
+      return res.status(400).json({ 
+        message: "Insufficient wallet balance",
+        currentBalance: userAccount.wallet.balance,
+        requiredAmount: amount
+      });
+    }
+
+    // Deduct amount
+    userAccount.wallet.balance -= amount;
+
+    // Add to payment history
+    const transaction = {
+      transactionId: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      date: new Date().toLocaleDateString("fa-IR"),
+      amount: amount,
+      type: "purchase",
+      typeDescriptionFa: "خرید",
+      method: "wallet",
+      methodDescriptionFa: "کیف پول",
+      description: description || "پرداخت از کیف پول"
+    };
+
+    userAccount.wallet.paymentHistory.push(transaction);
+    userAccount.wallet.lastTransaction = transaction;
+
+    await userAccount.save();
+
+    return res.status(200).json({
+      message: "Amount deducted successfully",
+      transaction,
+      newBalance: userAccount.wallet.balance
+    });
+
+  } catch (error) {
+    console.error("Error deducting from wallet:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const refundToWallet = async (req, res) => {
+  try {
+    const { user_id } = getUserFromToken(req, res);
+
+    if (!user_id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const { amount, description } = req.body;
+
+
+    console.log("herererere")
+    console.log(JSON.stringify({amount, description}))
+
+
+
+
+
+
+
+    // if (!amount || amount <= 0) {
+    //   return res.status(400).json({ message: "Invalid amount" });
+    // }
+
+    const userAccount = await UserMyAccount.findOne({ userId: user_id });
+
+    if (!userAccount) {
+      return res.status(404).json({ message: "User account not found" });
+    }
+
+    // Add amount back
+    userAccount.wallet.balance += amount;
+
+    // Add to payment history
+    const transaction = {
+      transactionId: `ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      date: new Date().toLocaleDateString("fa-IR"),
+      amount: amount,
+      type: "deposit",
+      typeDescriptionFa: "بازگشت وجه",
+      method: "wallet",
+      methodDescriptionFa: "کیف پول",
+      description: description || "بازگشت وجه به کیف پول"
+    };
+
+    userAccount.wallet.paymentHistory.push(transaction);
+    userAccount.wallet.lastTransaction = transaction;
+
+    await userAccount.save();
+
+    return res.status(200).json({
+      message: "Amount refunded successfully",
+      transaction,
+      newBalance: userAccount.wallet.balance
+    });
+
+  } catch (error) {
+    console.error("Error refunding to wallet:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

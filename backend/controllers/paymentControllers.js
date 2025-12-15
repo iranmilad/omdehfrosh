@@ -282,7 +282,150 @@ export const walletTransfer = async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 };
+export const confirmCODPayment = async (req, res) => {
+  try {
+    const { orderId, sellerId, amount, payment_method } = req.body;
 
+    console.log(JSON.stringify({orderId, sellerId, amount, payment_method}))
+
+    // Set CORS headers
+    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+
+    // Get user from token
+    const { user_id } = getUserFromToken(req, res);
+
+    if (!user_id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    // Validate required fields
+    if (!orderId || !amount || payment_method !== 'cod') {
+      return res.status(400).json({ 
+        message: "Invalid COD confirmation data",
+        error: "orderId, amount, and payment_method='cod' are required"
+      });
+    }
+
+    console.log('=== Processing COD Confirmation ===');
+    console.log('Order ID:', orderId);
+    console.log('Seller ID:', sellerId);
+    console.log('Amount:', amount);
+    console.log('User ID:', user_id);
+
+    // Find the order
+    const order = await OrderJ2B.findOne({ id: orderId, user_id });
+
+    if (!order) {
+      console.error(`Order not found: ${orderId} for user: ${user_id}`);
+      return res.status(404).json({ 
+        message: "Order not found",
+        error: `Order ${orderId} not found for current user`
+      });
+    }
+
+    // Check if order is already confirmed/paid
+    if (order.status === 'processing' || order.status === 'complete') {
+      return res.status(400).json({ 
+        message: "Order already confirmed",
+        error: "This order has already been confirmed"
+      });
+    }
+
+    // Update order items for COD
+    const updateFields = {
+      isPaid: "unpaid", // COD orders remain unpaid until delivery
+      status: "processing",
+      updatedAt: new Date(),
+      payment_type: 'cod',
+      payment_method: 'cod',
+      paymentMethod: { name: 'cod', paymentMethod: 'cod' }
+    };
+
+    if (sellerId) {
+      // Update specific seller's items
+      await OrderItemJ2B.updateMany(
+        { 
+          order_id: order.id,
+          supplier_id: sellerId
+        },
+        { $set: updateFields }
+      );
+    } else {
+      // Update all items
+      await OrderItemJ2B.updateMany(
+        { order_id: order.id },
+        { $set: updateFields }
+      );
+    }
+
+    // Check if all items are confirmed
+    const unconfirmedItems = await OrderItemJ2B.countDocuments({
+      order_id: order.id,
+      status: { $ne: "processing" }
+    });
+
+    // Update main order
+    const orderUpdateFields = {
+      updatedAt: new Date(),
+      payment_type: 'cod',
+      payment_method: 'cod'
+    };
+
+    if (unconfirmedItems === 0) {
+      // All items confirmed
+      await OrderJ2B.updateOne(
+        { id: order.id },
+        { 
+          $set: { 
+            ...orderUpdateFields,
+            isPaid: "unpaid", // Main order stays unpaid for COD
+            status: "processing"
+          } 
+        }
+      );
+    } else {
+      // Partially confirmed
+      await OrderJ2B.updateOne(
+        { id: order.id },
+        { 
+          $set: { 
+            ...orderUpdateFields,
+            isPaid: "unpaid", // Main order stays unpaid for COD
+            status: "waiting"
+          } 
+        }
+      );
+    }
+
+    console.log('✅ COD order confirmed successfully');
+
+    // Return success response
+    return res.status(200).json({ 
+      success: true,
+      message: "COD order confirmed successfully",
+      orderId: order.id,
+      status: unconfirmedItems === 0 ? "processing" : "waiting",
+      isPaid: "unpaid", // COD orders stay unpaid
+      payment_type: 'cod',
+      payment_method: 'cod',
+      processedAt: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error("❌ Error confirming COD payment:", error);
+    console.error("Request data:", JSON.stringify(req.body, null, 2));
+    
+    res.status(500).json({ 
+      success: false,
+      message: "Server Error", 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
 export const checkPaymentStatusWallet = async (req, res) => {
   try {
     // Extract data from request body
@@ -638,21 +781,16 @@ export const checkPaymentStatusWalletAlternative = async (req, res) => {
 export const checkPaymentStatus = async (req, res) => {
   const order_id = req.params.order_id;
 
-  // console.log(JSON.stringify(order_id));
-
   try {
     if (!order_id) {
       return res.status(400).json({ message: "order_id is required" });
     }
 
-    // Find the main order
     const mainOrder = await OrderJ2B.findOne({ id: order_id });
     if (!mainOrder) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-
-    // Find all order items for this order
     const orderItems = await OrderItemJ2B.find({ order_id: order_id });
 
     // Set CORS headers
@@ -661,127 +799,8 @@ export const checkPaymentStatus = async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.setHeader("Access-Control-Allow-Credentials", "true");
 
-    // ENHANCED: Fetch detailed product information for each order item
-    const enrichedOrderItems = await Promise.all(
-      orderItems.map(async (orderItem) => {
-        const enrichedProducts = await Promise.all(
-          orderItem.product_id.map(async (productRef) => {
-            try {
-              const product = await SingleProduct.findOne({ id: productRef.id });
-              if (!product) {
-                return {
-                  id: productRef.id,
-                  combinationId: productRef.combinationId,
-                  productDetails: null
-                };
-              }
+    // ... (keep your existing product enrichment code) ...
 
-              const combination = product.combinations.find(c => c.id == productRef.combinationId);
-              if (!combination) {
-                return {
-                  id: productRef.id,
-                  combinationId: productRef.combinationId,
-                  productDetails: {
-                    name: product.general.title,
-                    title: product.general.title,
-                    image: product.general.images?.[0] || "",
-                    images: product.general.images || [],
-                    attributes: [],
-                    error: "Combination not found"
-                  }
-                };
-              }
-
-              const supplierInfo = combination.suppliers.find(s => s.id === orderItem.supplier_id);
-              if (!supplierInfo) {
-                return {
-                  id: productRef.id,
-                  combinationId: productRef.combinationId,
-                  productDetails: {
-                    name: product.general.title,
-                    title: product.general.title,
-                    image: product.general.images?.[0] || "",
-                    images: product.general.images || [],
-                    attributes: [],
-                    error: "Supplier not found for this product"
-                  }
-                };
-              }
-
-              const attributes = {};
-              combination.options.forEach(option => {
-                if (option.type === "color") attributes.color = option.value;
-                if (option.type === "material") attributes.material = option.value;
-                if (option.type === "size") attributes.size = option.value;
-              });
-
-              const vatRate = 1.09;
-              const regularPriceWithVat = Math.round(supplierInfo.price.regularPrice * vatRate);
-              const discountedPriceWithVat = Math.round(supplierInfo.price.discountedPrice * vatRate);
-
-              return {
-                id: productRef.id,
-                combinationId: productRef.combinationId,
-                productDetails: {
-                  name: product.general.title,
-                  title: product.general.title,
-                  image: product.general.images?.[0] || "",
-                  images: product.general.images || [],
-                  priceWithVat: {
-                    regularPriceWithVat,
-                    discountPercent: supplierInfo.price.discountPercent || 0,
-                    discountedPriceWithVat
-                  },
-                  price: {
-                    regularPrice: supplierInfo.price.regularPrice,
-                    discountPercent: supplierInfo.price.discountPercent || 0,
-                    discountedPrice: supplierInfo.price.discountedPrice
-                  },
-                  seller: {
-                    id: orderItem.supplier_id,
-                    label: supplierInfo.name || `تامین‌کننده ${orderItem.supplier_id}`
-                  },
-                  productId: productRef.id,
-                  combinationId: productRef.combinationId,
-                  supplier_id: orderItem.supplier_id,
-                  attributes: [attributes],
-                  count: orderItem.quantity,
-                  max: supplierInfo.maxOrder || 999999,
-                  min: supplierInfo.minOrder || 1,
-                  orderId: orderItem.order_id,
-                  sku: combination.sku || "",
-                  stock: supplierInfo.stock || 0,
-                  rating: product.general.rating || 0
-                }
-              };
-            } catch (error) {
-              console.error(`Error fetching product details for ${productRef.id}:`, error);
-              return {
-                id: productRef.id,
-                combinationId: productRef.combinationId,
-                productDetails: {
-                  name: "خطا در بارگذاری محصول",
-                  error: error.message
-                }
-              };
-            }
-          })
-        );
-
-        return {
-          ...orderItem.toObject(),
-          product_id: enrichedProducts
-        };
-      })
-    );
-
-    // 🔍 Fetch other orders with status "pending" or "reject"
-    const otherOrders = await OrderJ2B.find(
-      { status: { $in: ["pending", "reject"] } },
-      { id: 1, status: 1, _id: 0 } // only return id and status
-    );
-
-    // Transform response
     const transformedResponse = {
       success: true,
       status: "paid",
@@ -794,6 +813,8 @@ export const checkPaymentStatus = async (req, res) => {
         totalPriceToPay: mainOrder.total_price,
         delivery_type: mainOrder.delivery_type,
         paymentComment: mainOrder.paymentComment || null,
+        payment_type: mainOrder.payment_type || 'gateway', // NEW
+        payment_wallet_transactionid: mainOrder.payment_wallet_transactionid || null, // NEW
         sellers: enrichedOrderItems.map(item => {
           const firstProduct = item.product_id?.[0]?.productDetails;
           const sellerLabel = firstProduct?.seller?.label || `تامین‌کننده ${item.supplier_id}`;
@@ -811,6 +832,8 @@ export const checkPaymentStatus = async (req, res) => {
             totalPrice: item.totalPrice || item.price * item.quantity,
             vatRequested: item.vatRequested,
             paymentMethod: item.paymentMethod,
+            payment_type: item.payment_type || 'gateway', // NEW
+            payment_wallet_transactionid: item.payment_wallet_transactionid || null, // NEW
             products: item.product_id || [],
             vatLink: item.vatLink,
             paymentComment: item.paymentComment
@@ -825,17 +848,15 @@ export const checkPaymentStatus = async (req, res) => {
         totalAmount: mainOrder.total_price,
         paidItems: orderItems.filter(item => item.isPaid === "paid").length,
         unpaidItems: orderItems.filter(item => item.isPaid === "unpaid").length,
-        prepaidItems: orderItems.filter(item => item.isPaid === "prepaid" || item.isPaid === "selfprepaid").length
+        prepaidItems: orderItems.filter(item => item.isPaid === "prepaid" || item.isPaid === "selfprepaid").length,
+        paymentType: mainOrder.payment_type || 'gateway' // NEW
       },
-      // ✅ New field
       relatedOrders: otherOrders
     };
 
-    // console.log(`Payment status checked for order ${order_id}`);
     return res.status(200).json(transformedResponse);
 
   } catch (error) {
-    // console.error("Error checking payment status:", error);
     res.status(500).json({
       message: "Error checking payment status",
       error: error.message
@@ -1129,7 +1150,7 @@ export const paymentWebhook = async (req, res) => {
   try {
     console.log("Incoming webhook:", JSON.stringify(req.body));
 
-    const { status, body } = req.body; // ✅ no webhookData wrapper
+    const { status, body } = req.body;
 
     // Set CORS headers
     res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
@@ -1144,13 +1165,15 @@ export const paymentWebhook = async (req, res) => {
       });
     }
 
-    const { order_id, transaction_id, amount, user_id, sellerId } = body;
+    const { order_id, transaction_id, amount, user_id, sellerId, payment_method } = body;
 
     if (!order_id) {
       return res.status(400).json({ error: "order_id is required in webhook body" });
     }
 
-    // console.log(`Processing webhook for order ${order_id} with status ${status}`);
+    // Determine if this is a wallet payment
+    const isWalletPayment = payment_method === 'wallet';
+    const paymentType = isWalletPayment ? 'wallet' : 'gateway';
 
     if (status === "OK") {
       // 1️⃣ Find the order by order_id
@@ -1161,106 +1184,94 @@ export const paymentWebhook = async (req, res) => {
         return res.status(404).json({ error: `Order not found: ${order_id}` });
       }
 
-      // console.log(`Found order: ${order.id}, current status: ${order.status}, isPaid: ${order.isPaid}`);
+      // 2️⃣ Update order items with payment info
+      const updateFields = {
+        isPaid: "paid",
+        status: "processing",
+        updatedAt: new Date(),
+        transactionId: transaction_id,
+        paidAmount: amount,
+        payment_type: paymentType
+      };
 
-      // 2️⃣ If sellerId is provided, update only that specific seller's items
+      // Add wallet transaction ID if it's a wallet payment
+      if (isWalletPayment && transaction_id) {
+        updateFields.payment_wallet_transactionid = transaction_id;
+      }
+
       if (sellerId) {
-        // console.log(`Updating items for seller ${sellerId} only`);
-        
-        const updateResult = await OrderItemJ2B.updateMany(
+        // Update specific seller's items
+        await OrderItemJ2B.updateMany(
           { 
             order_id: order.id,
             supplier_id: sellerId
           },
-          { 
-            $set: { 
-              isPaid: "paid", 
-              status: "processing", 
-              updatedAt: new Date(),
-              transactionId: transaction_id,
-              paidAmount: amount
-            } 
-          }
+          { $set: updateFields }
         );
-
-        // console.log(`Updated ${updateResult.modifiedCount} items for seller ${sellerId}`);
       } else {
-        // 3️⃣ Update ALL items in this order if no specific seller
-        // console.log(`Updating all items for order ${order_id}`);
-        
-        const updateResult = await OrderItemJ2B.updateMany(
+        // Update all items
+        await OrderItemJ2B.updateMany(
           { order_id: order.id },
-          { 
-            $set: { 
-              isPaid: "paid", 
-              status: "processing", 
-              updatedAt: new Date(),
-              transactionId: transaction_id,
-              paidAmount: amount
-            } 
-          }
+          { $set: updateFields }
         );
-
-        // console.log(`Updated ${updateResult.modifiedCount} items for order ${order_id}`);
       }
 
-      // 4️⃣ Check if ALL items in this order are now paid
+      // 3️⃣ Check if all items are paid
       const unpaidItems = await OrderItemJ2B.countDocuments({
         order_id: order.id,
         isPaid: { $ne: "paid" }
       });
 
-      // console.log(`Remaining unpaid items: ${unpaidItems}`);
+      // 4️⃣ Update main order
+      const orderUpdateFields = {
+        updatedAt: new Date(),
+        lastTransactionId: transaction_id,
+        payment_type: paymentType
+      };
+
+      // Add wallet transaction ID to main order if wallet payment
+      if (isWalletPayment && transaction_id) {
+        orderUpdateFields.payment_wallet_transactionid = transaction_id;
+      }
 
       if (unpaidItems === 0) {
-        // 5️⃣ Mark the parent order as paid + processing
-        // console.log(`All items paid, updating main order status`);
-        
+        // All items paid
         await OrderJ2B.updateOne(
           { id: order.id },
           { 
             $set: { 
-              isPaid: "paid", 
-              status: "processing", 
-              updatedAt: new Date(),
-              lastTransactionId: transaction_id,
+              ...orderUpdateFields,
+              isPaid: "paid",
+              status: "processing",
               paymentCompletedAt: new Date()
             } 
           }
         );
       } else {
-        // 6️⃣ If some items are still unpaid, mark order as partially paid
-        // console.log(`${unpaidItems} items still unpaid, marking order as prepaid`);
-        
+        // Partially paid
         await OrderJ2B.updateOne(
           { id: order.id },
           { 
             $set: { 
-              isPaid: "prepaid", 
-              status: "waiting", 
-              updatedAt: new Date(),
-              lastTransactionId: transaction_id
+              ...orderUpdateFields,
+              isPaid: "prepaid",
+              status: "waiting"
             } 
           }
         );
       }
 
-      // console.log(`✅ Payment processed successfully for order ${order_id}`);
-
     } else if (status === "FAILED") {
       // Handle failed payment
-      // console.log(`Payment failed for order ${order_id}`);
-      
       const order = await OrderJ2B.findOne({ id: order_id });
       
       if (order) {
-        // Mark order as failed if it was pending
         if (order.status === "pending") {
           await OrderJ2B.updateOne(
             { id: order.id },
             { 
               $set: { 
-                status: "failed", 
+                status: "failed",
                 updatedAt: new Date(),
                 failureReason: body.error_message || "Payment failed",
                 failedTransactionId: transaction_id
@@ -1269,7 +1280,7 @@ export const paymentWebhook = async (req, res) => {
           );
         }
 
-        // Mark items as unpaid if they were pending payment
+        // Mark items as unpaid
         if (sellerId) {
           await OrderItemJ2B.updateMany(
             { 
@@ -1278,8 +1289,8 @@ export const paymentWebhook = async (req, res) => {
             },
             { 
               $set: { 
-                isPaid: "unpaid", 
-                status: "pending", 
+                isPaid: "unpaid",
+                status: "pending",
                 updatedAt: new Date(),
                 failureReason: body.error_message || "Payment failed"
               } 
@@ -1290,8 +1301,8 @@ export const paymentWebhook = async (req, res) => {
             { order_id: order.id },
             { 
               $set: { 
-                isPaid: "unpaid", 
-                status: "pending", 
+                isPaid: "unpaid",
+                status: "pending",
                 updatedAt: new Date(),
                 failureReason: body.error_message || "Payment failed"
               } 
@@ -1299,24 +1310,18 @@ export const paymentWebhook = async (req, res) => {
           );
         }
       }
-
     }
 
-    // 7️⃣ Fetch related orders with status "pending" or "reject"
-// Add this temporarily to see what orders exist in your DB
-const allOrders = await OrderJ2B.find({}, { id: 1, status: 1, isPaid: 1, _id: 0 });
-// console.log("All orders in DB:", allOrders);
+    // Fetch related orders
+    const relatedOrders = await OrderJ2B.find(
+      { 
+        isPaid: { $in: ["unpaid", "prepaid"] },
+        status: { $in: ["pending", "rejected"] }
+      },
+      { id: 1, status: 1, isPaid: 1, payment_type: 1, _id: 0 }
+    );
 
-const relatedOrders = await OrderJ2B.find(
-  { 
-    isPaid: { $in: ["unpaid", "prepaid"] },
-    status: { $in: ["pending", "rejected"] }
-  },
-  { id: 1, status: 1, isPaid: 1, _id: 0 }
-);
-// console.log("Related orders found:", relatedOrders);
-
-    // 8️⃣ Store webhook log for audit trail
+    // Webhook log
     const webhookLog = {
       orderId: order_id,
       status: status,
@@ -1325,27 +1330,23 @@ const relatedOrders = await OrderJ2B.find(
       transactionId: transaction_id,
       amount: amount,
       sellerId: sellerId,
-      userId: user_id
+      userId: user_id,
+      paymentType: paymentType
     };
 
-    // You might want to save this to a WebhookLog collection
-    // console.log("Webhook processed:", webhookLog);
-
-    // 9️⃣ Return success response with related orders
     return res.status(200).json({ 
       success: true,
       message: `Webhook processed successfully for order ${order_id}`,
       orderId: order_id,
       status: status,
       transactionId: transaction_id,
+      paymentType: paymentType,
       processedAt: new Date().toISOString(),
       relatedOrders: relatedOrders
     });
 
   } catch (error) {
     console.error("❌ Error processing payment webhook:", error);
-    
-    // Log the error with more context
     console.error("Webhook data that caused error:", JSON.stringify(req.body, null, 2));
     
     res.status(500).json({ 

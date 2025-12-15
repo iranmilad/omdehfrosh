@@ -131,7 +131,7 @@ const BasketInfo = () => {
         message={errors?.message}
       />
       
-      <Steps
+      {/* <Steps
         current={0}
         size={screensAnt.md ? 'default' : 'small'}
         style={{ 
@@ -148,7 +148,7 @@ const BasketInfo = () => {
           { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
           { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
         ]}
-      />
+      /> */}
 
       <Grid>
         <Grid.Col span={{ lg: 9 }}>

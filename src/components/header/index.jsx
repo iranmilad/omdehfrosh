@@ -26,6 +26,7 @@ import {
   IconUserCog,
   IconMenu2
 } from "@tabler/icons-react";
+import { RiUserLine } from "react-icons/ri";
 import { data, NavLink, useLocation, useNavigate } from "react-router";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import Search from "../search";
@@ -42,14 +43,28 @@ import Notifications from "../notifications";
 import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import { ChevronDown, LucideChevronDownCircle, LucideChevronDownSquare } from "lucide-react";
+import ImageIcon from "../../resources/defaultImageIcon";
+
+
+
+const isValidLogo = (logo) => {
+  if (!logo) return false;
+  if (Array.isArray(logo) && (logo.length === 0 || logo[0] === "")) return false;
+  if (typeof logo === 'string' && logo.trim() === "") return false;
+  return true;
+};
+
+
+
 
 const Header = () => {
   const location = useLocation();
   const dispatch = useDispatch();
-  
-  // Check if current route is FastOrder
+
+  const [logoError, setLogoError] = useState(false);
+
   const isFastOrderPage = location.pathname.includes('/fastorder');
-  const isFastEditPage = location.pathname.includes('/fastedit'); // Add this line
+  const isFastEditPage = location.pathname.includes('/fastedit');
 
   const [showBottomNav, setShowBottomNav] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
@@ -64,19 +79,9 @@ const Header = () => {
   const { isVerified, user, loading: authLoading } = useSelector((state) => state.auth);
   const cartItems = useSelector((state) => state.cart.items);
 
-  // DEBUG: Log auth state changes
-  useEffect(() => {
-    console.log("🔍 AUTH STATE DEBUG:", {
-      isVerified,
-      user,
-      authLoading,
-      hasToken: !!localStorage.getItem("user"),
-      timestamp: new Date().toISOString()
-    });
-  }, [isVerified, user, authLoading]);
-
   const theme = useMantineTheme();
   const isSmallScreen = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
+  const showCategoryMenu = useMediaQuery('(min-width: 600px)');
 
   const hideMiniCart = useMemo(() => (
     ["/payment-statuscheck", "/payment-method", "/payment-info", "/payment-checkstatus"].includes(location.pathname)
@@ -93,12 +98,10 @@ const Header = () => {
   const fetchCartData = useCallback(async () => {
     const token = localStorage.getItem("user");
     if (!token) {
-      console.log("⚠️ No token found in localStorage");
       setCartData({ cart: [], totalPrice: 0 });
       return;
     }
     
-    console.log("🛒 Fetching cart data...");
     setIsLoadingCart(true);
     try {
       const response = await fetch(getApiUrl("/cart"), {
@@ -107,19 +110,16 @@ const Header = () => {
       });
       
       if (!response.ok) {
-        console.error("❌ Cart fetch failed:", response.status);
         localStorage.removeItem("user");
         throw new Error("Failed to fetch cart data");
       }
       
       const serverData = await response.json();
-      console.log("✅ Cart data fetched:", serverData);
-      
       const newCartData = { cart: serverData.cart || [], totalPrice: serverData.total || 0 };
       setCartData(newCartData);
       if (newCartData.cart.length > 0) dispatch(setInitial(newCartData.cart));
     } catch (error) {
-      console.error("❌ Cart fetch error:", error);
+      console.error("Cart fetch error:", error);
       setCartData({ cart: [], totalPrice: 0 });
     } finally {
       setIsLoadingCart(false);
@@ -156,44 +156,31 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Verify token on mount
   useEffect(() => {
-    console.log("🔐 Verifying token on mount...");
-    dispatch(verifyTokenSilent())
-      .then((result) => {
-        console.log("✅ Token verification result:", result);
-      })
-      .catch((error) => {
-        console.error("❌ Token verification failed:", error);
-      });
+    dispatch(verifyTokenSilent());
   }, [dispatch]);
 
   useEffect(() => {
     if (user && isVerified) {
-      console.log("👤 User verified, fetching notifications...");
       dispatch(getNotificationNumber({ forceRefresh: true }));
     }
   }, [dispatch, user, isVerified]);
 
   useEffect(() => {
     if (user && isVerified) {
-      console.log("👤 User verified, fetching cart...");
       fetchCartData();
     } else {
-      console.log("⚠️ User not verified, clearing cart");
       setCartData({ cart: [], totalPrice: 0 });
     }
   }, [user, isVerified, fetchCartData]);
 
   const Logout = useCallback(async () => {
-    console.log("🚪 Logging out...");
     localStorage.removeItem("user"); 
     dispatch(logout());
     dispatch(clearCart());
     setCartData({ cart: [], totalPrice: 0 });
     await dispatch(verifyTokenSilent());
     navigate("/");
-    console.log("✅ Logout complete");
   }, [dispatch, navigate]);
 
   const renderNotificationBadge = useCallback(() => {
@@ -201,107 +188,192 @@ const Header = () => {
     return <Badge variant="light">{notificationNumber.unreadCount || 0}</Badge>;
   }, [errorNotificationNumber, notificationNumber]);
 
-  // DEBUG: Show current state in console
-  console.log("🎨 HEADER RENDER:", {
-    user: !!user,
-    isVerified,
-    authLoading,
-    cartItemsCount: cartItems?.length || 0,
-    isFastOrderPage
-  });
-
   return (
     <>
       {bootstrap?.data.banner?.src && (
-        <a className="relative" style={{ zIndex: 1000 }} id="header_banner" href={bootstrap.data.banner.link} target="_blank" rel="noopener noreferrer">
-          <Image src={bootstrap.data.banner.src} w="100%" h={48} />
-        </a>
+        <div style={{ 
+          width: '100%', 
+          maxWidth: '100vw', 
+          overflow: 'hidden',
+          position: 'relative',
+          zIndex: 1000
+        }}>
+          <a 
+            className="relative" 
+            style={{ 
+              zIndex: 1000,
+              display: 'block',
+              width: '100%'
+            }} 
+            id="header_banner" 
+            href={bootstrap.data.banner.link} 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            <Image src={bootstrap.data.banner.src} w="100%" h={48} />
+          </a>
+        </div>
       )}
       
       <div 
         className={`${(isFastOrderPage || isFastEditPage) ? '' : 'sticky top-0'} bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} 
-        style={{ zIndex: 1000 }} 
+        style={{ 
+          zIndex: 1000,
+          width: '100%',
+          maxWidth: '100vw',
+          overflow: 'hidden'
+        }} 
         id="header"
       >
-        <div className="relative gap-x-4 bg-white py-2 pb-2" style={{ zIndex: 1000 }}>
-          <Container>
-            <Flex  justify="space-between" align="">
-             <Flex align="center" gap={4}>
+        <div 
+          className="relative gap-x-4 bg-white py-1 sm:py-2" 
+          style={{ 
+            zIndex: 1000,
+            width: '100%',
+            maxWidth: '100%',
+            overflow: 'hidden'
+          }}
+        >
+          <Container 
+            px={{ base: 'xs', sm: 'md' }}
+            style={{
+              width: '100%',
+              maxWidth: '100%',
+              overflow: 'hidden'
+            }}
+          >
+            <Flex 
+              justify="space-between" 
+              align="center" 
+              gap={{ base: 4, sm: 8 }}
+              style={{
+                width: '100%',
+                maxWidth: '100%',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Left Flex: Logo, Search, and Categories */}
+              <Flex 
+                align="center" 
+                gap={{ base: 4, sm: 8 }} 
+                style={{ 
+                  minWidth: 0,
+                  flex: 1,
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Logo - Reduced sizes */}
+                  <Box style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "40px", sm: "80px", md: "120px" }}>
+                    <Anchor component={NavLink} to="/">
+                      {loadingBootstrap ? (
+                        <Skeleton h={{ base: 28, sm: 36, md: 42 }} w="100%" />
+                      ) : isValidLogo(bootstrap?.data.logo) && !logoError ? (
+                        <Image 
+                          src={bootstrap?.data.logo} 
+                          h={{ base: "28px", sm: "36px", md: "42px" }} 
+                          w="100%" 
+                          fit="contain" 
+                          alt={bootstrap?.data.siteTitle || "Logo"}
+                          onError={() => setLogoError(true)}
+                        />
+                      ) : (
+                        <Flex justify="center" align="center" h={{ base: "28px", sm: "36px", md: "42px" }}>
+                          <ImageIcon 
+                            size={window.innerWidth < 640 ? 28 : window.innerWidth < 768 ? 36 : 42} 
+                            color="#6B7280" 
+                          />
+                        </Flex>
+                      )}
+                    </Anchor>
+                  </Box>
 
-                <Box style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "80px", sm: "100px", md: "146px" }}>
-                  <Anchor component={NavLink} to="/">
-                    {loadingBootstrap ? (
-                      <Skeleton h={{ base: 36, sm: 42, md: 48 }} w="100%" />
-                    ) : (
-                      <Image src={bootstrap?.data.logo} h={{ base: "36px", sm: "42px", md: "48px" }} w="100%" fit="contain" alt={bootstrap?.data.siteTitle || "Logo"} />
-                    )}
-                  </Anchor>
-                </Box>
+                <Flex>
 
+
+                {/* Search - More flexible */}
                 <Box
                   style={{
+                    position: 'relative',
                     flex: 1,
                     minWidth: 0,
-                    maxWidth: '600px',
-                    cursor: 'pointer',
-                    border: window.innerWidth <= 768 ? 'none' : '1px solid #dee2e6',
-                    borderRadius: '9px',
-                    padding: '2px 8px',
-                    outline: 'none',
-                    overflow: 'hidden',
+                    maxWidth: '100%',
+                    marginRight: '20px',
+                    cursor: window.innerWidth <= 768 ? 'pointer' : 'default',
+                    overflow: 'visible',
                     zIndex: 1000
                   }}
-                  onClick={mobileSearchDrawer[1].toggle}
+                  onClick={window.innerWidth <= 768 ? mobileSearchDrawer[1].toggle : undefined}
                   tabIndex={-1}
                 >
-                  <Search />
+                  <Search onSearchClick={mobileSearchDrawer[1].toggle} />
                 </Box>
+                </Flex>
 
-                <Box>
-                  <Box visibleFrom="sm">
+                  <Flex>
+
+                {/* Category Menu - Shows at 600px and above */}
+                {showCategoryMenu && (
+                  <Box style={{ flexShrink: 0 }}>
                     <Menu shadow="md" position="bottom-end" trigger="hover" openDelay={100} closeDelay={200}
                       styles={{ dropdown: { minWidth: 192, padding: "15px", maxHeight: '500px', overflowY: 'auto', zIndex: 1001 } }}
-                    >
+                      >
                       <MenuTarget>
-                      <Flex align="center" gap={2} dir="rtl">
-                        <span style={{ fontSize: "16px", color: "#1a1a1a" }}>
-                          دسته‌بندی‌ها
-                        </span>
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="#4A4A4A"
-                          style={{ marginTop: 2 }}
-                        >
-                          <path d="M7 10l5 5 5-5H7z" />
-                        </svg>
-
-
-                      </Flex>
-
-                      
+                        <Flex align="center" gap={2} dir="rtl" style={{ cursor: 'pointer' }}>
+                          <span style={{ fontSize: "13px", color: "#1a1a1a", whiteSpace: 'nowrap' }}>
+                            دسته‌بندی‌ها
+                          </span>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="#4A4A4A">
+                            <path d="M7 10l5 5 5-5H7z" />
+                          </svg>
+                        </Flex>
                       </MenuTarget>
                       <MenuDropdown>
                         <DropDownMenu menuItems={mainMenu} />
                       </MenuDropdown>
                     </Menu>
                   </Box>
-
-                </Box>
+                )}
+              </Flex>
               </Flex>
               
-              <Flex gap={{ base: 'xs', sm: 'sm', md: 'md' }} align="center" style={{ zIndex: 1000 }}>
+              {/* Right Flex: Notifications, User Icon, and Basket */}
+              <Flex 
+                gap={{ base: 6, sm: 8, md: 10 }} 
+                align="center" 
+                style={{ 
+                  flexShrink: 0, 
+                  zIndex: 1000,
+                  overflow: 'visible'
+                }}
+              >
                 <Box visibleFrom="sm"><Notifications /></Box>
                 
                 {authLoading ? (
-                  <Button h="39" w="113" loading>بارگذاری...</Button>
+                  <Button h={{ base: 34, sm: 36 }} size="sm" loading>بارگذاری...</Button>
                 ) : user && isVerified ? (
                   <Menu shadow="md" position="bottom-end" styles={{ dropdown: { minWidth: 250, padding: "10px", zIndex: 1001 } }}>
                     <MenuTarget>
-                      <ActionIcon h={{ base: 40, md: 45 }} w={{ base: 40, md: 45 }} variant="light" size="xl">
-                        <IconUser size={18} />
-                      </ActionIcon>
+                      <div className="flex w-[57px] h-[42px] items-center justify-center relative grow" style={{ cursor: 'pointer' }}>
+                        <div className="flex flex-col items-center">
+                          <div className="flex">
+                            <RiUserLine style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+                          </div>
+                          <p className=" font-uiKit-normal text-uiKit-muted-foreground" style={{ 
+                            fontSize: '12px',
+                            lineHeight: '',
+                            fontWeight: '400',
+                            color: '#6E7172',
+                            margin: 0
+                          }}>
+                            پروفایل
+                          </p>
+                        </div>
+                        <div className="flex">
+                          <svg style={{ width: '20px', height: '20px', fill: 'var(--color-icon-high-emphasis)' }} viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5H7z"/>
+                          </svg>
+                        </div>
+                      </div>
                     </MenuTarget>
                     <MenuDropdown>
                       <MenuItem leftSection={<Avatar size="sm" />} rightSection={<IconChevronLeft size={18} />} component={NavLink} to="/account">مشاهده پروفایل</MenuItem>
@@ -310,27 +382,42 @@ const Header = () => {
                       <MenuItem rightSection={<IconShoppingCart size={18} />} component={NavLink} to="/account/orders">سفارش ها</MenuItem>
                       <MenuItem rightSection={<IconShoppingCart size={18} />} component={NavLink} to="/account/wallet">کیف پول</MenuItem>
                       <MenuItem rightSection={renderNotificationBadge()} component={NavLink} to="/account/notifications">پیام ها</MenuItem>
-                      {/* <MenuItem rightSection={<ThemeIcon size="xs" color="yellow" variant="transparent"><IconComet /></ThemeIcon>} component={NavLink} to="/subscription">تهیه اشتراک</MenuItem> */}
                       <MenuItem color="red" rightSection={<IconLogout size={18} />} onClick={Logout}>خروج</MenuItem>
                     </MenuDropdown>
                   </Menu>
                 ) : (
-                  <Button h="39" w="113" component={NavLink} to="/login">ورود/ثبت‌نام</Button>
+                  <Button h={{ base: 34, sm: 36 }} px={{ base: 12, sm: 16 }} size="sm" component={NavLink} to="/login">
+                    <span style={{ fontSize: '13px' }}>ورود/ثبت‌نام</span>
+                  </Button>
                 )}
                 
                 {!hideMiniCart && <Box><MiniCart cartItems={cartItems} /></Box>}
               </Flex>
             </Flex>
 
-            <Drawer
-              opened={mobileMenuDrawer[0]}
-              size="100%"
-              onClose={mobileMenuDrawer[1].close}
-              title={<Image src={bootstrap?.data.logo} h="40px" w="auto" maw="120px" fit="contain" alt={bootstrap?.data.siteTitle} />}
-              styles={{ root: { zIndex: 1001 }, inner: { zIndex: 1001 }, overlay: { zIndex: 1000 } }}
-            >
-              <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={mainMenu} />
-            </Drawer>
+          <Drawer
+            opened={mobileMenuDrawer[0]}
+            size="100%"
+            onClose={mobileMenuDrawer[1].close}
+            title={
+              isValidLogo(bootstrap?.data.logo) && !logoError ? (
+                <Image 
+                  src={bootstrap?.data.logo} 
+                  h="36px" 
+                  w="auto" 
+                  maw="100px" 
+                  fit="contain" 
+                  alt={bootstrap?.data.siteTitle}
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <ImageIcon size={36} color="#6B7280" />
+              )
+            }
+            styles={{ root: { zIndex: 1001 }, inner: { zIndex: 1001 }, overlay: { zIndex: 1000 } }}
+          >
+            <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={mainMenu} />
+          </Drawer>
           </Container>
         </div>
       </div>

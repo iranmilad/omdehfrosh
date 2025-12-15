@@ -174,6 +174,13 @@ const Counter = (props) => {
 
   const items = useSelector((state) => state.cart?.items || []);
 
+  // Calculate dynamic width based on number of digits
+  const getInputWidth = (number) => {
+    const digits = String(number).length;
+    // Base width + additional width per digit
+    return Math.max(35, 20 + (5 * 7));
+  };
+
   // Load cart data function
   const loadCartData = async () => {
     setIsLoading(true);
@@ -569,7 +576,7 @@ const Counter = (props) => {
     return (
       <>
         { count > 0 ? (
-          <Flex align="center" gap="4">
+          <Flex align="center" gap="2px" style={{ minWidth: 'fit-content' }}>
             <Button 
               p={0} 
               px={4} 
@@ -592,13 +599,26 @@ const Counter = (props) => {
               variant="light"
               color="green"
               onClick={increment}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
             >
               <IconPlus size={15} />
             </ActionIcon>
             <Input
               type="number"
-              w={35}
-              styles={{ input: { textAlign: "center" }, }}
+              w={getInputWidth(count)}
+              styles={{ 
+                input: { 
+                  textAlign: "center",
+                  padding: "0 2px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                } 
+              }}
               variant="unstyled"
               value={count}
               readOnly
@@ -610,6 +630,12 @@ const Counter = (props) => {
               variant="light"
               color="red"
               onClick={decrement}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
             >
               <IconMinus size={15} />
             </ActionIcon>

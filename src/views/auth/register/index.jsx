@@ -31,6 +31,7 @@ import { notifications } from "@mantine/notifications";
 import ErrorMessageModal from "../../../components/errormessagemodal";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
+import { useMediaQuery } from '@mantine/hooks';
 
 const validationSchema = yup.object().shape({
   name: yup
@@ -49,7 +50,7 @@ const validationSchema = yup.object().shape({
     .matches(/^\d{10}$/, 'کد ملی باید ۱۰ رقم باشد'),
     mobile: yup
     .string()
-    .transform((value) => value.replace(/\s+/g, '')) // حذف فاصله‌ها
+    .transform((value) => value.replace(/\s+/g, ''))
     .required('شماره موبایل الزامی است')
     .matches(/^09\d{9}$/, 'شماره موبایل باید با 09 شروع شود و ۱۱ رقم باشد'),
 });
@@ -60,6 +61,12 @@ const Register = () => {
   const bootstrap = useSelector((state) => state.global.bootstrap);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Responsive size hooks
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const buttonSize = isMobile ? 'sm' : 'md';
+  const textSize = isMobile ? 'xs' : 'sm';
+  const headingSize = isMobile ? 'lg' : 'xl';
 
   // Replace useSend with local state
   const [registerLoading, setRegisterLoading] = useState(false);
@@ -76,124 +83,115 @@ const Register = () => {
   const [errs, setErrs] = useState({});
   const [successMessage, setSuccessMessage] = useState({});
 
- // Custom register function with direct fetch - FIXED VERSION
-const registerUser = async (userData) => {
-  setRegisterLoading(true);
-  setRegisterData(null);
-  
-  try {
-    console.log('Sending registration data:', userData);
+  const registerUser = async (userData) => {
+    setRegisterLoading(true);
+    setRegisterData(null);
     
-    const response = await fetch(getApiUrl("/auth/signup"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
-    });
-
-    console.log('Response status:', response.status);
-    console.log('Response ok:', response.ok);
-
-    // Get response text first
-    const text = await response.text();
-    console.log('Response text:', text);
-
-    // Try to parse JSON
-    let data = null;
     try {
-      data = text ? JSON.parse(text) : null;
-      console.log('Parsed data:', data);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('Raw text was:', text);
+      console.log('Sending registration data:', userData);
       
-      // If we can't parse JSON, it's an error
-      const errorData = {
-        state: "error",
-        message: "خطا در دریافت پاسخ از سرور",
-        error: {
+      const response = await fetch(getApiUrl("/auth/signup"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      const text = await response.text();
+      console.log('Response text:', text);
+
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+        console.log('Parsed data:', data);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Raw text was:', text);
+        
+        const errorData = {
+          state: "error",
+          message: "خطا در دریافت پاسخ از سرور",
+          error: {
+            status: response.status,
+            message: "Invalid JSON response"
+          }
+        };
+        setRegisterData(errorData);
+        return errorData;
+      }
+
+      if (!response.ok) {
+        console.error('Response not OK:', response.status);
+        
+        const error = {
           status: response.status,
-          message: "Invalid JSON response"
-        }
-      };
-      setRegisterData(errorData);
-      return errorData;
-    }
+          message: data?.message || getHttpCodeMessage(response.status),
+        };
 
-    // Check if response is not OK (status 200-299)
-    if (!response.ok) {
-      console.error('Response not OK:', response.status);
+        const errorData = {
+          state: "error",
+          message: data?.message || "خطایی در ثبت نام کاربر رخ داده است",
+          error,
+          errors: data?.errors || {}
+        };
+        
+        setRegisterData(errorData);
+        return errorData;
+      }
+
+      if (data?.state === "error") {
+        console.error('Backend returned error state:', data);
+        
+        const errorData = {
+          state: "error",
+          message: data.message || "خطایی در ثبت نام کاربر رخ داده است",
+          error: {
+            status: response.status,
+            message: data.message
+          },
+          errors: data?.errors || {}
+        };
+        
+        setRegisterData(errorData);
+        return errorData;
+      }
+
+      console.log('Registration successful:', data);
       
-      const error = {
-        status: response.status,
-        message: data?.message || getHttpCodeMessage(response.status),
+      if (data.token) {
+        localStorage.setItem('user', data.token);
+        console.log('Token stored');
+      }
+      
+      const successData = {
+        state: "ok",
+        message: data.message || "موفقیت در ثبت نام",
+        data,
       };
+      
+      setRegisterData(successData);
+      return successData;
 
+    } catch (error) {
+      console.error('Registration request failed - caught error:', error);
+      
       const errorData = {
         state: "error",
-        message: data?.message || "خطایی در ثبت نام کاربر رخ داده است",
-        error,
-        errors: data?.errors || {}
-      };
-      
-      setRegisterData(errorData);
-      return errorData;
-    }
-
-    // Check if backend returned state: "error" even with 2xx status
-    if (data?.state === "error") {
-      console.error('Backend returned error state:', data);
-      
-      const errorData = {
-        state: "error",
-        message: data.message || "خطایی در ثبت نام کاربر رخ داده است",
+        message: "خطا در برقراری ارتباط با سرور",
         error: {
-          status: response.status,
-          message: data.message
+          message: error.message || "Network error"
         },
-        errors: data?.errors || {}
       };
       
       setRegisterData(errorData);
       return errorData;
+    } finally {
+      setRegisterLoading(false);
     }
+  };
 
-    // Success!
-    console.log('Registration successful:', data);
-    
-    // Store token if provided
-    if (data.token) {
-      localStorage.setItem('user', data.token);
-      console.log('Token stored');
-    }
-    
-    const successData = {
-      state: "ok",
-      message: data.message || "موفقیت در ثبت نام",
-      data,
-    };
-    
-    setRegisterData(successData);
-    return successData;
-
-  } catch (error) {
-    console.error('Registration request failed - caught error:', error);
-    
-    const errorData = {
-      state: "error",
-      message: "خطا در برقراری ارتباط با سرور",
-      error: {
-        message: error.message || "Network error"
-      },
-    };
-    
-    setRegisterData(errorData);
-    return errorData;
-  } finally {
-    setRegisterLoading(false);
-  }
-};
-
-  // Custom SMS sending function with direct fetch
   const sendSMSCode = async (mobile) => {
     setSmsLoading(true);
     setSmsData(null);
@@ -249,7 +247,6 @@ const registerUser = async (userData) => {
     }
   };
 
-  // Custom verify function with direct fetch
   const verifyRegisterCode = async (mobile, code) => {
     setVerifyLoading(true);
     setVerifyData(null);
@@ -394,7 +391,6 @@ const registerUser = async (userData) => {
         return;
       }
 
-      // Registration successful, now send SMS
       setSuccessMessage(registerResult);
       
       const smsResult = await sendSMSCode(mobile);
@@ -436,7 +432,6 @@ const registerUser = async (userData) => {
         return;
       }
 
-      // Verification successful
       setType("success");
       setTimeout(() => {
         navigate("/login");
@@ -455,16 +450,52 @@ const registerUser = async (userData) => {
         onClose={() => setModalOpen(false)}
         message={errors?.message}
       />
-      <Box bg="gray.1" h="100vh" w="100%" className="flex items-center justify-center">
-        <Center w={{base: "85%",xs:"65%",sm:"50%",md:"40%",lg:"40%",xl:"25%"}} className="flex-col relative z-10">
-          <Image
-            w={160}
-            src={bootstrap?.logo}
-          />
-          <Paper className="bg-white rounded-2xl shadow-box-sm w-full h-auto py-5 px-4 min-h-max">
+      <Box 
+        bg="white" 
+        style={{
+          minHeight: '100vh',
+          minHeight: '100dvh',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+          overflowY: 'auto'
+        }}
+      >
+        <Center 
+          w={{
+            base: "100%",
+            xs: "90%",
+            sm: "80%",
+            md: "70%",
+            lg: "500px",
+            xl: "500px"
+          }}
+          maw={500}
+          style={{
+            flexDirection: 'column',
+            position: 'relative',
+            zIndex: 10,
+            width: '100%'
+          }}
+        >
+          <Paper 
+            className="bg-white rounded-2xl shadow-box-sm w-full h-auto min-h-max"
+            p={{ base: 'md', sm: 'lg' }}
+            style={{
+              width: '100%',
+              maxWidth: '100%'
+            }}
+          >
+            <Center mb={{ base: 'sm', sm: 'md' }}>
+              <Image
+                w={{ base: 120, xs: 140, sm: 160 }}
+                src={bootstrap?.logo}
+              />
+            </Center>
             <Flex justify="space-between" align="center">
-              <Text c="dark" size="xl" fw="bold">ثبت</Text>
-              <Image src={""} />
+              <Text c="dark" size={headingSize} fw="bold">ثبت نام</Text>
             </Flex>
             {type === "enter" ? (
               <>
@@ -472,11 +503,12 @@ const registerUser = async (userData) => {
                   <form
                     onSubmit={form.onSubmit((values) => submitForm(values))}
                   >
-                    <Stack>
+                    <Stack gap={{ base: 'sm', sm: 'md' }}>
                       <TextInput 
                         label="نام"
                         {...form.getInputProps("name")}
                         withAsterisk
+                        size={buttonSize}
                         error={
                           (errs?.state === "error" && errs?.errors?.name) || form.errors.name ? (
                             <div>
@@ -492,6 +524,7 @@ const registerUser = async (userData) => {
                         label="نام خانوادگی"
                         {...form.getInputProps("family")}
                         withAsterisk
+                        size={buttonSize}
                         error={
                           (errs?.state === "error" && errs?.errors?.family) || form.errors.family ? (
                             <div>
@@ -510,6 +543,7 @@ const registerUser = async (userData) => {
                         styles={{ input: { textAlign: "left" } }}
                         {...form.getInputProps("nationalCode")}
                         withAsterisk
+                        size={buttonSize}
                         error={
                           (errs?.state === "error" && errs?.errors?.nationalCode) || form.errors.nationalCode ? (
                             <div>
@@ -528,6 +562,7 @@ const registerUser = async (userData) => {
                         styles={{ input: { textAlign: "left" } }}
                         {...form.getInputProps("mobile")}
                         withAsterisk
+                        size={buttonSize}
                         error={
                           (errs?.state === "error" && errs?.errors?.mobile) || form.errors.mobile ? (
                             <div>
@@ -545,6 +580,7 @@ const registerUser = async (userData) => {
                         fullWidth
                         loading={registerLoading || smsLoading}
                         disabled={registerLoading || smsLoading}
+                        size={buttonSize}
                       >
                         ثبت نام
                       </Button>
@@ -553,6 +589,7 @@ const registerUser = async (userData) => {
                         fullWidth
                         component={NavLink}
                         to="/login"
+                        size={buttonSize}
                       >
                         ورود
                       </Button>
@@ -578,7 +615,7 @@ const registerUser = async (userData) => {
                       verifyRegister(values)
                     )}
                   >
-                    <Text mb="sm" size="sm">
+                    <Text mb="sm" size={textSize}>
                       کد تایید پیامک شده را وارد کنید
                     </Text>
                     <Center>
@@ -586,9 +623,10 @@ const registerUser = async (userData) => {
                         type="number"
                         key={formCode.key("code")}
                         {...formCode.getInputProps("code")}
+                        size={buttonSize}
                       />
                     </Center>
-                    <Text c="red" size="xs">
+                    <Text c="red" size="xs" mt="xs">
                       {formCode.errors.code}
                     </Text>
                     <Button
@@ -596,6 +634,7 @@ const registerUser = async (userData) => {
                       variant="transparent"
                       mt="lg"
                       onClick={() => setType("enter")}
+                      size={buttonSize}
                     >
                       تغییر شماره موبایل
                     </Button>
@@ -605,6 +644,7 @@ const registerUser = async (userData) => {
                       variant="filled"
                       fullWidth
                       loading={verifyLoading}
+                      size={buttonSize}
                     >
                       ثبت نام
                     </Button>

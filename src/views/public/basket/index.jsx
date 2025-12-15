@@ -394,30 +394,30 @@ const CartErrorComponent = ({ onRetry }) => (
 // );
 
 /* ---------------------- Enhanced Stepper Component ---------------------- */
-const EnhancedStepper = ({ active = 0 }) => {
-  const screensAnt = useBreakpoint();
+// const EnhancedStepper = ({ active = 0 }) => {
+//   const screensAnt = useBreakpoint();
 
-  return (
-    <Steps
-      current={active}
-      size={screensAnt.md ? 'default' : 'small'}
-      style={{ 
-        marginBottom: 32,
-        background: 'white',
-        padding: screensAnt.md ? 24 : 12,
-        borderRadius: 16,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        fontSize: screensAnt.md ? '14px' : '12px'
-      }}
-      items={[
-        { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-        // { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-        { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-        { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-      ]}
-    />
-  );
-};
+//   return (
+//     <Steps
+//       current={active}
+//       size={screensAnt.md ? 'default' : 'small'}
+//       style={{ 
+//         marginBottom: 32,
+//         background: 'white',
+//         padding: screensAnt.md ? 24 : 12,
+//         borderRadius: 16,
+//         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+//         fontSize: screensAnt.md ? '14px' : '12px'
+//       }}
+//       items={[
+//         { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+//         // { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+//         { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+//         { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
+//       ]}
+//     />
+//   );
+// };
 
 /* ---------------------- ENHANCED Basket Component ---------------------- */
 const Basket = () => {
@@ -443,7 +443,7 @@ const Basket = () => {
   const { isVerified, loading: authLoading, error: authError, user } = authState;
   const userInfo = useSelector((state) => state.user.userInfo);
 
-  console.log("r items", reduxItems)
+  // console.log("r items", reduxItems)
 
 
   useEffect(() => {
@@ -651,18 +651,18 @@ const Basket = () => {
     return <CartErrorComponent onRetry={handleRetry} />;
   }
 
-  if (!hasItems && !cartLoading) {
-    return (
-      <>
-        <Container size="lg" py="md">
-          <EnhancedStepper active={0} />
-        </Container>
-        <EmptyCartComponent />
-      </>
-    );
-  }
+  // if (!hasItems && !cartLoading) {
+  //   return (
+  //     <>
+  //       <Container size="lg" py="md">
+  //         <EnhancedStepper active={0} />
+  //       </Container>
+  //       <EmptyCartComponent />
+  //     </>
+  //   );
+  // }
 
-  console.log(userInfo)
+  // console.log(userInfo)
 
   return (
     <>
@@ -716,7 +716,7 @@ const Basket = () => {
           }
         />
         
-          <EnhancedStepper active={0} />
+          {/* <EnhancedStepper active={0} /> */}
 
         {hasItems && (
           <Grid gutter="xl">

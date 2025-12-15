@@ -377,8 +377,8 @@ case "image":
       {hasChildren && !isPrinting && (
         <div style={{
           position: 'absolute',
-          bottom: -2,
-          right: -2,
+          bottom: -10,
+          right: -10,
           width: 16,
           height: 16,
           borderRadius: '50%',

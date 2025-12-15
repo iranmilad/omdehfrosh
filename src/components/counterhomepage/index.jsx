@@ -153,6 +153,13 @@ const CounterHomePage = ({
   const { isVerified, user } = useSelector((state) => state.auth);
   const items = useSelector((state) => state.cart?.items || []);
 
+  // Calculate dynamic width based on number of digits
+  const getTextWidth = (number) => {
+    const digits = String(number).length;
+    // Minimum width of 20px, add 8px per digit
+    return Math.max(20, digits * 8);
+  };
+
   // Load cart data on component mount
   useEffect(() => {
     const loadCartData = async () => {
@@ -344,12 +351,12 @@ const CounterHomePage = ({
           />
           <Flex
             align="center"
-            gap={2}
+            gap="2px"
             style={{
               border: "1px solid var(--mantine-color-gray-4)",
               borderRadius: "var(--mantine-radius-xl)",
               padding: "2px 4px",
-              minWidth: "80px",
+              minWidth: "fit-content",
               backgroundColor: "var(--mantine-color-white)",
             }}
           >
@@ -360,6 +367,12 @@ const CounterHomePage = ({
               color="gray"
               onClick={increment}
               disabled={count >= effectiveMaxOrder}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
             >
               <IconPlus size={14} />
             </ActionIcon>
@@ -370,6 +383,7 @@ const CounterHomePage = ({
                 width: "0.5px",
                 height: "16px",
                 backgroundColor: "var(--mantine-color-gray-4)",
+                flexShrink: 0,
               }}
             />
             
@@ -378,7 +392,11 @@ const CounterHomePage = ({
               fw={500}
               size="xs"
               c="blue"
-              style={{ minWidth: "20px", textAlign: "center" }}
+              style={{ 
+                minWidth: `${getTextWidth(count)}px`, 
+                textAlign: "center",
+                padding: "0 2px",
+              }}
             >
               {count}
             </Text>
@@ -389,6 +407,7 @@ const CounterHomePage = ({
                 width: "0.5px",
                 height: "16px",
                 backgroundColor: "var(--mantine-color-gray-4)",
+                flexShrink: 0,
               }}
             />
 
@@ -398,6 +417,12 @@ const CounterHomePage = ({
               variant="transparent"
               color="red"
               onClick={decrement}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
             >
               {count === minOrder ? <IconTrash size={14} /> : <IconMinus size={14} />}
             </ActionIcon>

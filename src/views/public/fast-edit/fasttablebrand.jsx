@@ -313,58 +313,60 @@ case "image":
             </Text>
           </NavLink>
         );
-case "shortName":
-  const hasChildren = record.children && record.children.length > 0;
-  const isExpanded = expandedRowKeys.includes(record.key);
+      case "shortName":
+        const hasChildren = record.children && record.children.length > 0;
+        const isExpanded = expandedRowKeys.includes(record.key);
+        
+        return (
+          <div 
+            style={{ 
+              position: 'relative',
+              cursor: hasChildren ? 'pointer' : 'default'
+            }}
+            onClick={hasChildren ? (e) => {
+              e.stopPropagation();
+              if (isExpanded) {
+                setExpandedRowKeys(expandedRowKeys.filter(key => key !== record.key));
+              } else {
+                setExpandedRowKeys([...expandedRowKeys, record.key]);
+              }
+            } : undefined}
+          >
+            <Text
+              style={{
+                fontSize: isMobile ? 10 : 12,
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+              }}
+              ellipsis={{ tooltip: record.shortName, rows: 2 }}
+            >
+              {record.shortName}
+            </Text>
+            {hasChildren && !isPrinting && (
+              <div style={{
+                position: 'absolute',
+                bottom: -10,
+                right: -10,
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                backgroundColor: isExpanded ? '#1890ff' : '#fff',
+                border: '2px solid #1890ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 8,
+                color: isExpanded ? '#fff' : '#1890ff',
+                transition: 'all 0.3s ease',
+              }}>
+                {isExpanded ? <DownOutlined /> : <RightOutlined />}
+              </div>
+            )}
+          </div>
+        );
+          
   
-  return (
-    <div 
-      style={{ 
-        position: 'relative',
-        cursor: hasChildren ? 'pointer' : 'default'
-      }}
-      onClick={hasChildren ? (e) => {
-        e.stopPropagation();
-        if (isExpanded) {
-          setExpandedRowKeys(expandedRowKeys.filter(key => key !== record.key));
-        } else {
-          setExpandedRowKeys([...expandedRowKeys, record.key]);
-        }
-      } : undefined}
-    >
-      <Text
-        style={{
-          fontSize: isMobile ? 10 : 12,
-          whiteSpace: 'normal',
-          wordBreak: 'break-word',
-        }}
-        ellipsis={{ tooltip: record.shortName, rows: 2 }}
-      >
-        {record.shortName}
-      </Text>
-      {hasChildren && !isPrinting && (
-        <div style={{
-          position: 'absolute',
-          bottom: -2,
-          right: -2,
-          width: 16,
-          height: 16,
-          borderRadius: '50%',
-          backgroundColor: isExpanded ? '#1890ff' : '#fff',
-          border: '2px solid #1890ff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 8,
-          color: isExpanded ? '#fff' : '#1890ff',
-          transition: 'all 0.3s ease',
-        }}>
-          {isExpanded ? <DownOutlined /> : <RightOutlined />}
-        </div>
-      )}
-    </div>
-  );
-      case "psid":
+  case "psid":
         return (
           <Text style={{ fontSize: isMobile ? 10 : 12, whiteSpace: 'nowrap' }}>
             {record.psid}

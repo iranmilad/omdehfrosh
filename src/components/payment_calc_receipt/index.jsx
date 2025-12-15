@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Card, Typography, Space, Divider, Row, Col, Tag, Alert, Flex, Image } from 'antd';
-import { ShoppingOutlined, CheckCircleOutlined, InfoCircleOutlined, DollarOutlined, FileTextOutlined } from '@ant-design/icons';
+import { ShoppingOutlined, CheckCircleOutlined, InfoCircleOutlined, DollarOutlined, FileTextOutlined, WalletOutlined } from '@ant-design/icons';
 import { Button } from '@mantine/core';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFinalReceipt } from "../../redux/cartfinalreceipt/cartfinalreceipt";
@@ -45,7 +45,45 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
         );
       }
     }
+
+    // Check if gateway is COD (Cash on Delivery)
+    const isCODPayment = gateway?.name === "cod" || gateway?.paymentMethod === "cod";
+
+    if (isCODPayment) {
+      // Calculate amount for this seller
+      let amount = 0;
+      if (sellerId && orderfinalreceipt?.sellers) {
+        const seller = orderfinalreceipt.sellers.find(s => s.seller.id === sellerId);
+        amount = seller?.priceApplyEachSeller || 0;
+      } else {
+        amount = orderfinalreceipt?.totalPriceToPay || 0;
+      }
+
+      // Get orderId for this seller
+      const orderId = getOrderIdForSeller(sellerId);
+      
+      if (!orderId) {
+        notifications.show({
+          title: "خطا",
+          message: "شناسه سفارش یافت نشد!",
+          color: "red",
+        });
+        return;
+      }
+
+      // Navigate to COD payment page
+      navigate("/cod-payment", {
+        state: {
+          orderId: orderId,
+          sellerId: sellerId,
+          amount: amount,
+          gateway: gateway
+        }
+      });
+      return;
+    }
     
+    // Original navigation for non-COD payments
     navigate("/payment-info", { 
       state: { 
         gateway: gateway, 
@@ -53,6 +91,38 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
         sellerData: selectedSeller,
         orderTracking: sellerOrderTracking
       } 
+    });
+  };
+
+  // Handle wallet payment
+  const handleWalletPayment = (sellerId = null) => {
+    const orderId = getOrderIdForSeller(sellerId);
+    
+    if (!orderId) {
+      notifications.show({
+        title: "خطا",
+        message: "شناسه سفارش یافت نشد!",
+        color: "red",
+      });
+      return;
+    }
+
+    // Calculate amount for this seller
+    let amount = 0;
+    if (sellerId && orderfinalreceipt?.sellers) {
+      const seller = orderfinalreceipt.sellers.find(s => s.seller.id === sellerId);
+      amount = seller?.priceApplyEachSeller || 0;
+    } else {
+      amount = orderfinalreceipt?.totalPriceToPay || 0;
+    }
+
+    // Navigate to wallet payment page
+    navigate("/wallet-payment", {
+      state: {
+        orderId: orderId,
+        sellerId: sellerId,
+        amount: amount
+      }
     });
   };
 
@@ -204,6 +274,10 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
     return <Alert message="خطا" description={errorfinalreceipt} type="error" showIcon />;
   }
 
+  // Check if gateway is wallet or COD
+  const isWalletPayment = gateway?.name === "wallet" || gateway?.paymentMethod === "wallet";
+  const isCODPayment = gateway?.name === "cod" || gateway?.paymentMethod === "cod";
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px' }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -253,18 +327,55 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
                   </Text>
                 </Space>
                 
-                <Button 
-                  variant="filled"
-                  color="brand"
-                  onClick={() => applySettings(sellerGroup.seller.id)}
-                  style={{ 
-                    minWidth: '120px',
-                    fontWeight: 'bold',
-                    fontSize: '15px'
-                  }}
-                >
-                  {children}
-                </Button>
+                <Space>
+                  {/* Wallet Payment Button - Only show if wallet gateway is selected */}
+                  {isWalletPayment && (
+                    <Button 
+                      variant="light"
+                      color="green"
+                      leftSection={<WalletOutlined />}
+                      onClick={() => handleWalletPayment(sellerGroup.seller.id)}
+                      style={{ 
+                        fontWeight: 'bold',
+                        fontSize: '14px'
+                      }}
+                    >
+                      پرداخت با کیف پول
+                    </Button>
+                  )}
+                  
+                  {/* COD Payment Button - Only show if COD gateway is selected */}
+                  {isCODPayment && (
+                    <Button 
+                      variant="light"
+                      color="green"
+                      leftSection={<DollarOutlined />}
+                      onClick={() => applySettings(sellerGroup.seller.id)}
+                      style={{ 
+                        fontWeight: 'bold',
+                        fontSize: '14px'
+                      }}
+                    >
+                      تایید پرداخت در محل
+                    </Button>
+                  )}
+                  
+                  {/* Regular Payment Button - Show for all other payment methods */}
+                  {!isWalletPayment && !isCODPayment && (
+                    <Button 
+                      variant="filled"
+                      color="brand"
+                      onClick={() => applySettings(sellerGroup.seller.id)}
+                      style={{ 
+                        minWidth: '120px',
+                        fontWeight: 'bold',
+                        fontSize: '15px'
+                      }}
+                    >
+                      {children}
+                    </Button>
+                  )}
+                </Space>
               </Flex>
 
               <Divider style={{ margin: '12px 0' }} />
@@ -282,22 +393,22 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
                     }}
                   >
                     <Row gutter={16} align="middle">
-                    <Col xs={4} sm={3}>
-                      <Image
-                        src={item.item.image}
-                        alt={item.item.name}
-                        style={{ 
-                          width: '100%',
-                          maxWidth: '60px',
-                          height: 'auto',
-                          aspectRatio: '1/1',
-                          objectFit: 'cover',
-                          borderRadius: '8px'
-                        }}
-                        preview={false}
-                        fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-                      />
-                    </Col>
+                      <Col xs={4} sm={3}>
+                        <Image
+                          src={item.item.image}
+                          alt={item.item.name}
+                          style={{ 
+                            width: '100%',
+                            maxWidth: '60px',
+                            height: 'auto',
+                            aspectRatio: '1/1',
+                            objectFit: 'cover',
+                            borderRadius: '8px'
+                          }}
+                          preview={false}
+                          fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                        />
+                      </Col>
                       <Col xs={20} sm={21}>
                         <Space direction="vertical" size={4} style={{ width: '100%' }}>
                           <Text strong style={{ fontSize: '14px' }}>
@@ -388,7 +499,7 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
           </Card>
         )}
 
-        {/* Summary Section - Digikala Style */}
+        {/* Summary Section */}
         {orderfinalreceipt?.sellers?.length > 0 && (
           <Card 
             style={{ 

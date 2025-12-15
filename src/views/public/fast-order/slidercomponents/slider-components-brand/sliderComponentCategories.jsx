@@ -10,6 +10,7 @@ const SliderComponentCategoriesFastOrder = ({
   setFilterBrandStorage,
   filterBrandsCategoryStorage,
   setFilterBrandsCategoryStorage,
+  isDisabled = false // Add isDisabled prop
 }) => {
   return (
     <Swiper 
@@ -44,6 +45,7 @@ const SliderComponentCategoriesFastOrder = ({
             setFilterBrandStorage={setFilterBrandStorage}
             filterBrandsCategoryStorage={filterBrandsCategoryStorage}
             setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+            isDisabled={isDisabled}
           />
         </SwiperSlide>
       ))}
@@ -78,11 +80,14 @@ export function SingleCategoryGroup({
   setFilterBrandStorage,
   filterBrandsCategoryStorage,
   setFilterBrandsCategoryStorage,
+  isDisabled = false // Add isDisabled prop
 }) {
 
   if (!parentItem || !Array.isArray(parentItem.categories)) return null;
 
   const onClick = (item, idBrand) => {
+    if (isDisabled) return; // Prevent click when disabled
+    
     if (searchType === "brand" && clickType === "brandCategories") {
       const brandExists = (filterBrandsCategoryStorage || []).some(
         (member) => member.idBrand === idBrand
@@ -174,8 +179,12 @@ export function SingleCategoryGroup({
               return (
                 <div 
                   key={index} 
-                  className="cursor-pointer"
+                  className={isDisabled ? "cursor-not-allowed" : "cursor-pointer"}
                   onClick={() => onClick(category, parentItem.idBrand)}
+                  style={{
+                    opacity: isDisabled ? 0.5 : 1,
+                    pointerEvents: isDisabled ? 'none' : 'auto'
+                  }}
                 >
                   <div
                     className="flex items-center justify-center whitespace-nowrap"

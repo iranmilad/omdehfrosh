@@ -31,6 +31,7 @@ import { DEFAULT_COLOR_MAP } from '../../Libs/attribute_colors/colors';
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import CounterMiniCart from "../counterminicart";
 import PriceText from "../priceText";
+import { IoCloseSharp } from "react-icons/io5";
 
 
 // Custom Cart Icon Component
@@ -535,58 +536,91 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         </Flex>
         </Flex>
 
-        {/* Quantity and Price row */}
-        <Flex align="center" justify="space-between" mt={8}>
-          {/* Quantity selector with CounterMiniCart */}
-          <CounterMiniCart
-            productId={productId}
-            seller={seller}
-            combinationsID={combinationsID}
-            count={count}
-            max={max}
-            min={min}
-            onUpdate={updateItem}
-            onRemove={removeItem}
-            isLoading={isRemoving}
-          />
+{/* Quantity and Price row */}
+<Flex align="center" justify="space-between" mt={8}>
+  {/* Quantity selector with CounterMiniCart */}
+  <CounterMiniCart
+    productId={productId}
+    seller={seller}
+    combinationsID={combinationsID}
+    count={count}
+    max={max}
+    min={min}
+    onUpdate={updateItem}
+    onRemove={removeItem}
+    isLoading={isRemoving}
+  />
 
-          {/* Price section */}
-          <Flex direction="column" align="flex-end" gap={4}>
-            <Flex align="center" gap={4}>
-              <Text size="lg" fw={700} c="#23254e">
-                <NumberFormatter thousandSeparator value={price?.discountedPrice || price?.regularPrice} />
-              </Text>
-              <PriceText fontSize="10px">تومان</PriceText>
-            </Flex>
+  {/* Price section */}
+  <Flex direction="column" align="flex-end" gap={4}>
+    {/* Discounted price or regular price */}
+    <Flex align="center" gap={4}>
+      <Text size="lg" fw={700} c="#23254e">
+        <NumberFormatter thousandSeparator value={price?.discountedPrice || price?.regularPrice} />
+      </Text>
+      <PriceText fontSize="10px">تومان</PriceText>
+      
+      {/* Discount badge next to price */}
 
-            {discountPercentage && (
-              <Flex align="center" gap={8}>
-                <Badge 
-                  size="sm" 
-                  radius="md"
-                  style={{
-                    backgroundColor: '#ef4056',
-                    color: '#fff',
-                    border: 'none',
-                    height: '20px',
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    fontWeight: 600
-                  }}
-                >
-                  {discountPercentage} %
-                </Badge>
+    </Flex>
 
-                <Flex align="center" gap={4} style={{ textDecoration: 'line-through' }}>
-                  <Text size="xs" c="#a1a3a8">
-                    <NumberFormatter thousandSeparator value={price.regularPrice} />
-                  </Text>
-                  <PriceText fontSize="8px">تومان</PriceText>
-                </Flex>
-              </Flex>
-            )}
-          </Flex>
-        </Flex>
+    {/* Show regular price if there's a discount */}
+    {(
+      <Flex align="center" gap={4} style={{ textDecoration: 'line-through', textDecorationColor: 'grey', }}>
+      {discountPercentage && (
+        <Badge 
+          size="sm" 
+          radius="md"
+          style={{
+            backgroundColor: '#ef4056',
+            color: '#fff',
+            border: 'none',
+            height: '20px',
+            padding: '4px 8px',
+            fontSize: '10px',
+            fontWeight: 600
+          }}
+        >
+           % {discountPercentage}
+        </Badge>
+      )}
+      
+        <Text size="sm" c="#a1a3a8">
+          <NumberFormatter thousandSeparator value={price.regularPrice} />
+        </Text>
+        <PriceText fontSize="10px">تومان</PriceText>
+
+        
+          {/* <Flex
+            align="center"
+            justify="center"
+            w={32}
+            h={20}
+            style={{
+              borderRadius: '45%',
+              backgroundColor: 'red',
+              padding: '4px 8px',
+            }}
+          >
+          <Text c="white" size="xs" fw={700}>
+            {price.regularPrice > 0
+              ? (
+                  ((price.regularPrice - price.discountedPrice) /
+                    price.regularPrice) *
+                  100
+                ).toFixed(1)
+              : '0.0'}
+            %
+          </Text>
+
+          </Flex> */}
+
+      </Flex>
+    )}
+  </Flex>
+</Flex>
+
+
       </Box>
     </>
   );
@@ -620,7 +654,7 @@ const MiniCart = () => {
     }, 100);
   };
 
-  const drawerSize = isSmallMobile ? '100%' : isMobile ? '85%' : 450;
+  const drawerSize = isSmallMobile ? '500px' : isMobile ? '500px' : 500;
 
   return (
     <>
@@ -633,7 +667,13 @@ const MiniCart = () => {
         color="red"
         inline
         styles={{
-          indicator: { paddingTop: "1px", fontSize: "10px" },
+          indicator: { paddingTop: "1px", fontSize: "10px", borderRadius: "5px",     
+          width: "22px",             
+          height: "24px",  
+          marginTop:'10px',
+          marginRight: '5px'
+        },
+
         }}
       >
         <Button
@@ -695,8 +735,8 @@ const MiniCart = () => {
             bottom: 0,
             height: '100vh',
             maxHeight: '100vh',
-            minWidth: isMobile ? 'auto' : '450px',
-            width: isMobile ? '100%' : '450px',
+            minWidth: isMobile ? 'auto' : '500px',
+            width: isMobile ? '100%' : '500px',
             position: 'fixed',
             display: 'flex',
             flexDirection: 'column',
@@ -730,19 +770,8 @@ const MiniCart = () => {
                 color="black"
                 onClick={close}
               >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="36" 
-                  height="20" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="1" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
+              <IoCloseSharp size={24} color="var(--mantine-color-gray-7)" />
+
               </ActionIcon>
               <Text fw={600} size="md" c="#000000FF" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>سبد خرید</Text>
               <div style={{ width: '40px' }}></div>
@@ -838,22 +867,25 @@ const MiniCart = () => {
                       </Flex>
 
                       {/* Checkout button */}
-                      <Button
+                     <Button
                         onClick={handleNavigateToBasket}
                         size="md"
+                        px={16}
+                        py={12}
+                        h={48}
                         radius="md"
                         style={{
                           flex: 1,
-                          maxWidth: '60%',
                           backgroundColor: '#09346D',
                           color: '#fff',
                           fontWeight: 500,
                           fontSize: '14px',
-                          height: '48px'
+                          height: '48px',
                         }}
                       >
-                        تأیید و تکمیل سفارش
+                        تایید و تکمیل سفارش
                       </Button>
+
                     </Flex>
                   </Box>
                 </>

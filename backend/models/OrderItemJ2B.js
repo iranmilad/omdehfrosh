@@ -24,20 +24,31 @@ const orderItemSchema = new mongoose.Schema(
     paymentMethod: {
       type: {name: String, paymentMethod: String},
     },
+    // NEW: Payment type for this item
+    payment_type: {
+      type: String,
+      enum: ["gateway", "wallet", "cash", "credit"],
+      default: "gateway",
+    },
+    // NEW: Wallet transaction ID for this item
+    payment_wallet_transactionid: {
+      type: String,
+      default: null,
+    },
     vatLink: {
       type: String,
       default: ""
     },
     order_id: {
-      type: String, // FK as string
+      type: String,
       required: true,
     },
     product_id: {
-      type: [{id: String, combinationId: String}], // FK as string
+      type: [{id: String, combinationId: String}],
       required: true,
     },
     supplier_id: {
-      type: Number, // FK as string
+      type: Number,
       required: true,
     },
     quantity: {
@@ -66,7 +77,6 @@ const orderItemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// remove versionKey if you want cleaner documents
 orderItemSchema.set("versionKey", false);
 
 export default mongoose.model("OrderItemJ2B", orderItemSchema);

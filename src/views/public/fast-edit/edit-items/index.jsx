@@ -20,7 +20,7 @@ const EditItemsFastOrder = (props) => {
   // ⭐ Refetch data when update succeeds
   useEffect(() => {
     if (brandModeUpdate && brandModeUpdate.state === "ok") {
-      console.log(`✅ Update successful, refetching ${mode} data...`);
+      // console.log(`✅ Update successful, refetching ${mode} data...`);
       
       const COOKIE_NAME = mode === "brand" 
         ? "search_filters_brand_fast_edit" 
@@ -86,7 +86,7 @@ const EditItemsFastOrder = (props) => {
 
     setShowLoader(true);
 
-    console.log(`📤 Sending update for ${mode} mode:`, sanitizedData);
+    // console.log(`📤 Sending update for ${mode} mode:`, sanitizedData);
 
     dispatch(updateFastEditBrandMode({
       updateData: sanitizedData, 

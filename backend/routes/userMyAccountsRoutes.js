@@ -19,7 +19,10 @@ import {
   getNotificationsNumber,
   setNotificationSeen,
   getDepartmentsData, // Add this import
-  getSubscriptionInfoByModelId
+  getSubscriptionInfoByModelId,
+  getWalletBalance,
+  deductFromWallet,
+  refundToWallet
 }
   from '../controllers/userMyAccountsControllers.js'
 
@@ -36,6 +39,11 @@ const router = Router();
 router.get("/", getUserMyAccountById);
 
 // Route to create a new user account
+
+
+router.get("/wallet", getWalletBalance);
+router.post("/wallet/deduct", deductFromWallet);
+router.post("/wallet/refund", refundToWallet);
 router.post("/create", createUserMyAccount);
 
 router.get("/user-messages", getAllUserMessages); 

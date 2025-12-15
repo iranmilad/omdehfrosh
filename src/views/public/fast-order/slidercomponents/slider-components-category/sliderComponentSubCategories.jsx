@@ -24,6 +24,7 @@ const SliderComponentSubCategoriesCMFastOrder = ({
   setFilterCategorySubCategoryStorage,
   filterCategorySubCategoryBrandsStorage,
   setFilterCategorySubCategoryBrandsStorage,
+  isDisabled = false // Add isDisabled prop
 }) => {
   return (
     <Swiper
@@ -51,6 +52,7 @@ const SliderComponentSubCategoriesCMFastOrder = ({
             setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
             filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
             setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+            isDisabled={isDisabled}
           />
         </SwiperSlide>
       ))}
@@ -69,10 +71,13 @@ export function SingleCategoryWithSubcategories({
   setFilterCategorySubCategoryStorage,
   filterCategorySubCategoryBrandsStorage,
   setFilterCategorySubCategoryBrandsStorage,
+  isDisabled = false // Add isDisabled prop
 }) {
   if (!parentItem || !Array.isArray(parentItem.subCategories)) return null;
 
   const onClick = (item, idCategory) => {
+    if (isDisabled) return; // Prevent click when disabled
+    
     if (searchType === "category" && clickType === "categorySubCategories") {
       // Find existing entry for this category
       const existingCategoryIndex = filterCategorySubCategoryStorage.findIndex(
@@ -164,8 +169,12 @@ export function SingleCategoryWithSubcategories({
               return (
                 <div
                   key={subIndex}
-                  className="cursor-pointer"
+                  className={isDisabled ? "cursor-not-allowed" : "cursor-pointer"}
                   onClick={() => onClick(subcategory, parentItem.idCategory)}
+                  style={{
+                    opacity: isDisabled ? 0.5 : 1,
+                    pointerEvents: isDisabled ? 'none' : 'auto'
+                  }}
                 >
                   <div
                     className="flex items-center justify-center whitespace-nowrap"

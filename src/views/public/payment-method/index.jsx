@@ -165,7 +165,7 @@ const PaymentMethod = () => {
   const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData);
 
 
-  console.log("", fetchedGateways)
+  // console.log("", fetchedGateways)
 
 
   const [ paymentURL , setPaymentURL ]  = useState("");
@@ -279,7 +279,7 @@ const PaymentMethod = () => {
 
   return (
     <>
-        <Steps
+        {/* <Steps
           current={1}
           size={screensAnt.md ? 'default' : 'small'}
           style={{ 
@@ -296,7 +296,7 @@ const PaymentMethod = () => {
             { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
             { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
           ]}
-        />
+        /> */}
         <Grid gutter="xl">
 
           <Grid.Col span={{ base: 12, lg: 7 }}>

@@ -15,6 +15,13 @@ const CounterMiniCart = ({
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Calculate dynamic width based on number of digits
+  const getInputWidth = (number) => {
+    const digits = String(number).length;
+    // Base width + additional width per digit
+    return Math.max(35, 20 + (5 * 7));
+  };
+
   const handleIncrement = async () => {
     if (isUpdating || isLoading) return;
     
@@ -84,13 +91,14 @@ const CounterMiniCart = ({
       {/* Counter controls */}
       <Flex 
         align="center" 
-        gap={4}
+        gap="2px"
         style={{
           border: '1px solid #e0e0e0',
           borderRadius: '8px',
-          padding: '4px 8px',
+          padding: '4px 4px',
           backgroundColor: '#fff',
-          flexShrink: 0
+          flexShrink: 0,
+          minWidth: 'fit-content'
         }}
       >
         {/* Max button - only show when not at maximum */}
@@ -118,18 +126,21 @@ const CounterMiniCart = ({
 
         {/* Plus button */}
         <ActionIcon
-          size={24}
+          size={28}
           radius="md"
           variant="filled"
           onClick={handleIncrement}
           disabled={isActionDisabled || isAtMaximum}
           style={{
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#EEF9FE',
             color: '#09346D',
             opacity: isActionDisabled || isAtMaximum ? 0.5 : 1,
             cursor: isActionDisabled || isAtMaximum ? 'not-allowed' : 'pointer',
             border: 'none',
-            flexShrink: 0
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
           <IconPlus size={14} />
@@ -138,7 +149,7 @@ const CounterMiniCart = ({
         {/* Count display */}
         <Input
           type="number"
-          w={40}
+          w={getInputWidth(count)}
           styles={{ 
             input: { 
               textAlign: "center",
@@ -146,7 +157,7 @@ const CounterMiniCart = ({
               fontWeight: 500,
               color: '#23254e',
               border: 'none',
-              padding: 0
+              padding: '0 2px'
             } 
           }}
           variant="unstyled"
@@ -158,18 +169,21 @@ const CounterMiniCart = ({
 
         {/* Minus/Delete button - changes icon when at minimum */}
         <ActionIcon
-          size={24}
+          size={28}
           radius="md"
           variant="filled"
           onClick={handleDecrement}
           disabled={isActionDisabled}
           style={{
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#EEF9FE',
             color: '#09346D',
             opacity: isActionDisabled ? 0.5 : 1,
             cursor: isActionDisabled ? 'not-allowed' : 'pointer',
             border: 'none',
-            flexShrink: 0
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
           {isAtMinimum ? <IconTrash size={14} /> : <IconMinus size={14} />}

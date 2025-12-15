@@ -32,8 +32,12 @@ const SliderComponentCategoriesCMFastOrder = ({
 
   const { checkedRows } = useCategoryRowSelection();
   const navigate = useNavigate();
-
-  console.log("SliderComponentCategoriesCM rendered with items:", items);
+  // console.log("SliderComponentCategoriesCM rendered with:", {
+  //   items: items?.length,
+  //   filterCategoryStorage,  // Should show the selected category
+  //   itemsData: items?.map(i => ({ id: i.idCategory, title: i.title }))
+  // });
+  // console.log("SliderComponentCategoriesCM rendered with items:", items);
   
   const isSlideSelectionActive = checkedRows.size > 0;
 

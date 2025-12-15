@@ -21,7 +21,7 @@ const shuffleArray = (array) => {
 
 // Helper function to generate random mock inventory data
 const generateMockInventory = () => {
-  const stockOptions = [0, 5, 10, 15, 20, 25, 30, 50, 75, 100, 150, 200];
+  const stockOptions = [1000, 5000, 1000, 1005, 2000, 2005, 3000, 5000, 7005, 10000, 15000, 20000];
   const minOrderOptions = [1, 2, 5, 10];
   
   const stock = stockOptions[Math.floor(Math.random() * stockOptions.length)];

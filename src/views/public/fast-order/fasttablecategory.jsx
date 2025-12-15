@@ -169,9 +169,6 @@ const FastTableCategory = ({
           displayItem.images[0].trim() !== "" &&
           !imageErrors[record.psid];
 
-        const hasChildren = record.children && record.children.length > 0;
-        const isExpanded = expandedRowKeys.includes(record.key);
-
         return (
           <div 
             style={{ 
@@ -180,8 +177,46 @@ const FastTableCategory = ({
               alignItems: 'center', 
               width: '100%', 
               height: '100%',
-              cursor: hasChildren ? 'pointer' : 'default',
-              position: 'relative'
+            }}
+          >
+            {hasValidImage ? (
+              <Image 
+                src={displayItem.images[0]} 
+                width={40} 
+                height={40}
+                preview={false}
+                fallback="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='40' height='40' fill='%23f8f9fa'/%3E%3C/svg%3E"
+                onError={() => {
+                  setImageErrors(prev => ({ ...prev, [record.psid]: true }));
+                }}
+                style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
+              />
+            ) : (
+              <div style={{ 
+                width: 40, 
+                height: 40, 
+                backgroundColor: '#f8f9fa', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                borderRadius: 4,
+                border: '1px solid #e9ecef'
+              }}>
+                <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
+              </div>
+            )}
+          </div>
+        );
+
+      case "name":
+        const hasChildren = record.children && record.children.length > 0;
+        const isExpanded = expandedRowKeys.includes(record.key);
+        
+        return (
+          <div 
+            style={{ 
+              position: 'relative',
+              cursor: hasChildren ? 'pointer' : 'default'
             }}
             onClick={hasChildren ? (e) => {
               e.stopPropagation();
@@ -192,97 +227,43 @@ const FastTableCategory = ({
               }
             } : undefined}
           >
-            {hasValidImage ? (
-              <div style={{ position: 'relative' }}>
-                <Image 
-                  src={displayItem.images[0]} 
-                  width={40} 
-                  height={40}
-                  preview={false}
-                  fallback="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='40' height='40' fill='%23f8f9fa'/%3E%3C/svg%3E"
-                  onError={() => {
-                    setImageErrors(prev => ({ ...prev, [record.psid]: true }));
-                  }}
-                  style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
-                />
-                {hasChildren && !isPrinting && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: -2,
-                    right: -2,
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    backgroundColor: isExpanded ? '#1890ff' : '#fff',
-                    border: '2px solid #1890ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 8,
-                    color: isExpanded ? '#fff' : '#1890ff',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    {isExpanded ? <DownOutlined /> : <RightOutlined />}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <div style={{ 
-                  width: 40, 
-                  height: 40, 
-                  backgroundColor: '#f8f9fa', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  borderRadius: 4,
-                  border: '1px solid #e9ecef'
-                }}>
-                  <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
-                </div>
-                {hasChildren && !isPrinting && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: -2,
-                    right: -2,
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    backgroundColor: isExpanded ? '#1890ff' : '#fff',
-                    border: '2px solid #1890ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 8,
-                    color: isExpanded ? '#fff' : '#1890ff',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    {isExpanded ? <DownOutlined /> : <RightOutlined />}
-                  </div>
-                )}
+            <NavLink
+              to={`/product/${record.id}`}
+              style={{ color: '#1890ff' }}
+              onClick={(e) => hasChildren && e.stopPropagation()}
+            >
+              <Text
+                style={{
+                  fontSize: isMobile ? 11 : 12,
+                  display: 'inline-block',
+                }}
+                ellipsis={{ tooltip: record.name }}
+              >
+                {record.name}
+              </Text>
+            </NavLink>
+            {hasChildren && !isPrinting && (
+              <div style={{
+                position: 'absolute',
+                bottom: -10,
+                right: -10,
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                backgroundColor: isExpanded ? '#1890ff' : '#fff',
+                border: '2px solid #1890ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 8,
+                color: isExpanded ? '#fff' : '#1890ff',
+                transition: 'all 0.3s ease',
+              }}>
+                {isExpanded ? <DownOutlined /> : <RightOutlined />}
               </div>
             )}
           </div>
         );
-
-      case "name":
-        return (
-          <NavLink
-            to={`/product/${record.id}`}
-            style={{ color: '#1890ff' }}
-          >
-            <Text
-              style={{
-                fontSize: isMobile ? 11 : 12,
-                display: 'inline-block',
-              }}
-              ellipsis={{ tooltip: record.name }}
-            >
-              {record.name}
-            </Text>
-          </NavLink>
-        );
-
       case "attributes":
         return <Attributes items={record.attributes} />;
 

@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Cookies from "js-cookie";
 import SlideCategory from "./SlideCategory";
+import SavedFiltersModalCategoryMode from "./savedfilters/categorymode/SavedFiltersModalCategoryModeFastOrder";
+
 import { 
   Center, 
   Group, 
@@ -23,7 +25,7 @@ import {
   Badge
 } from "@mantine/core";
 import qs from "qs";
-import { useParams, useNavigate } from "react-router"; // Add useNavigate
+import { useParams, useNavigate } from "react-router";
 import { useFastOrder } from ".";
 import ShareModal from "./shareModal";
 import XTitle from "../../../components/title";
@@ -40,9 +42,9 @@ import { useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import { useMediaQuery } from "@mantine/hooks";
 import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import isEqual from "lodash/isEqual";
-import { logout, verifyTokenSilent } from "../../../redux/auth/authusers/auth"; // Add auth actions
-import { clearCart } from "../../../redux/cart"; // Add clearCart import
-import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils"; // Add API utils
+import { logout, verifyTokenSilent } from "../../../redux/auth/authusers/auth";
+import { clearCart } from "../../../redux/cart";
+import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import { clearSaveFilterState } from "../../../redux/savefiltersettings/saveFilterSettingsSlice";
 import { clearUpdateFilterState } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsSlice";
 import { clearDeleteFilterState } from "../../../redux/savefiltersettings/deleteFilterSettings/deleteFilterSettingsSlice";
@@ -55,11 +57,25 @@ const SearchComponentCategory = ({
   filters, 
   setFilters, 
   setNodes, 
-  setNodesSubCategories 
+  cookieUpdateTrigger ,
+  onCookieUpdate,  // ✅ ADD THIS
+  setNodesSubCategories,
+  filterCategoryStorage,  // ✅ ADD THIS
+  setFilterCategoryStorage,  // ✅ ADD THIS
+  filterCategorySubCategoryStorage,  // ✅ ADD THIS
+  setFilterCategorySubCategoryStorage,  // ✅ ADD THIS
+  filterCategorySubCategoryBrandsStorage,  // ✅ ADD THIS
+  setFilterCategorySubCategoryBrandsStorage,  // ✅ ADD THIS
+  localFilters,  // ✅ ADD THIS
+  setLocalFilters  // ✅ ADD THIS
 }) => {
-
+  // console.log('🔍 [SearchComponent Category] Received props:', {
+  //   hasOnCookieUpdate: !!onCookieUpdate,
+  //   onCookieUpdateType: typeof onCookieUpdate,
+  //   cookieUpdateTrigger
+  // });
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // Add navigate hook
+  const navigate = useNavigate();
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
   const { savedFilters, deleteLoadingId } = useSelector((state) => state.getFilterSettings || {});
   const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings || {});
@@ -92,20 +108,11 @@ const SearchComponentCategory = ({
 
   const isSlideSelectionActive = selectedRow || checkedRows.size > 0;
 
-  // Modal states
-  const [openedAddModal, setOpenedAddModal] = useState(false);
-  const [filterName, setFilterName] = useState('');
+  // Modal states - Only keep the saved filters modal state
+  const [menuOpened, setMenuOpened] = useState(false);
   
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
-
-  // Edit mode states
-  const [editingFilterId, setEditingFilterId] = useState(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingFilterName, setEditingFilterName] = useState('');
-
-  // Menu control state
-  const [menuOpened, setMenuOpened] = useState(false);
 
   // Auth modal state
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -175,7 +182,6 @@ const SearchComponentCategory = ({
         autoClose: 5000,
         position: 'top-right',
         zIndex: 1100
-
       });
       return false;
     }
@@ -187,7 +193,6 @@ const SearchComponentCategory = ({
       color: 'red', 
       autoClose: 4000,
       zIndex: 1100
-
     });
     return false;
   };
@@ -281,12 +286,12 @@ const SearchComponentCategory = ({
   const initialFilters = useMemo(() => getInitialFilters(), [getInitialFilters]);
 
   // State initialization
-  const [filterCategoryStorage, setFilterCategoryStorage] = useState(initialFilters.uniqueIDClickedCategories);
-  const [filterCategorySubCategoryStorage, setFilterCategorySubCategoryStorage] = useState(initialFilters.uniqueIDClickedSubCategories);
-  const [filterCategorySubCategoryBrandsStorage, setFilterCategorySubCategoryBrandsStorage] = useState(initialFilters.uniqueIDClickedSubCategoriesBrands);
-  const [localFilters, setLocalFilters] = useState(initialFilters.filters);
+  // const [filterCategoryStorage, setFilterCategoryStorage] = useState(initialFilters.uniqueIDClickedCategories);
+  // const [filterCategorySubCategoryStorage, setFilterCategorySubCategoryStorage] = useState(initialFilters.uniqueIDClickedSubCategories);
+  // const [filterCategorySubCategoryBrandsStorage, setFilterCategorySubCategoryBrandsStorage] = useState(initialFilters.uniqueIDClickedSubCategoriesBrands);
+  // const [localFilters, setLocalFilters] = useState(initialFilters.filters);
 
-  const { setFilterValues } = useFastOrder();
+const { setFilterValues } = useFastOrder();
   
   const url = "/fastorder";
   const { id } = useParams();
@@ -294,6 +299,30 @@ const SearchComponentCategory = ({
   // Refs for preventing duplicate API calls
   const lastFetchParams = useRef(null);
   const hasLoadedInitialFilters = useRef(false);
+  const isManualFilterUpdate = useRef(false); // ✅ ADD THIS LINE
+  const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_order";
+
+// useEffect(() => {
+//   console.log('🔄 [FastOrder] Category cookie reload effect triggered', { cookieUpdateTrigger });
+  
+//   const storedFilters = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
+//   if (storedFilters) {
+//     try {
+//       const parsed = JSON.parse(storedFilters);
+//       console.log('📦 [FastOrder] Loaded category filters from cookie:', parsed);
+      
+//       setFilterCategoryStorage(parsed.uniqueIDClickedCategories || []);
+//       setFilterCategorySubCategoryStorage(parsed.uniqueIDClickedSubCategories || []);
+//       setFilterCategorySubCategoryBrandsStorage(parsed.uniqueIDClickedSubCategoriesBrands || []);
+//       setLocalFilters_category(parsed.filters || initialFilters_category_mode.filters);
+//       setFilters_category_mode(parsed.filters || initialFilters_category_mode.filters);
+      
+//       console.log('✅ [FastOrder] Category state updated from cookie');
+//     } catch (error) {
+//       console.error('❌ [FastOrder] Error loading category cookies:', error);
+//     }
+//   }
+// }, [cookieUpdateTrigger, COOKIE_NAME_CATEGORY_MODE]);
 
   // Form for validation
   const form = useForm({
@@ -312,7 +341,7 @@ const SearchComponentCategory = ({
       uniqueIDClickedCategories: filterCategoryStorage,
       uniqueIDClickedSubCategories: filterCategorySubCategoryStorage,
       uniqueIDClickedSubCategoriesBrands: filterCategorySubCategoryBrandsStorage,
-      filters: filters || localFilters // Include current filters
+      filters: filters || localFilters
     }];
   }, [searchType, filterCategoryStorage, filterCategorySubCategoryStorage, filterCategorySubCategoryBrandsStorage, filters, localFilters]);
 
@@ -325,7 +354,7 @@ const SearchComponentCategory = ({
         uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
         uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
         uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
-        filters: filter.filters || filters || localFilters // Include saved filters or current filters
+        filters: filter.filters || filters || localFilters
       }));
   }, [savedFilters, checkedRows, filters, localFilters]);
 
@@ -336,345 +365,9 @@ const SearchComponentCategory = ({
       uniqueIDClickedCategories: initialData.uniqueIDClickedCategories,
       uniqueIDClickedSubCategories: initialData.uniqueIDClickedSubCategories,
       uniqueIDClickedSubCategoriesBrands: initialData.uniqueIDClickedSubCategoriesBrands,
-      filters: initialData.filters || filters || localFilters // Include initial filters
+      filters: initialData.filters || filters || localFilters
     }];
   }, [getInitialFilters, filters, localFilters]);
-
-  // Edit filter handler - Modified to use array format
-  const handleEditFilter = useCallback((filter) => {
-    setEditingFilterId(filter.id);
-    setEditingFilterName(filter.filterName || 'بدون نام');
-    setIsEditMode(true);
-    
-    const cookieValue = {
-      searchType: 'category',
-      filters: filter.filters || {},
-      uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
-      uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
-      uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
-    };
-
-    Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-    
-    setFilterCategoryStorage(filter.uniqueIDClickedCategories || []);
-    setFilterCategorySubCategoryStorage(filter.uniqueIDClickedSubCategories || []);
-    setFilterCategorySubCategoryBrandsStorage(filter.uniqueIDClickedSubCategoriesBrands || []);
-    setLocalFilters(filter.filters || {});
-    
-    if (setFilters) {
-      setFilters(filter.filters || {});
-    }
-    if (setSearchType) {
-      setSearchType('category');
-    }
-
-    setSelectedRow(filter.id);
-    setMenuOpened(false);
-
-    // Send single filter as array with filters to API
-    const filterArray = [{
-      searchType: 'category',
-      uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
-      uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
-      uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
-      filters: filter.filters || {} // Include the filter's own filters
-    }];
-
-    dispatch(fetchFastOrderCategoryModeTableData(filterArray));
-
-    notifications.show({
-      title: 'حالت ویرایش',
-      message: `فیلتر "${filter.filterName || 'بدون نام'}" بارگذاری شد. تغییرات را اعمال کنید و سپس ذخیره کنید.`,
-      color: 'blue',
-      autoClose: 4000,
-      zIndex: 1100
-
-    });
-  }, [COOKIE_NAME, setFilters, setSearchType, setSelectedRow, dispatch]);
-
-  // Fixed version of the saveEditedFilter function
-  const saveEditedFilter = useCallback(async () => {
-    if (!editingFilterId || !editingFilterName.trim()) return;
-
-    const slug = "category-fast-order";
-    const cookieRaw = Cookies.get(COOKIE_NAME);
-    let fullCookieData;
-
-    try {
-      fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
-    } catch (error) {
-      fullCookieData = {};
-    }
-
-    try {
-      const result = await dispatch(
-        updateFilterSettings({
-          slug,
-          id: editingFilterId,
-          filterName: editingFilterName.trim(),
-          ...fullCookieData,
-        })
-      );
-
-      // Check if the update was successful
-      if (result?.type === 'category/updateFilterSettings/fulfilled') {
-        // Check if the payload indicates an error state
-        if (result?.payload?.state === "error") {
-          // Server returned success action but with error state - show the error message
-          notifications.show({
-            title: 'خطا در به‌روزرسانی',
-            message: result.payload.message,
-            color: 'red',
-            autoClose: 4000,
-            zIndex: 1100
-          });
-          return;
-        }
-        
-        // True success case
-        dispatch(getFilterSettings(slug));
-        setIsEditMode(false);
-        setEditingFilterId(null);
-        setEditingFilterName('');
-        
-        notifications.show({
-          title: 'ذخیره شد',
-          message: `فیلتر "${editingFilterName.trim()}" با موفقیت به‌روزرسانی شد.`,
-          color: 'green',
-          autoClose: 3000,
-          zIndex: 1100
-        });
-      } else if (result?.type === 'category/updateFilterSettings/rejected') {
-        // Handle rejected case - let the error handling useEffect handle it
-        console.error("Update filter was rejected:", result.error);
-        // Don't show notification here, let the useEffect handle it
-      }
-    } catch (error) {
-      console.error("Update filter error:", error);
-      // Let the useEffect handle the error display
-    }
-  }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch]);
-
-  // Cancel edit mode - Modified to use array format
-  const cancelEditMode = useCallback(() => {
-    setIsEditMode(false);
-    setEditingFilterId(null);
-    setEditingFilterName('');
-    
-    const initialData = getInitialFilters();
-    setFilterCategoryStorage(initialData.uniqueIDClickedCategories);
-    setFilterCategorySubCategoryStorage(initialData.uniqueIDClickedSubCategories);
-    setFilterCategorySubCategoryBrandsStorage(initialData.uniqueIDClickedSubCategoriesBrands);
-    setLocalFilters(initialData.filters);
-    
-    if (setFilters) {
-      setFilters(initialData.filters);
-    }
-    
-    Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
-    setSelectedRow(null);
-
-    // Send initial filter as array with filters to API
-    const filterArray = buildInitialFilterArray();
-    dispatch(fetchFastOrderCategoryModeTableData(filterArray));
-    
-    notifications.show({
-      title: 'لغو ویرایش',
-      message: 'تغییرات لغو شد و فیلترها به حالت اولیه بازگشتند.',
-      color: 'gray',
-      autoClose: 2000,
-      zIndex: 1100
-
-    });
-  }, [getInitialFilters, setFilters, setSelectedRow, COOKIE_NAME, dispatch, buildInitialFilterArray]);
-
-  // Handle checkbox change - Modified to use array format
-  const handleFilterCheckboxChange = useCallback((filterId, checked) => {
-    if (checked) {
-      // Check the checkbox in the context
-      if (!isChecked(filterId)) {
-        toggleCheck(filterId);
-      }
-      
-      // Apply this filter immediately
-      const selectedFilter = savedFilters?.find(f => f.id === filterId);
-      if (selectedFilter) {
-        const cookieValue = {
-          searchType: 'category',
-          filters: selectedFilter.filters || {},
-          uniqueIDClickedCategories: selectedFilter.uniqueIDClickedCategories || [],
-          uniqueIDClickedSubCategories: selectedFilter.uniqueIDClickedSubCategories || [],
-          uniqueIDClickedSubCategoriesBrands: selectedFilter.uniqueIDClickedSubCategoriesBrands || [],
-        };
-
-        Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-
-        setFilterCategoryStorage(selectedFilter.uniqueIDClickedCategories || []);
-        setFilterCategorySubCategoryStorage(selectedFilter.uniqueIDClickedSubCategories || []);
-        setFilterCategorySubCategoryBrandsStorage(selectedFilter.uniqueIDClickedSubCategoriesBrands || []);
-        setLocalFilters(selectedFilter.filters || {});
-
-        if (setFilters) setFilters(selectedFilter.filters || {});
-        if (setSearchType) setSearchType('category');
-
-        // Build array of all checked filters with their filters
-        setTimeout(() => {
-          const newCheckedRows = new Set(checkedRows);
-          newCheckedRows.add(filterId);
-          
-          const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
-          dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
-        }, 0);
-      }
-    } else {
-      // Uncheck the checkbox in the context
-      if (isChecked(filterId)) {
-        toggleCheck(filterId);
-      }
-      
-      // Build array of remaining checked filters with their filters
-      setTimeout(() => {
-        const newCheckedRows = new Set(checkedRows);
-        newCheckedRows.delete(filterId);
-        
-        if (newCheckedRows.size > 0) {
-          // If there are still checked filters, send them as array with filters
-          const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
-          dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
-        } else {
-          // If no filters are checked, reset to initial filters
-          const initialData = getInitialFilters();
-          setFilterCategoryStorage(initialData.uniqueIDClickedCategories);
-          setFilterCategorySubCategoryStorage(initialData.uniqueIDClickedSubCategories);
-          setFilterCategorySubCategoryBrandsStorage(initialData.uniqueIDClickedSubCategoriesBrands);
-          setLocalFilters(initialData.filters);
-
-          if (setFilters) setFilters(initialData.filters);
-          if (setSearchType) setSearchType('category');
-
-          Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
-
-          // Send initial filter as array with filters
-          const filterArray = buildInitialFilterArray();
-          dispatch(fetchFastOrderCategoryModeTableData(filterArray));
-        }
-      }, 0);
-    }
-  }, [savedFilters, COOKIE_NAME, setFilters, setSearchType, getInitialFilters, dispatch, isChecked, toggleCheck, checkedRows, buildCheckedFiltersArray, buildInitialFilterArray]);
-
-  // Clear selected filters - Modified to use array format
-  const clearSelectedFilters = useCallback(() => {
-    clearAll();
-    
-    // Reset to initial state and send to API
-    const initialData = getInitialFilters();
-    setFilterCategoryStorage(initialData.uniqueIDClickedCategories);
-    setFilterCategorySubCategoryStorage(initialData.uniqueIDClickedSubCategories);
-    setFilterCategorySubCategoryBrandsStorage(initialData.uniqueIDClickedSubCategoriesBrands);
-    setLocalFilters(initialData.filters);
-
-    if (setFilters) setFilters(initialData.filters);
-    if (setSearchType) setSearchType('category');
-
-    Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
-
-    // Send initial filter as array with filters to API
-    const filterArray = buildInitialFilterArray();
-    dispatch(fetchFastOrderCategoryModeTableData(filterArray));
-  }, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray]);
-
-  // Save filter function
-  const saveFiltersSettings = useCallback(async () => {
-    if (!filterName.trim()) return;
-
-    const slug = "category-fast-order";
-    const cookieRaw = Cookies.get(COOKIE_NAME);
-    let fullCookieData;
-
-    try {
-      fullCookieData = cookieRaw ? JSON.parse(cookieRaw) : {};
-    } catch (error) {
-      fullCookieData = {};
-    }
-
-    try {
-      const result = await dispatch(
-        saveFilterSettings({
-          slug,
-          filters: fullCookieData,
-          filterName: filterName.trim(),
-        })
-      );
-
-      // Wait for the result and check if it was successful
-    if (result?.type === 'category/saveFilterSettings/fulfilled') {
-      // Check if the payload indicates an error state
-      if (result?.payload?.state === "error") {
-        // Server returned success action but with error state - keep modal open
-        console.log("Server validation error:", result.payload);
-        return; // Don't close modal, let validation errors show
-      }
-      
-      // True success case - close modal
-      console.log("Save successful, closing modal");
-      setOpenedAddModal(false);
-      setFilterName("");
-      
-      // Add a small delay before fetching updated data
-      setTimeout(() => {
-        dispatch(getFilterSettings(slug));
-      }, 500);
-      
-      // Clear the save state
-      setTimeout(() => {
-        dispatch(clearSaveFilterState());
-      }, 1000);
-      } else if (result?.payload?.status === "error") {
-        // Handle validation errors - keep modal open
-        // The form will show the validation errors from saveStatus
-        return;
-      }
-      
-    } catch (error) {
-      console.error("Save filter error:", error);
-      // Let the useEffect handle the error display
-    }
-  }, [filterName, COOKIE_NAME, dispatch]);
-
-  // Delete filter function using context
-  const handleDeleteSavedFilter = useCallback(async (id) => {
-    const slug = "category-fast-order";
-    
-    try {
-      const result = await dispatch(deleteFilterSettings({ slug, id }));
-
-      // Wait for the result and check if it was successful  
-      if (result?.type === 'category/deleteFilterSettings/fulfilled' || result?.payload?.id) {
-        dispatch(getFilterSettings(slug));
-        if (isChecked(id)) {
-          toggleCheck(id);
-        }
-        if (editingFilterId === id) {
-          cancelEditMode();
-        }
-        
-        notifications.show({
-          title: 'حذف شد',
-          message: 'فیلتر با موفقیت حذف شد',
-          color: 'green',
-          autoClose: 3000,
-          zIndex: 1100
-
-        });
-      } else if (result?.payload?.status === "error") {
-        // Handle validation errors if any
-        return;
-      }
-    } catch (error) {
-      console.error("Delete filter error:", error);
-      // Let the useEffect handle the error display
-    }
-  }, [dispatch, isChecked, toggleCheck, editingFilterId, cancelEditMode]);
 
   // Update filters and store in cookies
   const updateFiltersAndStore = useCallback(() => {
@@ -729,7 +422,7 @@ const SearchComponentCategory = ({
       checkedRowsSize: checkedRows.size,
       checkedRowIds: Array.from(checkedRows).sort().join(','),
       hasCheckedRows: checkedRows.size > 0,
-      filters: JSON.stringify(filters || localFilters) // Add filters to comparison
+      filters: JSON.stringify(filters || localFilters)
     };
 
     // Skip if parameters haven't changed
@@ -759,33 +452,15 @@ const SearchComponentCategory = ({
     filterCategorySubCategoryBrandsStorage,
     checkedRows,
     checkedRows.size,
-    filters, // Add filters dependency
-    localFilters, // Add localFilters dependency
+    filters,
+    localFilters,
     buildCheckedFiltersArray,
     buildCurrentFilterArray
   ]);
-    console.log("saveStatus", saveStatus);
-
-
 
   // OPTIMIZED: Load saved filters only once when user is available
   useEffect(() => {
     if (saveStatus?.state === "ok") {
-      setOpenedAddModal(false);
-      setFilterName("");
-      
-      // Refresh the filter list after successful save
-      const slug = "category-fast-order";
-      setTimeout(() => {
-        dispatch(getFilterSettings(slug));
-      }, 500);
-    }
-  }, [saveStatus, dispatch]);
-  useEffect(() => {
-    if (saveStatus?.state === "error") {
-      setOpenedAddModal(true);
-      setFilterName("");
-      
       // Refresh the filter list after successful save
       const slug = "category-fast-order";
       setTimeout(() => {
@@ -794,6 +469,15 @@ const SearchComponentCategory = ({
     }
   }, [saveStatus, dispatch]);
 
+  useEffect(() => {
+    if (saveStatus?.state === "error") {
+      // Refresh the filter list after error
+      const slug = "category-fast-order";
+      setTimeout(() => {
+        dispatch(getFilterSettings(slug));
+      }, 500);
+    }
+  }, [saveStatus, dispatch]);
 
   // Save to cookies whenever relevant state changes
   useEffect(() => {
@@ -814,45 +498,111 @@ const SearchComponentCategory = ({
     localFilters,
     COOKIE_NAME
   ]);
+  
+useEffect(() => {
+  // console.log('🔄 [SearchComponent Category] Cookie reload triggered', { 
+  //   cookieUpdateTrigger,
+  //   isManualUpdate: isManualFilterUpdate.current,
+  //   sessionFlag: sessionStorage.getItem('manualFilterUpdate')
+  // });
+  
+  // Mark as manual update to prevent URL effect from running
+  isManualFilterUpdate.current = true;
+  
+  const storedFilters = Cookies.get(COOKIE_NAME);
 
-  // Load filters from cookies on component mount - Modified to use array format
-  useEffect(() => {
-    const storedFilters = Cookies.get(COOKIE_NAME);
+  if (storedFilters) {
+    try {
+      const parsedFilters = JSON.parse(storedFilters);
+      
+      // console.log('📦 [SearchComponent Category] Loaded from cookie:', parsedFilters);
+      // console.log('📦 [SearchComponent Category] uniqueIDClickedCategories:', parsedFilters.uniqueIDClickedCategories);
 
-    if (storedFilters) {
-      try {
-        const parsedFilters = JSON.parse(storedFilters);
+      setFilterCategoryStorage(parsedFilters.uniqueIDClickedCategories || []);
+      setFilterCategorySubCategoryStorage(parsedFilters.uniqueIDClickedSubCategories || []);
+      setFilterCategorySubCategoryBrandsStorage(parsedFilters.uniqueIDClickedSubCategoriesBrands || []);
+      setLocalFilters(parsedFilters.filters || {});
+      
+      if (setFilters) {
+        setFilters(parsedFilters.filters || {});
+      }
+      
+      if (setSearchType && parsedFilters.searchType) {
+        setSearchType(parsedFilters.searchType);
+      }
 
-        setFilterCategoryStorage(parsedFilters.uniqueIDClickedCategories || []);
-        setFilterCategorySubCategoryStorage(parsedFilters.uniqueIDClickedSubCategories || []);
-        setFilterCategorySubCategoryBrandsStorage(parsedFilters.uniqueIDClickedSubCategoriesBrands || []);
-        setLocalFilters(parsedFilters.filters || {});
+      // console.log('✅ [SearchComponent Category] State updated, dispatching API call');
+      
+      // Dispatch after state updates
+      const filterArray = [{
+        searchType: parsedFilters.searchType || 'category',
+        uniqueIDClickedCategories: parsedFilters.uniqueIDClickedCategories || [],
+        uniqueIDClickedSubCategories: parsedFilters.uniqueIDClickedSubCategories || [],
+        uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || [],
+        filters: parsedFilters.filters || {}
+      }];
+      
+      dispatch(fetchFastOrderCategoryModeTableData(filterArray));
+
+      // Clear the manual update flag after dispatch completes
+      setTimeout(() => {
+        isManualFilterUpdate.current = false;
+        sessionStorage.removeItem('manualFilterUpdate');
+      }, 500);
+    } catch (error) {
+      console.error('[SearchComponent Category] Error parsing stored filters:', error);
+      isManualFilterUpdate.current = false;
+      sessionStorage.removeItem('manualFilterUpdate');
+    }
+  }
+}, [cookieUpdateTrigger]);
+
+
+useEffect(() => {
+  // Skip if this is a manual filter update
+  if (isManualFilterUpdate.current || sessionStorage.getItem('manualFilterUpdate') === 'true') {
+    // console.log('⏭️ [SearchComponent Category] Skipping URL update - manual filter change in progress');
+    return;
+  }
+
+  const pathSegments = location.pathname.split('/');
+  const urlCategoryName = pathSegments[3];
+  
+  if (urlCategoryName && searchType === 'category' && tableData?.category) {
+    const matchingCategory = tableData.category.find(
+      cat => cat.name === urlCategoryName
+    );
+    
+    if (matchingCategory && matchingCategory.idCategory) {
+      const currentCategoryId = filterCategoryStorage[0];
+      const urlCategoryId = matchingCategory.idCategory;
+      
+      if (currentCategoryId !== urlCategoryId) {
+        setFilterCategoryStorage([urlCategoryId]);
+        setFilterCategorySubCategoryStorage([]);
+        setFilterCategorySubCategoryBrandsStorage([]);
         
-        if (setFilters) {
-          setFilters(parsedFilters.filters || {});
-        }
+        const cookieValue = {
+          searchType: 'category',
+          uniqueIDClickedCategories: [urlCategoryId],
+          uniqueIDClickedSubCategories: [],
+          uniqueIDClickedSubCategoriesBrands: [],
+          filters: localFilters,
+        };
         
-        if (setSearchType && parsedFilters.searchType) {
-          setSearchType(parsedFilters.searchType);
-        }
-
-        // Send loaded filters as array with filters to API
-        setTimeout(() => {
-          const filterArray = [{
-            searchType: parsedFilters.searchType || 'category',
-            uniqueIDClickedCategories: parsedFilters.uniqueIDClickedCategories || [],
-            uniqueIDClickedSubCategories: parsedFilters.uniqueIDClickedSubCategories || [],
-            uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || [],
-            filters: parsedFilters.filters || {} // Include loaded filters
-          }];
-          dispatch(fetchFastOrderCategoryModeTableData(filterArray));
-        }, 0);
-      } catch (error) {
-        console.error('Error parsing stored filters:', error);
+        Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+        
+        dispatch(fetchFastOrderCategoryModeTableData([{
+          searchType: 'category',
+          uniqueIDClickedCategories: [urlCategoryId],
+          uniqueIDClickedSubCategories: [],
+          uniqueIDClickedSubCategoriesBrands: [],
+          filters: localFilters,
+        }]));
       }
     }
-  }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
-
+  }
+}, [location.pathname, searchType, tableData?.category, COOKIE_NAME, filterCategoryStorage, localFilters, dispatch, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, cookieUpdateTrigger]);
   // Sync localFilters with parent filters when parent changes
   useEffect(() => {
     if (filters && JSON.stringify(filters) !== JSON.stringify(localFilters)) {
@@ -906,7 +656,7 @@ const SearchComponentCategory = ({
       
       // Skip handling validation errors here - let the form handle them
       if (saveError?.state === "error" && saveError?.error && typeof saveError.error === 'object') {
-        return; // Don't clear state for validation errors
+        return;
       }
       
       // Handle all other errors (including 403) by showing them in ErrorMessageModal
@@ -914,13 +664,8 @@ const SearchComponentCategory = ({
         if (saveError.status === 401) {
           // Handle auth errors specially
           handleTokenExpiration(saveError);
-          setOpenedAddModal(false);
-          setFilterName("");
         } else if (saveError.status >= 400) {
           // Show all other HTTP errors (including 403) in ErrorMessageModal
-          setOpenedAddModal(false);
-          setFilterName("");
-          // Try different ways to extract the message
           const errorMessage = saveError?.message || 
                               saveError?.data?.message || 
                               saveError?.response?.data?.message ||
@@ -951,7 +696,7 @@ const SearchComponentCategory = ({
       
       // Skip handling validation errors here - let the form handle them
       if (updateError?.state === "error" && updateError?.error && typeof updateError.error === 'object') {
-        return; // Don't clear state for validation errors
+        return;
       }
       
       // Handle all other errors (including 403) by showing them in ErrorMessageModal
@@ -959,12 +704,8 @@ const SearchComponentCategory = ({
         if (updateError.status === 401) {
           // Handle auth errors specially
           handleTokenExpiration(updateError);
-          setIsEditMode(false);
-          setEditingFilterId(null);
-          setEditingFilterName('');
         } else if (updateError.status >= 400) {
           // Show all other HTTP errors (including 403) in ErrorMessageModal
-          // Try different ways to extract the message
           const errorMessage = updateError?.message || 
                               updateError?.data?.message || 
                               updateError?.response?.data?.message ||
@@ -1000,7 +741,6 @@ const SearchComponentCategory = ({
           handleTokenExpiration(deleteError);
         } else if (deleteError.status >= 400) {
           // Show all other HTTP errors (including 403) in ErrorMessageModal
-          // Try different ways to extract the message
           const errorMessage = deleteError?.message || 
                               deleteError?.data?.message || 
                               deleteError?.response?.data?.message ||
@@ -1034,68 +774,83 @@ const SearchComponentCategory = ({
     };
   }, [dispatch]);
 
-  // Add this around line 350, after your other useEffects
-useEffect(() => {
-  // Extract category name from URL path
-  const pathSegments = location.pathname.split('/');
-  const urlCategoryName = pathSegments[3]; // Gets 'mobile' from /fastorder/category/mobile
-  
-  if (urlCategoryName && searchType === 'category' && tableData?.category) {
-    // Find the category that matches the URL parameter by name
-    const matchingCategory = tableData.category.find(
-      cat => cat.name === urlCategoryName
-    );
+  // ✅ UPDATE: Extract category name from URL path and sync with state
+// ✅ UPDATE: Extract category name from URL path and sync with state
+  useEffect(() => {
+    // Skip if this is a manual filter update
+    if (isManualFilterUpdate.current || sessionStorage.getItem('manualFilterUpdate') === 'true') {
+      // console.log('⏭️ [SearchComponent Category] Skipping URL category extraction - manual filter change in progress');
+      return;
+    }
+
+    const pathSegments = location.pathname.split('/');
+    const urlCategoryName = pathSegments[3];
     
-    if (matchingCategory && matchingCategory.idCategory) {
-      // Only set if not already selected to avoid infinite loops
-      if (!filterCategoryStorage.includes(matchingCategory.idCategory)) {
-        setFilterCategoryStorage([matchingCategory.idCategory]);
-        
-        // Also update cookies
-        const cookieValue = {
-          searchType: 'category',
-          uniqueIDClickedCategories: [matchingCategory.idCategory],
-          uniqueIDClickedSubCategories: [],
-          uniqueIDClickedSubCategoriesBrands: [],
-          filters: localFilters,
-        };
-        
-        Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+    if (urlCategoryName && searchType === 'category' && tableData?.category) {
+      const matchingCategory = tableData.category.find(
+        cat => cat.name === urlCategoryName
+      );
+      
+      if (matchingCategory && matchingCategory.idCategory) {
+        if (!filterCategoryStorage.includes(matchingCategory.idCategory)) {
+          setFilterCategoryStorage([matchingCategory.idCategory]);
+          
+          const cookieValue = {
+            searchType: 'category',
+            uniqueIDClickedCategories: [matchingCategory.idCategory],
+            uniqueIDClickedSubCategories: [],
+            uniqueIDClickedSubCategoriesBrands: [],
+            filters: localFilters,
+          };
+          
+          Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+        }
       }
     }
-  }
-}, [location.pathname, searchType, tableData?.category, COOKIE_NAME]);
+  }, [location.pathname, searchType, tableData?.category, COOKIE_NAME]);
 
-  console.log("Rendered FastOrderCategoryMode with filters:", {
-    filterCategoryStorage,
-    filterCategorySubCategoryStorage,
-    filterCategorySubCategoryBrandsStorage,
-    localFilters
-  });
+// ✅ NEW: Reset URL when switching TO category mode
+  useEffect(() => {
+    // Skip if this is a manual filter update
+    if (isManualFilterUpdate.current || sessionStorage.getItem('manualFilterUpdate') === 'true') {
+      // console.log('⏭️ [SearchComponent Category] Skipping URL reset - manual filter change in progress');
+      return;
+    }
 
+    if (searchType === 'category') {
+      // Check if current URL is not a category URL
+      const pathSegments = location.pathname.split('/');
+      const currentMode = pathSegments[2]; // 'category' or 'brand'
+      
+      // If we're in category mode but URL shows brand, reset to base category URL
+      if (currentMode === 'brand') {
+        navigate('/fastorder/category', { replace: true });
+      }
+    }
+  }, [searchType, navigate, location.pathname]);
   return (
     <>
       {/* Authentication Modal */}
       <Modal
-      opened={showAuthModal}
-      onClose={() => setShowAuthModal(false)}
-      title="ورود به حساب کاربری"
-      centered // This centers the modal
-      closeOnClickOutside={true} // Allow closing by clicking outside
-      closeOnEscape={true} // Allow closing with Escape key
-      withCloseButton={true} // Shows the default close button
-      overlayProps={{
-        backgroundOpacity: 0.55,
-        blur: 3,
-      }}
-      styles={{
-        header: {
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        },
-      }}
-    >
+        opened={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="ورود به حساب کاربری"
+        centered
+        closeOnClickOutside={true}
+        closeOnEscape={true}
+        withCloseButton={true}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        styles={{
+          header: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          },
+        }}
+      >
         <Text mb="md">
           زمان حضور شما منقضی شده است
           <br />
@@ -1122,50 +877,6 @@ useEffect(() => {
         message={errorModalMessage}
       />
 
-      {/* Add Filter Modal - Responsive */}
-        <Modal
-          opened={openedAddModal}
-          onClose={() => {
-            setOpenedAddModal(false);
-            setFilterName('');
-            // Clear any validation errors when manually closing
-            dispatch(clearSaveFilterState());
-          }}
-          title="افزودن فیلتر جدید - دسته بندی"
-          centered
-          size={isMobile ? "sm" : "md"}
-          padding={isMobile ? "sm" : "md"}
-        >
-        <TextInput
-          label="نام فیلتر"
-          placeholder="نام را وارد کنید"
-          {...form.getInputProps("inputBox")} 
-          value={filterName}
-          onChange={(event) => setFilterName(event.currentTarget.value)}
-          size={isMobile ? "sm" : "md"}
-          error={
-            // Show validation errors from saveStatus if it's a client error
-            (saveStatus?.state === "error" && saveStatus?.error?.inputBox) || form.errors.inputBox ? (
-              <div>
-                {saveStatus?.state === "error" && saveStatus?.error?.inputBox && (
-                  <div>{saveStatus.error.inputBox}</div>
-                )}
-                {form.errors.inputBox && <div>{form.errors.inputBox}</div>}
-              </div>
-            ) : null
-          }
-        />
-        <Button 
-          mt="md" 
-          onClick={saveFiltersSettings}
-          disabled={!filterName.trim() || saveLoading}
-          loading={saveLoading}
-          size={isMobile ? "sm" : "md"}
-          fullWidth={isMobile}
-        >
-          ذخیره
-        </Button>
-      </Modal>
 
       <Paper 
         mt={{ base: "xs", md: "xs" }} 
@@ -1183,314 +894,116 @@ useEffect(() => {
           h="100%" 
         />
 
-        {/* Header - Responsive Layout */}
-          {/* Action Buttons - Responsive */}
-          <Flex 
-            direction={isMobile ? "column" : "row"}
-            gap={isMobile ? "xs" : "sm"}
-            align={isMobile ? "stretch" : "center"}
-            m={10}
-          >
-          {/* Filter Settings Modal - Centered */}
-          <Modal
-            opened={menuOpened}
-            onClose={() => setMenuOpened(false)}
-            title="فیلترهای ذخیره شده - دسته‌بندی"
-            centered
-            size={isMobile ? "sm" : "md"}
-            padding={isMobile ? "sm" : "md"}
-          >
-            <Stack spacing="md">
-              {/* Add New Filter Button */}
-              <Button
-                leftSection={<IconPlus size={16} />}
-                onClick={() => {
-                  setMenuOpened(false);
-                  setOpenedAddModal(true);
-                }}
-                fullWidth
-              >
-                افزودن فیلتر جدید
-              </Button>
-
-              {/* Clear Selection Button */}
-              {checkedRows.size > 0 && (
-                <>
-                  <Divider />
-                  <Button 
-                    size="sm" 
-                    variant="subtle" 
-                    color="gray"
-                    onClick={clearSelectedFilters}
-                    fullWidth
-                    disabled={isEditMode}
-                  >
-                    پاک کردن انتخاب ({checkedRows.size})
-                  </Button>
-                </>
-              )}
-
-              <Divider />
-
-              {/* Filters List */}
-              {savedFilters && savedFilters.length > 0 ? (
-                <Box style={{ 
-                  maxHeight: isMobile ? '300px' : '400px', 
-                  overflowY: 'auto',
-                  overflowX: 'hidden'
-                }}>
-                  <Stack spacing="xs">
-                    {savedFilters.map((filter, index) => (
-                      <Paper key={filter.id} p="sm" withBorder>
-                        <Group justify="space-between" w="100%" wrap="nowrap">
-                          <Group gap="xs" flex={1} maw="calc(100% - 60px)">
-                            <Checkbox
-                              checked={isChecked(filter.id)}
-                              onChange={(event) => {
-                                if (isEditMode) return;
-                                const isCurrentlyChecked = event.currentTarget.checked;
-                                handleFilterCheckboxChange(filter.id, isCurrentlyChecked);
-                              }}
-                              size={isMobile ? "sm" : "md"}
-                              disabled={isEditMode}
-                              style={{
-                                opacity: isEditMode ? 0.5 : 1,
-                                cursor: isEditMode ? 'not-allowed' : 'pointer'
-                              }}
-                            />
-                            <Text 
-                              size={isMobile ? "xs" : "sm"}
-                              fw={editingFilterId === filter.id ? 600 : 500}
-                              c={editingFilterId === filter.id ? "blue" : undefined}
-                              style={{ 
-                                cursor: 'pointer',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                flex: 1,
-                                opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
-                              }}
-                              onClick={() => {
-                                if (isEditMode && editingFilterId !== filter.id) {
-                                  notifications.show({
-                                    title: 'در حال ویرایش',
-                                    message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
-                                    color: 'orange',
-                                    autoClose: 3000,
-                                     zIndex: 1100
-                                  });
-                                  return;
-                                }
-
-                                const cookieValue = {
-                                  searchType: 'category',
-                                  filters: filter.filters || {},
-                                  uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
-                                  uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
-                                  uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
-                                };
-
-                                Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-                                
-                                setFilterCategoryStorage(filter.uniqueIDClickedCategories || []);
-                                setFilterCategorySubCategoryStorage(filter.uniqueIDClickedSubCategories || []);
-                                setFilterCategorySubCategoryBrandsStorage(filter.uniqueIDClickedSubCategoriesBrands || []);
-                                setLocalFilters(filter.filters || {});
-                                
-                                if (setFilters) setFilters(filter.filters || {});
-                                if (setSearchType) setSearchType('category');
-
-                                setSelectedRow(filter.id);
-
-                                const filterArray = [{
-                                  searchType: 'category',
-                                  uniqueIDClickedCategories: filter.uniqueIDClickedCategories || [],
-                                  uniqueIDClickedSubCategories: filter.uniqueIDClickedSubCategories || [],
-                                  uniqueIDClickedSubCategoriesBrands: filter.uniqueIDClickedSubCategoriesBrands || [],
-                                  filters: filter.filters || {}
-                                }];
-
-                                dispatch(fetchFastOrderCategoryModeTableData(filterArray));
-                                
-                                setMenuOpened(false);
-                              }}
-                              title={filter.filterName || 'بدون نام'}
-                            >
-                              {filter.filterName || 'بدون نام'}
-                            </Text>
-                          </Group>
-                          
-                          <Group gap="xs" style={{ flexShrink: 0 }}>
-                            <ActionIcon
-                              variant="subtle"
-                              color="blue"
-                              size={isMobile ? "sm" : "md"}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditFilter(filter);
-                              }}
-                              title="ویرایش"
-                              disabled={isEditMode && editingFilterId !== filter.id}
-                              style={{
-                                opacity: isEditMode && editingFilterId !== filter.id ? 0.5 : 1,
-                              }}
-                            >
-                              <IconEdit size={isMobile ? 12 : 14} />
-                            </ActionIcon>
-                            
-                            <ActionIcon
-                              variant="subtle"
-                              color="red"
-                              size={isMobile ? "sm" : "md"}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (isEditMode && editingFilterId !== filter.id) {
-                                  notifications.show({
-                                    title: 'در حال ویرایش',
-                                    message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
-                                    color: 'orange',
-                                    autoClose: 3000,
-                                    zIndex: 1100
-
-                                  });
-                                  return;
-                                }
-                                handleDeleteSavedFilter(filter.id);
-                              }}
-                              disabled={deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id)}
-                              loading={deleteLoading && deleteLoadingId === filter.id}
-                              title="حذف"
-                              style={{
-                                opacity: deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id) ? 0.5 : 1,
-                              }}
-                            >
-                              <IconTrash size={isMobile ? 12 : 14} />
-                            </ActionIcon>
-                          </Group>
-                        </Group>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Box>
-              ) : (
-                <Text size={isMobile ? "xs" : "sm"} c="dimmed" ta="center">
-                  فیلتری ذخیره نشده است
-                </Text>
-              )}
-            </Stack>
-          </Modal>
-
-            <ShareModal 
-              filters={updateFiltersAndStore().thisFilter} 
-              isMobile={isMobile}
-            />
-
-          </Flex>
+        {/* Action Buttons - Responsive */}
+        {/* <Flex 
+          direction={isMobile ? "column" : "row"}
+          gap={isMobile ? "xs" : "sm"}
+          align={isMobile ? "stretch" : "center"}
+          m={10}
+        >
+          <ShareModal 
+            filters={updateFiltersAndStore().thisFilter} 
+            isMobile={isMobile}
+          />
+        </Flex> */}
 
         {/* Tabs - Responsive */}
-
-
-      <Tabs 
-        styles={{ 
-          panel: { marginTop: isMobile ? "15px" : "20px" },
-          list: {
-            overflowX: 'auto',
-            flexWrap: 'nowrap',
-            justifyContent: 'space-between',
-            display: 'flex',
-            width: '100%',
-            gap: isMobile ? '8px' : '12px',
-            flexDirection: 'row',
-            border: '1px solid #e0e0e0',
-            borderRadius: '8px',
-            padding: isMobile ? '8px' : '12px',
-            backgroundColor: '#fafafa'
-          },
-          tab: {
-            fontSize: isMobile ? '12px' : '14px',
-            padding: isMobile ? '8px 12px' : '10px 16px',
-            whiteSpace: 'nowrap',
-            flex: '1 1 0',  // Changed: Each tab takes equal space
-            textAlign: 'center',
-            minWidth: 0,  // Changed: Allow flex to control width
-            border: '1px solid transparent',
-            transition: 'all 0.2s ease'
-          }
-        }} 
-        variant="pills" 
-        defaultValue="brand" 
-        value={searchType} 
-        onChange={setSearchType}
-        orientation="horizontal"
-      >
-        <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
-          {/* Tab 1 - Takes 1/3 of space */}
-          <Tabs.Tab value="brand" style={{ flex: '1 1 0', minWidth: 0 }}>
-            {isMobile ? "برند" : "برند"}
-          </Tabs.Tab>
-          
-          {/* Tab 2 - Takes 1/3 of space */}
-          <Tabs.Tab value="category" style={{ flex: '1 1 0', minWidth: 0 }}>
-            {isMobile ? "دسته‌بندی" : "دسته‌بندی"}
-          </Tabs.Tab>
-
-          {/* Filter Button - Takes 1/3 of space */}
-          <Button
-            variant="light"
-            size={isMobile ? "sm" : "md"}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMenuClick();
-            }}
-            disabled={authVerificationLoading}
-            styles={{
-              root: {
-                
-                height: isMobile ? '32px' : '36px',
-                padding: isMobile ? '8px 12px' : '10px 16px',
-                fontSize: isMobile ? '11px' : '13px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                flex: '1 1 0',  // Takes equal space with tabs
+        <Tabs 
+          styles={{ 
+            panel: { marginTop: isMobile ? "15px" : "20px" },
+            list: {
+              overflowX: 'auto',
+              flexWrap: 'nowrap',
+              justifyContent: 'space-between',
+              display: 'flex',
+              width: '100%',
+              gap: isMobile ? '8px' : '12px',
+              flexDirection: 'row',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              padding: isMobile ? '8px' : '12px',
+              backgroundColor: '#fafafa'
+            },
+            tab: {
+              fontSize: isMobile ? '12px' : '14px',
+              padding: isMobile ? '8px 12px' : '10px 16px',
+              whiteSpace: 'nowrap',
+              flex: '1 1 0',
+              textAlign: 'center',
+              minWidth: 0,
+              border: '1px solid transparent',
+              transition: 'all 0.2s ease'
+            }
+          }} 
+          variant="pills" 
+          defaultValue="brand" 
+          value={searchType} 
+          onChange={setSearchType}
+          orientation="horizontal"
+        >
+          <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
+            <Tabs.Tab 
+              value="brand" 
+              style={{ 
+                flex: '1 1 0', 
                 minWidth: 0,
-                border: '1px solid #d0d0d0',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  borderColor: '#a0a0a0'
-                }
-              },
-            }}
-          >
-            {authVerificationLoading ? (
-              <Loader size={16} />
-            ) : (
-              <IconFilter size={16} />
-            )}
-            {/* {!isMobile && <span>فیلترها</span>} */}
-          </Button>
-        </Tabs.List>
+                border: searchType === 'brand' ? '1px solid #093572' : '1px solid #e0e0e0',
+                borderRadius: '6px',
+                backgroundColor: searchType === 'brand' ? '#093572' : 'white',
+                color: searchType === 'brand' ? 'white' : '#333',
+              }}
+            >
+              {isMobile ? "برند" : "برند"}
+            </Tabs.Tab>
+            
+            <Tabs.Tab 
+              value="category" 
+              style={{ 
+                flex: '1 1 0', 
+                minWidth: 0,
+                border: searchType === 'category' ? '1px solid #093572' : '1px solid #e0e0e0',
+                borderRadius: '6px',
+                backgroundColor: searchType === 'category' ? '#093572' : 'white',
+                color: searchType === 'category' ? 'white' : '#333',
+              }}
+            >
+              {isMobile ? "دسته‌بندی" : "دسته‌بندی"}
+            </Tabs.Tab>
+          </Tabs.List>
+          
+          <Tabs.Panel value="category">
+
+{!loading && searchType === "category" && tableData && (
+  <>
+    {/* ✅ ADD THIS DEBUG BLOCK */}
+    {/* {console.log('🔍 [SearchComponent] About to render SlideCategory:', {
+      filterCategoryStorage,
+      filterCategorySubCategoryStorage,
+      filterCategorySubCategoryBrandsStorage,
+      hasCategoryStorage: !!filterCategoryStorage,
+      categoryStorageLength: filterCategoryStorage?.length,
+      categoryStorageValue: filterCategoryStorage
+    })} */}
+    
+    <SlideCategory
+      tab={category}
+      items={tableData?.category}
+      searchType={searchType}
+      click={setCategory}
+      filterCategoryStorage={filterCategoryStorage}
+      setFilterCategoryStorage={setFilterCategoryStorage}
+      filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+      setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+      filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+      setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+      isMobile={isMobile}
+      isTablet={isTablet}
+    />
+  </>
+)}
+          </Tabs.Panel>
+        </Tabs>
         
-        <Tabs.Panel value="category">
-          {!loading && searchType === "category" && tableData && (
-            <SlideCategory
-              tab={category}
-              items={tableData?.category}
-              searchType={searchType}
-              click={setCategory}
-              filterCategoryStorage={filterCategoryStorage}
-              setFilterCategoryStorage={setFilterCategoryStorage}
-              filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-              setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-              filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-              setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-              isMobile={isMobile}
-              isTablet={isTablet}
-            />
-          )}
-        </Tabs.Panel>
-      </Tabs>
         <Flex
           direction={isMobile ? "column" : "row"}
           justify={isMobile ? "flex-start" : "space-between"}
@@ -1499,39 +1012,8 @@ useEffect(() => {
           mb={isTablet ? "sm" : ""}
         >
           <div>
-            {/* <XTitle>سفارش سریع</XTitle> */}
-            {isEditMode && (
-              <Group gap="xs" mt="xs">
-                <Badge color="blue" variant="light" size="sm">
-                  حالت ویرایش: {editingFilterName}
-                </Badge>
-                <Group gap="xs">
-                  <ActionIcon
-                    variant="filled"
-                    color="green"
-                    size="sm"
-                    onClick={saveEditedFilter}
-                    title="ذخیره تغییرات"
-                    loading={updateLoading}
-                    disabled={updateLoading}
-                  >
-                    <IconDeviceFloppy size={14} />
-                  </ActionIcon>
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    onClick={cancelEditMode}
-                    title="لغو ویرایش"
-                  >
-                    <IconTrash size={14} />
-                  </ActionIcon>
-                </Group>
-              </Group>
-            )}
+            {/* Title removed as requested */}
           </div>
-          
-
         </Flex>
       </Paper>
     </>

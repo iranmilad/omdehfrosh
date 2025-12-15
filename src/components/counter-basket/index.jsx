@@ -139,6 +139,13 @@ const CounterBasket = (props) => {
   const isRemoving = useRef(false);
   const items = useSelector((state) => state.cart?.items || []);
 
+  // Calculate dynamic width based on number of digits
+  const getInputWidth = (number) => {
+    const digits = String(number).length;
+    // Base width + additional width per digit
+    return Math.max(35, 20 + (5 * 7));
+  };
+
   const getProductCount = (items, productId, seller, combinationsID) => {
     const normalizeId = (id) => String(id).trim();
     const normalizeCombinationId = (id) => parseInt(id);
@@ -275,7 +282,7 @@ const CounterBasket = (props) => {
       />
       
       {shouldShowCounter ? (
-        <Flex align="center" gap="4">
+        <Flex align="center" gap="2px" style={{ minWidth: 'fit-content' }}>
           <Button 
             p={0} 
             px={4} 
@@ -291,17 +298,29 @@ const CounterBasket = (props) => {
             size="md"
             radius="999999"
             variant="light"
-            // color="#093572"
             onClick={increment}
             disabled={isPageLoading || localCount >= realMax}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
           >
             <IconPlus color="#093572" size={15} />
           </ActionIcon>
 
           <Input
             type="number"
-            w={35}
-            styles={{ input: { textAlign: "center" } }}
+            w={getInputWidth(localCount)}
+            styles={{ 
+              input: { 
+                textAlign: "center",
+                padding: "0 2px",
+                fontSize: "14px",
+                fontWeight: 500,
+              } 
+            }}
             variant="unstyled"
             value={localCount}
             readOnly
@@ -313,9 +332,14 @@ const CounterBasket = (props) => {
               size="md"
               radius="999999"
               variant="light"
-              // color="#093572"
               onClick={decrement}
               disabled={isPageLoading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
             >
               <IconMinus size={15} />
             </ActionIcon>
@@ -327,6 +351,12 @@ const CounterBasket = (props) => {
               color=""
               onClick={handleRemove}
               disabled={isPageLoading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
             >
               <IconTrash size={15} />
             </ActionIcon>

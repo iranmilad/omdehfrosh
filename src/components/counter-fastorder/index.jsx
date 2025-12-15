@@ -2,8 +2,8 @@ import { ActionIcon, Button, Flex, Input, LoadingOverlay, Modal, Text } from "@m
 import { IconPlus, IconMinus, IconTrash, IconBasket } from "@tabler/icons-react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
-import { setInitial, clearCart } from "../../redux/cart"; // Add clearCart import
-import { logout, verifyTokenSilent } from "../../redux/auth/authusers/auth"; // Add auth actions
+import { setInitial, clearCart } from "../../redux/cart";
+import { logout, verifyTokenSilent } from "../../redux/auth/authusers/auth";
 import { useEffect, useState } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import { useNavigate } from "react-router-dom";
@@ -35,34 +35,21 @@ const CounterFastOrder = (props) => {
   // Use Redux items as the single source of truth
   const items = useSelector((state) => state.cart?.items || []);
 
-
   // Enhanced helper function to handle token expiration and update global auth state
   const handleTokenExpiration = async (error) => {
-    // Check if the error is related to token expiration
     if (error.message.includes('توکن نامعتبر است') || 
         error.message.includes('Unauthorized') || 
         error.status === 401) {
       
       try {
-        // Clear localStorage
         localStorage.removeItem("user");
-        
-        // Clear Redux auth state
         dispatch(logout());
-        
-        // Clear cart state
         dispatch(clearCart());
-        
-        // Silent re-verification to update auth state across all components
         await dispatch(verifyTokenSilent());
-        
-        // Show auth modal
         setShowAuthModal(true);
-        
         return true;
       } catch (authError) {
         console.error("Error during token expiration handling:", authError);
-        // Even if there's an error, ensure user is logged out
         setShowAuthModal(true);
         return true;
       }
@@ -95,9 +82,7 @@ const CounterFastOrder = (props) => {
       const serverData = await response.json();
       const cartItems = serverData.cart || [];
       
-      // Update Redux store with fetched data
       dispatch(setInitial(cartItems));
-      
       return cartItems;
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -126,7 +111,6 @@ const CounterFastOrder = (props) => {
       });
 
       if (!response.ok) {
-        // Handle 401 Unauthorized immediately
         if (response.status === 401) {
           await handleTokenExpiration({ status: 401, message: 'Unauthorized' });
           return null;
@@ -139,20 +123,14 @@ const CounterFastOrder = (props) => {
       }
 
       const data = await response.json();
-      
-      // Fetch updated cart data and sync with Redux
       await fetchCartData();
-      
       return data;
     } catch (error) {
       console.error("Error updating cart:", error);
-      
-      // Handle token expiration for any caught errors
       const tokenExpired = await handleTokenExpiration(error);
       if (tokenExpired) {
-        return null; // Return null to indicate auth failure
+        return null;
       }
-      
       throw error;
     }
   };
@@ -176,30 +154,23 @@ const CounterFastOrder = (props) => {
         const error = new Error(errorData.message || "Failed to remove item");
         error.status = response.status;
         
-        // Handle token expiration
         if (response.status === 401) {
           await handleTokenExpiration(error);
-          return null; // Return null to indicate auth failure
+          return null;
         }
         
         throw error;
       }
 
       const data = await response.json();
-      
-      // Fetch updated cart data and sync with Redux
       await fetchCartData();
-      
       return data;
     } catch (error) {
       console.error("Error removing from cart:", error);
-      
-      // Handle token expiration
       const tokenExpired = await handleTokenExpiration(error);
       if (tokenExpired) {
-        return null; // Return null to indicate auth failure
+        return null;
       }
-      
       throw error;
     }
   };
@@ -215,7 +186,6 @@ const CounterFastOrder = (props) => {
       const sellerMatch = cartItem.seller?.id === currentItem.seller?.id;
       const combinationMatch = cartItem.combinationsID === currentItem.combinationsID;
       
-      // If no specific combination matching needed, just match product and seller
       if (!currentItem.combinationsID && !cartItem.combinationsID) {
         return productMatch && sellerMatch;
       }
@@ -229,14 +199,11 @@ const CounterFastOrder = (props) => {
   // Calculate current item count using Redux items
   const itemCount = getItemCount(items, item);
 
-
-
   // Load cart data on component mount and when user changes
   useEffect(() => {
     if (user && isVerified) {
       fetchCartData();
     } else {
-      // Clear cart if user is not authenticated
       dispatch(setInitial([]));
     }
   }, [user, isVerified]);
@@ -247,7 +214,6 @@ const CounterFastOrder = (props) => {
   }, [itemCount]);
 
   const handleChange = async (value) => {
-    // Check if user is authenticated
     if (!user || !isVerified) {
       setShowAuthModal(true);
       return;
@@ -265,21 +231,17 @@ const CounterFastOrder = (props) => {
         "combinationsID": item?.combinationsID,
       });
       
-      // If result is null, it means auth failed and modal is already shown
       if (result === null) {
         return;
       }
-      
     } catch (error) {
       console.error("Failed to update cart:", error);
-      // Optionally show error message to user
     } finally {
       setIsPending(false);
     }
   };
 
   const handleRemove = async () => {
-    // Check if user is authenticated
     if (!user || !isVerified) {
       setShowAuthModal(true);
       return;
@@ -294,14 +256,11 @@ const CounterFastOrder = (props) => {
         combinationsID: item?.combinationsID,
       });
       
-      // If result is null, it means auth failed and modal is already shown
       if (result === null) {
         return;
       }
-      
     } catch (error) {
       console.error("Failed to remove item:", error);
-      // Optionally show error message to user
     } finally {
       setIsPending(false);
     }
@@ -324,7 +283,6 @@ const CounterFastOrder = (props) => {
   };
 
   const handleAddToCart = () => {
-    // Check if user is authenticated before adding to cart
     if (!user || !isVerified) {
       setShowAuthModal(true);
       return;
@@ -342,6 +300,13 @@ const CounterFastOrder = (props) => {
   // Check if component is still loading essential data
   const isComponentLoading = !item;
 
+  // Calculate dynamic width based on number of digits
+  const getInputWidth = (number) => {
+    const digits = String(number).length;
+    // Base width + additional width per digit
+    return Math.max(35, 20 + (5 * 7));
+  };
+
   return (
     <>
       {/* Authentication Modal */}
@@ -358,11 +323,9 @@ const CounterFastOrder = (props) => {
         }}
       >
         <Text mb="md">
-          
           زمان حضور شما منقضی شده است
           <br />
           لطفا وارد حساب کاربری شوید
-
         </Text>
         <Flex gap="sm" justify="flex-end">
           <Button 
@@ -392,7 +355,7 @@ const CounterFastOrder = (props) => {
 
       {/* Show counter UI if item is in cart (count > 0) */}
       {count > 0 ? (
-        <Flex align="center" gap="1">
+        <Flex align="center" gap="2px" style={{ minWidth: 'fit-content' }}>
           <Button
             p={0}
             px={0}
@@ -419,6 +382,7 @@ const CounterFastOrder = (props) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              flexShrink: 0,
             }}
           >
             <IconPlus size={15} />
@@ -426,8 +390,15 @@ const CounterFastOrder = (props) => {
 
           <Input
             type="number"
-            w={25}
-            styles={{ input: { textAlign: "center" } }}
+            w={getInputWidth(count)}
+            styles={{ 
+              input: { 
+                textAlign: "center",
+                padding: "0 4px",
+                fontSize: "14px",
+                fontWeight: 500,
+              } 
+            }}
             variant="unstyled"
             value={count}
             readOnly
@@ -444,6 +415,7 @@ const CounterFastOrder = (props) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              flexShrink: 0,
             }}
           >
             <IconMinus size={10} />
@@ -462,7 +434,6 @@ const CounterFastOrder = (props) => {
           }}
         >
           <IconBasket />
-          
         </Button>
       )}
     </>
