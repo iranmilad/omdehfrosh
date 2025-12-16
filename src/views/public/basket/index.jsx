@@ -494,7 +494,7 @@ const Basket = () => {
       `}</style>
 
       <div 
-        className="relative min-h-screen px-4 pt-6 pb-6 md:px-4"
+        className="relative min-h-screen pt-6 pb-6"
         style={{
           padding: window.innerWidth < 768 ? '12px 0 0 0' : '24px 16px'
         }}
@@ -534,7 +534,7 @@ const Basket = () => {
         )}
         
         {hasItems && (
-          <div className="grid grid-cols-12 gap-0 md:gap-12 m-0">
+          <div className="grid grid-cols-12 gap-4 md:gap-12 m-0">
             {/* Main content area */}
             <div className="col-span-12 lg:col-span-9 p-0">
               <div className="md:pl-4 p-0">

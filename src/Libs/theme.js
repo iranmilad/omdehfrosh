@@ -1,6 +1,6 @@
-import { rem,Container, Paper, Title,Loader,Checkbox, Button, Modal, NavLink, Drawer, Anchor } from "@mantine/core";
+import { rem, Container, Paper, Title, Loader, Checkbox, Button, Modal, NavLink, Drawer, Anchor } from "@mantine/core";
 
-export const CONTAINER_SIZES= {
+export const CONTAINER_SIZES = {
   xxs: rem(300),
   xs: rem(400),
   sm: rem(500),
@@ -19,21 +19,18 @@ const Theme = {
   defaultRadius: "8px",
   primaryShade: 9,
   colors: {
-    brand: 
-      [
-        "#e8f0fa", // very light icy blue
-        "#d2e0f3", // pale soft blue
-        "#b7cceb", // light calm blue
-        "#9bb7e2", // soft medium blue
-        "#7fa1d8", // balanced soft blue
-        "#5e87c8", // core cool blue
-        "#3f6db3", // deeper muted blue
-        "#255595", // rich dark blue
-        "#0f427a", // stronger navy-blue tone
-        "#093572"  // your target deep navy (#093572)
-      ]
-
- 
+    brand: [
+      "#e8f0fa", // very light icy blue
+      "#d2e0f3", // pale soft blue
+      "#b7cceb", // light calm blue
+      "#9bb7e2", // soft medium blue
+      "#7fa1d8", // balanced soft blue
+      "#5e87c8", // core cool blue
+      "#3f6db3", // deeper muted blue
+      "#255595", // rich dark blue
+      "#0f427a", // stronger navy-blue tone
+      "#093572"  // your target deep navy (#093572)
+    ]
   },
   components: {
     Container: Container.extend({
@@ -46,8 +43,15 @@ const Theme = {
             : rem(size),
         },
       }),
-      defaultProps:{
-        size: "xxl"
+      defaultProps: {
+        size: "xxl",
+        px: 0  // Remove horizontal padding
+      },
+      styles: {
+        root: {
+          paddingLeft: 0,
+          paddingRight: 0
+        }
       }
     }),
     Button: Button.extend({
@@ -56,9 +60,9 @@ const Theme = {
       }
     }),
     Paper: Paper.extend({
-      defaultProps:{
+      defaultProps: {
         shadow: "md",
-        p:"md"
+        p: "md"
       }
     }),
     Title: Title.extend({
@@ -68,7 +72,7 @@ const Theme = {
     }),
     Loader: Loader.extend({
       defaultProps: {
-        type:"dots"
+        type: "dots"
       }
     }),
     Checkbox: Checkbox.extend({
@@ -77,7 +81,7 @@ const Theme = {
       }
     }),
     NavLink: NavLink.extend({
-      styles:{
+      styles: {
         chevron: {
           transform: "rotate(90deg)"
         }

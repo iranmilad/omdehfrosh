@@ -179,6 +179,21 @@ p, span, div, h1, h2, h3, h4, h5, h6, a, label, td, th, li {
   }
 }
 
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Remove default container padding */
+.mantine-Container-root {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
 
 
 
