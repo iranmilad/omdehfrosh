@@ -270,7 +270,7 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
   return (
     <div 
       id="jet-items1" 
-      className="flex flex-col gap-6 md:py-5  rounded md:px-5 bg-white"
+      className="flex flex-col gap-6 py-5  rounded md:px-5 bg-white"
       style={{
         opacity: isRemoving ? 0.5 : 1,
         transition: 'opacity 0.3s ease, transform 0.3s ease',

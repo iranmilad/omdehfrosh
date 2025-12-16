@@ -280,17 +280,21 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
   return (
     <>
       {/* Digikala-style Address Display */}
-      <div className=" bg-white px-5">
+      <div className=" bg-white px-4 py-5 pt-4 pb-5 mb-4">
         <div className="hidden"></div>
         
         {/* Header */}
         <div className="flex">
-          <div className="text-gray-700 text-xs md:text-sm font-normal md:text-gray-500 pb-2 md:pb-0">
+          <div
+            className="text-[14px]  md:text-sm font-normal"
+            style={{ color: "#818588" }}
+          >
             آدرس تحویل سفارش
           </div>
+
           <span 
-            className="inline-flex items-center cursor-pointer text-sm shrink-0 focus:outline-none mr-auto"
-            style={{ color: '#5e87c8' }}
+            className="inline-flex items-center cursor-pointer text-[14px] font-bold shrink-0 focus:outline-none mr-auto"
+            style={{ color: '#19A4ED' }}
             onClick={() => setIsAddressListOpen(true)}
           >
             <span>{addresses.length > 0 ? 'تغییر یا ویرایش' : 'افزودن آدرس'}</span>
@@ -301,6 +305,8 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
                 height: '18px',
                 fill: '#5e87c8',
                 transform: 'rotate(180deg)',
+                fontWeight: '700',
+                fontSize: '14px'
               }}
               viewBox="0 0 24 24"
             >
@@ -314,12 +320,12 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
         {/* Address Content */}
         {selectedAddress ? (
           <>
-            <div className="text-xs md:text-sm font-bold text-gray-900 flex gap-1 items-center">
+            <div className="text-xs md:text-sm font-bold text-[#111827] flex gap-1 items-center">
               {selectedAddress.address}
             </div>
             
             <div className="flex items-center justify-between md:flex-row flex-col mt-2">
-              <div className="flex flex-col md:flex-row w-full md:gap-8 gap-1 text-xs font-normal text-gray-500">
+              <div className="flex flex-col md:flex-row w-full md:gap-8 gap-1 text-xs font-normal text-[#818588]">
                 <span className="flex gap-1 items-center">
                   <div className="flex">
                     <svg style={{ width: '16px', height: '16px', fill: '#9ca3af' }} viewBox="0 0 24 24">
