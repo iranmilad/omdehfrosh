@@ -1,23 +1,3 @@
-import {
-  Grid,
-  Title,
-  GridCol,
-  Text,
-  Stack,
-  Button,
-  Center,
-  Loader,
-  Alert,
-  LoadingOverlay,
-  Group,
-  ThemeIcon,
-  Container,
-  Paper,
-  Box,
-  Divider,
-  Badge,
-  ActionIcon,
-} from "@mantine/core";
 import Product from "./product";
 import {
   IconCircleCheck,
@@ -133,135 +113,123 @@ const useSafeImageSrc = (raw) => {
   return safe;
 };
 
+/* ---------------------- Spinner Component ---------------------- */
+const Spinner = ({ size = "xl", color = "white" }) => {
+  const sizeClasses = {
+    sm: "w-6 h-6",
+    md: "w-8 h-8",
+    lg: "w-10 h-10",
+    xl: "w-12 h-12"
+  };
+  
+  const colorClasses = {
+    white: "border-white",
+    blue: "border-blue-600"
+  };
+
+  return (
+    <div className={`${sizeClasses[size]} border-4 ${colorClasses[color]} border-t-transparent rounded-full animate-spin`}></div>
+  );
+};
+
 /* ---------------------- Loading Component ---------------------- */
 const LoadingComponent = () => (
-  <Container size="lg" py="xl">
-    <Paper 
-      p="xl" 
-      radius="xl" 
-      shadow="sm"
+  <div className="container mx-auto max-w-6xl py-12 px-4">
+    <div 
+      className="p-12 rounded-3xl shadow-sm"
       style={{
         background: 'linear-gradient(135deg, var(--mantine-color-brand-5) 0%, var(--mantine-color-brand-8) 100%)',
-        border: 'none'
       }}
     >
-      <Center h="40vh">
-        <Stack align="center" gap="xl">
-          <Box
-            style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <Loader 
-              size="xl" 
-              color="white"
-              style={{
-                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
-              }}
-            />
+      <div className="flex items-center justify-center" style={{ height: '40vh' }}>
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative flex items-center justify-center">
+            <Spinner size="xl" color="white" />
             <IconSparkles 
               size={16} 
               color="white"
-              style={{
-                position: 'absolute',
-                top: -10,
-                right: -10,
-                animation: 'sparkle 1.5s ease-in-out infinite'
-              }}
+              className="absolute -top-2 -right-2 animate-pulse"
             />
-          </Box>
-          <Text 
-            size="lg" 
-            c="white" 
-            fw={500}
+          </div>
+          <p 
+            className="text-lg text-white font-medium text-center"
             style={{
-              textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              textAlign: 'center'
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)'
             }}
           >
             در حال بارگذاری سبد خرید شما...
-          </Text>
-        </Stack>
-      </Center>
-    </Paper>
-  </Container>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
 /* ---------------------- Error Components ---------------------- */
 const AuthErrorComponent = () => (
-  <Container size="sm" py="xl">
-    <Paper p="xl" radius="xl" shadow="md" style={{ border: '1px solid #fecaca' }}>
-      <Center>
-        <Stack align="center" gap="xl">
-          <ThemeIcon 
-            size={80} 
-            radius="xl" 
+  <div className="container mx-auto max-w-xl py-12 px-4">
+    <div className="p-12 rounded-3xl shadow-md border border-red-200">
+      <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <div 
+            className="w-20 h-20 rounded-3xl flex items-center justify-center"
             style={{
               background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
               boxShadow: '0 8px 32px rgba(255, 107, 107, 0.3)'
             }}
           >
-            <IconAlertCircle size={40} />
-          </ThemeIcon>
-          <Box ta="center">
-            <Title order={3} mb="sm" c="red.7">خطا در احراز هویت</Title>
-            <Text c="dimmed" size="sm">برای ادامه لطفا مجدداً وارد شوید</Text>
-          </Box>
-          <Button 
-            component={NavLink} 
-            to="/login" 
-            size="lg"
-            radius="xl"
+            <IconAlertCircle size={40} color="white" />
+          </div>
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-2 text-red-700">خطا در احراز هویت</h3>
+            <p className="text-gray-500 text-sm">برای ادامه لطفا مجدداً وارد شوید</p>
+          </div>
+          <NavLink 
+            to="/login"
+            className="px-6 py-3 text-lg rounded-3xl text-white border-none"
             style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none'
             }}
           >
             ورود مجدد
-          </Button>
-        </Stack>
-      </Center>
-    </Paper>
-  </Container>
+          </NavLink>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
 const CartErrorComponent = ({ onRetry }) => (
-  <Container size="sm" py="xl">
-    <Paper p="xl" radius="xl" shadow="md" style={{ border: '1px solid #fed7aa' }}>
-      <Center>
-        <Stack align="center" gap="xl">
-          <ThemeIcon 
-            size={80} 
-            radius="xl" 
+  <div className="container mx-auto max-w-xl py-12 px-4">
+    <div className="p-12 rounded-3xl shadow-md border border-orange-200">
+      <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <div 
+            className="w-20 h-20 rounded-3xl flex items-center justify-center"
             style={{
               background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
               boxShadow: '0 8px 32px rgba(245, 158, 11, 0.3)'
             }}
           >
-            <IconAlertCircle size={40} />
-          </ThemeIcon>
-          <Box ta="center">
-            <Title order={3} mb="sm" c="orange.7">خطا در بارگذاری سبد خرید</Title>
-            <Text c="dimmed" size="sm">لطفا مجدداً تلاش کنید</Text>
-          </Box>
-          <Button 
-            onClick={onRetry} 
-            size="lg"
-            radius="xl"
+            <IconAlertCircle size={40} color="white" />
+          </div>
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-2 text-orange-700">خطا در بارگذاری سبد خرید</h3>
+            <p className="text-gray-500 text-sm">لطفا مجدداً تلاش کنید</p>
+          </div>
+          <button 
+            onClick={onRetry}
+            className="px-6 py-3 text-lg rounded-3xl text-white border-none"
             style={{
               background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-              border: 'none'
             }}
           >
             تلاش مجدد
-          </Button>
-        </Stack>
-      </Center>
-    </Paper>
-  </Container>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
 /* ---------------------- ENHANCED Basket Component ---------------------- */
@@ -525,112 +493,59 @@ const Basket = () => {
         }
       `}</style>
 
-      <Box 
-        style={{ 
-          position: 'relative', 
-          minHeight: '100vh', 
-          padding: '24px 16px 24px 16px' 
-        }}
-        styles={{
-          root: {
-            '@media (max-width: 768px)': {
-              padding: '12px 0',
-            }
-          }
+      <div 
+        className="relative min-h-screen px-4 pt-6 pb-6 md:px-4"
+        style={{
+          padding: window.innerWidth < 768 ? '12px 0 0 0' : '24px 16px'
         }}
       >
         {/* Header with back button */}
-        <Box 
-          mb="xl"
-          styles={{
-            root: {
-              '@media (max-width: 768px)': {
-                paddingLeft: '16px',
-                paddingRight: '16px',
-              }
-            }
-          }}
-        >
-          <Group justify="space-between" align="center">
-            <Group align="center" gap="6px">
-              <ActionIcon
-                component={NavLink}
+        <div className="mb-6 md:mb-12 px-4 md:px-0">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-1.5">
+              <NavLink
                 to="/"
-                size="lg"
-                radius="xl"
-                variant="transparent"
-                color="gray"
+                className="w-10 h-10 rounded-3xl flex items-center justify-center text-gray-600 hover:bg-gray-100"
                 aria-label="بازگشت به صفحه اصلی"
               >
                 <IconArrowRight size={24} />
-              </ActionIcon>
-              <Title order={2} style={{ margin: 0, fontSize: "20px" }}>
+              </NavLink>
+              <h2 className="text-xl m-0">
                 اطلاعات ارسال
-              </Title>
-            </Group>
-          </Group>
-        </Box>
+              </h2>
+            </div>
+          </div>
+        </div>
 
-        <LoadingOverlay 
-          pos="fixed" 
-          visible={isPageLoading}
-          zIndex={1000} 
-          h="100%" 
-          w="100%"
-          top={0}
-          left={0}
-          style={{
-            background: 'rgba(255, 255, 255, 0.9)',
-            backdropFilter: 'blur(8px)'
-          }}
-          loader={
-            <Stack align="center" gap="md">
-              <Loader size="xl" color="blue" />
-              <Text size="sm" c="dimmed">در حال بروزرسانی سبد خرید...</Text>
-            </Stack>
-          }
-        />
-        
-        {hasItems && (
-          <Grid 
-            gutter="xl"
-            styles={{
-              root: {
-                '@media (max-width: 768px)': {
-                  margin: 0,
-                }
-              }
+        {/* Loading Overlay */}
+        {isPageLoading && (
+          <div 
+            className="fixed top-0 left-0 w-full h-full z-[1000] flex items-center justify-center"
+            style={{
+              background: 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(8px)'
             }}
           >
-            {/* Main content area - Takes 8 columns */}
-            <Grid.Col span={{ base: 12, lg: 9}}>
-              <Box 
-                style={{padding: '0 0 0 16px'}}
-                styles={{
-                  root: {
-                    '@media (max-width: 768px)': {
-                      padding: '0 16px',
-                    }
-                  }
-                }}
-              >
-              {userInfo && (
+            <div className="flex flex-col items-center gap-4">
+              <Spinner size="xl" color="blue" />
+              <p className="text-sm text-gray-500">در حال بروزرسانی سبد خرید...</p>
+            </div>
+          </div>
+        )}
+        
+        {hasItems && (
+          <div className="grid grid-cols-12 gap-0 md:gap-12 m-0">
+            {/* Main content area */}
+            <div className="col-span-12 lg:col-span-9 p-0">
+              <div className="md:pl-4 p-0">
+                {userInfo && (
                   <AddressManagement 
                     onAddressSelect={setSelectedAddress}
                     userInfo={userInfo}
                   />
                 )}
-              </Box>
-              <Box 
-                style={{padding: '0 0 0 16px'}}
-                styles={{
-                  root: {
-                    '@media (max-width: 768px)': {
-                      padding: '0 16px',
-                    }
-                  }
-                }}
-              >
+              </div>
+              <div className="md:pl-4 p-0">
                 {displayItems.map((item, index) => (
                   <ProductWithFallback
                     key={index}
@@ -638,21 +553,12 @@ const Basket = () => {
                     onRemoveStart={handleRemoveStart}
                   />
                 ))}
-              </Box>
-            </Grid.Col>
+              </div>
+            </div>
             
             {/* Sidebar - Payment Section */}
-            <Grid.Col span={{ base: 12, lg: 3}}>
-              <Box 
-                style={{padding: '0 0 0 16px'}}
-                styles={{
-                  root: {
-                    '@media (max-width: 768px)': {
-                      padding: '0 16px',
-                    }
-                  }
-                }}
-              >
+            <div className="col-span-12 lg:col-span-3 p-0">
+              <div className="md:pl-4 p-0">
                 <PaymentCalc
                   cartItems={displayItems}
                   submit={{ 
@@ -662,11 +568,11 @@ const Basket = () => {
                 >
                   نهایی کردن خرید
                 </PaymentCalc>
-              </Box>
-            </Grid.Col>
-          </Grid>
+              </div>
+            </div>
+          </div>
         )}
-      </Box>
+      </div>
     </>
   );
 };

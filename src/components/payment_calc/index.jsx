@@ -30,12 +30,16 @@ const PaymentCalc = ({ children, submit, prev }) => {
     0
   );
 
-  const totalDiscount = cartItems.reduce(
-    (sum, item) =>
-      sum +
-      (item.price.regularPrice - item.price.discountedPrice) * item.count,
-    0
-  );
+  console.log(cartItems)
+
+const totalDiscount = cartItems.reduce(
+  (sum, item) => {
+    const discount = item.price.regularPrice - item.price.discountedPrice;
+    // Only count positive discounts
+    return sum + (discount > 0 ? discount * item.count : 0);
+  },
+  0
+);
 
   const finalTotal = totalCartPrice - totalDiscount;
 
@@ -110,7 +114,7 @@ const PaymentCalc = ({ children, submit, prev }) => {
               </Text>
               <Flex align="center" gap={4}>
                 <Text size="md" fw={700} c="#4caf50">
-                  {totalDiscount?.toLocaleString()}
+                  {totalDiscount.toLocaleString()}
                 </Text>
                 <Text size="xs" c="#4caf50">تومان</Text>
               </Flex>
