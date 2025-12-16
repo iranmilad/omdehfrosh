@@ -1037,7 +1037,61 @@ export const checkPaymentStatus = async (req, res) => {
 //     res.status(500).json({ message: "Error checking payment status", error });
 //   }
 // };
+// Add this to your routes file (e.g., userRoutes.js or paymentRoutes.js)
+export const getWalletBalance = async (req, res) => {
+  try {
+    console.log('🔍 getWalletBalance called');
+    console.log('Headers:', req.headers);
+    console.log('Cookies:', req.cookies);
+    
+    // Try to get user_id, handle the case where it returns null
+    let user_id;
+    try {
+      const result = getUserFromToken(req, res);
+      user_id = result?.user_id;
+    } catch (err) {
+      console.error('Error getting user from token:', err);
+    }
+    
+    console.log('User ID from token:', user_id);
 
+    if (!user_id) {
+      return res.status(403).json({ 
+        message: "Unauthorized - No valid token found", 
+        balance: 0 
+      });
+    }
+
+    const userAccount = await UserMyAccount.findOne({ userId: user_id });
+    console.log('User account found:', !!userAccount);
+    console.log('Wallet balance:', userAccount?.wallet?.balance);
+
+    const balanceW = userAccount?.wallet?.balance
+
+    if (!userAccount) {
+      return res.status(404).json({ 
+        message: "User account not found",
+        balance: 0 
+      });
+    }
+
+    console.log(balanceW)
+
+    return res.status(200).json({ 
+      balance: balanceW,
+    });
+
+  } catch (error) {
+    console.error("❌ Error fetching wallet balance:", error);
+    return res.status(500).json({ 
+      message: "Server error", 
+      error: error.message,
+      balance: 0 
+    });
+  }
+};
+
+// In your router file, add:
 export const getPaymentLink = async (req, res) => {
   try {
     const { orderId } = req.body;

@@ -48,6 +48,8 @@ const totalDiscount = cartItems.reduce(
       <Paper 
         p="lg" 
         radius="md" 
+        mr="0"
+        ml="0"
         style={{ 
           backgroundColor: '#fff',
           border: '1px solid #e5e7eb',
@@ -159,7 +161,7 @@ const totalDiscount = cartItems.reduce(
               styles={{
                 root: {
                   fontSize: '14px',
-                  fontWeight: 500,
+                  fontWeight: 700,
                 },
               }}
               {...prev}
@@ -174,10 +176,12 @@ const totalDiscount = cartItems.reduce(
               fullWidth 
               h="48" 
               radius="md"
+              m="16 0 16 0"
+              p="12 16 12 16"
               styles={{
                 root: {
                   fontSize: '14px',
-                  fontWeight: 500,
+                  fontWeight: 700,
                   // backgroundColor: '#1976d2',
                   // '&:hover': {
                   //   backgroundColor: '#1565c0',

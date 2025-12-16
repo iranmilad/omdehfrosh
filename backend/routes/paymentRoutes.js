@@ -8,6 +8,7 @@ import {
     checkPaymentStatusWallet,
     walletWithdraw,
     walletTransfer,
+    getWalletBalance,
     confirmCODPayment
  } from "../controllers/paymentControllers.js";    
 
@@ -25,7 +26,8 @@ router.post("/cod/confirm", confirmCODPayment);
 router.post("/getpaymentlink", getPaymentLink);            
 router.post("/checkpaymentstatus/:order_id", checkPaymentStatus);            
 router.post("/paymentwebhook", paymentWebhook);   
-        
+router.get("/wallet/balance", getWalletBalance);
+
 router.post("/wallet/getpaymentlink", getPaymentLinkWallet);            
 router.post("/wallet/paymentwebhook", paymentWebhookWallet);            
 

@@ -105,7 +105,7 @@ const Public = (props) => {
             w="100%"
             style={{ zIndex: 99999999999999 }}
           >
-            <Paper w="400" style={{ zIndex: 999999999999999 }}>
+            <Paper w="" style={{ zIndex: 999999999999999 }}>
               <Flex direction="column" justify="center" align="center">
                 <Loader size="xl" />
                 <Text>منتظر باشید ...</Text>

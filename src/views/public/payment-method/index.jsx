@@ -19,7 +19,7 @@ import CartStepper from "../../../components/cartStepper";
 import { data, NavLink, useNavigate } from "react-router";
 import PaymentCalc from "../../../components/payment_calc";
 import { useForm } from "@mantine/form";
-import { IconArrowRight, IconBuildingCommunity, IconCreditCard } from "@tabler/icons-react";
+import { IconArrowRight, IconBuildingCommunity, IconCreditCard, IconChevronLeft } from "@tabler/icons-react";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleLoading } from "../../../redux/global";
@@ -49,6 +49,8 @@ import {
   PlusOutlined,
 } from '@ant-design/icons';
 import { Grid as GridAnt } from 'antd';
+import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+
 
 const { useBreakpoint } = GridAnt;
 
@@ -164,18 +166,17 @@ const PaymentMethod = () => {
 
   const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData);
 
+  console.log("", fetchedGateways);
 
-  // console.log("", fetchedGateways)
+  const [paymentURL, setPaymentURL] = useState("");
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [loadingWallet, setLoadingWallet] = useState(false);
 
-
-  const [ paymentURL , setPaymentURL ]  = useState("");
-
-
-  const [ cookies, setCookie ] = useCookies(["user"]);
-  const [ pageActive, setPageActive ] = useState(false);
+  const [cookies, setCookie] = useCookies(["user"]);
+  const [pageActive, setPageActive] = useState(false);
   const { isVerified, loading: authLoading, error: authError } = useSelector((state) => state.auth);
   const { orderfinalreceipt } = useSelector((state) => state.cartfinalreceipt); 
-  const [ isDiscountApplied, setIsDiscountApplied ] = useState(false);
+  const [isDiscountApplied, setIsDiscountApplied] = useState(false);
 
   const screensAnt = useBreakpoint();
 
@@ -198,6 +199,42 @@ const PaymentMethod = () => {
     dispatch(getAllGateWaysData({ state: "all" }));
     dispatch(fetchFinalReceipt());
   }, [dispatch]);
+
+  // Fetch wallet balance when component mounts
+  useEffect(() => {
+    const fetchWalletBalance = async () => {
+      try {
+        setLoadingWallet(true);
+
+    const token = localStorage.getItem("user");
+
+            const response = await fetch(getApiUrl("/payment/wallet/balance"), {
+                method: "GET",
+                  headers: new Headers({
+                    'Authorization': `Bearer ${token}`, 
+                    "Content-Type": "application/json"      
+                  }),   
+              });
+              const data = await response.json();
+
+              console.log("res", data)
+        
+        if (data.balance && typeof data.balance !== 'undefined') {
+          setWalletBalance(data.balance);
+        }
+      } catch (error) {
+        console.error('Error fetching wallet balance:', error);
+        // Set default balance if error
+        setWalletBalance(0);
+      } finally {
+        setLoadingWallet(false);
+      }
+    };
+
+    if (isVerified) {
+      fetchWalletBalance();
+    }
+  }, [isVerified, cookies.user]);
 
   // Updated cards mapping with improved icon handling
   const cards = fetchedGateways?.map((item) => (
@@ -277,43 +314,50 @@ const PaymentMethod = () => {
     );
   }
 
+  // Format balance with Persian digits
+  const formatBalance = (balance) => {
+    const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    const formatted = balance.toString().replace(/\d/g, (digit) => persianDigits[parseInt(digit)]);
+    return formatted;
+  };
+
   return (
     <>
-        {/* <Steps
-          current={1}
-          size={screensAnt.md ? 'default' : 'small'}
-          style={{ 
-            marginBottom: 32,
-            background: 'white',
-            padding: screensAnt.md ? 24 : 12,
-            borderRadius: 16,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            fontSize: screensAnt.md ? '14px' : '12px'
-          }}
-          items={[
-            { title: 'سبد خرید', icon: <ShoppingCartOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-            // { title: 'اطلاعات خریدار', icon: <UserOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-            { title: 'انتخاب روش پرداخت', icon: <WalletOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-            { title: 'پرداخت نهایی', icon: <CheckCircleOutlined style={{ fontSize: screensAnt.md ? 20 : 16 }} /> },
-          ]}
-        /> */}
-        <Grid gutter="xl">
+        {/* Header with back button */}
+        <div className="mb-6 md:px-0">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <NavLink
+                to="/basket"
+                className="w-10 h-10 rounded-3xl flex items-center justify-center text-gray-600 hover:bg-gray-100"
+                aria-label="بازگشت به صفحه اصلی"
+              >
+                <IconArrowRight size={24} />
+              </NavLink>
+              <h2 className="text-xl font-bold m-0">
+                 روش پرداخت
+              </h2>
+            </div>
+          </div>
+        </div>
 
+        <Grid gutter="xl">
           <Grid.Col span={{ base: 12, lg: 7 }}>
             {/* روش پرداخت Section */}
             <div className="lg:rounded-medium bg-white border p-4 mb-4">
-              <div className="text-base md:text-lg font-bold mb-1 text-gray-700">
+              <div className="text-[16px] md:text-[20px] font-bold mb-1 text-gray-700">
                 انتخاب روش پرداخت
               </div>
               
               <div className="mt-3 flex flex-col gap-2">
                 {fetchedGateways.map((gateway) => {
                   const isSelected = form.values.gateway?.name === gateway.info.name;
+                  const isWallet = gateway.info.name === 'wallet';
                   
                   return (
                     <label 
                       key={gateway.info.name}
-                      className={`rounded px-3 py-4 border-[2px] border-solid cursor-pointer ${
+                      className={`rounded px-3 py-2 border-[2px] border-solid cursor-pointer ${
                         isSelected 
                           ? 'border-blue-400' 
                           : 'border-gray-200'
@@ -350,11 +394,34 @@ const PaymentMethod = () => {
                         </div>
                       </div>
                       
-                      {gateway.info.description && (
+                      {gateway.description && (
                         <div>
                           <p className="text-[11px] md:text-xs font-normal text-gray-500 mt-1">
-                            {gateway.info.description}
+                            {gateway.description}
                           </p>
+                        </div>
+                      )}
+
+                      {/* Wallet balance and recharge link */}
+                      {isWallet && (
+                        <div className="mt-2">
+                          <span className="flex items-center gap-1 text-[11px] md:text-xs font-normal text-gray-500">
+                            موجودی: {loadingWallet ? '...' : formatBalance(walletBalance)}
+                            <div className="flex">
+                              <svg style={{ width: '16px', height: '16px', fill: 'rgb(129, 133, 139)' }}>
+                                <text x="2" y="13" fontSize="12" fill="rgb(129, 133, 139)">تومان</text>
+                              </svg>
+                            </div>
+                            <NavLink 
+                              to="/account/wallet" 
+                              className="inline-flex items-center cursor-pointer text-blue-600 hover:text-blue-700 mr-auto no-underline"
+                            >
+                              <span>افزایش موجودی</span>
+                              <div className="flex">
+                                <IconChevronLeft size={18} style={{ fill: 'currentColor' }} />
+                              </div>
+                            </NavLink>
+                          </span>
                         </div>
                       )}
                     </label>
@@ -588,11 +655,6 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
       <div className="lg:rounded-medium bg-white">
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            {/* <div className="flex sm:block hidden">
-              <svg style={{ width: '20px', height: '20px', fill: '#1f2937' }} viewBox="0 0 24 24">
-                <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
-              </svg>
-            </div> */}
             <p className="text-xs md:text-sm font-bold text-gray-900">کد تخفیف</p>
           </div>
 

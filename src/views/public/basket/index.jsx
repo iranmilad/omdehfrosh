@@ -494,15 +494,15 @@ const Basket = () => {
       `}</style>
 
       <div 
-        className="relative min-h-screen pt-6 pb-6"
+        className="relative min-h-screen pb-6"
         style={{
-          padding: window.innerWidth < 768 ? '12px 0 0 0' : '24px 16px'
+          
         }}
       >
         {/* Header with back button */}
-        <div className="mb-6 md:mb-12 px-4 md:px-0">
+        <div className="mb-6 md:px-0">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center">
               <NavLink
                 to="/"
                 className="w-10 h-10 rounded-3xl flex items-center justify-center text-gray-600 hover:bg-gray-100"
@@ -510,7 +510,7 @@ const Basket = () => {
               >
                 <IconArrowRight size={24} />
               </NavLink>
-              <h2 className="text-xl m-0">
+              <h2 className="text-xl font-bold m-0">
                 اطلاعات ارسال
               </h2>
             </div>
@@ -520,7 +520,7 @@ const Basket = () => {
         {/* Loading Overlay */}
         {isPageLoading && (
           <div 
-            className="fixed top-0 left-0 w-full h-full z-[1000] flex items-center justify-center"
+            className="fixed top-0 left-0 right-0 w-full h-full z-[1000] flex items-center justify-center"
             style={{
               background: 'rgba(255, 255, 255, 0.9)',
               backdropFilter: 'blur(8px)'
@@ -534,10 +534,10 @@ const Basket = () => {
         )}
         
         {hasItems && (
-          <div className="grid grid-cols-12 gap-4 md:gap-12 m-0">
+          <div className="grid grid-cols-12 gap-4 m-0">
             {/* Main content area */}
             <div className="col-span-12 lg:col-span-9 p-0">
-              <div className="md:pl-4 p-0">
+              <div className=" p-0">
                 {userInfo && (
                   <AddressManagement 
                     onAddressSelect={setSelectedAddress}
@@ -545,7 +545,7 @@ const Basket = () => {
                   />
                 )}
               </div>
-              <div className="md:pl-4 p-0">
+              <div className="p-0">
                 {displayItems.map((item, index) => (
                   <ProductWithFallback
                     key={index}
@@ -557,8 +557,8 @@ const Basket = () => {
             </div>
             
             {/* Sidebar - Payment Section */}
-            <div className="col-span-12 lg:col-span-3 p-0">
-              <div className="md:pl-4 p-0">
+            <div className="col-span-12 lg:col-span-3 p-0 m-0">
+              <div className=" p-0">
                 <PaymentCalc
                   cartItems={displayItems}
                   submit={{ 
