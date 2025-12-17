@@ -25,6 +25,12 @@ const Product = () => {
 
   const { product, loading, error } = useSelector((state) => state.singleProduct);
 
+
+
+
+  console.log("product",product )
+
+
   // Fetch product details with throttling (no caching) + 5s delay
   useEffect(() => {
     if (!slug) return;
@@ -118,7 +124,14 @@ const Product = () => {
         )}
         
         <Tab data={product} slug={slug} />
-        <RelatedProducts dataRelatedProducts={product.relatedProducts} slug={slug} />
+
+        {
+          product?.relatedProducts && product.relatedProducts.length > 0 && (
+            <RelatedProducts items={product.relatedProducts} />
+          )
+        }
+
+
       </div>
     </ProductContext.Provider>
   );

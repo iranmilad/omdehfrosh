@@ -1,10 +1,10 @@
-import { Grid, GridCol, Paper, Text } from "@mantine/core";
+import { Text, Stack } from "@mantine/core";
 import React from "react";
 import XTitle from "../../../../components/title";
 
 const Features = React.memo((props) => {
     const { items } = props;
-    
+
     // Add safety checks
     if (!items || !Array.isArray(items) || items.length === 0) {
         return (
@@ -18,29 +18,74 @@ const Features = React.memo((props) => {
     return (
         <>
             <XTitle size="lg" fw={600} mb="xl">مشخصات</XTitle>
-            <Grid>
-                {items.map((item, index) => {
-                    // Add safety check for individual items
-                    if (!item || !item.label || !item.value) {
+            <Stack gap="xl">
+                {items.map((category, categoryIndex) => {
+                    // Check if category has the expected structure
+                    if (!category || !category.category || !category.items) {
                         return null;
                     }
-                    
+
                     return (
-                        <React.Fragment key={index}>
-                            <Grid.Col span={4}>
-                                <Paper w="100%" p="md" className="rounded-lg lg:w-4/12">
-                                    <Text size="sm" fw={600}>{item.label}</Text>
-                                </Paper>
-                            </Grid.Col>
-                            <GridCol span={8}>
-                                <Paper w="100%" p="md" className="rounded-lg lg:w-4/6">
-                                    <Text size="sm">{item.value}</Text>
-                                </Paper>
-                            </GridCol>
-                        </React.Fragment>
+                        <div key={category.id || categoryIndex}>
+                            <XTitle size="md" fw={600} mb="md" c="blue">
+                                {category.category}
+                            </XTitle>
+                            <div style={{ 
+                                border: '1px solid #e9ecef',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                backgroundColor: 'white'
+                            }}>
+                                {category.items.map((item, itemIndex) => {
+                                    // Add safety check for individual items
+                                    if (!item || !item.label || !item.value) {
+                                        return null;
+                                    }
+
+                                    return (
+                                        <div
+                                            key={itemIndex}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'stretch',
+                                                gap: '0',
+                                                borderBottom: '1px solid #e9ecef',
+                                                backgroundColor: 'white'
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    flex: '0 0 33.333%',
+                                                    padding: '1rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    borderLeft: '1px solid #e9ecef'
+                                                }}
+                                            >
+                                                <Text size="sm" fw={500} c="dimmed">
+                                                    {item.label}
+                                                </Text>
+                                            </div>
+                                            <div
+                                                style={{
+                                                    flex: '1 1 66.667%',
+                                                    padding: '1rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center'
+                                                }}
+                                            >
+                                                <Text size="sm" fw={500}>
+                                                    {item.value}
+                                                </Text>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     );
                 })}
-            </Grid>
+            </Stack>
         </>
     );
 }, (prev, next) => {

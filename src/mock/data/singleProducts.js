@@ -54,7 +54,178 @@ export const singleProducts = [
                 Image5
             ],
             "description": "<p>توضیحات نمونه برای محصول 4</p>",
-            "specifications": null,
+            "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد",
+                                                "value": "146.7 × 71.5 × 7.65 میلی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "204 گرم"
+                                    },
+                                    {
+                                                "label": "تعداد سیم‌کارت",
+                                                "value": "دو سیم‌کارت"
+                                    },
+                                    {
+                                                "label": "نوع سیم‌کارت",
+                                                "value": "نانو سیم و eSIM"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "6.1 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "2532 × 1170 پیکسل"
+                                    },
+                                    {
+                                                "label": "نوع صفحه نمایش",
+                                                "value": "Super Retina XDR OLED"
+                                    },
+                                    {
+                                                "label": "نرخ تازه‌سازی",
+                                                "value": "120 هرتز (ProMotion)"
+                                    },
+                                    {
+                                                "label": "تراکم پیکسل",
+                                                "value": "460 پیکسل در اینچ"
+                                    },
+                                    {
+                                                "label": "محافظت",
+                                                "value": "Ceramic Shield"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "سخت‌افزار",
+                        "items": [
+                                    {
+                                                "label": "پردازنده",
+                                                "value": "Apple A15 Bionic"
+                                    },
+                                    {
+                                                "label": "پردازنده گرافیکی",
+                                                "value": "Apple GPU (5 هسته‌ای)"
+                                    },
+                                    {
+                                                "label": "حافظه RAM",
+                                                "value": "6 گیگابایت"
+                                    },
+                                    {
+                                                "label": "حافظه داخلی",
+                                                "value": "128/256/512 گیگابایت/1 ترابایت"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "دوربین",
+                        "items": [
+                                    {
+                                                "label": "دوربین اصلی",
+                                                "value": "سه دوربین 12 مگاپیکسل"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی اول",
+                                                "value": "12 مگاپیکسل، دیافراگم f/1.5، لنز واید"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی دوم",
+                                                "value": "12 مگاپیکسل، دیافراگم f/1.8، لنز اولترا واید"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی سوم",
+                                                "value": "12 مگاپیکسل، دیافراگم f/2.8، تله‌فوتو، زوم اپتیکال 3 برابر"
+                                    },
+                                    {
+                                                "label": "ویدیو",
+                                                "value": "4K تا 60 فریم بر ثانیه، ProRes، سینمایی"
+                                    },
+                                    {
+                                                "label": "دوربین سلفی",
+                                                "value": "12 مگاپیکسل، دیافراگم f/2.2"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "ظرفیت باتری",
+                                                "value": "3095 میلی‌آمپر ساعت"
+                                    },
+                                    {
+                                                "label": "شارژ سریع",
+                                                "value": "20 وات (50 درصد در 30 دقیقه)"
+                                    },
+                                    {
+                                                "label": "شارژ بی‌سیم",
+                                                "value": "MagSafe 15 وات، Qi 7.5 وات"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "شبکه",
+                                                "value": "5G، 4G LTE"
+                                    },
+                                    {
+                                                "label": "Wi-Fi",
+                                                "value": "Wi-Fi 6 (802.11ax)"
+                                    },
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.0"
+                                    },
+                                    {
+                                                "label": "NFC",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 7,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "سیستم عامل",
+                                                "value": "iOS 15 (قابل ارتقا)"
+                                    },
+                                    {
+                                                "label": "حسگر اثر انگشت",
+                                                "value": "ندارد"
+                                    },
+                                    {
+                                                "label": "تشخیص چهره",
+                                                "value": "Face ID"
+                                    },
+                                    {
+                                                "label": "مقاومت",
+                                                "value": "IP68 (تا 6 متر، 30 دقیقه)"
+                                    },
+                                    {
+                                                "label": "سنسورها",
+                                                "value": "LiDAR، شتاب‌سنج، ژیروسکوپ، قطب‌نما، فشارسنج"
+                                    }
+                        ]
+            }
+            ],
             "priceHistory": [
                 {
                     "date": "2024-02-01",
@@ -398,7 +569,182 @@ export const singleProducts = [
                     Image7,
                 ],
                 "description": "<p>توضیحات نمونه برای محصول 4</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد",
+                                                "value": "158.2 × 76.7 × 8.2 میلی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "202 گرم"
+                                    },
+                                    {
+                                                "label": "تعداد سیم‌کارت",
+                                                "value": "دو سیم‌کارت"
+                                    },
+                                    {
+                                                "label": "نوع سیم‌کارت",
+                                                "value": "نانو سیم"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "6.4 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "2340 × 1080 پیکسل"
+                                    },
+                                    {
+                                                "label": "نوع صفحه نمایش",
+                                                "value": "Super AMOLED"
+                                    },
+                                    {
+                                                "label": "نرخ تازه‌سازی",
+                                                "value": "120 هرتز"
+                                    },
+                                    {
+                                                "label": "تراکم پیکسل",
+                                                "value": "403 پیکسل در اینچ"
+                                    },
+                                    {
+                                                "label": "محافظت",
+                                                "value": "Gorilla Glass 5"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "سخت‌افزار",
+                        "items": [
+                                    {
+                                                "label": "پردازنده",
+                                                "value": "Samsung Exynos 1380"
+                                    },
+                                    {
+                                                "label": "پردازنده گرافیکی",
+                                                "value": "Mali-G68 MP5"
+                                    },
+                                    {
+                                                "label": "حافظه RAM",
+                                                "value": "8 گیگابایت"
+                                    },
+                                    {
+                                                "label": "حافظه داخلی",
+                                                "value": "128/256 گیگابایت"
+                                    },
+                                    {
+                                                "label": "کارت حافظه",
+                                                "value": "تا 1 ترابایت"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "دوربین",
+                        "items": [
+                                    {
+                                                "label": "دوربین اصلی",
+                                                "value": "سه دوربین"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی اول",
+                                                "value": "50 مگاپیکسل، دیافراگم f/1.8"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی دوم",
+                                                "value": "12 مگاپیکسل، اولترا واید، f/2.2"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی سوم",
+                                                "value": "5 مگاپیکسل، ماکرو، f/2.4"
+                                    },
+                                    {
+                                                "label": "ویدیو",
+                                                "value": "4K تا 30 فریم بر ثانیه"
+                                    },
+                                    {
+                                                "label": "دوربین سلفی",
+                                                "value": "32 مگاپیکسل، دیافراگم f/2.2"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "ظرفیت باتری",
+                                                "value": "5000 میلی‌آمپر ساعت"
+                                    },
+                                    {
+                                                "label": "شارژ سریع",
+                                                "value": "25 وات"
+                                    },
+                                    {
+                                                "label": "شارژ بی‌سیم",
+                                                "value": "ندارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "شبکه",
+                                                "value": "5G، 4G LTE"
+                                    },
+                                    {
+                                                "label": "Wi-Fi",
+                                                "value": "Wi-Fi 6 (802.11ax)"
+                                    },
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.3"
+                                    },
+                                    {
+                                                "label": "NFC",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 7,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "سیستم عامل",
+                                                "value": "Android 13، One UI 5.1"
+                                    },
+                                    {
+                                                "label": "حسگر اثر انگشت",
+                                                "value": "زیر صفحه نمایش"
+                                    },
+                                    {
+                                                "label": "تشخیص چهره",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "مقاومت",
+                                                "value": "IP67"
+                                    },
+                                    {
+                                                "label": "سنسورها",
+                                                "value": "شتاب‌سنج، ژیروسکوپ، قطب‌نما، حسگر مجاورت"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {
                         "date": "2024-02-01",
@@ -716,7 +1062,132 @@ export const singleProducts = [
                     Image11,
                 ],
                 "description": "<p>توضیحات نمونه برای محصول 4</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد",
+                                                "value": "45 × 38 × 10.7 میلی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "38.8 گرم"
+                                    },
+                                    {
+                                                "label": "جنس بدنه",
+                                                "value": "آلومینیوم"
+                                    },
+                                    {
+                                                "label": "بند",
+                                                "value": "سیلیکونی قابل تعویض"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "1.9 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "484 × 396 پیکسل"
+                                    },
+                                    {
+                                                "label": "نوع صفحه نمایش",
+                                                "value": "LTPO OLED Retina"
+                                    },
+                                    {
+                                                "label": "روشنایی",
+                                                "value": "1000 نیت"
+                                    },
+                                    {
+                                                "label": "محافظ",
+                                                "value": "کریستال سافایر"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "سخت‌افزار",
+                        "items": [
+                                    {
+                                                "label": "پردازنده",
+                                                "value": "Apple S8 SiP"
+                                    },
+                                    {
+                                                "label": "حافظه داخلی",
+                                                "value": "32 گیگابایت"
+                                    },
+                                    {
+                                                "label": "GPS",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "عمر باتری",
+                                                "value": "تا 18 ساعت"
+                                    },
+                                    {
+                                                "label": "شارژ سریع",
+                                                "value": "دارد (0 تا 80 درصد در 45 دقیقه)"
+                                    },
+                                    {
+                                                "label": "شارژ بی‌سیم",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "Wi-Fi",
+                                                "value": "Wi-Fi 4 (802.11n)"
+                                    },
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.3"
+                                    },
+                                    {
+                                                "label": "NFC",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "سیستم عامل",
+                                                "value": "watchOS 9"
+                                    },
+                                    {
+                                                "label": "مقاومت",
+                                                "value": "WR50 (ضد آب تا 50 متر)"
+                                    },
+                                    {
+                                                "label": "سنسورها",
+                                                "value": "ضربان قلب، اکسیژن خون، ECG، دما، شتاب‌سنج، ژیروسکوپ"
+                                    },
+                                    {
+                                                "label": "امکانات سلامتی",
+                                                "value": "تشخیص سقوط، تشخیص تصادف، SOS اضطراری"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {
                         "date": "2024-02-01",
@@ -1041,7 +1512,110 @@ export const singleProducts = [
                     Image14,
                 ],
                 "description": "<p>توضیحات نمونه برای محصول 4</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "نوع",
+                                                "value": "هدفون بی‌سیم روی گوش"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "290 گرم"
+                                    },
+                                    {
+                                                "label": "رنگ‌های موجود",
+                                                "value": "مشکی، آبی، قرمز"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "مشخصات صدا",
+                        "items": [
+                                    {
+                                                "label": "درایور",
+                                                "value": "40 میلی‌متر"
+                                    },
+                                    {
+                                                "label": "پاسخ فرکانسی",
+                                                "value": "20 هرتز - 20 کیلوهرتز"
+                                    },
+                                    {
+                                                "label": "حذف نویز فعال",
+                                                "value": "دارد (ANC)"
+                                    },
+                                    {
+                                                "label": "صدای محیطی",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.0"
+                                    },
+                                    {
+                                                "label": "برد ارتباط",
+                                                "value": "تا 10 متر"
+                                    },
+                                    {
+                                                "label": "ورودی صوتی",
+                                                "value": "جک 3.5 میلی‌متر"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "عمر باتری",
+                                                "value": "تا 40 ساعت (ANC خاموش)"
+                                    },
+                                    {
+                                                "label": "عمر باتری با ANC",
+                                                "value": "تا 22 ساعت"
+                                    },
+                                    {
+                                                "label": "شارژ سریع",
+                                                "value": "10 دقیقه شارژ = 3.5 ساعت پخش"
+                                    },
+                                    {
+                                                "label": "پورت شارژ",
+                                                "value": "USB-C"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "میکروفون",
+                                                "value": "دارد (تماس و دستیار صوتی)"
+                                    },
+                                    {
+                                                "label": "تاشو",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "کیف حمل",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "سازگاری",
+                                                "value": "iOS، Android، ویندوز"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {
                         "date": "2024-02-01",
@@ -1366,7 +1940,152 @@ export const singleProducts = [
                     Image17,
                 ],
                 "description": "<p>توضیحات نمونه برای محصول 4</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد با پایه",
+                                                "value": "122.8 × 78.5 × 25.1 سانتی‌متر"
+                                    },
+                                    {
+                                                "label": "ابعاد بدون پایه",
+                                                "value": "122.8 × 70.6 × 4.69 سانتی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن با پایه",
+                                                "value": "18.9 کیلوگرم"
+                                    },
+                                    {
+                                                "label": "وزن بدون پایه",
+                                                "value": "18.2 کیلوگرم"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "55 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "3840 × 2160 (4K)"
+                                    },
+                                    {
+                                                "label": "نوع پنل",
+                                                "value": "OLED"
+                                    },
+                                    {
+                                                "label": "نرخ تازه‌سازی",
+                                                "value": "120 هرتز"
+                                    },
+                                    {
+                                                "label": "زاویه دید",
+                                                "value": "178 درجه"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "تصویر",
+                        "items": [
+                                    {
+                                                "label": "پردازنده تصویر",
+                                                "value": "α9 Gen 4 AI Processor 4K"
+                                    },
+                                    {
+                                                "label": "HDR",
+                                                "value": "Dolby Vision IQ، HDR10، HLG"
+                                    },
+                                    {
+                                                "label": "روشنایی",
+                                                "value": "Peak Brightness"
+                                    },
+                                    {
+                                                "label": "کنتراست",
+                                                "value": "بی‌نهایت (OLED)"
+                                    },
+                                    {
+                                                "label": "گستره رنگی",
+                                                "value": "100٪ DCI-P3"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "صدا",
+                        "items": [
+                                    {
+                                                "label": "توان خروجی",
+                                                "value": "40 وات"
+                                    },
+                                    {
+                                                "label": "سیستم صوتی",
+                                                "value": "2.2 کانال"
+                                    },
+                                    {
+                                                "label": "پشتیبانی",
+                                                "value": "Dolby Atmos، AI Sound Pro"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "HDMI",
+                                                "value": "4 پورت (HDMI 2.1)"
+                                    },
+                                    {
+                                                "label": "USB",
+                                                "value": "3 پورت"
+                                    },
+                                    {
+                                                "label": "Wi-Fi",
+                                                "value": "Wi-Fi 5 (802.11ac)"
+                                    },
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.0"
+                                    },
+                                    {
+                                                "label": "اترنت",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "سیستم عامل",
+                                                "value": "webOS 6.0"
+                                    },
+                                    {
+                                                "label": "دستیار صوتی",
+                                                "value": "Google Assistant، Alexa"
+                                    },
+                                    {
+                                                "label": "قابلیت گیمینگ",
+                                                "value": "NVIDIA G-SYNC، AMD FreeSync، VRR"
+                                    },
+                                    {
+                                                "label": "Magic Remote",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "توان مصرفی",
+                                                "value": "140 وات"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {
                         "date": "2024-02-01",
@@ -1683,7 +2402,164 @@ export const singleProducts = [
                     Image20,
                 ],
                 "description": "<p>توضیحات نمونه برای محصول 4</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد",
+                                                "value": "35.9 × 25.3 × 2.24 سانتی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "2.2 کیلوگرم"
+                                    },
+                                    {
+                                                "label": "رنگ",
+                                                "value": "مشکی"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "15.6 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "1920 × 1080 (Full HD)"
+                                    },
+                                    {
+                                                "label": "نوع پنل",
+                                                "value": "IPS"
+                                    },
+                                    {
+                                                "label": "نرخ تازه‌سازی",
+                                                "value": "144 هرتز"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "سخت‌افزار",
+                        "items": [
+                                    {
+                                                "label": "پردازنده",
+                                                "value": "Intel Core i5-11400H"
+                                    },
+                                    {
+                                                "label": "نسل پردازنده",
+                                                "value": "نسل 11"
+                                    },
+                                    {
+                                                "label": "تعداد هسته",
+                                                "value": "6 هسته"
+                                    },
+                                    {
+                                                "label": "فرکانس",
+                                                "value": "تا 4.5 گیگاهرتز"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "حافظه و ذخیره‌سازی",
+                        "items": [
+                                    {
+                                                "label": "RAM",
+                                                "value": "8 گیگابایت DDR4"
+                                    },
+                                    {
+                                                "label": "فرکانس RAM",
+                                                "value": "3200 مگاهرتز"
+                                    },
+                                    {
+                                                "label": "حافظه داخلی",
+                                                "value": "512 گیگابایت SSD"
+                                    },
+                                    {
+                                                "label": "قابلیت ارتقا",
+                                                "value": "تا 32 گیگابایت RAM"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "گرافیک",
+                        "items": [
+                                    {
+                                                "label": "کارت گرافیک",
+                                                "value": "NVIDIA GeForce RTX 3050"
+                                    },
+                                    {
+                                                "label": "حافظه گرافیک",
+                                                "value": "4 گیگابایت GDDR6"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "ظرفیت",
+                                                "value": "48 وات‌ساعت"
+                                    },
+                                    {
+                                                "label": "آداپتور",
+                                                "value": "150 وات"
+                                    }
+                        ]
+            },
+            {
+                        "id": 7,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "Wi-Fi",
+                                                "value": "Wi-Fi 6 (802.11ax)"
+                                    },
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.1"
+                                    },
+                                    {
+                                                "label": "پورت‌ها",
+                                                "value": "1× USB-C، 3× USB 3.2، 1× HDMI، 1× RJ-45"
+                                    },
+                                    {
+                                                "label": "جک صدا",
+                                                "value": "3.5 میلی‌متر"
+                                    }
+                        ]
+            },
+            {
+                        "id": 8,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "سیستم عامل",
+                                                "value": "Windows 11 Home"
+                                    },
+                                    {
+                                                "label": "کیبورد",
+                                                "value": "نورپردازی تک رنگ"
+                                    },
+                                    {
+                                                "label": "وب‌کم",
+                                                "value": "HD 720p"
+                                    },
+                                    {
+                                                "label": "صدا",
+                                                "value": "2× اسپیکر استریو"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {
                         "date": "2024-02-01",
@@ -1988,7 +2864,178 @@ export const singleProducts = [
                     "Image3"
                 ],
                 "description": "<p>گوشی هوشمند آنر با امکانات پیشرفته</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد",
+                                                "value": "162.9 × 76.7 × 8.77 میلی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "219 گرم"
+                                    },
+                                    {
+                                                "label": "تعداد سیم‌کارت",
+                                                "value": "دو سیم‌کارت"
+                                    },
+                                    {
+                                                "label": "نوع سیم‌کارت",
+                                                "value": "نانو سیم"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "6.81 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "2848 × 1312 پیکسل"
+                                    },
+                                    {
+                                                "label": "نوع صفحه نمایش",
+                                                "value": "OLED"
+                                    },
+                                    {
+                                                "label": "نرخ تازه‌سازی",
+                                                "value": "120 هرتز"
+                                    },
+                                    {
+                                                "label": "تراکم پیکسل",
+                                                "value": "460 پیکسل در اینچ"
+                                    },
+                                    {
+                                                "label": "محافظت",
+                                                "value": "Kunlun Glass"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "سخت‌افزار",
+                        "items": [
+                                    {
+                                                "label": "پردازنده",
+                                                "value": "Qualcomm Snapdragon 8 Gen 2"
+                                    },
+                                    {
+                                                "label": "پردازنده گرافیکی",
+                                                "value": "Adreno 740"
+                                    },
+                                    {
+                                                "label": "حافظه RAM",
+                                                "value": "12 گیگابایت"
+                                    },
+                                    {
+                                                "label": "حافظه داخلی",
+                                                "value": "512 گیگابایت"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "دوربین",
+                        "items": [
+                                    {
+                                                "label": "دوربین اصلی",
+                                                "value": "سه دوربین"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی اول",
+                                                "value": "50 مگاپیکسل، دیافراگم f/1.4"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی دوم",
+                                                "value": "50 مگاپیکسل، اولترا واید، f/2.0"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی سوم",
+                                                "value": "50 مگاپیکسل، تله‌فوتو، f/3.0، زوم اپتیکال 3.5 برابر"
+                                    },
+                                    {
+                                                "label": "ویدیو",
+                                                "value": "4K تا 60 فریم بر ثانیه"
+                                    },
+                                    {
+                                                "label": "دوربین سلفی",
+                                                "value": "12 مگاپیکسل، دیافراگم f/2.4"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "ظرفیت باتری",
+                                                "value": "5100 میلی‌آمپر ساعت"
+                                    },
+                                    {
+                                                "label": "شارژ سریع",
+                                                "value": "66 وات"
+                                    },
+                                    {
+                                                "label": "شارژ بی‌سیم",
+                                                "value": "50 وات"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "شبکه",
+                                                "value": "5G، 4G LTE"
+                                    },
+                                    {
+                                                "label": "Wi-Fi",
+                                                "value": "Wi-Fi 6E (802.11ax)"
+                                    },
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.3"
+                                    },
+                                    {
+                                                "label": "NFC",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 7,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "سیستم عامل",
+                                                "value": "Android 13، MagicOS 7.1"
+                                    },
+                                    {
+                                                "label": "حسگر اثر انگشت",
+                                                "value": "زیر صفحه نمایش"
+                                    },
+                                    {
+                                                "label": "تشخیص چهره",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "مقاومت",
+                                                "value": "IP68"
+                                    },
+                                    {
+                                                "label": "سنسورها",
+                                                "value": "شتاب‌سنج، ژیروسکوپ، قطب‌نما، مادون قرمز"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {"date": "2024-02-01", "minPrice": 850000, "maxPrice": 1100000},
                     {"date": "2024-03-01", "minPrice": 830000, "maxPrice": 1050000},
@@ -2103,7 +3150,176 @@ export const singleProducts = [
                     "Image5"
                 ],
                 "description": "<p>یک لپ‌تاپ گیمینگ قدرتمند از ایسوس با پردازنده Core i9 و کارت گرافیک RTX 4070</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد",
+                                                "value": "35.4 × 28.2 × 2.24 سانتی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "2.5 کیلوگرم"
+                                    },
+                                    {
+                                                "label": "رنگ",
+                                                "value": "مشکی با نورپردازی RGB"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "16 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "2560 × 1600 (WQXGA)"
+                                    },
+                                    {
+                                                "label": "نوع پنل",
+                                                "value": "IPS"
+                                    },
+                                    {
+                                                "label": "نرخ تازه‌سازی",
+                                                "value": "165 هرتز"
+                                    },
+                                    {
+                                                "label": "پوشش رنگی",
+                                                "value": "100٪ sRGB"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "سخت‌افزار",
+                        "items": [
+                                    {
+                                                "label": "پردازنده",
+                                                "value": "Intel Core i7-13650HX"
+                                    },
+                                    {
+                                                "label": "نسل پردازنده",
+                                                "value": "نسل 13"
+                                    },
+                                    {
+                                                "label": "تعداد هسته",
+                                                "value": "14 هسته (6P+8E)"
+                                    },
+                                    {
+                                                "label": "فرکانس",
+                                                "value": "تا 4.9 گیگاهرتز"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "حافظه و ذخیره‌سازی",
+                        "items": [
+                                    {
+                                                "label": "RAM",
+                                                "value": "16 گیگابایت DDR5"
+                                    },
+                                    {
+                                                "label": "فرکانس RAM",
+                                                "value": "4800 مگاهرتز"
+                                    },
+                                    {
+                                                "label": "حافظه داخلی",
+                                                "value": "512 گیگابایت SSD NVMe"
+                                    },
+                                    {
+                                                "label": "قابلیت ارتقا",
+                                                "value": "تا 32 گیگابایت RAM، 2TB SSD"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "گرافیک",
+                        "items": [
+                                    {
+                                                "label": "کارت گرافیک",
+                                                "value": "NVIDIA GeForce RTX 4060"
+                                    },
+                                    {
+                                                "label": "حافظه گرافیک",
+                                                "value": "8 گیگابایت GDDR6"
+                                    },
+                                    {
+                                                "label": "TGP",
+                                                "value": "140 وات"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "ظرفیت",
+                                                "value": "90 وات‌ساعت"
+                                    },
+                                    {
+                                                "label": "آداپتور",
+                                                "value": "240 وات"
+                                    }
+                        ]
+            },
+            {
+                        "id": 7,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "Wi-Fi",
+                                                "value": "Wi-Fi 6E (802.11ax)"
+                                    },
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.3"
+                                    },
+                                    {
+                                                "label": "پورت‌ها",
+                                                "value": "1× Thunderbolt 4، 2× USB 3.2، 1× HDMI 2.1، 1× RJ-45"
+                                    },
+                                    {
+                                                "label": "جک صدا",
+                                                "value": "3.5 میلی‌متر"
+                                    }
+                        ]
+            },
+            {
+                        "id": 8,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "سیستم عامل",
+                                                "value": "Windows 11 Home"
+                                    },
+                                    {
+                                                "label": "کیبورد",
+                                                "value": "نورپردازی RGB Per-Key"
+                                    },
+                                    {
+                                                "label": "وب‌کم",
+                                                "value": "HD 720p"
+                                    },
+                                    {
+                                                "label": "صدا",
+                                                "value": "2× 4W اسپیکر با Dolby Atmos"
+                                    },
+                                    {
+                                                "label": "خنک‌کننده",
+                                                "value": "سیستم خنک‌کننده ROG Intelligent Cooling"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {
                         "date": "2024-02-01",
@@ -2300,7 +3516,136 @@ export const singleProducts = [
                     "Image5"
                 ],
                 "description": "<p>دستبند هوشمند شیائومی Mi Band 8 با قابلیت پایش سلامت و صفحه نمایش AMOLED</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد",
+                                                "value": "48 × 22.5 × 11 میلی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "27 گرم (با بند)"
+                                    },
+                                    {
+                                                "label": "جنس بدنه",
+                                                "value": "پلاستیک با شیشه تمپرد"
+                                    },
+                                    {
+                                                "label": "بند",
+                                                "value": "TPU قابل تعویض"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "1.62 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "490 × 192 پیکسل"
+                                    },
+                                    {
+                                                "label": "نوع صفحه نمایش",
+                                                "value": "AMOLED"
+                                    },
+                                    {
+                                                "label": "روشنایی",
+                                                "value": "600 نیت"
+                                    },
+                                    {
+                                                "label": "صفحه همیشه روشن",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "سخت‌افزار",
+                        "items": [
+                                    {
+                                                "label": "حسگر ضربان قلب",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "حسگر اکسیژن خون",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "شتاب‌سنج",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "ژیروسکوپ",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "ظرفیت",
+                                                "value": "190 میلی‌آمپر ساعت"
+                                    },
+                                    {
+                                                "label": "عمر باتری",
+                                                "value": "تا 16 روز (استفاده معمولی)"
+                                    },
+                                    {
+                                                "label": "شارژ",
+                                                "value": "شارژر مغناطیسی"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.1 BLE"
+                                    },
+                                    {
+                                                "label": "سازگاری",
+                                                "value": "Android 6.0+ و iOS 12.0+"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "ردیاب ورزشی",
+                                                "value": "150+ حالت ورزشی"
+                                    },
+                                    {
+                                                "label": "مقاومت",
+                                                "value": "5ATM (تا 50 متر)"
+                                    },
+                                    {
+                                                "label": "GPS",
+                                                "value": "متصل به گوشی"
+                                    },
+                                    {
+                                                "label": "اعلانات",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "کنترل موسیقی",
+                                                "value": "دارد"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {
                         "date": "2024-02-01",
@@ -2502,7 +3847,182 @@ export const singleProducts = [
                     "Image5"
                 ],
                 "description": "<p>گوشی شیائومی ردمی نوت 12 پرو با صفحه نمایش 120 هرتزی و دوربین 108 مگاپیکسلی</p>",
-                "specifications": null,
+                "specifications": [
+            {
+                        "id": 1,
+                        "category": "مشخصات کلی",
+                        "items": [
+                                    {
+                                                "label": "ابعاد",
+                                                "value": "162.9 × 76 × 7.9 میلی‌متر"
+                                    },
+                                    {
+                                                "label": "وزن",
+                                                "value": "187 گرم"
+                                    },
+                                    {
+                                                "label": "تعداد سیم‌کارت",
+                                                "value": "دو سیم‌کارت"
+                                    },
+                                    {
+                                                "label": "نوع سیم‌کارت",
+                                                "value": "نانو سیم"
+                                    }
+                        ]
+            },
+            {
+                        "id": 2,
+                        "category": "صفحه نمایش",
+                        "items": [
+                                    {
+                                                "label": "اندازه",
+                                                "value": "6.67 اینچ"
+                                    },
+                                    {
+                                                "label": "رزولوشن",
+                                                "value": "2400 × 1080 پیکسل"
+                                    },
+                                    {
+                                                "label": "نوع صفحه نمایش",
+                                                "value": "AMOLED"
+                                    },
+                                    {
+                                                "label": "نرخ تازه‌سازی",
+                                                "value": "120 هرتز"
+                                    },
+                                    {
+                                                "label": "تراکم پیکسل",
+                                                "value": "395 پیکسل در اینچ"
+                                    },
+                                    {
+                                                "label": "محافظت",
+                                                "value": "Gorilla Glass 5"
+                                    }
+                        ]
+            },
+            {
+                        "id": 3,
+                        "category": "سخت‌افزار",
+                        "items": [
+                                    {
+                                                "label": "پردازنده",
+                                                "value": "MediaTek Dimensity 1080"
+                                    },
+                                    {
+                                                "label": "پردازنده گرافیکی",
+                                                "value": "Mali-G68 MC4"
+                                    },
+                                    {
+                                                "label": "حافظه RAM",
+                                                "value": "8 گیگابایت"
+                                    },
+                                    {
+                                                "label": "حافظه داخلی",
+                                                "value": "256 گیگابایت"
+                                    },
+                                    {
+                                                "label": "کارت حافظه",
+                                                "value": "ندارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 4,
+                        "category": "دوربین",
+                        "items": [
+                                    {
+                                                "label": "دوربین اصلی",
+                                                "value": "سه دوربین"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی اول",
+                                                "value": "200 مگاپیکسل، دیافراگم f/1.65"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی دوم",
+                                                "value": "8 مگاپیکسل، اولترا واید، f/2.2"
+                                    },
+                                    {
+                                                "label": "دوربین اصلی سوم",
+                                                "value": "2 مگاپیکسل، ماکرو، f/2.4"
+                                    },
+                                    {
+                                                "label": "ویدیو",
+                                                "value": "4K تا 30 فریم بر ثانیه"
+                                    },
+                                    {
+                                                "label": "دوربین سلفی",
+                                                "value": "16 مگاپیکسل، دیافراگم f/2.45"
+                                    }
+                        ]
+            },
+            {
+                        "id": 5,
+                        "category": "باتری",
+                        "items": [
+                                    {
+                                                "label": "ظرفیت باتری",
+                                                "value": "5000 میلی‌آمپر ساعت"
+                                    },
+                                    {
+                                                "label": "شارژ سریع",
+                                                "value": "67 وات"
+                                    },
+                                    {
+                                                "label": "شارژ بی‌سیم",
+                                                "value": "ندارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 6,
+                        "category": "ارتباطات",
+                        "items": [
+                                    {
+                                                "label": "شبکه",
+                                                "value": "5G، 4G LTE"
+                                    },
+                                    {
+                                                "label": "Wi-Fi",
+                                                "value": "Wi-Fi 6 (802.11ax)"
+                                    },
+                                    {
+                                                "label": "بلوتوث",
+                                                "value": "5.3"
+                                    },
+                                    {
+                                                "label": "NFC",
+                                                "value": "دارد"
+                                    }
+                        ]
+            },
+            {
+                        "id": 7,
+                        "category": "سایر امکانات",
+                        "items": [
+                                    {
+                                                "label": "سیستم عامل",
+                                                "value": "Android 13، MIUI 14"
+                                    },
+                                    {
+                                                "label": "حسگر اثر انگشت",
+                                                "value": "کناری"
+                                    },
+                                    {
+                                                "label": "تشخیص چهره",
+                                                "value": "دارد"
+                                    },
+                                    {
+                                                "label": "مقاومت",
+                                                "value": "IP53"
+                                    },
+                                    {
+                                                "label": "سنسورها",
+                                                "value": "شتاب‌سنج، ژیروسکوپ، قطب‌نما، مادون قرمز"
+                                    }
+                        ]
+            }
+            ],
                 "priceHistory": [
                     {
                         "date": "2024-02-01",
@@ -2698,12 +4218,178 @@ export const singleProducts = [
                 "https://example.com/images/iphone13_pro_3.jpg"
               ],
               "description": "<p>گوشی موبایل اپل مدل آیفون 13 پرو با حافظه 256 گیگابایت و رنگ مشکی. این مدل از بهترین ویژگی‌های دوربین و نمایشگر برخوردار است.</p>",
-              "specifications": {
-                "display": "6.1 inch OLED",
-                "processor": "A15 Bionic",
-                "battery": "3095 mAh",
-                "camera": "12 MP (wide), 12 MP (ultra-wide), 12 MP (telephoto)"
+              "specifications": [
+              {
+                            "id": 1,
+                            "category": "مشخصات کلی",
+                            "items": [
+                                          {
+                                                        "label": "ابعاد",
+                                                        "value": "146.7 × 71.5 × 7.65 میلی‌متر"
+                                          },
+                                          {
+                                                        "label": "وزن",
+                                                        "value": "204 گرم"
+                                          },
+                                          {
+                                                        "label": "تعداد سیم‌کارت",
+                                                        "value": "دو سیم‌کارت"
+                                          },
+                                          {
+                                                        "label": "نوع سیم‌کارت",
+                                                        "value": "نانو سیم و eSIM"
+                                          }
+                            ]
               },
+              {
+                            "id": 2,
+                            "category": "صفحه نمایش",
+                            "items": [
+                                          {
+                                                        "label": "اندازه",
+                                                        "value": "6.1 اینچ"
+                                          },
+                                          {
+                                                        "label": "رزولوشن",
+                                                        "value": "2532 × 1170 پیکسل"
+                                          },
+                                          {
+                                                        "label": "نوع صفحه نمایش",
+                                                        "value": "Super Retina XDR OLED"
+                                          },
+                                          {
+                                                        "label": "نرخ تازه‌سازی",
+                                                        "value": "120 هرتز (ProMotion)"
+                                          },
+                                          {
+                                                        "label": "تراکم پیکسل",
+                                                        "value": "460 پیکسل در اینچ"
+                                          },
+                                          {
+                                                        "label": "محافظت",
+                                                        "value": "Ceramic Shield"
+                                          }
+                            ]
+              },
+              {
+                            "id": 3,
+                            "category": "سخت‌افزار",
+                            "items": [
+                                          {
+                                                        "label": "پردازنده",
+                                                        "value": "Apple A15 Bionic"
+                                          },
+                                          {
+                                                        "label": "پردازنده گرافیکی",
+                                                        "value": "Apple GPU (5 هسته‌ای)"
+                                          },
+                                          {
+                                                        "label": "حافظه RAM",
+                                                        "value": "6 گیگابایت"
+                                          },
+                                          {
+                                                        "label": "حافظه داخلی",
+                                                        "value": "128/256/512 گیگابایت/1 ترابایت"
+                                          }
+                            ]
+              },
+              {
+                            "id": 4,
+                            "category": "دوربین",
+                            "items": [
+                                          {
+                                                        "label": "دوربین اصلی",
+                                                        "value": "سه دوربین 12 مگاپیکسل"
+                                          },
+                                          {
+                                                        "label": "دوربین اصلی اول",
+                                                        "value": "12 مگاپیکسل، دیافراگم f/1.5، لنز واید"
+                                          },
+                                          {
+                                                        "label": "دوربین اصلی دوم",
+                                                        "value": "12 مگاپیکسل، دیافراگم f/1.8، لنز اولترا واید"
+                                          },
+                                          {
+                                                        "label": "دوربین اصلی سوم",
+                                                        "value": "12 مگاپیکسل، دیافراگم f/2.8، تله‌فوتو، زوم اپتیکال 3 برابر"
+                                          },
+                                          {
+                                                        "label": "ویدیو",
+                                                        "value": "4K تا 60 فریم بر ثانیه، ProRes، سینمایی"
+                                          },
+                                          {
+                                                        "label": "دوربین سلفی",
+                                                        "value": "12 مگاپیکسل، دیافراگم f/2.2"
+                                          }
+                            ]
+              },
+              {
+                            "id": 5,
+                            "category": "باتری",
+                            "items": [
+                                          {
+                                                        "label": "ظرفیت باتری",
+                                                        "value": "3095 میلی‌آمپر ساعت"
+                                          },
+                                          {
+                                                        "label": "شارژ سریع",
+                                                        "value": "20 وات (50 درصد در 30 دقیقه)"
+                                          },
+                                          {
+                                                        "label": "شارژ بی‌سیم",
+                                                        "value": "MagSafe 15 وات، Qi 7.5 وات"
+                                          }
+                            ]
+              },
+              {
+                            "id": 6,
+                            "category": "ارتباطات",
+                            "items": [
+                                          {
+                                                        "label": "شبکه",
+                                                        "value": "5G، 4G LTE"
+                                          },
+                                          {
+                                                        "label": "Wi-Fi",
+                                                        "value": "Wi-Fi 6 (802.11ax)"
+                                          },
+                                          {
+                                                        "label": "بلوتوث",
+                                                        "value": "5.0"
+                                          },
+                                          {
+                                                        "label": "NFC",
+                                                        "value": "دارد"
+                                          }
+                            ]
+              },
+              {
+                            "id": 7,
+                            "category": "سایر امکانات",
+                            "items": [
+                                          {
+                                                        "label": "سیستم عامل",
+                                                        "value": "iOS 15 (قابل ارتقا)"
+                                          },
+                                          {
+                                                        "label": "حسگر اثر انگشت",
+                                                        "value": "ندارد"
+                                          },
+                                          {
+                                                        "label": "تشخیص چهره",
+                                                        "value": "Face ID"
+                                          },
+                                          {
+                                                        "label": "مقاومت",
+                                                        "value": "IP68 (تا 6 متر، 30 دقیقه)"
+                                          },
+                                          {
+                                                        "label": "سنسورها",
+                                                        "value": "LiDAR، شتاب‌سنج، ژیروسکوپ، قطب‌نما، فشارسنج"
+                                          }
+                            ]
+              }
+              ],
               "priceHistory": [
                 {
                   "date": "2024-02-01",
@@ -2891,12 +4577,126 @@ export const singleProducts = [
                 "https://example.com/images/apple_vacuum_3.jpg"
               ],
               "description": "<p>جارو برقی اپل مدل A1234 با قابلیت مکش قوی و طراحی زیبا. این مدل برای استفاده در خانه‌های مدرن مناسب است.</p>",
-              "specifications": {
-                "power": "2000W",
-                "capacity": "3L",
-                "weight": "5kg",
-                "color": "Silver"
+              "specifications": [
+              {
+                            "id": 1,
+                            "category": "مشخصات کلی",
+                            "items": [
+                                          {
+                                                        "label": "ابعاد",
+                                                        "value": "35 × 35 × 9.5 سانتی‌متر"
+                                          },
+                                          {
+                                                        "label": "وزن",
+                                                        "value": "3.6 کیلوگرم"
+                                          },
+                                          {
+                                                        "label": "نوع",
+                                                        "value": "رباتیک"
+                                          },
+                                          {
+                                                        "label": "رنگ",
+                                                        "value": "سفید"
+                                          }
+                            ]
               },
+              {
+                            "id": 2,
+                            "category": "عملکرد",
+                            "items": [
+                                          {
+                                                        "label": "قدرت مکش",
+                                                        "value": "2700 پاسکال"
+                                          },
+                                          {
+                                                        "label": "سطح صدا",
+                                                        "value": "65 دسی‌بل"
+                                          },
+                                          {
+                                                        "label": "سرعت‌های مکش",
+                                                        "value": "4 حالت"
+                                          },
+                                          {
+                                                        "label": "مناسب برای",
+                                                        "value": "فرش، موکت، سرامیک، پارکت"
+                                          }
+                            ]
+              },
+              {
+                            "id": 3,
+                            "category": "فیلتراسیون",
+                            "items": [
+                                          {
+                                                        "label": "نوع فیلتر",
+                                                        "value": "HEPA 13"
+                                          },
+                                          {
+                                                        "label": "تصفیه هوا",
+                                                        "value": "99.97٪ ذرات"
+                                          },
+                                          {
+                                                        "label": "فیلتر قابل شستشو",
+                                                        "value": "دارد"
+                                          }
+                            ]
+              },
+              {
+                            "id": 4,
+                            "category": "ظرفیت",
+                            "items": [
+                                          {
+                                                        "label": "ظرفیت مخزن گرد و غبار",
+                                                        "value": "550 میلی‌لیتر"
+                                          },
+                                          {
+                                                        "label": "ظرفیت مخزن آب",
+                                                        "value": "300 میلی‌لیتر"
+                                          }
+                            ]
+              },
+              {
+                            "id": 5,
+                            "category": "سایر امکانات",
+                            "items": [
+                                          {
+                                                        "label": "باتری",
+                                                        "value": "5200 میلی‌آمپر ساعت"
+                                          },
+                                          {
+                                                        "label": "زمان شارژ",
+                                                        "value": "4 ساعت"
+                                          },
+                                          {
+                                                        "label": "زمان کارکرد",
+                                                        "value": "تا 150 دقیقه"
+                                          },
+                                          {
+                                                        "label": "ناوبری",
+                                                        "value": "LDS لیزر، سنسورهای تشخیص مانع"
+                                          },
+                                          {
+                                                        "label": "اتصال",
+                                                        "value": "Wi-Fi، اپلیکیشن موبایل"
+                                          },
+                                          {
+                                                        "label": "دستیار صوتی",
+                                                        "value": "Siri، Alexa، Google Assistant"
+                                          },
+                                          {
+                                                        "label": "برنامه‌ریزی",
+                                                        "value": "دارد"
+                                          },
+                                          {
+                                                        "label": "بازگشت خودکار",
+                                                        "value": "دارد"
+                                          },
+                                          {
+                                                        "label": "تشخیص فرش",
+                                                        "value": "خودکار"
+                                          }
+                            ]
+              }
+              ],
               "priceHistory": [
                 {
                   "date": "2024-02-01",
@@ -3095,12 +4895,130 @@ export const singleProducts = [
                 "https://example.com/images/asus_vacuum_3.jpg"
               ],
               "description": "<p>جارو برقی ایسوس مدل ABC1234 با قدرت مکش بالا و طراحی مدرن.</p>",
-              "specifications": {
-                "power": "2500W",
-                "capacity": "4L",
-                "weight": "6kg",
-                "color": "Black"
+              "specifications": [
+              {
+                            "id": 1,
+                            "category": "مشخصات کلی",
+                            "items": [
+                                          {
+                                                        "label": "ابعاد",
+                                                        "value": "35 × 35 × 10 سانتی‌متر"
+                                          },
+                                          {
+                                                        "label": "وزن",
+                                                        "value": "3.8 کیلوگرم"
+                                          },
+                                          {
+                                                        "label": "نوع",
+                                                        "value": "رباتیک"
+                                          },
+                                          {
+                                                        "label": "رنگ",
+                                                        "value": "مشکی"
+                                          }
+                            ]
               },
+              {
+                            "id": 2,
+                            "category": "عملکرد",
+                            "items": [
+                                          {
+                                                        "label": "قدرت مکش",
+                                                        "value": "3000 پاسکال"
+                                          },
+                                          {
+                                                        "label": "سطح صدا",
+                                                        "value": "68 دسی‌بل"
+                                          },
+                                          {
+                                                        "label": "سرعت‌های مکش",
+                                                        "value": "3 حالت"
+                                          },
+                                          {
+                                                        "label": "مناسب برای",
+                                                        "value": "فرش، موکت، سرامیک، پارکت"
+                                          }
+                            ]
+              },
+              {
+                            "id": 3,
+                            "category": "فیلتراسیون",
+                            "items": [
+                                          {
+                                                        "label": "نوع فیلتر",
+                                                        "value": "HEPA"
+                                          },
+                                          {
+                                                        "label": "تصفیه هوا",
+                                                        "value": "99.5٪ ذرات"
+                                          },
+                                          {
+                                                        "label": "فیلتر قابل شستشو",
+                                                        "value": "دارد"
+                                          }
+                            ]
+              },
+              {
+                            "id": 4,
+                            "category": "ظرفیت",
+                            "items": [
+                                          {
+                                                        "label": "ظرفیت مخزن گرد و غبار",
+                                                        "value": "600 میلی‌لیتر"
+                                          },
+                                          {
+                                                        "label": "ظرفیت مخزن آب",
+                                                        "value": "350 میلی‌لیتر"
+                                          }
+                            ]
+              },
+              {
+                            "id": 5,
+                            "category": "سایر امکانات",
+                            "items": [
+                                          {
+                                                        "label": "باتری",
+                                                        "value": "5600 میلی‌آمپر ساعت"
+                                          },
+                                          {
+                                                        "label": "زمان شارژ",
+                                                        "value": "4-5 ساعت"
+                                          },
+                                          {
+                                                        "label": "زمان کارکرد",
+                                                        "value": "تا 180 دقیقه"
+                                          },
+                                          {
+                                                        "label": "ناوبری",
+                                                        "value": "نقشه‌برداری لیزری، سنسور مادون قرمز"
+                                          },
+                                          {
+                                                        "label": "اتصال",
+                                                        "value": "Wi-Fi، اپلیکیشن موبایل"
+                                          },
+                                          {
+                                                        "label": "دستیار صوتی",
+                                                        "value": "Alexa، Google Assistant"
+                                          },
+                                          {
+                                                        "label": "برنامه‌ریزی",
+                                                        "value": "دارد"
+                                          },
+                                          {
+                                                        "label": "بازگشت خودکار",
+                                                        "value": "دارد"
+                                          },
+                                          {
+                                                        "label": "تشخیص فرش",
+                                                        "value": "خودکار"
+                                          },
+                                          {
+                                                        "label": "مناطق ممنوع",
+                                                        "value": "دارد (مجازی)"
+                                          }
+                            ]
+              }
+              ],
               "priceHistory": [
                 {
                   "date": "2024-02-01",
@@ -3208,13 +5126,98 @@ export const singleProducts = [
                 "https://example.com/images/beats_headphone_3.jpg"
               ],
               "description": "<p>هدفون با سیم بیتس مدل XYZ123 با کیفیت صدای عالی و طراحی راحت.</p>",
-              "specifications": {
-                "driver_size": "40mm",
-                "frequency_response": "20Hz - 20kHz",
-                "impedance": "32Ω",
-                "weight": "250g",
-                "color": "Red"
+              "specifications": [
+              {
+                            "id": 1,
+                            "category": "مشخصات کلی",
+                            "items": [
+                                          {
+                                                        "label": "نوع",
+                                                        "value": "هدفون با سیم روی گوش"
+                                          },
+                                          {
+                                                        "label": "وزن",
+                                                        "value": "215 گرم"
+                                          },
+                                          {
+                                                        "label": "رنگ‌های موجود",
+                                                        "value": "مشکی، سفید، قرمز"
+                                          }
+                            ]
               },
+              {
+                            "id": 2,
+                            "category": "مشخصات صدا",
+                            "items": [
+                                          {
+                                                        "label": "درایور",
+                                                        "value": "40 میلی‌متر"
+                                          },
+                                          {
+                                                        "label": "پاسخ فرکانسی",
+                                                        "value": "20 هرتز - 20 کیلوهرتز"
+                                          },
+                                          {
+                                                        "label": "امپدانس",
+                                                        "value": "32 اهم"
+                                          },
+                                          {
+                                                        "label": "حساسیت",
+                                                        "value": "110 دسی‌بل"
+                                          }
+                            ]
+              },
+              {
+                            "id": 3,
+                            "category": "ارتباطات",
+                            "items": [
+                                          {
+                                                        "label": "نوع اتصال",
+                                                        "value": "سیمی"
+                                          },
+                                          {
+                                                        "label": "ورودی صوتی",
+                                                        "value": "جک 3.5 میلی‌متر"
+                                          },
+                                          {
+                                                        "label": "طول کابل",
+                                                        "value": "1.2 متر"
+                                          }
+                            ]
+              },
+              {
+                            "id": 4,
+                            "category": "باتری",
+                            "items": [
+                                          {
+                                                        "label": "نیاز به باتری",
+                                                        "value": "ندارد"
+                                          }
+                            ]
+              },
+              {
+                            "id": 5,
+                            "category": "سایر امکانات",
+                            "items": [
+                                          {
+                                                        "label": "میکروفون",
+                                                        "value": "دارد (روی کابل)"
+                                          },
+                                          {
+                                                        "label": "تاشو",
+                                                        "value": "دارد"
+                                          },
+                                          {
+                                                        "label": "کیف حمل",
+                                                        "value": "دارد"
+                                          },
+                                          {
+                                                        "label": "سازگاری",
+                                                        "value": "همه دستگاه‌ها با جک 3.5mm"
+                                          }
+                            ]
+              }
+              ],
               "priceHistory": [
                 {
                   "date": "2024-02-01",
@@ -3322,13 +5325,112 @@ export const singleProducts = [
                 "https://example.com/images/lg_tv_3.jpg"
               ],
               "description": "<p>تلویزیون ساده ال جی مدل ABC123 با کیفیت تصویر عالی و طراحی شیک.</p>",
-              "specifications": {
-                "screen_size": "43 inches",
-                "resolution": "Full HD",
-                "hdmi_ports": "3",
-                "weight": "7kg",
-                "color": "Black"
+              "specifications": [
+              {
+                            "id": 1,
+                            "category": "مشخصات کلی",
+                            "items": [
+                                          {
+                                                        "label": "ابعاد با پایه",
+                                                        "value": "97.3 × 62.4 × 18.5 سانتی‌متر"
+                                          },
+                                          {
+                                                        "label": "ابعاد بدون پایه",
+                                                        "value": "97.3 × 56.7 × 7.95 سانتی‌متر"
+                                          },
+                                          {
+                                                        "label": "وزن با پایه",
+                                                        "value": "8.1 کیلوگرم"
+                                          },
+                                          {
+                                                        "label": "وزن بدون پایه",
+                                                        "value": "7.7 کیلوگرم"
+                                          }
+                            ]
               },
+              {
+                            "id": 2,
+                            "category": "صفحه نمایش",
+                            "items": [
+                                          {
+                                                        "label": "اندازه",
+                                                        "value": "43 اینچ"
+                                          },
+                                          {
+                                                        "label": "رزولوشن",
+                                                        "value": "1920 × 1080 (Full HD)"
+                                          },
+                                          {
+                                                        "label": "نوع پنل",
+                                                        "value": "LED"
+                                          },
+                                          {
+                                                        "label": "نرخ تازه‌سازی",
+                                                        "value": "60 هرتز"
+                                          }
+                            ]
+              },
+              {
+                            "id": 3,
+                            "category": "تصویر",
+                            "items": [
+                                          {
+                                                        "label": "HDR",
+                                                        "value": "ندارد"
+                                          },
+                                          {
+                                                        "label": "کنتراست",
+                                                        "value": "Mega Contrast"
+                                          }
+                            ]
+              },
+              {
+                            "id": 4,
+                            "category": "صدا",
+                            "items": [
+                                          {
+                                                        "label": "توان خروجی",
+                                                        "value": "20 وات"
+                                          },
+                                          {
+                                                        "label": "سیستم صوتی",
+                                                        "value": "2.0 کانال"
+                                          }
+                            ]
+              },
+              {
+                            "id": 5,
+                            "category": "ارتباطات",
+                            "items": [
+                                          {
+                                                        "label": "HDMI",
+                                                        "value": "2 پورت"
+                                          },
+                                          {
+                                                        "label": "USB",
+                                                        "value": "1 پورت"
+                                          },
+                                          {
+                                                        "label": "اترنت",
+                                                        "value": "دارد"
+                                          }
+                            ]
+              },
+              {
+                            "id": 6,
+                            "category": "سایر امکانات",
+                            "items": [
+                                          {
+                                                        "label": "سیستم عامل",
+                                                        "value": "webOS Smart TV"
+                                          },
+                                          {
+                                                        "label": "توان مصرفی",
+                                                        "value": "65 وات"
+                                          }
+                            ]
+              }
+              ],
               "priceHistory": [
                 {
                   "date": "2024-01-01",
@@ -3436,12 +5538,70 @@ export const singleProducts = [
                 "https://example.com/images/asus_tvtable_3.jpg"
               ],
               "description": "<p>میز تلویزیون ایسوس مدل XYZ123 با طراحی مدرن و کیفیت ساخت عالی.</p>",
-              "specifications": {
-                "material": "Wood",
-                "color": "Brown",
-                "dimensions": "120x40x45 cm",
-                "weight": "15kg"
+              "specifications": [
+              {
+                            "id": 1,
+                            "category": "مشخصات کلی",
+                            "items": [
+                                          {
+                                                        "label": "ابعاد",
+                                                        "value": "120 × 40 × 45 سانتی‌متر"
+                                          },
+                                          {
+                                                        "label": "وزن",
+                                                        "value": "15 کیلوگرم"
+                                          },
+                                          {
+                                                        "label": "جنس",
+                                                        "value": "MDF و فلز"
+                                          },
+                                          {
+                                                        "label": "رنگ",
+                                                        "value": "قهوه‌ای و مشکی"
+                                          }
+                            ]
               },
+              {
+                            "id": 2,
+                            "category": "ویژگی‌های طراحی",
+                            "items": [
+                                          {
+                                                        "label": "ظرفیت تحمل وزن",
+                                                        "value": "تا 50 کیلوگرم"
+                                          },
+                                          {
+                                                        "label": "مناسب برای تلویزیون",
+                                                        "value": "تا 55 اینچ"
+                                          },
+                                          {
+                                                        "label": "قفسه‌ها",
+                                                        "value": "2 قفسه باز"
+                                          },
+                                          {
+                                                        "label": "کشو",
+                                                        "value": "1 عدد"
+                                          }
+                            ]
+              },
+              {
+                            "id": 3,
+                            "category": "سایر امکانات",
+                            "items": [
+                                          {
+                                                        "label": "مدیریت کابل",
+                                                        "value": "دارد"
+                                          },
+                                          {
+                                                        "label": "نصب",
+                                                        "value": "نیاز به مونتاژ"
+                                          },
+                                          {
+                                                        "label": "سطح",
+                                                        "value": "ضد خش"
+                                          }
+                            ]
+              }
+              ],
               "priceHistory": [
                 {
                   "date": "2024-01-01",
@@ -3527,15 +5687,5 @@ export const singleProducts = [
               }
             ]
         }
-          
-          
-          
-          
-          
-          
-        
-        
-        
-        
-        
+
 ]

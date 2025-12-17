@@ -9,7 +9,7 @@ export const batchImportSingleProducts = createAsyncThunk(
       const response = await fetch(getApiUrl("/master-dash/singleproducts/batch-import"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        // credentials: "include",
         body: JSON.stringify({ singleProducts }), // Send products array as body
       });
 

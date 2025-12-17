@@ -8,7 +8,7 @@ const PriceHistorySchema = new mongoose.Schema({
 });
 
 const OptionChildSchema = new mongoose.Schema({
-    id: { type: Number, required: true },
+    id: { type: Number, required: false },
     label: { type: String, required: true },
     value: { type: String, required: true },
     selected: { type: Boolean, default: false }
@@ -22,6 +22,18 @@ const OptionSchema = new mongoose.Schema({
     children: [OptionChildSchema]
 });
 
+// ⭐ NEW: Specification Item Schema
+const SpecificationItemSchema = new mongoose.Schema({
+    label: { type: String, required: true },
+    value: { type: String, required: true }
+});
+
+// ⭐ NEW: Specification Category Schema
+const SpecificationCategorySchema = new mongoose.Schema({
+    id: { type: Number, required: true },
+    category: { type: String, required: false },
+    items: [SpecificationItemSchema]
+});
 
 const SupplierSchema = new mongoose.Schema({
     id: { type: Number, required: true },
@@ -40,9 +52,9 @@ const SupplierSchema = new mongoose.Schema({
         discountPercent: { type: Number, default: null },
         foreignCurrencyPrice: { type: Number, default: 0 },
         secondaryCost: { type: Number, default: 0 },
-        percentagePrice1: { type: Number, default: 0 }, // ⭐ قیمت درصدی 1 (قیمت عادی)
-        percentagePrice2: { type: Number, default: 0 }, // ⭐ قیمت درصدی 2 (قیمت تخفیف خورده)
-        percentagePrice3: { type: Number, default: 0 }, // ⭐ قیمت درصدی 3 (قیمت ویژه تولید کننده)
+        percentagePrice1: { type: Number, default: 0 },
+        percentagePrice2: { type: Number, default: 0 },
+        percentagePrice3: { type: Number, default: 0 },
         ICPrice: [
             {
                 ICID: { type: String, required: true },
@@ -96,7 +108,11 @@ const SingleProductSchema = new mongoose.Schema({
         addedToFavorite: { type: Boolean, default: false },
         images: { type: [String], required: true },
         description: { type: String, required: true },
-        specifications: { type: Object, default: null },
+        // ⭐ UPDATED: Changed from Object to Array of SpecificationCategorySchema
+        specifications: { 
+            type: [SpecificationCategorySchema], 
+            default: [] 
+        },
         priceHistory: [PriceHistorySchema]
     },
     options: [OptionSchema],

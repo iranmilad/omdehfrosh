@@ -4,8 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import getUserFromToken from '../libs/verifyToken.js'
 import HomePageProduct from '../models/HomePageProduct.js'
 
-
-
 // Get all single products
 export const getAllSingleProducts = async (req, res) => {
   try {
@@ -17,20 +15,22 @@ export const getAllSingleProducts = async (req, res) => {
 };
 
 export const getSingleProductById = async (req, res) => {
-  const { productId } = req.params; // keep this name in URL: /product/:productId
+  const { productId } = req.params;
 
   try {
-    // Use the correct field from DB
     const singleProduct = await SingleProduct.findOne({ id: productId });
 
     if (!singleProduct) {
       return res.status(404).json({ message: "Single product not found" });
     }
 
-    // Example: related products by same subCategoryId
-    const relatedProducts = await HomePageProduct.find().limit(10);
+    // Get related products by same subCategoryId from SingleProduct collection
+    const relatedProducts = await SingleProduct.find({
+      'general.subCategoryId': singleProduct.general.subCategoryId,
+      id: { $ne: productId } // Exclude current product
+    }).limit(10);
 
-    // Convert to plain object and remove _id and ICPrice fields recursively
+    // Convert to plain object and remove unwanted fields recursively
     const productObj = singleProduct.toObject();
     const cleanedProduct = removeUnwantedFields(productObj);
     const cleanedRelatedProducts = relatedProducts.map(p => removeUnwantedFields(p.toObject()));
@@ -40,7 +40,8 @@ export const getSingleProductById = async (req, res) => {
       relatedProducts: cleanedRelatedProducts,
     });
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving single product", error });
+    console.error("Error in getSingleProductById:", error);
+    res.status(500).json({ message: "Error retrieving single product", error: error.message });
   }
 };
 
@@ -60,13 +61,10 @@ function removeUnwantedFields(obj) {
   return obj;
 }
 
-
-
 export const createSingleProductComments = async (req, res) => {
   try {
     const { commentText, rating, name, date, supplierId, supplierName, supplierPsid } = req.body;
-
-    const {productId } = req.params
+    const { productId } = req.params;
 
     // Validation
     if (!productId) {
@@ -119,23 +117,20 @@ export const createSingleProductComments = async (req, res) => {
 
     // Create new comment object
     const newComment = {
-      commentId: uuidv4(), // Generate unique ID
+      commentId: uuidv4(),
       name: name.trim(),
       date: date || new Date().toLocaleDateString("fa-IR"),
       rating: rating.toString(),
-      status: 'pending', // Default status - you can modify this based on your business logic
+      status: 'pending',
       commentText: commentText.trim(),
       supplierId: parseInt(supplierId),
-      supplierName: supplierName || '',
-      // You can also store supplierPsid if needed:
-      // supplierPsid: supplierPsid || ''
+      supplierName: supplierName || ''
     };
 
     // Find existing product comments or create new document
     let productComments = await ProductComments.findOne({ productId });
 
     if (!productComments) {
-      // Create new product comments document
       productComments = new ProductComments({
         productId,
         comments: [newComment],
@@ -144,14 +139,11 @@ export const createSingleProductComments = async (req, res) => {
         averageRating: parseFloat(rating)
       });
     } else {
-      // Add comment to existing document
       productComments.addComment(newComment);
     }
 
-    // Save the document (this will trigger the pre-save middleware to update supplier stats)
     const savedDocument = await productComments.save();
 
-    // Return success response
     return res.status(201).json({
       state: "ok",
       message: "دیدگاه شما با موفقیت ثبت شد و پس از بررسی منتشر خواهد شد",
@@ -167,7 +159,6 @@ export const createSingleProductComments = async (req, res) => {
   } catch (error) {
     console.error("Error in submitComment:", error);
     
-    // Handle mongoose validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = {};
       for (const field in error.errors) {
@@ -181,7 +172,6 @@ export const createSingleProductComments = async (req, res) => {
       });
     }
 
-    // Handle duplicate key errors
     if (error.code === 11000) {
       return res.status(409).json({
         state: "error", 
@@ -190,7 +180,6 @@ export const createSingleProductComments = async (req, res) => {
       });
     }
 
-    // Generic server error
     return res.status(500).json({
       state: "error",
       message: "خطای داخلی سرور. لطفاً دوباره تلاش کنید",
@@ -198,98 +187,13 @@ export const createSingleProductComments = async (req, res) => {
     });
   }
 };
-
-// Alternative version if you want to auto-approve comments from certain suppliers or users
-export const submitCommentWithAutoApproval = async (req, res) => {
-  try {
-    const { productId, commentText, rating, name, date, supplierId, supplierName, supplierPsid, userId } = req.body;
-
-    // ... same validation as above ...
-
-    // Determine comment status based on business logic
-    let commentStatus = 'pending'; // default
-    
-    // Example: Auto-approve comments from verified suppliers or premium users
-    // You can modify this logic based on your requirements
-    const trustedSupplierIds = [1, 2]; // Example trusted supplier IDs
-    const premiumUsers = ['premium_user_id']; // Example premium user IDs
-    
-    if (trustedSupplierIds.includes(parseInt(supplierId)) || premiumUsers.includes(userId)) {
-      commentStatus = 'agreed';
-    }
-
-    const newComment = {
-      commentId: uuidv4(),
-      name: name.trim(),
-      date: date || new Date().toLocaleDateString("fa-IR"),
-      rating: rating.toString(),
-      status: commentStatus,
-      commentText: commentText.trim(),
-      supplierId: parseInt(supplierId),
-      supplierName: supplierName || ''
-    };
-
-    // ... rest of the logic remains the same ...
-
-    let productComments = await ProductComments.findOne({ productId });
-
-    if (!productComments) {
-      productComments = new ProductComments({
-        productId,
-        comments: [newComment],
-        suppliers: [],
-        totalComments: 1,
-        averageRating: parseFloat(rating)
-      });
-    } else {
-      productComments.addComment(newComment);
-    }
-
-    const savedDocument = await productComments.save();
-
-    const responseMessage = commentStatus === 'agreed' 
-      ? "دیدگاه شما با موفقیت ثبت و منتشر شد"
-      : "دیدگاه شما با موفقیت ثبت شد و پس از بررسی منتشر خواهد شد";
-
-    return res.status(201).json({
-      state: "ok",
-      message: responseMessage,
-      data: {
-        commentId: newComment.commentId,
-        productId,
-        status: newComment.status,
-        totalComments: savedDocument.totalComments,
-        averageRating: parseFloat(savedDocument.averageRating.toFixed(1))
-      }
-    });
-
-  } catch (error) {
-    // ... same error handling as above ...
-    console.error("Error in submitCommentWithAutoApproval:", error);
-    return res.status(500).json({
-      state: "error",
-      message: "خطای داخلی سرور. لطفاً دوباره تلاش کنید",
-      error: { server: "خطای داخلی سرور" }
-    });
-  }
-};
-
-
-
-
-
-
-
-
-
-
 
 export const getSingleProductComments = async (req, res) => {
   const { productId } = req.body;
 
   try {
-    // Find the product in the database
     const product = await ProductComments.findOne({ productId });
+    
     if (!product) {
       return res.json({ 
         message: "Product not found", 
@@ -303,7 +207,6 @@ export const getSingleProductComments = async (req, res) => {
       });
     }
 
-    // Build suppliers data (already pre-aggregated in your schema)
     const suppliersData = product.suppliers.map(s => ({
       supplierId: s.supplierId,
       supplierName: s.supplierName,
@@ -311,7 +214,6 @@ export const getSingleProductComments = async (req, res) => {
       averageRating: parseFloat(s.averageRating.toFixed(1))
     }));
 
-    // Map all comments with supplier info
     const commentsData = product.comments.map(c => ({
       commentId: c.commentId,
       name: c.name,
@@ -323,7 +225,6 @@ export const getSingleProductComments = async (req, res) => {
       supplierName: c.supplierName
     }));
 
-    // Overall statistics
     const totalComments = product.totalComments;
     const averageRating = parseFloat(product.averageRating.toFixed(1));
 
@@ -402,14 +303,20 @@ export const deleteSingleProduct = async (req, res) => {
 
 // Batch import single products
 export const batchImportSingleProducts = async (req, res) => {
-  const { singleProducts } = req.body
-
+  const { singleProducts } = req.body;
 
   try {
     const singleProductsInsert = await SingleProduct.insertMany(singleProducts);
-    res.status(201).json({ message: "Single products imported successfully", singleProductsInsert });
+    res.status(201).json({ 
+      message: "Single products imported successfully", 
+      count: singleProductsInsert.length,
+      singleProductsInsert 
+    });
   } catch (error) {
     console.error("Error importing single products:", error);
-    res.status(500).json({ message: "Error importing single products", error: error.message });
-}
+    res.status(500).json({ 
+      message: "Error importing single products", 
+      error: error.message 
+    });
+  }
 };

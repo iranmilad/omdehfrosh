@@ -8,6 +8,8 @@ function index({data, slug}) {
 
     const [activeTab, setActiveTab] = React.useState("desc");
 
+    console.log("data", data)
+
   return (
     // <Tabs
     //   mt="xl"
@@ -55,7 +57,7 @@ function index({data, slug}) {
       <Paper>
         <Tabs.List>
           <Tabs.Tab value="desc">توضیحات</Tabs.Tab>
-          {data.general.specifications && (
+          {data.general.specifications && data.general.specifications.length > 0 && (
             <Tabs.Tab value="feat">مشخصات</Tabs.Tab>
           )}
           <Tabs.Tab value="comm">نظرات</Tabs.Tab>
