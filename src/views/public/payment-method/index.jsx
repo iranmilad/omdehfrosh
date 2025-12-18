@@ -355,14 +355,13 @@ const PaymentMethod = () => {
                   const isWallet = gateway.info.name === 'wallet';
                   
                   return (
-                    <label 
-                      key={gateway.info.name}
-                      className={`rounded px-3 py-2 border-[2px] border-solid cursor-pointer ${
-                        isSelected 
-                          ? 'border-blue-400' 
-                          : 'border-gray-200'
-                      }`}
-                    >
+                      <label
+                        key={gateway.info.name}
+                        className={`rounded-lg px-3 py-2 border-2 border-solid cursor-pointer ${
+                          isSelected ? 'border-[#29b6f6]' : 'border-gray-200'
+                        }`}
+                      >
+
                       <div className="flex items-center rounded-sm">
                         <input 
                           id={gateway.info.name}
@@ -414,11 +413,11 @@ const PaymentMethod = () => {
                             </div>
                             <NavLink 
                               to="/account/wallet" 
-                              className="inline-flex items-center cursor-pointer text-blue-600 hover:text-blue-700 mr-auto no-underline"
+                              className="inline-flex items-center cursor-pointer text-sm font-bold text-[#29b6f6] hover:text-blue-700 mr-auto no-underline"
                             >
                               <span>افزایش موجودی</span>
                               <div className="flex">
-                                <IconChevronLeft size={18} style={{ fill: 'currentColor' }} />
+                                <IconChevronLeft size={18} style={{ fill: '' }} />
                               </div>
                             </NavLink>
                           </span>
@@ -446,21 +445,21 @@ const PaymentMethod = () => {
               }}
             >
               {form.getValues().gateway?.name && (
-                <Paper 
-                  p="xl" 
-                  radius={0}
-                  shadow="sm"
-                  style={{
-                    background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                  }}
-                >
+                // <Paper 
+                //   p="xl" 
+                //   radius={0}
+                //   shadow="sm"
+                //   style={{
+                //     background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                //   }}
+                // >
                   <PaymentCalcReceipt
                     prev={{ to: "/basket-info", component: NavLink }}
                     gateway={form.getValues().gateway}
                   >
                     پرداخت
                   </PaymentCalcReceipt>
-                </Paper>
+                // </Paper>
               )}
             </Box>
           </Grid.Col>
@@ -644,6 +643,41 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
     }
   };
 
+  const DiscountIcon = ({ size = 18, color = "#000" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Ticket shape */}
+    <path
+      d="M3 6.5C3 5.12 4.12 4 5.5 4H18.5C19.88 4 21 5.12 21 6.5V9
+         C19.9 9 19 9.9 19 11C19 12.1 19.9 13 21 13V15.5
+         C21 16.88 19.88 18 18.5 18H5.5C4.12 18 3 16.88 3 15.5V13
+         C4.1 13 5 12.1 5 11C5 9.9 4.1 9 3 9V6.5Z"
+      fill={color}
+    />
+
+    {/* Percent slash */}
+    <line
+      x1="9"
+      y1="14.5"
+      x2="15"
+      y2="8.5"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+
+    {/* Percent dots */}
+    <circle cx="9" cy="8.5" r="1.2" fill="white" />
+    <circle cx="15" cy="14.5" r="1.2" fill="white" />
+  </svg>
+);
+
+
   return (
     <>
       <ErrorMessageModal
@@ -655,6 +689,7 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
       <div className="lg:rounded-medium bg-white">
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
+            <DiscountIcon />
             <p className="text-xs md:text-sm font-bold text-gray-900">کد تخفیف</p>
           </div>
 
@@ -675,10 +710,10 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
           ) : (
             <div className="sm:my-2">
               <label className="w-full sm:w-auto sm:min-w-[40%]">
-                <div className="px-2 flex items-center relative text-gray-800 bg-gray-100 lg:bg-white rounded-lg border border-gray-200 focus-within:border-b-2 focus-within:border-b-blue-500 transition-all">
-                  <div className="grow">
+                <div className="px-2 flex w-[329px] items-center relative text-gray-800 lg:bg-white rounded-lg border-[0.66667px] focus-within:border-b-2 focus-within:border-b-[#29b6f6] transition-all">
+                  <div className="grow w-[329px] flex flex-row items-center px-[8px] py-[0px]">
                     <input 
-                      className="px-2 w-full py-3 lg:py-2 bg-transparent outline-none text-sm"
+                      className="px-2 w-[329px] py-3 lg:py-2 bg-transparent outline-none text-sm"
                       placeholder="افزودن کد تخفیف" 
                       autoComplete="off" 
                       type="text" 
@@ -686,7 +721,6 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
                       onChange={(e) => form.setFieldValue('code', e.target.value)}
                       disabled={isDiscountApplied || loadingUpdateDiscount}
                     />
-                  </div>
                   <div 
                     className="flex cursor-pointer p-1"
                     onClick={handleSubmit}
@@ -705,6 +739,8 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
                       </svg>
                     )}
                   </div>
+                  </div>
+
                 </div>
                 {((cartfinalreceiptDiscount?.state === "error" && cartfinalreceiptDiscount?.errors?.code) || 
                   (form.errors.code) || 
