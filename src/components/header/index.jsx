@@ -42,7 +42,7 @@ import { logout, verifyTokenSilent } from "../../redux/auth/authusers/auth";
 import Notifications from "../notifications";
 import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
-import { ChevronDown, LucideChevronDownCircle, LucideChevronDownSquare } from "lucide-react";
+import { ChevronDown, ChevronLeft, LucideChevronDownCircle, LucideChevronDownSquare, MessageCircle } from "lucide-react";
 import ImageIcon from "../../resources/defaultImageIcon";
 
 
@@ -182,6 +182,9 @@ const Header = () => {
     await dispatch(verifyTokenSilent());
     navigate("/");
   }, [dispatch, navigate]);
+
+
+  console.log("Header render:", { isVerified, user, cartData });
 
   const renderNotificationBadge = useCallback(() => {
     if (errorNotificationNumber || !notificationNumber) return null;
@@ -351,40 +354,159 @@ const Header = () => {
                 {authLoading ? (
                   <Button h={{ base: 34, sm: 36 }} size="sm" loading>بارگذاری...</Button>
                 ) : user && isVerified ? (
-                  <Menu shadow="md" position="bottom-end" styles={{ dropdown: { minWidth: 250, padding: "10px", zIndex: 1001 } }}>
-                    <MenuTarget>
-                      <div className="flex w-[57px] h-[42px] items-center justify-center relative grow" style={{ cursor: 'pointer' }}>
-                        <div className="flex flex-col items-center">
-                          <div className="flex">
-                            <RiUserLine style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+
+                    <Menu 
+                      shadow="sm" 
+                      position="bottom-end"
+                      styles={{ 
+                        dropdown: { 
+                          minWidth: 200,
+                          padding: 0,
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          zIndex: 1001
+                        },
+                        item: {
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          borderBottom: '1px solid #f3f4f6',
+                          '&:last-child': {
+                            borderBottom: 'none'
+                          },
+                          '&:hover': {
+                            backgroundColor: '#f9fafb'
+                          }
+                        },
+                        itemSection: {
+                          marginLeft: 0,
+                          marginRight: 0
+                        }
+                      }}
+                    >
+                      <MenuTarget>
+                        <div className="flex w-[57px] h-[42px] items-center justify-center relative grow" style={{ cursor: 'pointer' }}>
+                          <div className="flex flex-col items-center">
+                            <div className="flex">
+                              <RiUserLine style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+                            </div>
+                            <p className=" font-uiKit-normal text-uiKit-muted-foreground" style={{ 
+                              fontSize: '12px',
+                              lineHeight: '',
+                              fontWeight: '400',
+                              color: '#6E7172',
+                              margin: 0
+                            }}>
+                              پروفایل
+                            </p>
                           </div>
-                          <p className=" font-uiKit-normal text-uiKit-muted-foreground" style={{ 
-                            fontSize: '12px',
-                            lineHeight: '',
-                            fontWeight: '400',
-                            color: '#6E7172',
-                            margin: 0
-                          }}>
-                            پروفایل
-                          </p>
+                          <div className="flex">
+                            <svg style={{ width: '20px', height: '20px', fill: 'var(--color-icon-high-emphasis)' }} viewBox="0 0 24 24">
+                              <path d="M7 10l5 5 5-5H7z"/>
+                            </svg>
+                          </div>
                         </div>
-                        <div className="flex">
-                          <svg style={{ width: '20px', height: '20px', fill: 'var(--color-icon-high-emphasis)' }} viewBox="0 0 24 24">
-                            <path d="M7 10l5 5 5-5H7z"/>
-                          </svg>
-                        </div>
-                      </div>
-                    </MenuTarget>
-                    <MenuDropdown>
-                      <MenuItem leftSection={<Avatar size="sm" />} rightSection={<IconChevronLeft size={18} />} component={NavLink} to="/account">مشاهده پروفایل</MenuItem>
-                      <Menu.Divider />
-                      <MenuItem rightSection={<IconUserCog size={18} />} component={NavLink} to="/account/edit-account">ویرایش</MenuItem>
-                      <MenuItem rightSection={<IconShoppingCart size={18} />} component={NavLink} to="/account/orders">سفارش ها</MenuItem>
-                      <MenuItem rightSection={<IconShoppingCart size={18} />} component={NavLink} to="/account/wallet">کیف پول</MenuItem>
-                      <MenuItem rightSection={renderNotificationBadge()} component={NavLink} to="/account/notifications">پیام ها</MenuItem>
-                      <MenuItem color="red" rightSection={<IconLogout size={18} />} onClick={Logout}>خروج</MenuItem>
-                    </MenuDropdown>
-                  </Menu>
+                      </MenuTarget>
+                      <MenuDropdown>
+                        {/* Header with name and view profile link */}
+                        <Box px={16} py={12} w={242} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '4px' }}>
+                            {user?.full_name || user?.name || 'کاربر'}
+                          </div>
+                          <Anchor 
+                            component={NavLink} 
+                            to="/account"
+                            style={{ fontSize: '12px', color: '#3b82f6', textDecoration: 'none' }}
+                          >
+                            مشاهده حساب کاربری 
+                          
+                          <ChevronLeft size={14} style={{ display: 'inline-block', marginRight: '4px', verticalAlign: 'middle' }} />
+                          </Anchor>
+                        </Box>
+
+                        {/* Menu Items */}
+                        <MenuItem 
+                          component={NavLink} 
+                          to="/account/orders"
+                            leftSection={
+                              <Box ml={6}>
+                                <IconShoppingCart size={18} color="#6b7280" />
+                              </Box>
+                            }
+                        >
+                          سفارش‌های من
+                        </MenuItem>
+
+                         <MenuItem 
+                          component={NavLink} 
+                          to="/account/notifications"
+                          leftSection={
+                          <Box ml={6}>
+                            <MessageCircle size={18} color="#6b7280" />
+                            {/* <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
+                              <rect x="2" y="5" width="20" height="14" rx="2"/>
+                              <path d="M2 10h20"/>
+                            </svg> */}
+                              </Box>
+                          }
+                        >
+                          پیام‌ها
+                        </MenuItem>
+
+                        <MenuItem 
+                          component={NavLink} 
+                          to="/account/favorites"
+                          leftSection={
+                              <Box ml={6}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
+                              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                            </svg>
+                              </Box>
+                            }
+                        >
+                           علاقه مندی‌ها
+                        </MenuItem> 
+
+                        {/* <MenuItem 
+                          component={NavLink} 
+                          to="/account/addresses"
+                          leftSection={
+                              <Box ml={6}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                              <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                              </Box>
+                          }
+                        >
+                          آدرس‌ها
+                        </MenuItem> */}
+
+                        <MenuItem 
+                          component={NavLink} 
+                          to="/account/edit-account"
+                          leftSection={
+                              <Box ml={6}>
+                                <IconUserCog size={18} style={{ color: '#6b7280' }} />
+                              </Box>
+                          }
+                        >
+                          اطلاعات کاربر
+                        </MenuItem>
+
+                        <MenuItem 
+                          onClick={Logout}
+                          style={{ color: '#ef4444' }}
+                          leftSection={
+                              <Box ml={6}>
+                                <IconLogout size={18} style={{ color: '#ef4444' }} />
+                              </Box>
+                          }
+                        >
+                          خروج از حساب کاربری
+                        </MenuItem>
+                      </MenuDropdown>
+                    </Menu>
                 ) : (
                   <Button h={{ base: 34, sm: 36 }} px={{ base: 12, sm: 16 }} size="sm" component={NavLink} to="/login">
                     <span style={{ fontSize: '13px' }}>ورود/ثبت‌نام</span>

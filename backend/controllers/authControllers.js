@@ -198,7 +198,55 @@ export const login = async (req, res) => {
   }
 };
 
-export const verifyUser = (req, res) => {
+
+export const verifyUser = async (req, res) => {
+  const user = getUserFromToken(req);
+
+  if (!user || !user.user_id || !user.decoded) {
+    return res.status(401).json({ 
+      valid: false, 
+      message: "Unauthorized" 
+    });
+  }
+
+  const { decoded } = user;
+
+  console.log("Decoded user:", decoded);
+
+  try {
+    // Fetch user data from database
+    const userData = await UserAccounts.findOne({ userId: decoded.id });
+
+    if (!userData) {
+      return res.status(404).json({ 
+        valid: false, 
+        message: "User not found" 
+      });
+    }
+
+    // Return token data with user name
+    return res.json({ 
+      valid: true, 
+      user: {
+        ...decoded,
+        name: `${userData.name} ${userData.family}`,
+        // family: userData.family,
+        // fullName: `${userData.name} ${userData.family}`,
+        // email: userData.email,
+        // mobile: userData.mobile
+      }
+    });
+  } catch (error) {
+    console.error("Error verifying user:", error);
+    return res.status(401).json({ 
+      valid: false, 
+      message: "Invalid or expired token" 
+    });
+  }
+};
+
+// Alternative: If you want minimal data (just name)
+export const verifyUserMinimal = async (req, res) => {
   const user = getUserFromToken(req);
 
   if (!user || !user.user_id || !user.decoded) {
@@ -211,11 +259,29 @@ export const verifyUser = (req, res) => {
   const { decoded } = user;
 
   try {
+    // Fetch only name and family from database
+    const userData = await UserAccounts.findOne(
+      { userId: decoded.id },
+      { name: 1, family: 1, _id: 0 }
+    );
+
+    if (!userData) {
+      return res.status(404).json({ 
+        valid: false, 
+        message: "User not found" 
+      });
+    }
+
     return res.json({ 
       valid: true, 
-      user: decoded 
+      user: {
+        ...decoded,
+        name: userData.name,
+        family: userData.family
+      }
     });
   } catch (error) {
+    console.error("Error verifying user:", error);
     return res.status(401).json({ 
       valid: false, 
       message: "Invalid or expired token" 
