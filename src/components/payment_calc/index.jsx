@@ -13,6 +13,7 @@ import {
 } from "@mantine/core";
 import { IconArrowRight, IconInfoCircle, IconInfoCircleFilled } from "@tabler/icons-react";
 import { useSelector } from "react-redux";
+import PriceText from "../priceText";
 
 const PaymentCalc = ({ children, submit, prev }) => {
   const cartItems = useSelector((state) => state.cart.items || []);
@@ -82,14 +83,14 @@ const totalDiscount = cartItems.reduce(
         <Stack gap="md">
           {/* قیمت کالاها */}
           <Flex justify="space-between" align="center">
-            <Text size="sm" c="#6b7280" fw={400}>
+            <Text size="sm" c="#676a6f" fw={400}>
               قیمت کالا‌ها ({totalItems} عدد)
             </Text>
             <Flex align="center" gap={4}>
               <Text size="sm" fw={700} c="#374151">
                 {totalCartPrice?.toLocaleString()}
               </Text>
-              <Text size="xs" c="#6b7280">تومان</Text>
+                <PriceText fontWeight={400} fontSize="10px">تومان</PriceText>
             </Flex>
           </Flex>
 
@@ -100,10 +101,10 @@ const totalDiscount = cartItems.reduce(
             pb="md"
             style={{ borderBottom: '1px solid #e5e7eb' }}
           >
-            <Text size="sm" c="#6b7280" fw={400}>
+            <Text size="sm" c="#676a6f" fw={400}>
               هزینه ارسال
             </Text>
-            <Text size="sm" fw={700} c="#6b7280">
+            <Text size="sm" fw={700} c="#676a6f">
               رایگان
             </Text>
           </Flex>
@@ -118,28 +119,28 @@ const totalDiscount = cartItems.reduce(
                 <Text size="md" fw={700} c="#4caf50">
                   {totalDiscount.toLocaleString()}
                 </Text>
-                <Text size="xs" c="#4caf50">تومان</Text>
+                <PriceText fontWeight={400} fontSize="10px">تومان</PriceText>
               </Flex>
             </Flex>
           )}
 
           {/* مبلغ قابل پرداخت */}
           <Flex justify="space-between" align="center">
-            <Text size="sm" c="#1f2937" fw={700}>
+            <Text size="12px" c="#1f2937" fw={400}>
               مبلغ قابل پرداخت
             </Text>
             <Flex align="center" gap={4}>
               <Text size="sm" fw={700} c="#1f2937">
                 {finalTotal?.toLocaleString()}
               </Text>
-              <Text size="xs" c="#1f2937">تومان</Text>
+                <PriceText fontWeight={400} fontSize="10px">تومان</PriceText>
             </Flex>
           </Flex>
 
           {/* Tax Info */}
           <Flex align="center" gap={6} mt="xs">
-            <IconInfoCircle size={20} color="#6b7280" />
-            <Text size="xs" c="#6b7280" fw={400}>
+            <IconInfoCircle className="infoIcon" color="#676a6f" />
+            <Text size="xs" c="#676a6f" fw={400}>
               قیمت‌ها شامل ٪۱۰ مالیات بر ارزش افزوده است.
             </Text>
           </Flex>

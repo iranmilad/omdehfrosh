@@ -299,16 +299,22 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
                   style={{ objectFit: 'contain' }}
                 />
               </picture>
+
             </div>
-            {/* Count Badge */}
+
+          </div>
+
             <div 
-              className="flex items-center justify-center border-white border-2 border-solid rounded bg-gray-600 text-xs text-white absolute right-0 top-0" 
+            className="flex items-center justify-center
+                        border-white border-2 border-solid
+                        rounded-lg bg-gray-600
+                        text-xs text-white
+                        absolute right-2 top-14"
               style={{ minWidth: '20px', height: '18px' }}
             >
-              {count}
-            </div>
+            {count}
           </div>
-          
+
           {/* Counter Basket Component */}
           <div className="flex-1">
             <CounterBasket

@@ -779,87 +779,227 @@ export const checkPaymentStatusWalletAlternative = async (req, res) => {
 };
 
 export const checkPaymentStatus = async (req, res) => {
+  // Set CORS headers FIRST before any operations
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  // Handle OPTIONS preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const order_id = req.params.order_id;
 
   try {
+    console.log('=== CHECK PAYMENT STATUS START ===');
+    console.log('🔍 Checking payment status for order:', order_id);
+    console.log('Request method:', req.method);
+    console.log('Request params:', req.params);
+
     if (!order_id) {
-      return res.status(400).json({ message: "order_id is required" });
+      console.error('❌ Missing order_id');
+      return res.status(400).json({ 
+        success: false,
+        message: "order_id is required" 
+      });
     }
 
-    const mainOrder = await OrderJ2B.findOne({ id: order_id });
+    // Find main order - ADD ERROR HANDLING
+    console.log('🔍 Searching for order in database...');
+    const mainOrder = await OrderJ2B.findOne({ id: order_id }).lean();
+    
     if (!mainOrder) {
-      return res.status(404).json({ message: "Order not found" });
+      console.error('❌ Order not found:', order_id);
+      return res.status(404).json({ 
+        success: false,
+        message: "Order not found" 
+      });
     }
 
-    const orderItems = await OrderItemJ2B.find({ order_id: order_id });
+    console.log('✅ Found order:', {
+      id: mainOrder.id,
+      status: mainOrder.status,
+      isPaid: mainOrder.isPaid,
+      user_id: mainOrder.user_id
+    });
 
-    // Set CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
+    // Find all order items for this order - ADD ERROR HANDLING
+    console.log('🔍 Searching for order items...');
+    const orderItems = await OrderItemJ2B.find({ order_id: order_id }).lean();
+    
+    console.log(`📦 Found ${orderItems.length} order items`);
 
-    // ... (keep your existing product enrichment code) ...
-
-    const transformedResponse = {
-      success: true,
-      status: "paid",
-      order: {
-        order_id: mainOrder.id,
-        isPaid: mainOrder.isPaid,
-        status: mainOrder.status,
-        customer_name: mainOrder.customer_name,
-        customer_phone_number: mainOrder.customer_phone_number,
-        totalPriceToPay: mainOrder.total_price,
-        delivery_type: mainOrder.delivery_type,
-        paymentComment: mainOrder.paymentComment || null,
-        payment_type: mainOrder.payment_type || 'gateway', // NEW
-        payment_wallet_transactionid: mainOrder.payment_wallet_transactionid || null, // NEW
-        sellers: enrichedOrderItems.map(item => {
-          const firstProduct = item.product_id?.[0]?.productDetails;
-          const sellerLabel = firstProduct?.seller?.label || `تامین‌کننده ${item.supplier_id}`;
+    // Enrich order items with product details - WRAP IN TRY-CATCH
+    console.log('🔍 Enriching order items with product details...');
+    let enrichedOrderItems = [];
+    
+    try {
+      enrichedOrderItems = await Promise.all(
+        orderItems.map(async (item) => {
+          const enrichedProducts = await Promise.all(
+            (item.product_id || []).map(async (prodRef) => {
+              try {
+                const productDetails = await SingleProduct.findOne({ 
+                  id: prodRef.id 
+                }).lean();
+                
+                return {
+                  id: prodRef.id,
+                  productDetails: productDetails || null
+                };
+              } catch (err) {
+                console.error(`⚠️ Error fetching product ${prodRef.id}:`, err.message);
+                return {
+                  id: prodRef.id,
+                  productDetails: null
+                };
+              }
+            })
+          );
 
           return {
-            seller: {
-              id: item.supplier_id || item.id,
-              label: sellerLabel
-            },
-            isPaid: item.isPaid,
-            status: item.status,
-            quantity: item.quantity,
-            price: item.price,
-            discount_price: item.discount_price,
-            totalPrice: item.totalPrice || item.price * item.quantity,
-            vatRequested: item.vatRequested,
-            paymentMethod: item.paymentMethod,
-            payment_type: item.payment_type || 'gateway', // NEW
-            payment_wallet_transactionid: item.payment_wallet_transactionid || null, // NEW
-            products: item.product_id || [],
-            vatLink: item.vatLink,
-            paymentComment: item.paymentComment
+            ...item,
+            product_id: enrichedProducts
           };
+        })
+      );
+      console.log('✅ Product enrichment complete');
+    } catch (enrichError) {
+      console.error('⚠️ Error enriching products, using basic items:', enrichError.message);
+      // Fallback to basic items if enrichment fails
+      enrichedOrderItems = orderItems.map(item => ({
+        ...item,
+        product_id: item.product_id || []
+      }));
+    }
+
+    // Find other related orders for this user - ADD ERROR HANDLING
+    console.log('🔍 Searching for related orders...');
+    let otherOrders = [];
+    
+    try {
+      otherOrders = await OrderJ2B.find(
+        { 
+          user_id: mainOrder.user_id,
+          id: { $ne: order_id },
+          isPaid: { $in: ["unpaid", "prepaid"] },
+          status: { $in: ["pending", "rejected", "waiting"] }
+        },
+        { id: 1, status: 1, isPaid: 1, _id: 0 }
+      ).lean();
+      
+      console.log(`🔗 Found ${otherOrders.length} related orders`);
+    } catch (relatedError) {
+      console.error('⚠️ Error fetching related orders:', relatedError.message);
+      // Continue without related orders
+      otherOrders = [];
+    }
+
+    // Transform response - ADD ERROR HANDLING FOR EACH SECTION
+    console.log('🔄 Building response object...');
+    
+    const transformedResponse = {
+      success: true,
+      status: mainOrder.isPaid === "paid" ? "paid" : "pending",
+      order: {
+        order_id: mainOrder.id,
+        isPaid: mainOrder.isPaid || "unpaid",
+        status: mainOrder.status || "pending",
+        customer_name: mainOrder.customer_name || "",
+        customer_phone_number: mainOrder.customer_phone_number || "",
+        totalPriceToPay: mainOrder.total_price || 0,
+        delivery_type: mainOrder.delivery_type || "",
+        paymentComment: mainOrder.paymentComment || null,
+        payment_type: mainOrder.payment_type || 'gateway',
+        payment_wallet_transactionid: mainOrder.payment_wallet_transactionid || null,
+        sellers: enrichedOrderItems.map(item => {
+          try {
+            const firstProduct = item.product_id?.[0]?.productDetails;
+            const sellerLabel = firstProduct?.seller?.label || `تامین‌کننده ${item.supplier_id || 'نامشخص'}`;
+
+            return {
+              seller: {
+                id: item.supplier_id || item.id || 'unknown',
+                label: sellerLabel
+              },
+              isPaid: item.isPaid || "unpaid",
+              status: item.status || "pending",
+              quantity: item.quantity || 1,
+              price: item.price || 0,
+              discount_price: item.discount_price || 0,
+              totalPrice: item.totalPrice || (item.price || 0) * (item.quantity || 1),
+              vatRequested: item.vatRequested || false,
+              paymentMethod: item.paymentMethod || null,
+              payment_type: item.payment_type || 'gateway',
+              payment_wallet_transactionid: item.payment_wallet_transactionid || null,
+              products: item.product_id || [],
+              vatLink: item.vatLink || null,
+              paymentComment: item.paymentComment || null
+            };
+          } catch (itemError) {
+            console.error('⚠️ Error processing order item:', itemError.message);
+            return {
+              seller: { id: 'error', label: 'خطا در پردازش' },
+              isPaid: "unpaid",
+              status: "error",
+              quantity: 0,
+              price: 0,
+              discount_price: 0,
+              totalPrice: 0,
+              vatRequested: false,
+              paymentMethod: null,
+              payment_type: 'gateway',
+              payment_wallet_transactionid: null,
+              products: [],
+              vatLink: null,
+              paymentComment: null
+            };
+          }
         })
       },
       orderItems: enrichedOrderItems,
       totalItems: enrichedOrderItems.length,
       summary: {
-        overallStatus: mainOrder.isPaid,
-        orderStatus: mainOrder.status,
-        totalAmount: mainOrder.total_price,
+        overallStatus: mainOrder.isPaid || "unpaid",
+        orderStatus: mainOrder.status || "pending",
+        totalAmount: mainOrder.total_price || 0,
         paidItems: orderItems.filter(item => item.isPaid === "paid").length,
         unpaidItems: orderItems.filter(item => item.isPaid === "unpaid").length,
-        prepaidItems: orderItems.filter(item => item.isPaid === "prepaid" || item.isPaid === "selfprepaid").length,
-        paymentType: mainOrder.payment_type || 'gateway' // NEW
+        prepaidItems: orderItems.filter(item => 
+          item.isPaid === "prepaid" || item.isPaid === "selfprepaid"
+        ).length,
+        paymentType: mainOrder.payment_type || 'gateway'
       },
       relatedOrders: otherOrders
     };
 
+    console.log('✅ Response built successfully');
+    console.log('📊 Sending response with:', {
+      orderItems: transformedResponse.totalItems,
+      relatedOrders: transformedResponse.relatedOrders.length,
+      overallStatus: transformedResponse.summary.overallStatus
+    });
+    console.log('=== CHECK PAYMENT STATUS END ===\n');
+
     return res.status(200).json(transformedResponse);
 
   } catch (error) {
-    res.status(500).json({
+    console.error('❌ FATAL ERROR in checkPaymentStatus:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Stack trace:', error.stack);
+    console.error('Order ID that caused error:', order_id);
+    console.error('=== CHECK PAYMENT STATUS ERROR END ===\n');
+    
+    return res.status(500).json({
+      success: false,
       message: "Error checking payment status",
-      error: error.message
+      error: error.message,
+      errorName: error.name,
+      orderId: order_id,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };

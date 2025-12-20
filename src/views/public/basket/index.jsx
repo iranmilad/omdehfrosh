@@ -494,7 +494,7 @@ const Basket = () => {
       `}</style>
 
       <div 
-        className="relative min-h-screen pb-6"
+        className="relative min-h-screen pb-6 bg-[#f7f7f8]"
         style={{
           
         }}

@@ -24,7 +24,7 @@ function BottomNavigation({ category, search, basket, user }) {
       id="bottom-navigation"
       hiddenFrom="md"
       bg="white"
-      w="100%"
+      w="100vw"
       h="70"
       style={{
         zIndex: 100,

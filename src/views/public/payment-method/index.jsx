@@ -33,7 +33,7 @@ import { getAllGateWaysData } from "../../../redux/gatewaysdata/gatewaysdata/gat
 import { clearCartFinalReceiptUpdate } from "../../../redux/cartfinalreceipt/cartfinalreceiptupdate/cartFinalReceiptUpdateDiscountSlice";
 import ErrorMessageModal from '../../../components/errormessagemodal';
 import { handleForbiddenError, handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
-import { updateFinalReceiptDeleteDiscountCode } from "../../../redux/cartfinalreceipt/cartfinalreceiptdeletediscount/cartfinalreceiptdeletediscountActions";
+import { updateFinalReceiptDeleteDiscountCode } from "../../../redux/cartfinalreceipt/cartfinalreceiptdeletediscount/cartFinalReceiptDeleteDiscountActions";
 import { Steps } from "antd";
 import {
   ShoppingCartOutlined,
@@ -50,6 +50,7 @@ import {
 } from '@ant-design/icons';
 import { Grid as GridAnt } from 'antd';
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import PaymentSummary from '../../../components/payment_calc_receipt/PaymentSummary';
 
 
 const { useBreakpoint } = GridAnt;
@@ -435,6 +436,18 @@ const PaymentMethod = () => {
               setIsDiscountApplied={setIsDiscountApplied}
               gateway={form.getValues().gateway} 
             />
+
+            {/* PaymentCalcReceipt - Moved below coupon */}
+            {form.getValues().gateway?.name && (
+              <Box mt="lg">
+                <PaymentCalcReceipt
+                  prev={{ to: "/basket-info", component: NavLink }}
+                  gateway={form.getValues().gateway}
+                >
+                  پرداخت
+                </PaymentCalcReceipt>
+              </Box>
+            )}
           </Grid.Col>
             
           <Grid.Col span={{ base: 12, lg: 5 }}>
@@ -444,23 +457,7 @@ const PaymentMethod = () => {
                 top: '2rem',
               }}
             >
-              {form.getValues().gateway?.name && (
-                // <Paper 
-                //   p="xl" 
-                //   radius={0}
-                //   shadow="sm"
-                //   style={{
-                //     background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                //   }}
-                // >
-                  <PaymentCalcReceipt
-                    prev={{ to: "/basket-info", component: NavLink }}
-                    gateway={form.getValues().gateway}
-                  >
-                    پرداخت
-                  </PaymentCalcReceipt>
-                // </Paper>
-              )}
+              <PaymentSummary orderfinalreceipt={orderfinalreceipt} />
             </Box>
           </Grid.Col>
         </Grid>
