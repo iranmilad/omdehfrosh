@@ -1,4 +1,4 @@
-// FastEdit.jsx - Refactored version
+// FastEdit.jsx - Complete file with currency price feature added
 import { useState, useEffect, useCallback, useId, createContext, useContext, useMemo, useRef } from "react";
 import XTitle from "../../../components/title";
 import OrderRow, { Attributes } from "./orderRow";
@@ -23,7 +23,7 @@ import {
   Overlay,
   Badge,
 } from "@mantine/core";
-import { IconSettings, IconFilter } from "@tabler/icons-react";
+import { IconSettings, IconFilter, IconCurrencyDollar } from "@tabler/icons-react";
 import FastTable from "./fasttablebrand";
 import FastTableCategory from "./fasttablecategory";
 import FastTableBrand from "./fasttablebrand";
@@ -48,6 +48,10 @@ import { BrandRowSelectionProvider, useBrandRowSelection } from "./BrandRowSelec
 import { CategoryRowSelectionProvider, useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import ColumnVisibilityManager from "./ColumnVisibilityManager";
 import { useMediaQuery } from "@mantine/hooks";
+import CurrencyPriceModal from "./CurrencyPriceModal";
+import { getCurrencyPrice } from "../../../redux/currencyPrice/currencyPriceActions";
+
+
 
 const FastOrderContext = createContext();
 
@@ -63,6 +67,7 @@ function FastEditBrandContent({
   setSearchType,
   filterSettingsModalOpened,
   setFilterSettingsModalOpened,
+  setCurrencyModalOpened,
   nodes,
   updatedColumns,
   visibleColumns,
@@ -73,6 +78,7 @@ function FastEditBrandContent({
   availableLocations
 }) {
   const { checkedRows } = useBrandRowSelection();
+  const { currencyPrice } = useSelector((state) => state.currencyPrice);
 
   return (
     <>
@@ -110,32 +116,89 @@ function FastEditBrandContent({
             />
           </Flex>
 
+          {/* Currency Price Button */}
           <Flex>
             {user && (
               <Button
-                leftSection={<IconFilter size={16} />}
-                onClick={() => setFilterSettingsModalOpened(true)}
-                py={0}
+                leftSection={<IconCurrencyDollar size={18} />}
+                onClick={() => setCurrencyModalOpened(true)}
+                size="md"
                 styles={{
                   root: {
-                    backgroundColor: checkedRows.size > 0 ? '#28a745' : '#093572',
-                    color: 'white',
+                    backgroundColor: currencyPrice ? '#10b981' : '#f59e0b',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    border: 'none',
                     '&:hover': {
-                      backgroundColor: checkedRows.size > 0 ? '#218838' : '#0a4080',
+                      backgroundColor: currencyPrice ? '#059669' : '#d97706',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
                     },
+                    transition: 'all 0.2s ease',
                   },
                 }}
               >
-                فیلترها
-                {checkedRows.size > 0 && (
+                <Text fw={600} size="sm" c="#ffffff">
+                  قیمت ارز
+                </Text>
+                {/* {currencyPrice && (
                   <Badge 
                     color="white" 
-                    size="sm" 
+                    size="lg" 
                     ml={8}
                     styles={{
                       root: {
-                        backgroundColor: 'rgba(255,255,255,0.3)',
-                        color: 'white',
+                        backgroundColor: 'rgba(255,255,255,0.25)',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        border: '1px solid rgba(255,255,255,0.3)',
+                      },
+                    }}
+                  >
+                    {currencyPrice.toLocaleString()}
+                  </Badge>
+                )} */}
+              </Button>
+            )}
+          </Flex>
+
+          <Flex>
+            {user && (
+              <Button
+                leftSection={<IconFilter size={18} />}
+                onClick={() => setFilterSettingsModalOpened(true)}
+                size="md"
+                styles={{
+                  root: {
+                    backgroundColor: checkedRows.size > 0 ? '#10b981' : '#3b82f6',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    border: 'none',
+                    '&:hover': {
+                      backgroundColor: checkedRows.size > 0 ? '#059669' : '#2563eb',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
+                    },
+                    transition: 'all 0.2s ease',
+                  },
+                }}
+              >
+                <Text fw={600} size="sm" c="#ffffff">
+                  فیلترها
+                </Text>
+                {checkedRows.size > 0 && (
+                  <Badge 
+                    color="white" 
+                    size="lg" 
+                    ml={8}
+                    styles={{
+                      root: {
+                        backgroundColor: 'rgba(255,255,255,0.25)',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        border: '1px solid rgba(255,255,255,0.3)',
                       },
                     }}
                   >
@@ -204,6 +267,7 @@ function FastEditCategoryContent({
   setSearchType,
   filterSettingsModalOpened,
   setFilterSettingsModalOpened,
+  setCurrencyModalOpened,
   nodesSubCategoriesData,
   updatedColumns,
   visibleColumns,
@@ -213,7 +277,8 @@ function FastEditCategoryContent({
   filterValues,
   availableLocations
 }) {
-  const { checkedRows } = useCategoryRowSelection(); // ✅ NOW IT'S INSIDE THE PROVIDER
+  const { checkedRows } = useCategoryRowSelection();
+  const { currencyPrice } = useSelector((state) => state.currencyPrice);
 
   return (
     <>
@@ -251,32 +316,89 @@ function FastEditCategoryContent({
             />
           </Flex>
 
+          {/* Currency Price Button */}
           <Flex>
             {user && (
               <Button
-                leftSection={<IconFilter size={16} />}
-                onClick={() => setFilterSettingsModalOpened(true)}
-                py={0}
+                leftSection={<IconCurrencyDollar size={18} />}
+                onClick={() => setCurrencyModalOpened(true)}
+                size="md"
                 styles={{
                   root: {
-                    backgroundColor: checkedRows.size > 0 ? '#28a745' : '#093572',
-                    color: 'white',
+                    backgroundColor: currencyPrice ? '#10b981' : '#f59e0b',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    border: 'none',
                     '&:hover': {
-                      backgroundColor: checkedRows.size > 0 ? '#218838' : '#0a4080',
+                      backgroundColor: currencyPrice ? '#059669' : '#d97706',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
                     },
+                    transition: 'all 0.2s ease',
                   },
                 }}
               >
-                فیلترها
-                {checkedRows.size > 0 && (
+                <Text fw={600} size="sm" c="#ffffff">
+                  قیمت ارز
+                </Text>
+                {/* {currencyPrice && (
                   <Badge 
                     color="white" 
-                    size="sm" 
+                    size="lg" 
                     ml={8}
                     styles={{
                       root: {
-                        backgroundColor: 'rgba(255,255,255,0.3)',
-                        color: 'white',
+                        backgroundColor: 'rgba(255,255,255,0.25)',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        border: '1px solid rgba(255,255,255,0.3)',
+                      },
+                    }}
+                  >
+                    {currencyPrice.toLocaleString()}
+                  </Badge>
+                )} */}
+              </Button>
+            )}
+          </Flex>
+
+          <Flex>
+            {user && (
+              <Button
+                leftSection={<IconFilter size={18} />}
+                onClick={() => setFilterSettingsModalOpened(true)}
+                size="md"
+                styles={{
+                  root: {
+                    backgroundColor: checkedRows.size > 0 ? '#10b981' : '#3b82f6',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    border: 'none',
+                    '&:hover': {
+                      backgroundColor: checkedRows.size > 0 ? '#059669' : '#2563eb',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
+                    },
+                    transition: 'all 0.2s ease',
+                  },
+                }}
+              >
+                <Text fw={600} size="sm" c="#ffffff">
+                  فیلترها
+                </Text>
+                {checkedRows.size > 0 && (
+                  <Badge 
+                    color="white" 
+                    size="lg" 
+                    ml={8}
+                    styles={{
+                      root: {
+                        backgroundColor: 'rgba(255,255,255,0.25)',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        border: '1px solid rgba(255,255,255,0.3)',
                       },
                     }}
                   >
@@ -362,6 +484,9 @@ function FastEdit() {
   
   // ✅ NEW: Filter settings modal state
   const [filterSettingsModalOpened, setFilterSettingsModalOpened] = useState(false);
+
+  // ✅ NEW: Currency price modal state
+  const [currencyModalOpened, setCurrencyModalOpened] = useState(false);
 
   const [errMessage, setErrMessage] = useState()
 
@@ -645,6 +770,13 @@ function FastEdit() {
     }
   }, [authError]);
 
+  // ✅ NEW: Load currency price on component mount
+  useEffect(() => {
+    if (user && user.role === "supplier") {
+      dispatch(getCurrencyPrice());
+    }
+  }, [dispatch, user]);
+
   if (authLoading) {
     return <DelayedFullScreenLoader />;
   }
@@ -692,6 +824,12 @@ function FastEdit() {
       />
       }
 
+      {/* ✅ NEW: Currency Price Modal */}
+      <CurrencyPriceModal
+        opened={currencyModalOpened}
+        onClose={() => setCurrencyModalOpened(false)}
+      />
+
       <FastOrderContext.Provider 
         value={{
           visibleColumns, 
@@ -720,6 +858,7 @@ function FastEdit() {
                     setSearchType={setSearchType}
                     filterSettingsModalOpened={filterSettingsModalOpened}
                     setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+                    setCurrencyModalOpened={setCurrencyModalOpened}
                     nodes={nodes}
                     updatedColumns={updatedColumns}
                     visibleColumns={visibleColumns}
@@ -743,6 +882,7 @@ function FastEdit() {
                     setSearchType={setSearchType}
                     filterSettingsModalOpened={filterSettingsModalOpened}
                     setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+                    setCurrencyModalOpened={setCurrencyModalOpened}
                     nodesSubCategoriesData={nodesSubCategoriesData}
                     updatedColumns={updatedColumns}
                     visibleColumns={visibleColumns}

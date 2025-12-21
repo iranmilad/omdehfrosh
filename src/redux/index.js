@@ -130,6 +130,7 @@ import updateFilterSettingsReducer from './savefiltersettings/updatefiltersettin
 
 import getBrandsDataReducer from './brands/getbrandsdata/getBrandsDataSlice.js'
 import brandsDataReducer from './brands/getbrandsdata/getBrandsDataSlice.js'
+import currencyPriceReducer from './currencyPrice/currencyPriceSlice.js'
 
 
 import getFilterSettingsReducer from './savefiltersettings/getFilterSettings/getFilterSettingsSlice.js'
@@ -244,6 +245,7 @@ export default configureStore({
       // fast edit
       fastEditBrandModeData: fastEditBrandModeDataReducer,
       fastEditCategoryModeData: fastEditCategoryModeDataReducer,
+      currencyPrice: currencyPriceReducer,
 
       // fast order
       fastOrderBrandModeData: fastOrderBrandModeDataReducer,

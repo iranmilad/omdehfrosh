@@ -79,7 +79,7 @@ import checkedRowsTableDataRoutes from "./routes/checkedRowsTableDataRoutes.js"
 import homeRoutes from './routes/homePageRoutes.js'
 import brandsRoutes from './routes/brandsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
-
+import currencyPriceRoutes from './routes/currencyPriceRoutes.js';
 
 dotenv.config();
 
@@ -159,6 +159,9 @@ app.use("/api/orders", orderRoutes)
 
 // comment routes
 app.use("/api/product-comments", commentsRoutes); // Use product routes
+
+
+app.use("/api/currency-price", currencyPriceRoutes);
 
 // app.use("/api/user-account/user-messages", userMessagesRoutes)
 
