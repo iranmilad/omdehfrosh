@@ -108,12 +108,12 @@ export const getBootstrap = async (req, res) => {
         // Certificates/Trust badges with links
         certificates: [
           {
-            image: "/uploads/footer/enamad.png",
+            image: "/uploads/footer/enamad.webp",
             alt: "enamad",
             url: "https://trustseal.enamad.ir/"
           },
           {
-            image: "/uploads/footer/samandehi.jpg",
+            image: "/uploads/footer/enamad.webp",
             alt: "samandehi",
             url: "https://logo.samandehi.ir/"
           }

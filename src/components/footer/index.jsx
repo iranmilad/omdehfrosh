@@ -161,12 +161,29 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Image
-                    src={cert.image}
-                    alt={cert.alt || `Certificate ${index + 1}`}
-                    w={{ base: 100, sm: 120 }}
-                    fit="contain"
-                  />
+                  <Box
+                    style={{
+                      width: '108px',
+                      height: '108px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Image
+                      src={cert.image}
+                      alt={cert.alt || `Certificate ${index + 1}`}
+                      w={75}
+                      h={75}
+                      // style={{
+                      //   width: '75px',
+                      //   height: '75px',
+                      //   // maxWidth: '75px',
+                      //   // maxHeight: '75px',
+                      //   objectFit: 'cover'
+                      // }}
+                    />
+                  </Box>
                 </Anchor>
               ))}
             </Flex>

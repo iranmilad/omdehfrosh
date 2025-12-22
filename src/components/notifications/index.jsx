@@ -37,18 +37,18 @@ const Notifications = () => {
     };
   }, [dispatch]);
 
-  // Fetch notifications only once per session (persists across page refreshes)
-// Fetch notifications when component mounts and user is authenticated
-useEffect(() => {
-  if (!user || !isVerified) {
-    return;
-  }
+  // Fetch notifications when component mounts and user is authenticated
+  useEffect(() => {
+    if (!user || !isVerified) {
+      return;
+    }
 
-  // Fetch notifications every time the component mounts
-  if (!loadingNotificationNumber) {
-    dispatch(getNotificationNumber());
-  }
-}, [dispatch, user, isVerified]); // Remove loadingNotificationNumber from deps
+    // Fetch notifications every time the component mounts
+    if (!loadingNotificationNumber) {
+      dispatch(getNotificationNumber());
+    }
+  }, [dispatch, user, isVerified]);
+  
   // Clear cache on logout (when user becomes null)
   useEffect(() => {
     if (!user && fetchAttemptedRef.current) {
@@ -122,16 +122,25 @@ useEffect(() => {
   // If user is not authenticated, show a simple notification icon that leads to login
   if (!user || !isVerified) {
     return (
-      <ActionIcon
-        style={{ height: 39, width: 44 }}
-        // color="gray"
-        variant="light"
+      <div 
+        className="flex flex-col items-center" 
+        style={{ cursor: 'pointer' }}
         onClick={() => navigate('/login')}
         title="وارد شوید تا اعلان‌ها را ببینید"
       >
-        <IoIosNotificationsOutline size={25} />
-      </ActionIcon>
-
+        <div className="flex">
+          <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+        </div>
+        <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
+          fontSize: '12px',
+          lineHeight: '',
+          fontWeight: '400',
+          color: '#6E7172',
+          margin: 0
+        }}>
+          اعلانات
+        </p>
+      </div>
     );
   }
 
@@ -139,78 +148,108 @@ useEffect(() => {
   if (errorNotificationNumber) {
     console.error('Notification error:', errorNotificationNumber);
     return (
-      <ActionIcon
-        // h={35}
-        color="gray"
-        variant="light"
-        // size="xl"
-        style={{ height: 45, width: 44 }}
+      <div 
+        className="flex flex-col items-center" 
+        style={{ cursor: 'pointer', opacity: 0.5 }}
         onClick={handleClick}
         title="خطا در بارگیری اعلان‌ها"
-        disabled
       >
-        <IoIosNotificationsOutline size={25} />
-      </ActionIcon>
+        <div className="flex">
+          <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+        </div>
+        <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
+          fontSize: '12px',
+          lineHeight: '',
+          fontWeight: '400',
+          color: '#6E7172',
+          margin: 0
+        }}>
+          اعلانات
+        </p>
+      </div>
     );
   }
 
   // Show loading state only when actively loading and no cached data
   if (loadingNotificationNumber && !notificationNumber) {
     return (
-      <ActionIcon
-        // h={35}
-        color="blue"
-        variant="light"
-        // size="xl"
-        style={{ height: 45, width: 44 }}
+      <div 
+        className="flex flex-col items-center" 
+        style={{ cursor: 'pointer' }}
         onClick={handleClick}
-        loading
       >
-        <IoIosNotificationsOutline size={25} />
-      </ActionIcon>
+        <div className="flex">
+          <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+        </div>
+        <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
+          fontSize: '12px',
+          lineHeight: '',
+          fontWeight: '400',
+          color: '#6E7172',
+          margin: 0
+        }}>
+          اعلانات
+        </p>
+      </div>
     );
   }
 
   // Show with indicator if there are unread notifications
   if (unreadCount > 0) {
     return (
-      <Indicator
-        offset={2}
-        withBorder
-        size={20}
-        label={unreadCount}
-        color="green"
-        inline
-        styles={{
-          indicator: { paddingTop: "1px" },
-        }}
+      <div 
+        className="flex flex-col items-center" 
+        style={{ cursor: 'pointer' }}
+        onClick={handleClick}
       >
-        <ActionIcon
-          // h={35}
-          color="blue"
-          variant="light"
-          // size="xl"
-          style={{ height: 45, width: 44 }}
-          onClick={handleClick}
-        >
-          <IoIosNotificationsOutline size={25} />
-        </ActionIcon>
-      </Indicator>
+        <div className="flex" style={{ position: 'relative' }}>
+          <Indicator
+            offset={2}
+            withBorder
+            size={20}
+            label={unreadCount}
+            color="green"
+            inline
+            styles={{
+              indicator: { paddingTop: "1px" },
+            }}
+          >
+            <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+          </Indicator>
+        </div>
+        <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
+          fontSize: '12px',
+          lineHeight: '',
+          fontWeight: '400',
+          color: '#6E7172',
+          margin: 0
+        }}>
+          اعلانات
+        </p>
+      </div>
     );
   }
 
   // Default: show without indicator
   return (
-    <ActionIcon
-      // h={44}
-      color="blue"
-      variant="light"
-      // size="xl"
-      style={{ height: 45, width: 44 }}
+    <div 
+      className="flex flex-col items-center" 
+      style={{ cursor: 'pointer' }}
       onClick={handleClick}
     >
-      <IoIosNotificationsOutline size={25} />
-    </ActionIcon>
+      <div className="flex">
+        <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+      </div>
+      <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
+        fontSize: '12px',
+        lineHeight: '',
+        fontWeight: '400',
+        color: '#6E7172',
+        margin: 0
+      }}>
+        اعلانات
+      </p>
+    </div>
   );
 };
 
