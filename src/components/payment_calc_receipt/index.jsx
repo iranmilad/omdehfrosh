@@ -8,16 +8,60 @@ import { updateFinalReceiptPaymentMethod } from "../../redux/cartfinalreceipt/ca
 import { useNavigate } from "react-router";
 import { requestFinalReceipt } from "../../redux/cartfinalreceipt/cartfinalreceiptrequestreceipt/cartFinalReceiptRequestReceiptActions";
 import { notifications } from "@mantine/notifications";
+import ImageIcon from '../../resources/defaultImageIcon';
 
 const { Title, Text } = Typography;
+
+// Helper function to validate image source
+const isValidImageSource = (src) => {
+  if (!src) return false;
+  if (Array.isArray(src)) {
+    if (src.length === 0) return false;
+    const firstItem = src[0];
+    if (!firstItem || typeof firstItem !== 'string' || firstItem.trim() === '') return false;
+    // Check if it's a valid path (starts with / or http)
+    if (!firstItem.startsWith('/') && !firstItem.startsWith('http')) return false;
+    return true;
+  }
+  if (typeof src !== 'string') return false;
+  if (src.trim() === '') return false;
+  // Check if it's a valid path (starts with / or http)
+  if (!src.startsWith('/') && !src.startsWith('http')) return false;
+  return true;
+};
+
+// Get valid image source
+const getValidImageSource = (src) => {
+  if (!src) return null;
+  if (Array.isArray(src)) {
+    if (src.length === 0) return null;
+    const firstItem = src[0];
+    if (!firstItem || typeof firstItem !== 'string' || firstItem.trim() === '') return null;
+    if (!firstItem.startsWith('/') && !firstItem.startsWith('http')) return null;
+    return firstItem;
+  }
+  if (typeof src !== 'string' || src.trim() === '') return null;
+  if (!src.startsWith('/') && !src.startsWith('http')) return null;
+  return src;
+};
 
 const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
+
+
+
+
+
+
+
+
   const { orderfinalreceipt, loadingfinalreceipt, errorfinalreceipt } = useSelector(
     (state) => state.cartfinalreceipt
   );
+
+  console.log("Order Final Receipt:", orderfinalreceipt);
 
   const getOrderIdForSeller = (sellerId) => {
     if (!orderfinalreceipt?.orderTracking) return null;
@@ -279,7 +323,7 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
   const isCODPayment = gateway?.name === "cod" || gateway?.paymentMethod === "cod";
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px' }}>
+    <div style={{ maxWidth: '', margin: '', padding: '' }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* Seller Groups */}
         {orderfinalreceipt?.sellers?.length > 0 ? (
@@ -299,9 +343,9 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
             background: '#fff'
           }}
         >
-          <Title level={4} style={{ marginBottom: '12px', fontWeight: 'bold' }}>
-            صورتحساب سفارش
-          </Title>
+              <Text fontWeight={700} style={{ fontSize: '20px', fontWeight: 700 }}>
+                  صورتحساب سفارش
+                </Text>
           
 
               </Card>
@@ -384,20 +428,53 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
                   >
                     <Row gutter={16} align="middle">
                       <Col xs={4} sm={3}>
-                        <Image
-                          src={item.item.image}
-                          alt={item.item.name}
-                          style={{ 
-                            width: '100%',
-                            maxWidth: '60px',
-                            height: 'auto',
-                            aspectRatio: '1/1',
-                            objectFit: 'cover',
-                            borderRadius: '8px'
-                          }}
-                          preview={false}
-                          fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-                        />
+                        {(() => {
+                          const imageSrc = getValidImageSource(item.item.image);
+                          const hasValidImage = isValidImageSource(item.item.image);
+
+                          return (
+                            <div
+                              style={{
+                                width: '100%',
+                                maxWidth: '60px',
+                                height: '60px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: !hasValidImage ? '#f3f4f6' : 'transparent',
+                                borderRadius: '8px',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {!hasValidImage ? (
+                                <ImageIcon size={32} color="#9ca3af" />
+                              ) : (
+                                  <Image
+                                    src={imageSrc}
+                                    alt={item.item.name}
+                                    style={{
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'cover',
+                                    }}
+                                    preview={false}
+                                    fallback={
+                                      <div style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f3f4f6'
+                                      }}>
+                                        <ImageIcon size={32} color="#9ca3af" />
+                                      </div>
+                                    }
+                                  />
+                              )}
+                            </div>
+                          );
+                        })()}
                       </Col>
                       <Col xs={20} sm={21}>
                         <Space direction="vertical" size={4} style={{ width: '100%' }}>

@@ -210,7 +210,7 @@ const handleCartRemovalComplete = async () => {
 
   return (
     <Paper 
-      p="xl"
+      p=""
       style={{
         opacity: isRemoving ? 0.5 : 1,
         transition: 'opacity 0.3s ease, transform 0.3s ease',

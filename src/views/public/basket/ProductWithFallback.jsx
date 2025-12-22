@@ -4,16 +4,27 @@ import { setInitial } from "../../../redux/cart";
 import CounterBasket from "../../../components/counter-basket";
 import { DEFAULT_COLOR_MAP } from '../../../Libs/attribute_colors/colors';
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
+import ImageIcon from '../../../resources/defaultImageIcon';
+
+// Helper function to validate image source
+const isValidImageSource = (src) => {
+  if (!src) return false;
+  if (typeof src !== 'string') return false;
+  if (src.trim() === '') return false;
+  return true;
+};
 
 // Hook to safely handle image sources
 const useSafeImageSrc = (src) => {
   const [safeSrc, setSafeSrc] = useState(src);
+  const [hasError, setHasError] = useState(false);
   
   useEffect(() => {
     setSafeSrc(src);
+    setHasError(false);
   }, [src]);
   
-  return safeSrc;
+  return { safeSrc, hasError, setHasError };
 };
 
 const ProductWithFallback = ({ onRemoveStart, ...props }) => {
@@ -24,13 +35,25 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
 
   // Helper functions to extract data from props
   const getImageSource = (item) => {
+    let potentialSrc = null;
+    
     if (item.items && Array.isArray(item.items) && item.items.length > 0) {
-      if (item.items[0]?.image) return item.items[0].image;
+      if (item.items[0]?.image) potentialSrc = item.items[0].image;
     }
-    if (item.image) return item.image;
-    if (item.product?.image) return item.product.image;
-    if (item.img) return item.img;
-    return null;
+    if (!potentialSrc && item.image) potentialSrc = item.image;
+    if (!potentialSrc && item.product?.image) potentialSrc = item.product.image;
+    if (!potentialSrc && item.img) potentialSrc = item.img;
+    
+    // Handle array cases like [] or [""]
+    if (Array.isArray(potentialSrc)) {
+      if (potentialSrc.length === 0) return null;
+      potentialSrc = potentialSrc[0];
+    }
+    
+    // Validate the source
+    if (!isValidImageSource(potentialSrc)) return null;
+    
+    return potentialSrc;
   };
 
   const getProductName = (item) => {
@@ -114,7 +137,7 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
 
   // Extract data
   const rawSrc = getImageSource(props);
-  const safeSrc = useSafeImageSrc(rawSrc);
+  const { safeSrc, hasError, setHasError } = useSafeImageSrc(rawSrc);
   const productName = getProductName(props);
   const productId = getProductId(props);
   const productIdStr = String(productId);
@@ -126,6 +149,9 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
   const stock = getStock(props);
   const shippingType = getShippingType(props);
   const deliveryTime = getDeliveryTime(props);
+
+  // Check if we should show fallback image
+  const shouldShowFallback = !safeSrc || hasError;
 
   // Check if item is in cart
   const isInCart = cartItems.some(
@@ -287,31 +313,45 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
       <div className="flex justify-between gap-2">
         <div className="flex overflow-hidden gap-1 md:gap-2" style={{ flexBasis: '80%' }}>
           <div className="relative">
-            <div style={{ width: '62px', height: '62px', lineHeight: 0 }}>
-              <picture>
-                <img 
-                  className="w-full inline-block" 
-                  src={safeSrc} 
-                  width="62" 
-                  height="62" 
-                  alt={productName}
-                  title={productName}
-                  style={{ objectFit: 'contain' }}
-                />
-              </picture>
-
+            <div 
+              style={{ 
+                width: '62px', 
+                height: '62px', 
+                lineHeight: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: shouldShowFallback ? '#f3f4f6' : 'transparent',
+                borderRadius: '8px'
+              }}
+            >
+              {shouldShowFallback ? (
+                <ImageIcon size={32} color="#9ca3af" />
+              ) : (
+                <picture>
+                  <img 
+                    className="w-full inline-block" 
+                    src={safeSrc} 
+                    width="62" 
+                    height="62" 
+                    alt={productName}
+                    title={productName}
+                    style={{ objectFit: 'contain' }}
+                    onError={() => setHasError(true)}
+                  />
+                </picture>
+              )}
             </div>
-
           </div>
 
-            <div 
+          <div 
             className="flex items-center justify-center
                         border-white border-2 border-solid
                         rounded-lg bg-gray-600
                         text-xs text-white
                         absolute right-2 top-14"
-              style={{ minWidth: '20px', height: '18px' }}
-            >
+            style={{ minWidth: '20px', height: '18px' }}
+          >
             {count}
           </div>
 

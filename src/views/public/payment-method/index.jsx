@@ -344,122 +344,115 @@ const PaymentMethod = () => {
 
         <Grid gutter="xl">
         <Grid.Col span={{ base: 12, lg: 8 }}>
-            {/* روش پرداخت Section */}
-            <div className="lg:rounded-medium bg-white border p-4 mb-4">
-              <div className="text-[16px] md:text-[20px] font-bold mb-1 text-gray-700">
-                انتخاب روش پرداخت
-              </div>
-              
-              <div className="mt-3 flex flex-col gap-2">
-                {fetchedGateways.map((gateway) => {
-                  const isSelected = form.values.gateway?.name === gateway.info.name;
-                  const isWallet = gateway.info.name === 'wallet';
-                  
-                  return (
-                      <label
-                        key={gateway.info.name}
-                        className={`rounded-lg px-3 py-2 border-2 border-solid cursor-pointer ${
-                          isSelected ? 'border-[#29b6f6]' : 'border-gray-200'
-                        }`}
-                      >
-
-                      <div className="flex items-center rounded-sm">
-                        <input 
-                          id={gateway.info.name}
-                          className="hidden" 
-                          type="radio" 
-                          value={gateway.info.name}
-                          checked={isSelected}
-                          onChange={() => form.setValues({ gateway: gateway.info })}
-                          name="payment-gateway"
-                        />
-                        
-                        <span className="w-6 h-6 shrink-0">
-                          {isSelected ? (
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2Z" fill="#29b6f6"></path>
-                              <path d="M12 7C9.2 7 7 9.2 7 12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12C17 9.2 14.8 7 12 7Z" fill="white"></path>
-                            </svg>
-                          ) : (
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12ZM4 12C4 16.4 7.6 20 12 20C16.4 20 20 16.4 20 12C20 7.6 16.4 4 12 4C7.6 4 4 7.6 4 12Z" fill="#4D5053" fillRule="evenodd" clipRule="evenodd"></path>
-                            </svg>
-                          )}
-                        </span>
-                        
-                        <div className="flex mr-2.5 gap-2 items-center">
-                          <p className="text-xs md:text-sm font-bold">
-                            {gateway.label || gateway.info.name}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {gateway.description && (
-                        <div>
-                          <p className="text-[11px] md:text-xs font-normal text-gray-500 mt-1">
-                            {gateway.description}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Wallet balance and recharge link */}
-                      {isWallet && (
-                        <div className="mt-2">
-                          <span className="flex items-center gap-1 text-[11px] md:text-xs font-normal text-gray-500">
-                            موجودی: {loadingWallet ? '...' : formatBalance(walletBalance)}
-                            <div className="flex">
-                              <svg style={{ width: '16px', height: '16px', fill: 'rgb(129, 133, 139)' }}>
-                                <text x="2" y="13" fontSize="12" fill="rgb(129, 133, 139)">تومان</text>
-                              </svg>
-                            </div>
-                            <NavLink 
-                              to="/account/wallet" 
-                              className="inline-flex items-center cursor-pointer text-sm font-bold text-[#29b6f6] hover:text-blue-700 mr-auto no-underline"
-                            >
-                              <span>افزایش موجودی</span>
-                              <div className="flex">
-                                <IconChevronLeft size={18} style={{ fill: '' }} />
-                              </div>
-                            </NavLink>
-                          </span>
-                        </div>
-                      )}
-                    </label>
-                  );
-                })}
-              </div>
+          {/* روش پرداخت Section */}
+          <div className="w-full lg:rounded-medium bg-white border p-4 mb-4">
+            <div className="text-[16px] md:text-[20px] font-bold mb-1 text-gray-700">
+              انتخاب روش پرداخت
             </div>
 
-            {/* Submit Coupon Section */}
-            <SubmitCoupon 
-              isDiscountApplied={isDiscountApplied} 
-              setIsDiscountApplied={setIsDiscountApplied}
-              gateway={form.getValues().gateway} 
-            />
+            <div className="mt-3 flex flex-col gap-2">
+              {fetchedGateways.map((gateway) => {
+                const isSelected = form.values.gateway?.name === gateway.info.name;
+                const isWallet = gateway.info.name === 'wallet';
 
-            {/* PaymentCalcReceipt - Moved below coupon */}
-            {form.getValues().gateway?.name && (
-              <Box mt="lg">
-                <PaymentCalcReceipt
-                  prev={{ to: "/basket-info", component: NavLink }}
-                  gateway={form.getValues().gateway}
-                >
-                  پرداخت
-                </PaymentCalcReceipt>
-              </Box>
-            )}
-          </Grid.Col>
+                return (
+                  <label
+                    key={gateway.info.name}
+                    className={`rounded-lg px-3 py-2 border-2 border-solid cursor-pointer ${isSelected ? 'border-[#29b6f6]' : 'border-gray-200'
+                      }`}
+                  >
+                    <div className="flex items-center rounded-sm">
+                      <input
+                        id={gateway.info.name}
+                        className="hidden"
+                        type="radio"
+                        value={gateway.info.name}
+                        checked={isSelected}
+                        onChange={() => form.setValues({ gateway: gateway.info })}
+                        name="payment-gateway"
+                      />
+
+                      <span className="w-6 h-6 shrink-0">
+                        {isSelected ? (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2Z" fill="#29b6f6"></path>
+                            <path d="M12 7C9.2 7 7 9.2 7 12C7 14.8 9.2 17 12 17C14.8 17 17 14.8 17 12C17 9.2 14.8 7 12 7Z" fill="white"></path>
+                          </svg>
+                        ) : (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12ZM4 12C4 16.4 7.6 20 12 20C16.4 20 20 16.4 20 12C20 7.6 16.4 4 12 4C7.6 4 4 7.6 4 12Z" fill="#4D5053" fillRule="evenodd" clipRule="evenodd"></path>
+                          </svg>
+                        )}
+                      </span>
+
+                      <div className="flex mr-2.5 gap-2 items-center">
+                        <p className="text-xs md:text-sm font-bold">
+                          {gateway.label || gateway.info.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    {gateway.description && (
+                      <div>
+                        <p className="text-[11px] md:text-xs font-normal text-gray-500 mt-1">
+                          {gateway.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Wallet balance and recharge link */}
+                    {isWallet && (
+                      <div className="mt-2">
+                        <span className="flex items-center gap-1 text-[11px] md:text-xs font-normal text-gray-500">
+                          موجودی: {loadingWallet ? '...' : formatBalance(walletBalance)}
+                          <div className="flex">
+                            <svg style={{ width: '16px', height: '16px', fill: 'rgb(129, 133, 139)' }}>
+                              <text x="2" y="13" fontSize="12" fill="rgb(129, 133, 139)">تومان</text>
+                            </svg>
+                          </div>
+                          <NavLink
+                            to="/account/wallet"
+                            className="inline-flex items-center cursor-pointer text-sm font-bold text-[#29b6f6] hover:text-blue-700 mr-auto no-underline"
+                          >
+                            <span>افزایش موجودی</span>
+                            <div className="flex">
+                              <IconChevronLeft size={18} style={{ fill: '' }} />
+                            </div>
+                          </NavLink>
+                        </span>
+                      </div>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Submit Coupon Section */}
+          <div className="w-full mb-4">
+            <SubmitCoupon
+              isDiscountApplied={isDiscountApplied}
+              setIsDiscountApplied={setIsDiscountApplied}
+              gateway={form.getValues().gateway}
+            />
+          </div>
+
+          {/* PaymentCalcReceipt */}
+          {form.getValues().gateway?.name && (
+            <div className="w-full">
+              <PaymentCalcReceipt
+                prev={{ to: "/basket-info", component: NavLink }}
+                gateway={form.getValues().gateway}
+              >
+                پرداخت
+              </PaymentCalcReceipt>
+            </div>
+          )}
+        </Grid.Col>
             
-        <Grid.Col span={{ base: 12, lg: 4 }}>
-            <Box
-              style={{
-                position: 'sticky',
-                top: '2rem',
-              }}
-            >
-              <PaymentSummary orderfinalreceipt={orderfinalreceipt} />
-            </Box>
-          </Grid.Col>
+        <Grid.Col span={{ base: 12, lg: 4 }} px={0}>
+          <PaymentSummary orderfinalreceipt={orderfinalreceipt} />
+        </Grid.Col>
         </Grid>
     </>
   );
@@ -707,25 +700,25 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
           ) : (
             <div className="sm:my-2">
               <label className="w-full sm:w-auto sm:min-w-[40%]">
-<div
-  className="
-  h-[48px]
-    px-2 flex w-[329px] items-center relative text-gray-800
-    rounded-lg transition-colors
+                  <div
+                    className="
+                  h-[48px]
+                    px-2 flex w-[329px] items-center relative text-gray-800
+                    rounded-lg transition-colors
 
-    /* mobile */
-    border-[0.66667px] border-gray-300
-    focus-within:border-b-2 focus-within:border-b-[#29b6f6]
+                    /* mobile */
+                    border-[0.66667px] border-gray-300
+                    focus-within:border-b-2 focus-within:border-b-[#29b6f6]
 
-    /* lg */
-    lg:bg-white
-    lg:border-[0.83333px]
-    lg:border-gray-300
-    lg:border-b
-    lg:focus-within:border-[#19bfd3]
-    lg:focus-within:border-b
-  "
->
+                    /* lg */
+                    lg:bg-white
+                    lg:border-[0.83333px]
+                    lg:border-gray-300
+                    lg:border-b
+                    lg:focus-within:border-[#19bfd3]
+                    lg:focus-within:border-b
+                  "
+                  >
 
                   <div className="grow w-[329px] flex flex-row items-center px-[8px] py-[0px]">
                     <input 
