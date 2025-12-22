@@ -47,14 +47,14 @@ const FastTableBrandFastEdit = ({
 
     if (isMobile) {
       newVisibleColumns = [
-        "minOrder", "deliveryTime", "discount", "attributes", "psid",
+        "minOrder", "deliveryTime", "discount", "attributes", "psid","image",
         "minOrder", "maxOrder", "seller", "deliveryTime", "payment_type", "delivery", "psid"
       ];
     } else if (isTablet) {
-      newVisibleColumns = [ "maxOrder", "deliveryTime", "stock", "minOrder"];
+      newVisibleColumns = [ "maxOrder", "deliveryTime", "stock", "minOrder","image"];
     } else {
       newVisibleColumns = [
-        "deliveryTime", "discount",
+        "deliveryTime", "discount","image",
         "minOrder", "maxOrder", "seller", "delivery"
       ];
     }

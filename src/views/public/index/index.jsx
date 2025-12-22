@@ -79,55 +79,81 @@ function Home() {
   
 
 
-  return (
-    <>
-      <Container className="px-3 md:px-5 my-10">
-        <Stack gap={70}>
-          {homeData?.map((section, index) => {
-            switch (section.type) {
-              case "wideslider":
-                return <WideSlider key={index} items={section.data} />
-              case "featured_promo":
-                return <BadgedSlider key={index} items={section.data} />;
-              case "categories":
-                return <Categories key={index} items={section?.data} />;
-              case "banners":
-                return <GridBanner key={index} items={section.data} />;
-              case "prices": 
-                return <PriceList key={index} items={section.data} />;
-              case "trendProducts":
-                return (
-                  <ProductHighlightCard key={index} items={section.data} />
-                );
-              // case "productGrid":
-              //   return <ProductGrid key={index} items={section.data} />;
-              case "brands":
-                return <BrandSlider key={index} items={section?.data} />;
-              case "featured_products":
-                return (
-                  <Box key={index}>
-                    <ProductCarousel
-                      style={{ marginTop: "30px" }}
-                      title="محصولات منتخب"
-                      items={section.data}
-                    />
-                  </Box>
-                );
-              default:
-                return null;
-            }
-          })}
-        </Stack>
-      </Container>
-      
-      {/* Show loading indicator during background refresh */}
-      {loadingShopHome && homeData && (
-        <Box style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
-          <Loader size="sm" />
-        </Box>
-      )}
-    </>
-  );
+return (
+  <>
+    <Container className="px-3 md:px-5 my-10">
+      <Stack gap={70}>
+        {homeData?.map((section, index) => {
+          switch (section.type) {
+            case "wideslider":
+              return (
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', marginTop: index === 0 ? '-40px' : '0' }}>
+                  <WideSlider items={section.data} />
+                </Box>
+              );
+            case "featured_promo":
+              return (
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <BadgedSlider items={section.data} />
+                </Box>
+              );
+            case "categories":
+              return (
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <Categories items={section?.data} />
+                </Box>
+              );
+            case "banners":
+              return (
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <GridBanner items={section.data} />
+                </Box>
+              );
+            case "prices": 
+              return (
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <PriceList items={section.data} />
+                </Box>
+              );
+            case "trendProducts":
+              return (
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <ProductHighlightCard items={section.data} />
+                </Box>
+              );
+            // case "productGrid":
+            //   return <ProductGrid key={index} items={section.data} />;
+            case "brands":
+              return (
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <BrandSlider items={section?.data} />
+                </Box>
+              );
+            case "featured_products":
+              return (
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <ProductCarousel
+                    style={{ marginTop: "30px" }}
+                    title="محصولات منتخب"
+                    items={section.data}
+                  />
+                </Box>
+              );
+            default:
+              return null;
+          }
+        })}
+      </Stack>
+    </Container>
+    
+    {/* Show loading indicator during background refresh */}
+    {loadingShopHome && homeData && (
+      <Box style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
+        <Loader size="sm" />
+      </Box>
+    )}
+  </>
+);
 }
 
 export default Home;

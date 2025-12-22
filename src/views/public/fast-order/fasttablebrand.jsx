@@ -47,14 +47,14 @@ const FastTableBrandFastOrder = ({
 
     if (isMobile) {
       newVisibleColumns = [
-        "minOrder", "deliveryTime", "discount", "attributes", "psid",
+        "minOrder", "image", "deliveryTime", "discount", "attributes", "psid",
         "minOrder", "maxOrder", "seller", "deliveryTime", "payment_type", "delivery", "psid"
       ];
     } else if (isTablet) {
-      newVisibleColumns = [ "maxOrder", "deliveryTime", "stock", "minOrder"];
+      newVisibleColumns = ["maxOrder", "image", "deliveryTime", "stock", "minOrder"];
     } else {
       newVisibleColumns = [
-        "deliveryTime", "discount",
+        "deliveryTime", "discount", "image",
         "minOrder", "maxOrder", "seller", "delivery"
       ];
     }
@@ -279,9 +279,12 @@ case "name":
     </div>
         );
 
-  case "attributes":
-        return <Attributes items={record.attributes} />;
-
+      case "attributes":
+        return (
+          <div className="attributes-container">
+            <Attributes items={record.attributes} />
+          </div>
+        );
       case "price":
         return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{displayItem.price.regularPrice}</Text>;
 
@@ -346,7 +349,7 @@ case "name":
     name: isMobile ? 150 : 200,
     shortName: isMobile ? 120 : 150,
     psid: isMobile ? 100 : 120,
-    attributes: isMobile ? 100 : 120,
+    attributes: isMobile ? 100 : 120, 
     price: isMobile ? 100 : 120,
     discount: isMobile ? 100 : 120,
     stock: isMobile ? 90 : 100,
@@ -364,7 +367,7 @@ case "name":
 const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(column => ({
   title: (
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600 }}>{column.label}</div>
+      <div style={{ fontSize: 16, fontWeight: 600 }}>{column.label}</div>
       {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
         <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>میلیون تومان</Text>
       )}
@@ -375,8 +378,8 @@ const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(col
   ),
   dataIndex: column.key,
   key: column.key,
-  align: column.key === 'name' ? 'right' : 'center',  // ← Also add this for name alignment
-  width: getColumnWidth(column.key),  // ← Changed from fixed width
+  align: column.key === 'name' ? 'right' : 'center',
+  width: getColumnWidth(column.key),
   render: (_, record) => renderCellContent(column, record),
 }));
 
@@ -411,7 +414,6 @@ const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(col
             expandedRowClassName: (record) => 'expanded-row',
           }}
           bordered
-                  tableLayout="fixed"  // ← ADD THIS LINE
 
           style={{
             fontSize: isMobile ? 10 : 12,
@@ -504,6 +506,11 @@ const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(col
   .fast-table-brand .ant-table-tbody > tr.expanded-row:hover > td {
     background: #bae7ff !important;
     background-color: #bae7ff !important;
+  }
+
+    .fast-table-brand .ant-table-tbody > tr > td:has(.attributes-container) {
+    min-width: 100px !important;
+    max-width: 120px !important;
   }
 `}</style>
     </div>

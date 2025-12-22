@@ -46,14 +46,14 @@ const FastTableCategory = ({
 
     if (isMobile) {
       newVisibleColumns = [
-        "minOrder", "deliveryTime", "discount", "attributes", "psid",
+        "minOrder", "deliveryTime", "discount", "attributes", "psid", "image",
         "minOrder", "maxOrder", "seller", "deliveryTime", "payment_type", "delivery", "psid"
       ];
     } else if (isTablet) {
-      newVisibleColumns = ["maxOrder", "deliveryTime", "stock", "minOrder"];
+      newVisibleColumns = ["maxOrder", "image", "deliveryTime", "stock", "minOrder"];
     } else {
       newVisibleColumns = [
-        "deliveryTime", "discount",
+        "deliveryTime", "discount", "image",
         "minOrder", "maxOrder", "seller", "delivery"
       ];
     }
@@ -267,9 +267,12 @@ case "name":
       )}
     </div>
   );
-        case "attributes":
-        return <Attributes items={record.attributes} />;
-
+      case "attributes":
+        return (
+          <div className="attributes-container">
+            <Attributes items={record.attributes} />
+          </div>
+        );
       case "price":
         return <Text style={{ fontSize: isMobile ? 10 : 12 }}>{displayItem.price.regularPrice}</Text>;
 
@@ -328,10 +331,31 @@ case "name":
     }
   };
 
+  const getColumnWidth = (columnKey) => {
+    const widthMap = {
+      image: isMobile ? 60 : 70,
+      name: isMobile ? 150 : 200,
+      shortName: isMobile ? 120 : 150,
+      psid: isMobile ? 100 : 120,
+      attributes: isMobile ? 100 : 120,
+      price: isMobile ? 100 : 120,
+      discount: isMobile ? 100 : 120,
+      stock: isMobile ? 90 : 100,
+      minOrder: isMobile ? 90 : 100,
+      maxOrder: isMobile ? 90 : 100,
+      ICPrice_usd: isMobile ? 100 : 120,
+      ICPrice_AED: isMobile ? 100 : 120,
+      seller: isMobile ? 120 : 150,
+      deliveryTime: isMobile ? 100 : 130,
+      action: isMobile ? 70 : 90,
+    };
+    return widthMap[columnKey] || (isMobile ? 80 : 120);
+  };
+
   const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(column => ({
     title: (
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600 }}>{column.label}</div>
+        <div style={{ fontSize: 16, fontWeight: 600 }}>{column.label}</div>
         {column.key === 'price' && filters_category_mode.priceFormat === 'million' && (
           <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>میلیون تومان</Text>
         )}
@@ -342,10 +366,13 @@ case "name":
     ),
     dataIndex: column.key,
     key: column.key,
-    align: 'center',
-    width: isMobile ? 80 : 120,
+    align: column.key === 'name' ? 'right' : 'center',
+    width: getColumnWidth(column.key),  // ← Changed from fixed width
     render: (_, record) => renderCellContent(column, record),
   }));
+
+
+
 
   const transformData = (items) => {
     return items.map(item => ({
@@ -376,6 +403,7 @@ case "name":
             expandedRowClassName: (record) => 'expanded-row',
           }}
           bordered
+
           style={{
             fontSize: isMobile ? 10 : 12,
           }}
@@ -451,6 +479,11 @@ case "name":
         .fast-table-category .ant-table-tbody > tr.expanded-row:hover > td {
           background: #bae7ff !important;
           background-color: #bae7ff !important;
+        }
+
+        .fast-table-brand .ant-table-tbody > tr > td:has(.attributes-container) {
+          min-width: 100px !important;
+          max-width: 120px !important;
         }
       `}</style>
     </div>

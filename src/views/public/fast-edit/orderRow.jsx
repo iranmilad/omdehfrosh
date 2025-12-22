@@ -82,12 +82,14 @@ export function Attributes({items}){
   return (
     <div style={{ 
       display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center',
+      flexDirection: 'row',  // ← Changed from 'column' to 'row'
+      alignItems: '',
+      justifyContent: 'space-between',  // ← Added to center items
       minHeight: '24px',
       padding: 0,
       margin: 0,
-      gap: '1px'
+      gap: '4px',  // ← Changed from '1px' to '4px' for better spacing
+      flexWrap: 'wrap'  // ← Added to wrap items if too many
     }}>
       {hasAttributes ? (
         items.map((it,index) => <Attribute key={index} {...it} />)
@@ -98,45 +100,56 @@ export function Attributes({items}){
   )
 }
 
+
 function Attribute (props){
   let {type, attribute_name, value} = props;
-  
+
+  console.log('Attribute props:', props);
+
   const renderAttribute = () => {
     switch (type) {
+
       case 'color':
         return (
-          <Tooltip label={attribute_name} withArrow={false} position="top" offset={2}>
-            <ColorSwatch size={16} color={value} style={{ margin: 0 }} />
+          <Tooltip label={attribute_name} position="top" withArrow>
+            <ColorSwatch size={16} color={value} style={{ margin: 0, cursor: 'pointer' }} />
           </Tooltip>
         );
       case 'warranty':
         return (
-          <Tooltip label={attribute_name} withArrow={false} position="top" offset={2}>
-            <IconShieldCheck size={16} style={{ margin: 0 }} />
+          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
+            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+              <IconShieldCheck size={16} style={{ margin: 0 }} />
+            </div>
           </Tooltip>
         );
       case 'material':
         return (
-          <Tooltip label={attribute_name} withArrow={false} position="top" offset={2}>
-            <IconKeyframeAlignCenter size={16} style={{ margin: 0 }} />
+          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
+            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+              <IconKeyframeAlignCenter size={16} style={{ margin: 0 }} />
+            </div>
           </Tooltip>
         );
       default:
         // For any other type, show a generic attribute with minimal styling
         return (
-          <Badge 
-            size="xs" 
-            variant="light" 
-            style={{ 
-              padding: '1px 4px', 
-              margin: 0, 
-              fontSize: '9px',
-              height: '16px',
-              lineHeight: '14px'
-            }}
-          >
-            {value}
-          </Badge>
+          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
+            <Badge
+              size="xs"
+              variant="light"
+              style={{
+                padding: '1px 4px',
+                margin: 0,
+                fontSize: '9px',
+                height: '16px',
+                lineHeight: '14px',
+                cursor: 'pointer'
+              }}
+            >
+              {value}
+            </Badge>
+          </Tooltip>
         );
     }
   };
@@ -147,5 +160,6 @@ function Attribute (props){
     </div>
   );
 }
+
 
 export default OrderRow;

@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { NavLink } from "react-router";
 import { FreeMode, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import ImageIcon from '../../resources/defaultImageIcon'; // Adjust path as needed
 
 function BrandSlider({ items }) {
   const sliderRef = useRef(null);
@@ -55,101 +56,94 @@ function BrandSlider({ items }) {
     setFailedImages(prev => new Set([...prev, index]));
   };
 
-  const createBrandPlaceholder = (url) => {
-    // Array of gray and blue gradient backgrounds
-    const brandGradients = [
-      "linear-gradient(135deg, #607D8B 0%, #37474F 100%)", // Blue Gray
-      "linear-gradient(135deg, #546E7A 0%, #263238 100%)", // Dark Blue Gray
-      "linear-gradient(135deg, #78909C 0%, #455A64 100%)", // Light Blue Gray
-      "linear-gradient(135deg, #1E88E5 0%, #0D47A1 100%)", // Blue
-      "linear-gradient(135deg, #42A5F5 0%, #1565C0 100%)", // Light Blue
-      "linear-gradient(135deg, #5C6BC0 0%, #283593 100%)", // Indigo
-      "linear-gradient(135deg, #757575 0%, #424242 100%)", // Gray
-      "linear-gradient(135deg, #90A4AE 0%, #546E7A 100%)", // Soft Blue Gray
-    ];
-    
-    // Generate consistent gradient based on URL
-    const urlHash = url ? url.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0) : 0;
-    
-    const selectedGradient = brandGradients[Math.abs(urlHash) % brandGradients.length];
-    
-    return (
-      <Box
-        w="100%"
-        h="100%"
-        style={{
-          background: selectedGradient,
-          borderRadius: "8px",
-          border: "1px solid rgba(1, 1, 1, 0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: "8px",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Subtle pattern overlay matching ProductBox */}
-        <Box
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E")`,
-            opacity: 0.3
-          }}
-        />
-        
-        {/* Package icon matching ProductBox */}
-        <IconPackage 
-          size={32} 
-          color="rgba(255, 255, 255, 0.8)" 
-          style={{ zIndex: 2 }} 
-        />
-      </Box>
-    );
+  // Helper function to validate image source
+  const isValidImageSource = (src) => {
+    if (!src) return false;
+    if (Array.isArray(src)) {
+      if (src.length === 0) return false;
+      const firstItem = src[0];
+      if (!firstItem || typeof firstItem !== 'string' || firstItem.trim() === '') return false;
+      if (!firstItem.startsWith('/') && !firstItem.startsWith('http')) return false;
+      return true;
+    }
+    if (typeof src !== 'string') return false;
+    if (src.trim() === '') return false;
+    if (!src.startsWith('/') && !src.startsWith('http')) return false;
+    return true;
+  };
+
+  // Get valid image source
+  const getValidImageSource = (src) => {
+    if (!src) return null;
+    if (Array.isArray(src)) {
+      if (src.length === 0) return null;
+      const firstItem = src[0];
+      if (!firstItem || typeof firstItem !== 'string' || firstItem.trim() === '') return null;
+      if (!firstItem.startsWith('/') && !firstItem.startsWith('http')) return null;
+      return firstItem;
+    }
+    if (typeof src !== 'string' || src.trim() === '') return null;
+    if (!src.startsWith('/') && !src.startsWith('http')) return null;
+    return src;
   };
 
   const renderBrandImage = (item, index) => {
-    const hasValidImage = item.image && 
-                         item.image !== null && 
-                         item.image !== "" && 
-                         item.image.trim() !== "" &&
-                         !failedImages.has(index);
+    const imageSrc = getValidImageSource(item.image);
+    const hasValidImage = isValidImageSource(item.image) && !failedImages.has(index);
 
-    if (!hasValidImage) {
-      return (
-        <Box w="120px" h="80px">
-          {createBrandPlaceholder(item.url)}
-        </Box>
-      );
-    }
-
+  if (!hasValidImage) {
     return (
-      <Box w="120px" h="80px">
-        <Image 
-          w="100%" 
-          h="100%" 
-          fit="contain" 
-          src={item.image} 
-          alt={`برند ${index + 1}`}
-          onError={() => handleImageError(index)}
-          fallbackSrc="" // This will trigger onError if image fails
-          style={{
-            borderRadius: "8px",
-            border: "1px solid rgba(1, 1, 1, 0.5)",
-            backgroundColor: "#f8f9fa", // Light background matching ProductBox
-          }}
-        />
+      <Box 
+        w="120px"
+        h="80px"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f3f4f6',
+          borderRadius: '8px',
+          border: '1px solid rgba(1, 1, 1, 0.5)'
+        }}
+      >
+        <ImageIcon size={48} color="#9ca3af" />
       </Box>
     );
-  };
+  }
+
+  return (
+    <Box w="120px" h="80px">
+      <Image
+        w="100%"
+        h="100%"
+        fit="contain" 
+        src={imageSrc}
+        alt={`برند ${index + 1}`}
+        onError={() => handleImageError(index)}
+        style={{
+          borderRadius: "8px",
+          border: "1px solid rgba(1, 1, 1, 0.5)",
+          backgroundColor: "#f8f9fa",
+        }}
+        fallback={
+          <Box
+            w="120px"
+            h="80px"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f3f4f6',
+              borderRadius: '8px',
+              border: '1px solid rgba(1, 1, 1, 0.5)'
+            }}
+          >
+            <ImageIcon size={48} color="#9ca3af" />
+          </Box>
+        }
+      />
+    </Box>
+  );
+};
 
   // Early return if no items or invalid structure
   if (!items || !items.children || items.children.length === 0) {

@@ -628,7 +628,7 @@ useEffect(() => {
                           {nodes.map((item, index) => (
                             <React.Fragment key={index}>
                               <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                                <Text size="18px" c="dark">
+                                <Text size="16px" fw={600} c="dark">
                                   {item.label}
                                 </Text>
                               </Flex>
@@ -802,7 +802,7 @@ useEffect(() => {
                           {nodesSubCategoriesData?.map((item, index) => (
                             <React.Fragment key={index}>
                               <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                                <Text size="18px" c="dark">
+                                <Text size="16px" fw={600} c="dark">
                                   {item.label}
                                 </Text>
                               </Flex>
