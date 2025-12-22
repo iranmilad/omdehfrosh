@@ -9,7 +9,7 @@ import EditItemsFastOrder from "./edit-items";
 
 const { Text, Link } = Typography;
 
-const FastTableBrand = ({ 
+const FastTableBrandFastEdit = ({ 
   nodes, 
   setNodes, 
   COLUMNS, 
@@ -295,25 +295,29 @@ case "image":
       )}
     </div>
   );
-      case "name":
-        return (
-          <NavLink
-            to={`/product/${record.id}`}
-            style={{ color: '#1890ff', textDecoration: 'none' }}
-          >
-            <Text
-              style={{
-                fontSize: isMobile ? 11 : 12,
-                whiteSpace: 'normal',
-                wordBreak: 'break-word',
-              }}
-              ellipsis={{ tooltip: record.name, rows: 2 }}
-            >
-              {record.name}
-            </Text>
-          </NavLink>
-        );
-      case "shortName":
+
+case "name":
+  return (
+    <div style={{ paddingRight: '8px' }}>  {/* ← Add padding if needed */}
+      <NavLink
+        to={`/product/${record.id}`}
+        style={{ color: '#1890ff', textDecoration: 'none', textAlign: 'right' }}
+      >
+        <Text
+          style={{
+            fontSize: isMobile ? 11 : 12,
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
+            textAlign: 'right',  // ← Add this
+          }}
+          ellipsis={{ tooltip: record.name, rows: 2 }}
+        >
+          {record.name}
+        </Text>
+      </NavLink>
+    </div>
+  );
+        case "shortName":
         const hasChildren = record.children && record.children.length > 0;
         const isExpanded = expandedRowKeys.includes(record.key);
         
@@ -1049,4 +1053,4 @@ case "action":
   );
 };
 
-export default FastTableBrand;
+export default FastTableBrandFastEdit;

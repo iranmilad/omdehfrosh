@@ -9,7 +9,7 @@ import EditItemsFastOrder from "./edit-items";
 
 const { Text, Link } = Typography;
 
-const FastTableBrand = ({ 
+const FastTableBrandFastOrder = ({ 
   nodes, 
   setNodes, 
   COLUMNS, 
@@ -163,6 +163,7 @@ const FastTableBrand = ({
     const displayItem = record;
     
     switch (column.key) {
+
 case "image":
   const hasValidImage = displayItem.images && 
     displayItem.images.length > 0 && 
@@ -178,6 +179,7 @@ case "image":
         alignItems: 'center', 
         width: '100%', 
         height: '100%',
+        position: 'relative'
       }}
     >
       {hasValidImage ? (
@@ -190,7 +192,14 @@ case "image":
           onError={() => {
             setImageErrors(prev => ({ ...prev, [record.psid]: true }));
           }}
-          style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
+          style={{
+            objectFit: 'cover',
+            borderRadius: 4,
+            display: 'block',
+            margin: 0,       // ← Remove margin
+            padding: 0,      // ← Remove padding
+            verticalAlign: 'middle'  // ← Prevent baseline spacing
+          }}
         />
       ) : (
         <div style={{ 
@@ -201,14 +210,15 @@ case "image":
           alignItems: 'center', 
           justifyContent: 'center', 
           borderRadius: 4,
-          border: '1px solid #e9ecef'
+            border: '1px solid #e9ecef',
+            margin: 0,   // ← Remove margin
+            padding: 0   // ← Remove padding
         }}>
           <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
         </div>
       )}
     </div>
   );
-
 case "name":
   const hasChildren = record.children && record.children.length > 0;
   const isExpanded = expandedRowKeys.includes(record.key);
@@ -217,7 +227,9 @@ case "name":
     <div 
       style={{ 
         position: 'relative',
-        cursor: hasChildren ? 'pointer' : 'default'
+        cursor: hasChildren ? 'pointer' : 'default',
+        textAlign: 'right',
+        paddingRight: '20px',  // ← Always add padding (removed condition)
       }}
       onClick={hasChildren ? (e) => {
         e.stopPropagation();
@@ -230,13 +242,14 @@ case "name":
     >
       <NavLink
         to={`/product/${record.id}`}
-        style={{ color: '#1890ff' }}
+        style={{ color: '#1890ff', textAlign: 'right' }}
         onClick={(e) => hasChildren && e.stopPropagation()}
       >
         <Text
           style={{
             fontSize: isMobile ? 11 : 12,
             display: 'inline-block',
+            textAlign: 'right',
           }}
           ellipsis={{ tooltip: record.name }}
         >
@@ -247,7 +260,7 @@ case "name":
         <div style={{
           position: 'absolute',
           bottom: -10,
-          right: -10,
+          right: 0,
           width: 16,
           height: 16,
           borderRadius: '50%',
@@ -264,8 +277,8 @@ case "name":
         </div>
       )}
     </div>
-  );    
-  
+        );
+
   case "attributes":
         return <Attributes items={record.attributes} />;
 
@@ -327,24 +340,46 @@ case "name":
     }
   };
 
-  const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(column => ({
-    title: (
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600 }}>{column.label}</div>
-        {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
-          <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>میلیون تومان</Text>
-        )}
-        {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
-          <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>هزار تومان</Text>
-        )}
-      </div>
-    ),
-    dataIndex: column.key,
-    key: column.key,
-    align: 'center',
-    width: isMobile ? 80 : 120,
-    render: (_, record) => renderCellContent(column, record),
-  }));
+  const getColumnWidth = (columnKey) => {
+  const widthMap = {
+    image: isMobile ? 60 : 70,
+    name: isMobile ? 150 : 200,
+    shortName: isMobile ? 120 : 150,
+    psid: isMobile ? 100 : 120,
+    attributes: isMobile ? 100 : 120,
+    price: isMobile ? 100 : 120,
+    discount: isMobile ? 100 : 120,
+    stock: isMobile ? 90 : 100,
+    minOrder: isMobile ? 90 : 100,
+    maxOrder: isMobile ? 90 : 100,
+    ICPrice_usd: isMobile ? 100 : 120,
+    ICPrice_AED: isMobile ? 100 : 120,
+    seller: isMobile ? 120 : 150,
+    deliveryTime: isMobile ? 100 : 130,
+    action: isMobile ? 70 : 90,
+  };
+  return widthMap[columnKey] || (isMobile ? 80 : 120);
+};
+
+const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(column => ({
+  title: (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600 }}>{column.label}</div>
+      {column.key === 'price' && filters_brand_mode.priceFormat === 'million' && (
+        <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>میلیون تومان</Text>
+      )}
+      {column.key === 'price' && filters_brand_mode.priceFormat === 'hezar' && (
+        <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>هزار تومان</Text>
+      )}
+    </div>
+  ),
+  dataIndex: column.key,
+  key: column.key,
+  align: column.key === 'name' ? 'right' : 'center',  // ← Also add this for name alignment
+  width: getColumnWidth(column.key),  // ← Changed from fixed width
+  render: (_, record) => renderCellContent(column, record),
+}));
+
 
   const transformData = (items) => {
     return items.map(item => ({
@@ -376,6 +411,8 @@ case "name":
             expandedRowClassName: (record) => 'expanded-row',
           }}
           bordered
+                  tableLayout="fixed"  // ← ADD THIS LINE
+
           style={{
             fontSize: isMobile ? 10 : 12,
           }}
@@ -383,78 +420,94 @@ case "name":
         />
       )}
 <style jsx>{`
-        .fast-table-brand,
-        .fast-table-brand .ant-table,
-        .fast-table-brand .ant-table-container,
-        .fast-table-brand .ant-table-content,
-        .fast-table-brand table {
-          background: #ffffff !important;
-          background-color: #ffffff !important;
-          backdrop-filter: none !important;
-          box-shadow: none !important;
-        }
-        .fast-table-brand::before,
-        .fast-table-brand::after,
-        .fast-table-brand .ant-table::before,
-        .fast-table-brand .ant-table::after,
-        .fast-table-brand .ant-table-container::before,
-        .fast-table-brand .ant-table-container::after,
-        .fast-table-brand .ant-table-content::before,
-        .fast-table-brand .ant-table-content::after,
-        .fast-table-brand table::before,
-        .fast-table-brand table::after {
-          display: none !important;
-          content: none !important;
-        }
-        .fast-table-brand .ant-table-cell {
-          padding: ${isMobile ? '4px 6px' : '8px 12px'} !important;
-          font-size: ${isMobile ? '10px' : '12px'} !important;
-          background: #ffffff !important;
-          background-color: #ffffff !important;
-          backdrop-filter: none !important;
-        }
-        .fast-table-brand .ant-table-cell::before,
-        .fast-table-brand .ant-table-cell::after {
-          display: none !important;
-          content: none !important;
-        }
-        .fast-table-brand .ant-table-thead > tr > th {
-          background: #f8f9fa !important;
-          background-color: #f8f9fa !important;
-          font-weight: 600;
-          padding: ${isMobile ? '4px 6px' : '8px 12px'} !important;
-          backdrop-filter: none !important;
-        }
-        .fast-table-brand .ant-table-thead > tr > th::before,
-        .fast-table-brand .ant-table-thead > tr > th::after {
-          display: none !important;
-          content: none !important;
-        }
-        .fast-table-brand .ant-table-tbody > tr > td {
-          background: #ffffff !important;
-          background-color: #ffffff !important;
-          backdrop-filter: none !important;
-        }
-        .fast-table-brand .ant-table-tbody > tr > td::before,
-        .fast-table-brand .ant-table-tbody > tr > td::after {
-          display: none !important;
-          content: none !important;
-        }
-        .fast-table-brand .ant-table-tbody > tr:hover > td {
-          background: #f8f9fa !important;
-          background-color: #f8f9fa !important;
-        }
-        .fast-table-brand .ant-table-tbody > tr.expanded-row > td {
-          background: #e6f7ff !important;
-          background-color: #e6f7ff !important;
-        }
-        .fast-table-brand .ant-table-tbody > tr.expanded-row:hover > td {
-          background: #bae7ff !important;
-          background-color: #bae7ff !important;
-        }
-      `}</style>
+  .fast-table-brand,
+  .fast-table-brand .ant-table,
+  .fast-table-brand .ant-table-container,
+  .fast-table-brand .ant-table-content,
+  .fast-table-brand table {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+  .fast-table-brand::before,
+  .fast-table-brand::after,
+  .fast-table-brand .ant-table::before,
+  .fast-table-brand .ant-table::after,
+  .fast-table-brand .ant-table-container::before,
+  .fast-table-brand .ant-table-container::after,
+  .fast-table-brand .ant-table-content::before,
+  .fast-table-brand .ant-table-content::after,
+  .fast-table-brand table::before,
+  .fast-table-brand table::after {
+    display: none !important;
+    content: none !important;
+  }
+  .fast-table-brand .ant-table-cell {
+    padding: ${isMobile ? '8px' : '12px'} !important;
+    font-size: ${isMobile ? '10px' : '12px'} !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    backdrop-filter: none !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  .fast-table-brand .ant-table-cell:first-child {
+    padding: 4px !important;
+  }
+  
+  .fast-table-brand .ant-image,
+  .fast-table-brand .ant-image-img {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 0 !important;
+  }
+  
+  .fast-table-brand .ant-table-cell::before,
+  .fast-table-brand .ant-table-cell::after {
+    display: none !important;
+    content: none !important;
+  }
+  .fast-table-brand .ant-table-thead > tr > th {
+    background: #f8f9fa !important;
+    background-color: #f8f9fa !important;
+    font-weight: 600;
+    padding: ${isMobile ? '8px' : '12px'} !important;
+    backdrop-filter: none !important;
+    white-space: nowrap !important;
+  }
+  .fast-table-brand .ant-table-thead > tr > th::before,
+  .fast-table-brand .ant-table-thead > tr > th::after {
+    display: none !important;
+    content: none !important;
+  }
+  .fast-table-brand .ant-table-tbody > tr > td {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    backdrop-filter: none !important;
+  }
+  .fast-table-brand .ant-table-tbody > tr > td::before,
+  .fast-table-brand .ant-table-tbody > tr > td::after {
+    display: none !important;
+    content: none !important;
+  }
+  .fast-table-brand .ant-table-tbody > tr:hover > td {
+    background: #f8f9fa !important;
+    background-color: #f8f9fa !important;
+  }
+  .fast-table-brand .ant-table-tbody > tr.expanded-row > td {
+    background: #e6f7ff !important;
+    background-color: #e6f7ff !important;
+  }
+  .fast-table-brand .ant-table-tbody > tr.expanded-row:hover > td {
+    background: #bae7ff !important;
+    background-color: #bae7ff !important;
+  }
+`}</style>
     </div>
   );
 };
 
-export default FastTableBrand;
+export default FastTableBrandFastOrder;

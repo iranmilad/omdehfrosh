@@ -343,7 +343,7 @@ const PaymentMethod = () => {
         </div>
 
         <Grid gutter="xl">
-          <Grid.Col span={{ base: 12, lg: 7 }}>
+        <Grid.Col span={{ base: 12, lg: 8 }}>
             {/* روش پرداخت Section */}
             <div className="lg:rounded-medium bg-white border p-4 mb-4">
               <div className="text-[16px] md:text-[20px] font-bold mb-1 text-gray-700">
@@ -450,7 +450,7 @@ const PaymentMethod = () => {
             )}
           </Grid.Col>
             
-          <Grid.Col span={{ base: 12, lg: 5 }}>
+        <Grid.Col span={{ base: 12, lg: 4 }}>
             <Box
               style={{
                 position: 'sticky',
@@ -707,7 +707,26 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
           ) : (
             <div className="sm:my-2">
               <label className="w-full sm:w-auto sm:min-w-[40%]">
-                <div className="px-2 flex w-[329px] items-center relative text-gray-800 lg:bg-white rounded-lg border-[0.66667px] focus-within:border-b-2 focus-within:border-b-[#29b6f6] transition-all">
+<div
+  className="
+  h-[48px]
+    px-2 flex w-[329px] items-center relative text-gray-800
+    rounded-lg transition-colors
+
+    /* mobile */
+    border-[0.66667px] border-gray-300
+    focus-within:border-b-2 focus-within:border-b-[#29b6f6]
+
+    /* lg */
+    lg:bg-white
+    lg:border-[0.83333px]
+    lg:border-gray-300
+    lg:border-b
+    lg:focus-within:border-[#19bfd3]
+    lg:focus-within:border-b
+  "
+>
+
                   <div className="grow w-[329px] flex flex-row items-center px-[8px] py-[0px]">
                     <input 
                       className="px-2 w-[329px] py-3 lg:py-2 bg-transparent outline-none text-sm"

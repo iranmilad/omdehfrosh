@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Typography, Space, Divider, Flex, Alert } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
+import { IconInfoCircleFilled } from '@tabler/icons-react';
 
 const { Title, Text } = Typography;
 
@@ -25,17 +26,23 @@ const PaymentSummary = ({ orderfinalreceipt }) => {
         خلاصه فاکتور
       </Title>
 
-                        <Alert
-                    message="فاکتور رسمی پس از پرداخت و ثبت سفارش، در صفحه جزئیات سفارش قابل دانلود است."
-                    type="info"
-                    showIcon
-                    icon={<InfoCircleOutlined />}
-                    style={{ 
-                      backgroundColor: '#e3f2fd',
-                      border: '1px solid #90caf9',
-                      borderRadius: '8px'
-                    }}
-                  />
+      <Flex
+        align="flex-start"  // ← This aligns icon to the start
+        gap={8}
+        style={{
+          backgroundColor: '#eef9fe',
+          border: '0px solid #1a181c',
+          borderRadius: '8px',
+          marginBottom: '10px',
+          padding: '12px'
+        }}
+      >
+        <IconInfoCircleFilled size={18} color="#2196f3" style={{ flexShrink: 0, marginTop: '2px' }} />
+        <Text style={{ color: '#196d94', fontSize: '13px', fontWeight: 400 }}>
+          فاکتور رسمی پس از پرداخت و ثبت سفارش، در صفحه جزئیات سفارش قابل دانلود است.
+        </Text>
+
+      </Flex>
 
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         {/* Items Count */}
@@ -70,7 +77,7 @@ const PaymentSummary = ({ orderfinalreceipt }) => {
 
         {/* Final Total */}
         <Flex justify="space-between" align="center">
-          <Text strong style={{ fontSize: '15px' }}>مبلغ قابل پرداخت</Text>
+          <Text fontWeight={400} style={{ fontSize: '12px', fontWeight: '400' }}>مبلغ قابل پرداخت</Text>
           <Text strong style={{ fontSize: '18px', color: '#000' }}>
             {formatPrice(orderfinalreceipt.totalPriceToPay)} تومان
           </Text>

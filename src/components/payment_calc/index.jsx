@@ -9,11 +9,11 @@ import {
   Button,
   Text,
   Box,
-  Alert,
 } from "@mantine/core";
 import { IconArrowRight, IconInfoCircle, IconInfoCircleFilled } from "@tabler/icons-react";
 import { useSelector } from "react-redux";
 import PriceText from "../priceText";
+import { Alert } from "antd";
 
 const PaymentCalc = ({ children, submit, prev }) => {
   const cartItems = useSelector((state) => state.cart.items || []);
@@ -58,27 +58,22 @@ const totalDiscount = cartItems.reduce(
         }}
       >
         {/* Info Alert */}
-        <Alert
-          icon={<IconInfoCircleFilled size={18} />}
-          color="blue.1"
-          styles={{
-            root: {
-              backgroundColor: '#e3f2fd',
-              border: 'none',
-              borderRadius: '6px',
-              marginBottom: '16px',
-            },
-            icon: {
-              color: '#29b6f6',
-            },
-            message: {
-              color: '#546e7a',
-              fontSize: '14px',
-            },
+        <Flex
+          align="flex-start"  // ← This aligns icon to the start
+          gap={8}
+          style={{
+            backgroundColor: '#e3f2fd',
+            border: '1px solid #90caf9',
+            borderRadius: '8px',
+            marginBottom: '10px',
+            padding: '12px'
           }}
         >
-          فاکتور رسمی پس از پرداخت و ثبت سفارش، در صفحه جزئیات سفارش قابل دانلود است.
-        </Alert>
+          <IconInfoCircleFilled size={18} color="#2196f3" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <Text size="sm" c="#1976d2" fw={400}>
+            فاکتور رسمی پس از پرداخت و ثبت سفارش، در صفحه جزئیات سفارش قابل دانلود است.
+          </Text>
+        </Flex>
 
         <Stack gap="md">
           {/* قیمت کالاها */}

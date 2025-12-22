@@ -326,23 +326,33 @@ case "image":
 
 
 
-      case "name":
-        return (
-          <NavLink
-            to={`/product/${record.id}`}
-            style={{ color: '#1890ff' }}
-          >
-            <Text
-              style={{
-                fontSize: isMobile ? 11 : 12,
-                display: 'inline-block',
-              }}
-              ellipsis={{ tooltip: record.name }}
-            >
-              {record.name}
-            </Text>
-          </NavLink>
-        );
+case "name":
+  return (
+    <div style={{ 
+      textAlign: 'right',
+      paddingRight: '8px'
+    }}>
+      <NavLink
+        to={`/product/${record.id}`}
+        style={{ 
+          color: '#1890ff',
+          textAlign: 'right',
+          display: 'block'
+        }}
+      >
+        <Text
+          style={{
+            fontSize: isMobile ? 11 : 12,
+            display: 'inline-block',
+            textAlign: 'right',
+          }}
+          ellipsis={{ tooltip: record.name }}
+        >
+          {record.name}
+        </Text>
+      </NavLink>
+    </div>
+  );
 
 
         case "shortName":
