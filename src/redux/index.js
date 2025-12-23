@@ -149,6 +149,7 @@ import getUserFavoritesListReducer from './users/getuserfavouriteslist/listSlice
 import searchReducer from './search/searchSlice.js'
 import bootstrapReducer from './bootstrap/bootstrapSlice.js'
 
+import bulkPriceUpdateReducer from "./fastedit/bulkprice/bulkPriceUpdateSlice.js";
 
 
 export default configureStore({
@@ -246,6 +247,7 @@ export default configureStore({
       fastEditBrandModeData: fastEditBrandModeDataReducer,
       fastEditCategoryModeData: fastEditCategoryModeDataReducer,
       currencyPrice: currencyPriceReducer,
+      bulkPriceUpdate: bulkPriceUpdateReducer,
 
       // fast order
       fastOrderBrandModeData: fastOrderBrandModeDataReducer,

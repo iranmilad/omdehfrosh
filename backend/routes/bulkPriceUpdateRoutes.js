@@ -1,18 +1,10 @@
+// backend/routes/bulkPriceUpdateRoutes.js
 import express from "express";
-import {
-    updateProduct }
-    from '../controllers/fastEditControllers.js'
-
-    
 import { bulkUpdatePrices } from "../controllers/bulkPriceUpdateController.js";
 
 const router = express.Router();
 
-
-router.put("/updateproduct", updateProduct);
-
+// POST /api/fastedit/bulk-price-update
 router.post("/bulk-price-update", bulkUpdatePrices);
-
-
 
 export default router;

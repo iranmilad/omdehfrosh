@@ -119,6 +119,7 @@ const CurrencyPriceModal = ({ opened, onClose }) => {
     <Modal
       opened={opened}
       onClose={handleClose}
+      zIndex={1006}
       title={
         <Text size="lg" fw={600} c="#1f2937">
           ثبت قیمت ارز

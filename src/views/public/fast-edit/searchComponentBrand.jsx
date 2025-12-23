@@ -341,7 +341,10 @@ const SearchComponentBrandFastEdit = ({
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
-  // console.log("render SearchComponentBrand Fast Edit", filters);
+
+ const storedFilters = Cookies.get(COOKIE_NAME);
+
+  console.log("render SearchComponentBrand Fast Edit", storedFilters);
 
   return (
     <>

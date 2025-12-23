@@ -200,14 +200,14 @@ function ChevronSelect({
 
         {normalized.map((item) => (
           <Combobox.Option key={item.value} value={item.value}>
-            <Group position="apart" style={{ width: "100%" }}>
-              <Flex flexDirection="row" alignItems="center" gap={8} style={{ flex: 1 }}>
+            <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+              <Text size="xs">{item.label}</Text>
+              <div style={{ width: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {String(effectiveValue) === String(item.value) && (
                   <IconCheck size={14} color={theme.colors.gray?.[6]} />
                 )}
-                <Text size="xs">{item.label}</Text>
-              </Flex>
-            </Group>
+              </div>
+            </Flex>
           </Combobox.Option>
         ))}
       </Combobox.Dropdown>
@@ -377,13 +377,15 @@ const ColorCombobox = ({
 
         {extendedColors.map((color) => (
           <Combobox.Option key={color.value} value={color.value}>
-            <Group gap={6} position="apart" style={{ width: "100%" }}>
-              <Group>
+            <Flex align="center" justify="space-between" style={{ width: "100%" }}>
+              <Group gap={6}>
                 {color.value !== "all" && <ColorSwatch color={color.value} size={16} />}
                 <Text size="xs">{color.label}</Text>
               </Group>
-              {selectedColor === color.value && <IconCheck size={12} color={theme.colors.gray?.[6]} />}
-            </Group>
+              <div style={{ width: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {selectedColor === color.value && <IconCheck size={12} color={theme.colors.gray?.[6]} />}
+              </div>
+            </Flex>
           </Combobox.Option>
         ))}
       </Combobox.Dropdown>

@@ -335,7 +335,9 @@ const SearchComponentCategory = ({
     }
   }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
 
-  // console.log("render SearchComponentCategory Fast Edit", tableData);
+   const storedFilters = Cookies.get(COOKIE_NAME);
+  
+  console.log("render SearchComponentCategory Fast Edit", storedFilters);
 
   return (
     <>

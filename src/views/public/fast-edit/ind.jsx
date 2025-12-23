@@ -51,10 +51,6 @@ import { useMediaQuery } from "@mantine/hooks";
 import CurrencyPriceModal from './CurrencyPriceModal'
 import BulkPriceUpdateModal from "./bulkpriceupdate/BulkPriceUpdateModal";
 import { getCurrencyPrice } from "../../../redux/currencyPrice/currencyPriceActions";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/free-mode";
 
 import { fetchFastEditBrandModeTableData } from "../../../redux/fastedit/fastedittabledata/fastedittablebrandmode/fastEditTableBrandModeDataActions";
 import { fetchFastEditCategoryModeTableData } from "../../../redux/fastedit/fastedittabledata/fastedittablecategorymode/fastEditTableCategoryModeDataActions";
@@ -84,8 +80,7 @@ function FastEditBrandContent({
   isPortrait,
   isLandscape,
   filterValues,
-  availableLocations,
-  isMobile
+  availableLocations
 }) {
   const { checkedRows } = useBrandRowSelection();
   const { currencyPrice } = useSelector((state) => state.currencyPrice);
@@ -112,38 +107,29 @@ function FastEditBrandContent({
         />
       </div>
 
-      <Paper 
-        mt="2px"
+      <Group
         id="fastorder-tablesettings"
-        p={isMobile ? "sm" : "md"}
+        mt="2px"
+        justify="flex-start"
+        align="center"
         bg="white"
-        style={{ 
+        p="md"
+        style={{
           borderRadius: '8px',
-          overflow: 'hidden'
         }}
       >
-        <Swiper
-          modules={[FreeMode]}
-          spaceBetween={8}
-          slidesPerView="auto"
-          freeMode={true}
-          style={{ 
-            height: '50px',
-            overflow: 'visible'
-          }}
-        >
-          {/* Column Visibility Manager */}
-          <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+        <Flex gap="sm">
+          <Flex>
             <ColumnVisibilityManager
               columns={updatedColumns}
               visibleColumns={visibleColumns}
               setVisibleColumns={setVisibleColumns}
             />
-          </SwiperSlide>
+          </Flex>
 
           {/* Currency Price Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+          <Flex>
+            {user && (
               <Button
                 leftSection={<IconCurrencyDollar size={18} />}
                 onClick={() => setCurrencyModalOpened(true)}
@@ -168,12 +154,12 @@ function FastEditBrandContent({
                   قیمت ارز
                 </Text>
               </Button>
-            </SwiperSlide>
-          )}
+            )}
+          </Flex>
 
-          {/* Bulk Price Update Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+          {/* ✅ NEW: Bulk Price Update Button */}
+          <Flex>
+            {user && (
               <Button
                 leftSection={<IconPercentage size={18} />}
                 onClick={() => setBulkPriceModalOpened(true)}
@@ -197,30 +183,12 @@ function FastEditBrandContent({
                 <Text fw={600} size="sm" c="#ffffff">
                   تغییر درصدی
                 </Text>
-                {productCount > 0 && (
-                  <Badge 
-                    color="white" 
-                    size="lg" 
-                    ml={8}
-                    styles={{
-                      root: {
-                        backgroundColor: 'rgba(255,255,255,0.25)',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        border: '1px solid rgba(255,255,255,0.3)',
-                      },
-                    }}
-                  >
-                    {productCount}
-                  </Badge>
-                )}
               </Button>
-            </SwiperSlide>
-          )}
+            )}
+          </Flex>
 
-          {/* Filters Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+          <Flex>
+            {user && (
               <Button
                 leftSection={<IconFilter size={18} />}
                 onClick={() => setFilterSettingsModalOpened(true)}
@@ -262,10 +230,10 @@ function FastEditBrandContent({
                   </Badge>
                 )}
               </Button>
-            </SwiperSlide>
-          )}
-        </Swiper>
-      </Paper>
+            )}
+          </Flex>
+        </Flex>
+      </Group>
 
       {nodes !== null && nodes?.length > 0 && (
         <Paper p={0} className="overflow-hidden" bg="white" id="tables">
@@ -332,8 +300,7 @@ function FastEditCategoryContent({
   isPortrait,
   isLandscape,
   filterValues,
-  availableLocations,
-  isMobile
+  availableLocations
 }) {
   const { checkedRows } = useCategoryRowSelection();
   const { currencyPrice } = useSelector((state) => state.currencyPrice);
@@ -360,38 +327,29 @@ function FastEditCategoryContent({
         />
       </div>
 
-      <Paper 
-        mt="2px"
+      <Group
         id="fastorder-tablesettings"
-        p={isMobile ? "sm" : "md"}
+        mt="2px"
+        justify="flex-start"
+        align="center"
         bg="white"
-        style={{ 
+        p="md"
+        style={{
           borderRadius: '8px',
-          overflow: 'hidden'
         }}
       >
-        <Swiper
-          modules={[FreeMode]}
-          spaceBetween={8}
-          slidesPerView="auto"
-          freeMode={true}
-          style={{ 
-            height: '50px',
-            overflow: 'visible'
-          }}
-        >
-          {/* Column Visibility Manager */}
-          <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+        <Flex gap="sm">
+          <Flex>
             <ColumnVisibilityManager
               columns={updatedColumns}
               visibleColumns={visibleColumns}
               setVisibleColumns={setVisibleColumns}
             />
-          </SwiperSlide>
+          </Flex>
 
           {/* Currency Price Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+          <Flex>
+            {user && (
               <Button
                 leftSection={<IconCurrencyDollar size={18} />}
                 onClick={() => setCurrencyModalOpened(true)}
@@ -416,12 +374,12 @@ function FastEditCategoryContent({
                   قیمت ارز
                 </Text>
               </Button>
-            </SwiperSlide>
-          )}
+            )}
+          </Flex>
 
-          {/* Bulk Price Update Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+          {/* ✅ NEW: Bulk Price Update Button */}
+          <Flex>
+            {user && (
               <Button
                 leftSection={<IconPercentage size={18} />}
                 onClick={() => setBulkPriceModalOpened(true)}
@@ -445,30 +403,12 @@ function FastEditCategoryContent({
                 <Text fw={600} size="sm" c="#ffffff">
                   تغییر درصدی
                 </Text>
-                {productCount > 0 && (
-                  <Badge 
-                    color="white" 
-                    size="lg" 
-                    ml={8}
-                    styles={{
-                      root: {
-                        backgroundColor: 'rgba(255,255,255,0.25)',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        border: '1px solid rgba(255,255,255,0.3)',
-                      },
-                    }}
-                  >
-                    {productCount}
-                  </Badge>
-                )}
               </Button>
-            </SwiperSlide>
-          )}
+            )}
+          </Flex>
 
-          {/* Filters Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+          <Flex>
+            {user && (
               <Button
                 leftSection={<IconFilter size={18} />}
                 onClick={() => setFilterSettingsModalOpened(true)}
@@ -510,10 +450,10 @@ function FastEditCategoryContent({
                   </Badge>
                 )}
               </Button>
-            </SwiperSlide>
-          )}
-        </Swiper>
-      </Paper>
+            )}
+          </Flex>
+        </Flex>
+      </Group>
 
       {nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 && (
         <Paper p={0} className="overflow-hidden" bg="white" id="tables">
@@ -883,44 +823,42 @@ function FastEdit() {
       dispatch(getCurrencyPrice());
     }
   }, [dispatch, user]);
-
-  const handleBulkPriceUpdateSuccess = useCallback(() => {
-    // Refetch data based on current search type
-    if (searchType === "brand") {
-      const storedFilters = Cookies.get(COOKIE_NAME_BRAND_MODE);
-      if (storedFilters) {
-        try {
-          const parsedFilters = JSON.parse(storedFilters);
-          const filterArray = [{
-            searchType: 'brand',
-            uniqueIDClickedBrands: parsedFilters.uniqueIDClickedBrands || [],
-            uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
-            filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || [],
-          }];
-          dispatch(fetchFastEditBrandModeTableData(filterArray));
-        } catch (error) {
-          console.error('Error refetching brand data:', error);
-        }
-      }
-    } else if (searchType === "category") {
-      const storedFilters = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
-      if (storedFilters) {
-        try {
-          const parsedFilters = JSON.parse(storedFilters);
-          const filterArray = [{
-            searchType: 'category',
-            uniqueIDClickedCategories: parsedFilters.uniqueIDClickedCategories || [],
-            uniqueIDClickedSubCategories: parsedFilters.uniqueIDClickedSubCategories || [],
-            uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || [],
-          }];
-          dispatch(fetchFastEditCategoryModeTableData(filterArray));
-        } catch (error) {
-          console.error('Error refetching category data:', error);
-        }
+const handleBulkPriceUpdateSuccess = useCallback(() => {
+  // Refetch data based on current search type
+  if (searchType === "brand") {
+    const storedFilters = Cookies.get(COOKIE_NAME_BRAND_MODE);
+    if (storedFilters) {
+      try {
+        const parsedFilters = JSON.parse(storedFilters);
+        const filterArray = [{
+          searchType: 'brand',
+          uniqueIDClickedBrands: parsedFilters.uniqueIDClickedBrands || [],
+          uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
+          filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || [],
+        }];
+        dispatch(fetchFastEditBrandModeTableData(filterArray));
+      } catch (error) {
+        console.error('Error refetching brand data:', error);
       }
     }
-  }, [searchType, dispatch, COOKIE_NAME_BRAND_MODE, COOKIE_NAME_CATEGORY_MODE]);
-
+  } else if (searchType === "category") {
+    const storedFilters = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
+    if (storedFilters) {
+      try {
+        const parsedFilters = JSON.parse(storedFilters);
+        const filterArray = [{
+          searchType: 'category',
+          uniqueIDClickedCategories: parsedFilters.uniqueIDClickedCategories || [],
+          uniqueIDClickedSubCategories: parsedFilters.uniqueIDClickedSubCategories || [],
+          uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || [],
+        }];
+        dispatch(fetchFastEditCategoryModeTableData(filterArray));
+      } catch (error) {
+        console.error('Error refetching category data:', error);
+      }
+    }
+  }
+}, [searchType, dispatch, COOKIE_NAME_BRAND_MODE, COOKIE_NAME_CATEGORY_MODE]);
   // Calculate product counts for bulk price modal
   const brandProductCount = useMemo(() => {
     if (!nodes || nodes.length === 0) return 0;
@@ -1034,7 +972,6 @@ function FastEdit() {
                     isLandscape={isLandscape}
                     filterValues={filterValues}
                     availableLocations={availableLocations}
-                    isMobile={isMobile}
                   />
                 </BrandRowSelectionProvider>
                 :
@@ -1060,7 +997,6 @@ function FastEdit() {
                     isLandscape={isLandscape}
                     filterValues={filterValues}
                     availableLocations={availableLocations}
-                    isMobile={isMobile}
                   />
                 </CategoryRowSelectionProvider>
               }

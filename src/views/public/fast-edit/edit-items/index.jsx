@@ -135,7 +135,7 @@ const EditItemsFastOrder = (props) => {
       )}
 
       <Button h={35} onClick={handleEdit} disabled={showLoader}>
-        ادیت
+        تغییر
       </Button>
     </>
   );
