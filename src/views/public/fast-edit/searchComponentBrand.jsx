@@ -348,22 +348,7 @@ const SearchComponentBrandFastEdit = ({
 
   return (
     <>
-      {/* Saved Filters Modal Component */}
-      <SavedFiltersModalBrandMode
-        opened={filterSettingsModalOpened}
-        onClose={() => setFilterSettingsModalOpened(false)}
-        isMobile={isMobile}
-        COOKIE_NAME={COOKIE_NAME}
-        getInitialFilters={getInitialFilters}
-        setFilterBrandStorage={setFilterBrandStorage}
-        setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-        setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-        setLocalFilters={setLocalFilters}
-        setFilters={setFilters}
-        setSearchType={setSearchType}
-        filters={filters}
-        localFilters={localFilters}
-      />
+
 
       <Paper 
         mt={{ base: "xs", md: "xs" }} 
@@ -514,6 +499,23 @@ const SearchComponentBrandFastEdit = ({
 </Tabs>
 
       </Paper>
+
+            {/* Saved Filters Modal Component */}
+      <SavedFiltersModalBrandMode
+        opened={filterSettingsModalOpened}
+        onClose={() => setFilterSettingsModalOpened(false)}
+        isMobile={isMobile}
+        COOKIE_NAME={COOKIE_NAME}
+        getInitialFilters={getInitialFilters}
+        setFilterBrandStorage={setFilterBrandStorage}
+        setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+        setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+        setLocalFilters={setLocalFilters}
+        setFilters={setFilters}
+        setSearchType={setSearchType}
+        filters={filters}
+        localFilters={localFilters}
+      />
     </>
   );
 };

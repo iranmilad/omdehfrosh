@@ -601,6 +601,46 @@ const handleEditFilter = useCallback((filter) => {
 
   return (
     <>
+          {/* Edit Mode Badge and Actions - Render outside modals */}
+      {isEditMode && (
+        <Group gap="xs" mt="xs">
+          <Badge 
+            color="#093572" 
+            variant="light" 
+            size="sm"
+            styles={{
+              root: {
+                backgroundColor: '#e3f2fd',
+                color: '#093572',
+              },
+            }}
+          >
+            حالت ویرایش: {editingFilterName}
+          </Badge>
+          <Group gap="xs">
+            <ActionIcon
+              variant="filled"
+              color="green"
+              size="sm"
+              onClick={saveEditedFilter}
+              title="ذخیره تغییرات"
+              loading={updateLoading}
+              disabled={updateLoading}
+            >
+              <IconDeviceFloppy size={14} />
+            </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size="sm"
+              onClick={cancelEditMode}
+              title="لغو ویرایش"
+            >
+              <IconTrash size={14} />
+            </ActionIcon>
+          </Group>
+        </Group>
+      )}
       {/* Add Filter Modal */}
       <Modal
         opened={openedAddModal}
@@ -799,46 +839,7 @@ const handleEditFilter = useCallback((filter) => {
         </Stack>
       </Modal>
 
-      {/* Edit Mode Badge and Actions - Render outside modals */}
-      {isEditMode && (
-        <Group gap="xs" mt="xs">
-          <Badge 
-            color="#093572" 
-            variant="light" 
-            size="sm"
-            styles={{
-              root: {
-                backgroundColor: '#e3f2fd',
-                color: '#093572',
-              },
-            }}
-          >
-            حالت ویرایش: {editingFilterName}
-          </Badge>
-          <Group gap="xs">
-            <ActionIcon
-              variant="filled"
-              color="green"
-              size="sm"
-              onClick={saveEditedFilter}
-              title="ذخیره تغییرات"
-              loading={updateLoading}
-              disabled={updateLoading}
-            >
-              <IconDeviceFloppy size={14} />
-            </ActionIcon>
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              size="sm"
-              onClick={cancelEditMode}
-              title="لغو ویرایش"
-            >
-              <IconTrash size={14} />
-            </ActionIcon>
-          </Group>
-        </Group>
-      )}
+
     </>
   );
 };

@@ -593,7 +593,7 @@ useEffect(() => {
                     <>
 
                       {/* ✅ Saved filters modal - already inside BrandRowSelectionProvider */}
-                          <SavedFiltersModalBrandModeFastOrder
+                          {/* <SavedFiltersModalBrandModeFastOrder
                             opened={savedFiltersModalOpened}
                             onClose={() => setSavedFiltersModalOpened(false)}
                             isMobile={isMobile}
@@ -609,7 +609,7 @@ useEffect(() => {
                             filters={filters_brand_mode}
                             localFilters={localFilters_brand}
                             onCookieUpdate={handleCookieUpdate}
-                          />
+                          /> */}
 
                       {nodes !== null && nodes?.length > 0 && (
                         <>
@@ -699,25 +699,25 @@ useEffect(() => {
 
                   {loadingStates.searchComponent ? (
                     <div>
-<SearchComponentCategory 
-  filters={filters_category_mode} 
-  setFilters={setFilters_category_mode}
-  setNodesSubCategories={setNodesSubCategoriesData} 
-  setNodes={setNodes} 
-  setAvailableLocations={setAvailableLocations}
-  searchType={searchType} 
-  setSearchType={setSearchType}
-  cookieUpdateTrigger={cookieUpdateTrigger}
-  onCookieUpdate={handleCookieUpdate}  // ✅ VERIFY THIS LINE EXISTS
-  filterCategoryStorage={filterCategoryStorage}
-  setFilterCategoryStorage={setFilterCategoryStorage}
-  filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-  setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-  filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-  setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-  localFilters={localFilters_category}
-  setLocalFilters={setLocalFilters_category}
-/>
+                    <SearchComponentCategory 
+                      filters={filters_category_mode} 
+                      setFilters={setFilters_category_mode}
+                      setNodesSubCategories={setNodesSubCategoriesData} 
+                      setNodes={setNodes} 
+                      setAvailableLocations={setAvailableLocations}
+                      searchType={searchType} 
+                      setSearchType={setSearchType}
+                      cookieUpdateTrigger={cookieUpdateTrigger}
+                      onCookieUpdate={handleCookieUpdate}  // ✅ VERIFY THIS LINE EXISTS
+                      filterCategoryStorage={filterCategoryStorage}
+                      setFilterCategoryStorage={setFilterCategoryStorage}
+                      filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                      setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                      filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                      setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                      localFilters={localFilters_category}
+                      setLocalFilters={setLocalFilters_category}
+                    />
                     </div>
                   ) : (
                     <LoadingPlaceholder height="120px" />
@@ -766,7 +766,7 @@ useEffect(() => {
                       {/* ✅ REMOVED: Column settings button group */}
 
                       {/* ✅ Saved filters modal - already inside CategoryRowSelectionProvider */}
-                      <SavedFiltersModalCategoryMode
+                      {/* <SavedFiltersModalCategoryMode
                         opened={savedFiltersModalOpened}
                         onClose={() => setSavedFiltersModalOpened(false)}
                         isMobile={isMobile}
@@ -783,7 +783,7 @@ useEffect(() => {
                         localFilters={localFilters_category}
                           isManualFilterUpdateRef={isManualFilterUpdate}  // ✅ ADD THIS LINE - pass the ref
 
-                      />
+                      /> */}
 
                       {nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 && (
                         <Paper p={0} className="overflow-hidden" bg="white" id="tables">

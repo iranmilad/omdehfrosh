@@ -581,26 +581,7 @@ function FiltersCategoryMode({
           overflow: 'hidden'
         }}
       >
-              {/* Saved Filters Modal */}
-      {COOKIE_NAME && getInitialFilters && (
-        <SavedFiltersModalCategoryMode
-          opened={savedFiltersModalOpened}
-          onClose={() => setSavedFiltersModalOpened(false)}
-          isMobile={isMobile}
-          COOKIE_NAME={COOKIE_NAME}
-          getInitialFilters={getInitialFilters}
-          setFilterCategoryStorage={setFilterCategoryStorage}
-          setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-          setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-          setLocalFilters={setLocalFilters}
-          setFilters={setFilters}
-          setSearchType={setSearchType}
-          filters={filters}
-          localFilters={localFilters}
-            onCookieUpdate={onCookieUpdate}  // ✅ ENSURE THIS IS PASSED
 
-        />
-      )}
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Swiper
             modules={[FreeMode]}
@@ -866,6 +847,27 @@ function FiltersCategoryMode({
             </SwiperSlide>
           </Swiper>
         </form>
+
+                      {/* Saved Filters Modal */}
+      {COOKIE_NAME && getInitialFilters && (
+        <SavedFiltersModalCategoryMode
+          opened={savedFiltersModalOpened}
+          onClose={() => setSavedFiltersModalOpened(false)}
+          isMobile={isMobile}
+          COOKIE_NAME={COOKIE_NAME}
+          getInitialFilters={getInitialFilters}
+          setFilterCategoryStorage={setFilterCategoryStorage}
+          setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+          setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+          setLocalFilters={setLocalFilters}
+          setFilters={setFilters}
+          setSearchType={setSearchType}
+          filters={filters}
+          localFilters={localFilters}
+            onCookieUpdate={onCookieUpdate}  // ✅ ENSURE THIS IS PASSED
+
+        />
+      )}
       </Paper>
 
 

@@ -802,9 +802,7 @@ function FiltersBrandModeFastOrder({
             </SwiperSlide>
           </Swiper>
         </form>
-      </Paper>
-
-      {/* Saved Filters Modal */}
+              {/* Saved Filters Modal */}
       {COOKIE_NAME && getInitialFilters && (
 <SavedFiltersModalBrandModeFastOrder
   opened={savedFiltersModalOpened}
@@ -825,6 +823,9 @@ function FiltersBrandModeFastOrder({
   onCookieUpdate={onCookieUpdate}
 />
       )}
+      </Paper>
+
+
     </>
   );
 }
