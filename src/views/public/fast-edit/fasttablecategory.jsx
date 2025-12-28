@@ -1,3 +1,4 @@
+// src\views\public\fast-edit\fasttablecategory.jsx
 import { useEffect, useState } from "react";
 import { Table, Image, Typography, Space, Tag, Avatar } from "antd";
 import { DownOutlined, RightOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
@@ -248,6 +249,9 @@ const handleInputBlur = (e, record, key, defaultValue = 0) => {
   const handleRowClick = () => {};
 
   const renderCellContent = (column, record) => {
+
+      console.log("attributes", record.attributes)
+
     const displayItem = record;
     
     switch (column.key) {
@@ -940,7 +944,7 @@ case "percentagePrice3": // ⭐ قیمت درصدی 3 (قیمت ویژه تول�
       name: isMobile ? 150 : 200,
       shortName: isMobile ? 120 : 150,
       psid: isMobile ? 100 : 120,
-      attributes: isMobile ? 100 : 120,
+      attributes: isMobile ? 50 : 60,
       price: isMobile ? 100 : 130,
       secondaryCost: isMobile ? 100 : 130,
       foreignCurrencyPrice: isMobile ? 100 : 130,

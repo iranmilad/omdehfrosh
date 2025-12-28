@@ -1,4 +1,4 @@
-
+// src\views\public\fast-edit\fasttablebrand.jsx
 import { useEffect, useState } from "react";
 import { Table, Image, Typography, Space, Tag, Avatar } from "antd";
 import { DownOutlined, RightOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
@@ -896,7 +896,7 @@ case "action":
       name: isMobile ? 150 : 200,
       shortName: isMobile ? 120 : 150,
       psid: isMobile ? 100 : 120,
-      attributes: isMobile ? 100 : 120,
+      attributes: isMobile ? 50 : 60,
       viewPrice: isMobile ? 100 : 130,
       price: isMobile ? 100 : 130,
       secondaryCost: isMobile ? 100 : 130,

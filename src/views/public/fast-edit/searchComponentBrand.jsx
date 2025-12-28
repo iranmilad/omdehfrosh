@@ -28,16 +28,17 @@ import isEqual from "lodash/isEqual";
 import { useBrandRowSelection } from "./BrandRowSelectionContext";
 import SavedFiltersModalBrandMode from "./savedfilters/brandmode/SavedFiltersModalBrand";
 
-const SearchComponentBrandFastEdit = ({ 
-  searchType, 
-  setSearchType, 
-  setAvailableLocations, 
-  filters, 
-  setFilters, 
-  setNodes, 
+const SearchComponentBrandFastEdit = ({
+  searchType,
+  setSearchType,
+  setAvailableLocations,
+  filters,
+  setFilters,
+  setNodes,
   setNodesSubCategories,
   filterSettingsModalOpened,
-  setFilterSettingsModalOpened 
+  setFilterSettingsModalOpened,
+  onEditModeChange
 }) => {
   
   const dispatch = useDispatch();
@@ -97,7 +98,7 @@ const SearchComponentBrandFastEdit = ({
   const [filterBrandStorage, setFilterBrandStorage] = useState(initialFilters.uniqueIDClickedBrands);
   const [filterBrandsCategoryStorage, setFilterBrandsCategoryStorage] = useState(initialFilters.uniqueIDClickedBrandsCategories);
   const [filterBrandsCategorySubCategoryStorage, setFilterBrandsCategorySubCategoryStorage] = useState(initialFilters.filterBrandsCategorySubCategoryStorage);
-  
+
   // Keep local filters state for UI - not sent to backend
   const [localFilters, setLocalFilters] = useState(initialFilters.filters);
 
@@ -515,6 +516,7 @@ const SearchComponentBrandFastEdit = ({
         setSearchType={setSearchType}
         filters={filters}
         localFilters={localFilters}
+        onEditModeChange={onEditModeChange}
       />
     </>
   );

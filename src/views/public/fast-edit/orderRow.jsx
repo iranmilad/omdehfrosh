@@ -1,14 +1,16 @@
+// src\views\public\fast-edit\orderRow.jsx
 import React, { useState } from "react";
 import Counter from "../../../components/counter";
 import { useSend } from "../../../Libs/api";
 import { Badge, Button, ColorSwatch, Group, Stack, Text, Tooltip, Center } from "@mantine/core";
 import { CONTAINER_SIZES } from "../../../Libs/theme";
-import { IconShield, IconShieldCheck, IconKeyframeAlignCenter, IconPackageOff } from "@tabler/icons-react";
+import { IconShieldCheck, IconRuler, IconWeight, IconBox, IconTag, IconDimensions, IconPalette, IconTool } from "@tabler/icons-react";
 
 
 function OrderRow({ id = 0, attributes, inventory = 2,seller, onReplace }) {
   const updateCart = useSend({ url: "/cart/update" });
   const [cart, setCart] = useState(0);
+
 
   const addToCart = (value, max) => {
     let val = value || cart + 1;
@@ -80,16 +82,16 @@ export function Attributes({items}){
   const hasAttributes = items && items.length > 0;
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'row',  // ← Changed from 'column' to 'row'
-      alignItems: '',
-      justifyContent: 'space-between',  // ← Added to center items
-      minHeight: '24px',
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      minHeight: '20px',
       padding: 0,
       margin: 0,
-      gap: '4px',  // ← Changed from '1px' to '4px' for better spacing
-      flexWrap: 'wrap'  // ← Added to wrap items if too many
+      gap: '2px',
+      flexWrap: 'nowrap'
     }}>
       {hasAttributes ? (
         items.map((it,index) => <Attribute key={index} {...it} />)
@@ -104,59 +106,81 @@ export function Attributes({items}){
 function Attribute (props){
   let {type, attribute_name, value} = props;
 
-  console.log('Attribute props:', props);
-
-  const renderAttribute = () => {
-    switch (type) {
-
+  const getIconForType = () => {
+    switch (type?.toLowerCase()) {
       case 'color':
+      case 'رنگ':
         return (
           <Tooltip label={attribute_name} position="top" withArrow>
-            <ColorSwatch size={16} color={value} style={{ margin: 0, cursor: 'pointer' }} />
+            <ColorSwatch size={20} color={value} style={{ margin: 0, cursor: 'pointer' }} />
           </Tooltip>
         );
+
       case 'warranty':
+      case 'گارانتی':
         return (
           <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
             <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
-              <IconShieldCheck size={16} style={{ margin: 0 }} />
+              <IconShieldCheck size={20} color="#228be6" stroke={1.5} />
             </div>
           </Tooltip>
         );
+
       case 'material':
+      case 'جنس':
         return (
           <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
             <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
-              <IconKeyframeAlignCenter size={16} style={{ margin: 0 }} />
+              <IconBox size={20} color="#7950f2" stroke={1.5} />
             </div>
           </Tooltip>
         );
-      default:
-        // For any other type, show a generic attribute with minimal styling
+
+      case 'size':
+      case 'اندازه':
+      case 'سایز':
         return (
           <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
-            <Badge
-              size="xs"
-              variant="light"
-              style={{
-                padding: '1px 4px',
-                margin: 0,
-                fontSize: '9px',
-                height: '16px',
-                lineHeight: '14px',
-                cursor: 'pointer'
-              }}
-            >
-              {value}
-            </Badge>
+            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+              <IconRuler size={20} color="#f59f00" stroke={1.5} />
+            </div>
+          </Tooltip>
+        );
+
+      case 'weight':
+      case 'وزن':
+        return (
+          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
+            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+              <IconWeight size={20} color="#12b886" stroke={1.5} />
+            </div>
+          </Tooltip>
+        );
+
+      case 'dimensions':
+      case 'ابعاد':
+        return (
+          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
+            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+              <IconDimensions size={20} color="#e64980" stroke={1.5} />
+            </div>
+          </Tooltip>
+        );
+
+      default:
+        return (
+          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
+            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+              <IconTag size={20} color="#868e96" stroke={1.5} />
+            </div>
           </Tooltip>
         );
     }
   };
 
   return (
-    <div style={{ padding: 0, margin: 0, lineHeight: 1 }}>
-      {renderAttribute()}
+    <div style={{ padding: 0, margin: 0, lineHeight: 1, display: 'inline-flex' }}>
+      {getIconForType()}
     </div>
   );
 }

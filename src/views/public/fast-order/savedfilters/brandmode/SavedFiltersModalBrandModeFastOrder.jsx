@@ -1,3 +1,4 @@
+// src\views\public\fast-order\savedfilters\brandmode\SavedFiltersModalBrandModeFastOrder.jsx
 import React, { useCallback, useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import {
@@ -46,7 +47,8 @@ const SavedFiltersModalBrandModeFastOrder = ({
   filters,
   localFilters,
   onCookieUpdate,
-  tableData
+  tableData,
+  onEditModeChange
 }) => {
   const dispatch = useDispatch();
   
@@ -74,6 +76,13 @@ const SavedFiltersModalBrandModeFastOrder = ({
   const [editingFilterId, setEditingFilterId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingFilterName, setEditingFilterName] = useState('');
+
+  // Notify parent component when edit mode changes
+  useEffect(() => {
+    if (onEditModeChange) {
+      onEditModeChange(isEditMode, editingFilterName);
+    }
+  }, [isEditMode, editingFilterName, onEditModeChange]);
 
   // Form validation
   const form = useForm({
@@ -133,13 +142,16 @@ const SavedFiltersModalBrandModeFastOrder = ({
 const handleEditFilter = useCallback((filter) => {
   // console.log('🎬 [Modal] handleEditFilter called with filter:', filter);
   // console.log('📊 [Modal] tableData:', tableData);
-  
+
+  // ✅ Close modal immediately
+  onClose();
+
   // ✅ NEW: Set flag in sessionStorage BEFORE everything else
   sessionStorage.setItem('manualFilterUpdate', 'true');
-  
+
   // ✅ IMPORTANT: Clear all checked rows FIRST so sliders remain visible
   clearAll();
-  
+
   setEditingFilterId(filter.id);
   setEditingFilterName(filter.filterName || 'بدون نام');
   setIsEditMode(true);
@@ -201,10 +213,10 @@ const handleEditFilter = useCallback((filter) => {
       const brandId = filter.uniqueIDClickedBrands[0];
       // console.log('🔍 [Modal] Looking for brand with ID:', brandId);
       // console.log('📋 [Modal] Available brands:', tableData.brands);
-      
+
       const matchingBrand = tableData.brands.find(brand => brand.idBrand === brandId);
       // console.log('✅ [Modal] Found matching brand:', matchingBrand);
-      
+
       if (matchingBrand?.name) {
         const newUrl = `/fastorder/brand/${matchingBrand.name}`;
         // console.log('🎯 [Modal] Navigating to:', newUrl);
@@ -217,19 +229,18 @@ const handleEditFilter = useCallback((filter) => {
       // console.log('📝 [Modal] Multiple brands or no brands, navigating to base URL');
       navigate('/fastorder/brand', { replace: true });
     }
-    
+
     notifications.show({
       title: 'حالت ویرایش',
-      message: `فیلتر "${filter.filterName || 'بدون نام'}" بارگذاری شد. اکنون می‌توانید فیلترها در اسلایدرها تغییر دهید.`,
+      message: `فیلتر "${filter.filterName || 'بدون نام'}" بارگذاری شد. اکنون می‌توانید ذخیره یا لغو کنید.`,
       color: 'blue',
       autoClose: 4000,
     });
-    onClose();
   }, 100);
-}, [COOKIE_NAME, setFilters, setSearchType, dispatch, onClose, 
-    setFilterBrandStorage, setFilterBrandsCategoryStorage, 
-    setFilterBrandsCategorySubCategoryStorage, setLocalFilters, onCookieUpdate, 
-    navigate, tableData, clearAll]);
+}, [COOKIE_NAME, setFilters, setSearchType, dispatch,
+    setFilterBrandStorage, setFilterBrandsCategoryStorage,
+    setFilterBrandsCategorySubCategoryStorage, setLocalFilters, onCookieUpdate,
+    navigate, tableData, clearAll, onClose]);
   // ✅ FIXED: handleFilterClick with proper cookie trigger
   const handleFilterClick = useCallback((filter) => {
     if (isEditMode && editingFilterId !== filter.id) {
@@ -601,46 +612,6 @@ const handleEditFilter = useCallback((filter) => {
 
   return (
     <>
-          {/* Edit Mode Badge and Actions - Render outside modals */}
-      {isEditMode && (
-        <Group gap="xs" mt="xs">
-          <Badge 
-            color="#093572" 
-            variant="light" 
-            size="sm"
-            styles={{
-              root: {
-                backgroundColor: '#e3f2fd',
-                color: '#093572',
-              },
-            }}
-          >
-            حالت ویرایش: {editingFilterName}
-          </Badge>
-          <Group gap="xs">
-            <ActionIcon
-              variant="filled"
-              color="green"
-              size="sm"
-              onClick={saveEditedFilter}
-              title="ذخیره تغییرات"
-              loading={updateLoading}
-              disabled={updateLoading}
-            >
-              <IconDeviceFloppy size={14} />
-            </ActionIcon>
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              size="sm"
-              onClick={cancelEditMode}
-              title="لغو ویرایش"
-            >
-              <IconTrash size={14} />
-            </ActionIcon>
-          </Group>
-        </Group>
-      )}
       {/* Add Filter Modal */}
       <Modal
         opened={openedAddModal}
@@ -703,6 +674,50 @@ const handleEditFilter = useCallback((filter) => {
         zIndex={1006}
       >
         <Stack spacing="md">
+          {/* Edit Mode Badge and Actions */}
+          {isEditMode && (
+            <>
+              <Group gap="xs" mt="xs">
+                <Badge
+                  color="#093572"
+                  variant="light"
+                  size="sm"
+                  styles={{
+                    root: {
+                      backgroundColor: '#e3f2fd',
+                      color: '#093572',
+                    },
+                  }}
+                >
+                  حالت ویرایش: {editingFilterName}
+                </Badge>
+                <Group gap="xs">
+                  <ActionIcon
+                    variant="filled"
+                    color="green"
+                    size="sm"
+                    onClick={saveEditedFilter}
+                    title="ذخیره تغییرات"
+                    loading={updateLoading}
+                    disabled={updateLoading}
+                  >
+                    <IconDeviceFloppy size={14} />
+                  </ActionIcon>
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    onClick={cancelEditMode}
+                    title="لغو ویرایش"
+                  >
+                    <IconTrash size={14} />
+                  </ActionIcon>
+                </Group>
+              </Group>
+              <Divider />
+            </>
+          )}
+
           {/* Add New Filter Button */}
           <Button
             leftSection={<IconPlus size={16} />}
@@ -711,6 +726,7 @@ const handleEditFilter = useCallback((filter) => {
               setOpenedAddModal(true);
             }}
             fullWidth
+            disabled={isEditMode}
             styles={{
               root: {
                 backgroundColor: '#093572',
@@ -768,19 +784,18 @@ const handleEditFilter = useCallback((filter) => {
                             cursor: isEditMode ? 'not-allowed' : 'pointer'
                           }}
                         />
-                        <Text 
+                        <Text
                           size={isMobile ? "xs" : "sm"}
                           fw={editingFilterId === filter.id ? 600 : 500}
                           c={editingFilterId === filter.id ? "blue" : undefined}
-                          style={{ 
-                            cursor: 'pointer',
+                          style={{
+                            cursor: 'default',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
                             flex: 1,
-                            opacity: isEditMode && editingFilterId !== filter.id ? 0.6 : 1
+                            opacity: isEditMode && editingFilterId !== filter.id ? 0.5 : 1
                           }}
-                          onClick={() => handleFilterClick(filter)}
                           title={filter.filterName || 'بدون نام'}
                         >
                           {filter.filterName || 'بدون نام'}
@@ -794,34 +809,35 @@ const handleEditFilter = useCallback((filter) => {
                           size={isMobile ? "sm" : "md"}
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (isEditMode) return;
                             handleEditFilter(filter);
                           }}
                           title="ویرایش"
-                          disabled={isEditMode && editingFilterId !== filter.id}
+                          disabled={isEditMode}
+                          style={{
+                            opacity: isEditMode ? 0.5 : 1,
+                            cursor: isEditMode ? 'not-allowed' : 'pointer'
+                          }}
                         >
                           <IconEdit size={isMobile ? 12 : 14} />
                         </ActionIcon>
-                        
+
                         <ActionIcon
                           variant="subtle"
                           color="red"
                           size={isMobile ? "sm" : "md"}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (isEditMode && editingFilterId !== filter.id) {
-                              notifications.show({
-                                title: 'در حال ویرایش',
-                                message: 'ابتدا ویرایش فعلی را تمام کنید یا لغو کنید.',
-                                color: 'orange',
-                                autoClose: 3000,
-                              });
-                              return;
-                            }
+                            if (isEditMode) return;
                             handleDeleteSavedFilter(filter.id);
                           }}
-                          disabled={deleteLoadingId === filter.id || (isEditMode && editingFilterId !== filter.id)}
+                          disabled={deleteLoadingId === filter.id || isEditMode}
                           loading={deleteLoading && deleteLoadingId === filter.id}
                           title="حذف"
+                          style={{
+                            opacity: isEditMode ? 0.5 : 1,
+                            cursor: isEditMode ? 'not-allowed' : 'pointer'
+                          }}
                         >
                           <IconTrash size={isMobile ? 12 : 14} />
                         </ActionIcon>

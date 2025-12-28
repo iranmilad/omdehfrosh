@@ -23,7 +23,7 @@ import {
   LoadingOverlay,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconFilter, IconChevronDown, IconCheck, IconBookmark, IconSettings } from "@tabler/icons-react";
+import { IconFilter, IconChevronDown, IconCheck, IconColumns, IconCircleCheck } from "@tabler/icons-react";
 import { FreeMode } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import iranStates from "../../../Libs/iranStates";
@@ -31,7 +31,6 @@ import { shallowEqual, useMediaQuery } from "@mantine/hooks";
 import { useFastOrder } from ".";
 import { useFilterContext } from "./filterscontext";
 import { useLocation, useParams } from "react-router";
-import { IoSettingsSharp } from "react-icons/io5";
 import SavedFiltersModalCategoryMode from "./savedfilters/categorymode/SavedFiltersModalCategoryModeFastOrder";
 import 'swiper/css';
 import 'swiper/css/free-mode';
@@ -443,6 +442,13 @@ function FiltersCategoryMode({
 
   // State for saved filters modal
   const [savedFiltersModalOpened, setSavedFiltersModalOpened] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingFilterName, setEditingFilterName] = useState('');
+
+  const handleEditModeChange = useCallback((editMode, filterName) => {
+    setIsEditMode(editMode);
+    setEditingFilterName(filterName || '');
+  }, []);
 
   const form = useForm({
     initialValues: {
@@ -543,9 +549,9 @@ function FiltersCategoryMode({
 
   // Unified slide styles - all elements have same height and spacing
   const baseSlideStyle = {
-    width: 'fit-content', 
-    minWidth: '30px', 
-    height: '40px',
+    width: 'fit-content',
+    minWidth: '30px',
+    height: '32px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -573,11 +579,10 @@ function FiltersCategoryMode({
 
   return (
     <>
-      <Paper 
-        mt={{ base: "xs", md: "xs" }} 
+      <Paper
         id="fastorder-search"
         p={isMobile ? "sm" : "md"}
-        style={{ 
+        style={{
           overflow: 'hidden'
         }}
       >
@@ -588,8 +593,8 @@ function FiltersCategoryMode({
             spaceBetween={8}
             slidesPerView="auto"
             freeMode={true}
-            style={{ 
-              height: '35px',
+            style={{
+              height: '32px',
               overflow: 'visible'
             }}
           >
@@ -601,17 +606,13 @@ function FiltersCategoryMode({
                 size="xs"
                 variant="light"
                 onClick={() => setOpened(true)}
+                disabled={isEditMode}
                 style={{
-                  height: "32px",
-                  minHeight: "32px",
-                  maxHeight: "32px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0 12px"
+                  opacity: isEditMode ? 0.5 : 1,
+                  cursor: isEditMode ? 'not-allowed' : 'pointer'
                 }}
               >
-                <IconSettings size={16} />
+                <IconColumns size={16} />
               </Button>
             </SwiperSlide>
 
@@ -621,17 +622,13 @@ function FiltersCategoryMode({
                 size="xs"
                 variant="light"
                 onClick={() => setSavedFiltersModalOpened(true)}
+                color={isEditMode ? "red" : undefined}
                 style={{
-                  height: "32px",
-                  minHeight: "32px",
-                  maxHeight: "32px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0 12px"
+                  backgroundColor: isEditMode ? '#ffe0e0' : undefined,
+                  borderColor: isEditMode ? '#ff6b6b' : undefined,
                 }}
               >
-                <IconBookmark size={16} />
+                <IconFilter size={16} color={isEditMode ? "#ff6b6b" : undefined} />
               </Button>
             </SwiperSlide>
             {/* Apply Filter Button */}
@@ -639,17 +636,13 @@ function FiltersCategoryMode({
               <Button
                 type="submit"
                 size="xs"
+                disabled={isEditMode}
                 style={{
-                  height: "32px",
-                  minHeight: "32px",
-                  maxHeight: "32px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0 12px"
+                  opacity: isEditMode ? 0.5 : 1,
+                  cursor: isEditMode ? 'not-allowed' : 'pointer'
                 }}
               >
-                <IoSettingsSharp size={16} />
+                <IconCircleCheck size={16} />
               </Button>
             </SwiperSlide>
             {/* Delivery Time Filter */}
@@ -864,8 +857,8 @@ function FiltersCategoryMode({
           setSearchType={setSearchType}
           filters={filters}
           localFilters={localFilters}
-            onCookieUpdate={onCookieUpdate}  // ✅ ENSURE THIS IS PASSED
-
+          onCookieUpdate={onCookieUpdate}
+          onEditModeChange={handleEditModeChange}
         />
       )}
       </Paper>

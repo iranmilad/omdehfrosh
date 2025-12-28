@@ -1,7 +1,7 @@
 // ColumnVisibilityManager.jsx
 import React, { useState } from 'react';
 import { Modal, Stack, Checkbox, Button, Group } from '@mantine/core';
-import { IconSettings } from '@tabler/icons-react';
+import { IconColumns } from '@tabler/icons-react';
 
 /**
  * ColumnVisibilityManager - Component for managing table column visibility
@@ -31,21 +31,12 @@ function ColumnVisibilityManager({
   return (
     <>
       <Button
-        leftSection={<IconSettings size={16} />}
+        size="xs"
+        variant="light"
         onClick={() => setOpened(true)}
-        py={0}
-        styles={{
-          root: {
-            backgroundColor: '#093572',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#0a4080',
-            },
-          },
-        }}
         {...buttonProps}
       >
-       ستون‌ها
+        <IconColumns size={16} />
       </Button>
 
       <Modal

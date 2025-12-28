@@ -27,16 +27,17 @@ import isEqual from "lodash/isEqual";
 import { useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import SavedFiltersModalCategory from "./savedfilters/categorymode/SavedFiltersModalCategory";
 
-const SearchComponentCategory = ({ 
-  searchType, 
-  setSearchType, 
-  setAvailableLocations, 
-  filters, 
-  setFilters, 
-  setNodes, 
+const SearchComponentCategory = ({
+  searchType,
+  setSearchType,
+  setAvailableLocations,
+  filters,
+  setFilters,
+  setNodes,
   setNodesSubCategories,
   filterSettingsModalOpened,
-  setFilterSettingsModalOpened 
+  setFilterSettingsModalOpened,
+  onEditModeChange
 }) => {
 
   const dispatch = useDispatch();
@@ -102,7 +103,7 @@ const SearchComponentCategory = ({
   const [filterCategorySubCategoryBrandsStorage, setFilterCategorySubCategoryBrandsStorage] = useState(initialFilters.uniqueIDClickedSubCategoriesBrands);
 
   const { setFilterValues } = useFastOrder();
-  
+
   const { id } = useParams();
 
   // Refs for preventing duplicate API calls
@@ -488,6 +489,7 @@ const SearchComponentCategory = ({
         setSearchType={setSearchType}
         filters={filters}
         localFilters={localFilters}
+        onEditModeChange={onEditModeChange}
       />
     </>
 

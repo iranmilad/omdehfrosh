@@ -23,7 +23,7 @@ import {
   Overlay,
   Badge,
 } from "@mantine/core";
-import { IconSettings, IconFilter, IconCurrencyDollar, IconPercentage } from "@tabler/icons-react";
+import { IconColumns, IconFilter, IconCurrencyDollar, IconPercentage } from "@tabler/icons-react";
 import FastTable from "./fasttablebrand";
 import FastTableCategory from "./fasttablecategory";
 import FastTableBrand from "./fasttablebrand";
@@ -64,7 +64,7 @@ import { fetchFastEditCategoryModeTableData } from "../../../redux/fastedit/fast
 const FastOrderContext = createContext();
 
 // ✅ NEW: Separate component for Brand Mode content (inside BrandRowSelectionProvider)
-function FastEditBrandContent({ 
+function FastEditBrandContent({
   user,
   filters_brand_mode,
   setFilters_brand_mode,
@@ -85,7 +85,9 @@ function FastEditBrandContent({
   isLandscape,
   filterValues,
   availableLocations,
-  isMobile
+  isMobile,
+  isEditMode,
+  onEditModeChange
 }) {
   const { checkedRows } = useBrandRowSelection();
   const { currencyPrice } = useSelector((state) => state.currencyPrice);
@@ -100,24 +102,24 @@ function FastEditBrandContent({
     <>
       <div>
         <SearchComponentBrand
-          filters={filters_brand_mode} 
+          filters={filters_brand_mode}
           setFilters={setFilters_brand_mode}
-          setNodesSubCategories={setNodesSubCategories} 
-          setNodes={setNodes} 
+          setNodesSubCategories={setNodesSubCategories}
+          setNodes={setNodes}
           setAvailableLocations={setAvailableLocations}
-          searchType={searchType} 
+          searchType={searchType}
           setSearchType={setSearchType}
           filterSettingsModalOpened={filterSettingsModalOpened}
           setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+          onEditModeChange={onEditModeChange}
         />
       </div>
 
-      <Paper 
-        mt="2px"
+      <Paper
         id="fastorder-tablesettings"
         p={isMobile ? "sm" : "md"}
         bg="white"
-        style={{ 
+        style={{
           borderRadius: '8px',
           overflow: 'hidden'
         }}
@@ -127,8 +129,8 @@ function FastEditBrandContent({
           spaceBetween={8}
           slidesPerView="auto"
           freeMode={true}
-          style={{ 
-            height: '50px',
+          style={{
+            height: '32px',
             overflow: 'visible'
           }}
         >
@@ -145,28 +147,11 @@ function FastEditBrandContent({
           {user && (
             <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
               <Button
-                leftSection={<IconCurrencyDollar size={18} />}
+                size="xs"
+                variant="light"
                 onClick={() => setCurrencyModalOpened(true)}
-                size="md"
-                styles={{
-                  root: {
-                    backgroundColor: currencyPrice ? '#10b981' : '#f59e0b',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    border: 'none',
-                    '&:hover': {
-                      backgroundColor: currencyPrice ? '#059669' : '#d97706',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
-                    },
-                    transition: 'all 0.2s ease',
-                  },
-                }}
               >
-                <Text fw={600} size="sm" c="#ffffff">
-                  قیمت ارز
-                </Text>
+                <IconCurrencyDollar size={16} />
               </Button>
             </SwiperSlide>
           )}
@@ -175,45 +160,11 @@ function FastEditBrandContent({
           {user && (
             <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
               <Button
-                leftSection={<IconPercentage size={18} />}
+                size="xs"
+                variant="light"
                 onClick={() => setBulkPriceModalOpened(true)}
-                size="md"
-                styles={{
-                  root: {
-                    backgroundColor: '#8b5cf6',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    border: 'none',
-                    '&:hover': {
-                      backgroundColor: '#7c3aed',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
-                    },
-                    transition: 'all 0.2s ease',
-                  },
-                }}
               >
-                <Text fw={600} size="sm" c="#ffffff">
-                  تغییر درصدی
-                </Text>
-                {productCount > 0 && (
-                  <Badge 
-                    color="white" 
-                    size="lg" 
-                    ml={8}
-                    styles={{
-                      root: {
-                        backgroundColor: 'rgba(255,255,255,0.25)',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        border: '1px solid rgba(255,255,255,0.3)',
-                      },
-                    }}
-                  >
-                    {productCount}
-                  </Badge>
-                )}
+                <IconPercentage size={16} />
               </Button>
             </SwiperSlide>
           )}
@@ -222,45 +173,16 @@ function FastEditBrandContent({
           {user && (
             <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
               <Button
-                leftSection={<IconFilter size={18} />}
+                size="xs"
+                variant="light"
                 onClick={() => setFilterSettingsModalOpened(true)}
-                size="md"
-                styles={{
-                  root: {
-                    backgroundColor: checkedRows.size > 0 ? '#10b981' : '#3b82f6',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    border: 'none',
-                    '&:hover': {
-                      backgroundColor: checkedRows.size > 0 ? '#059669' : '#2563eb',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
-                    },
-                    transition: 'all 0.2s ease',
-                  },
+                color={isEditMode ? "red" : undefined}
+                style={{
+                  backgroundColor: isEditMode ? '#ffe0e0' : undefined,
+                  borderColor: isEditMode ? '#ff6b6b' : undefined,
                 }}
               >
-                <Text fw={600} size="sm" c="#ffffff">
-                  فیلترها
-                </Text>
-                {checkedRows.size > 0 && (
-                  <Badge 
-                    color="white" 
-                    size="lg" 
-                    ml={8}
-                    styles={{
-                      root: {
-                        backgroundColor: 'rgba(255,255,255,0.25)',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        border: '1px solid rgba(255,255,255,0.3)',
-                      },
-                    }}
-                  >
-                    {checkedRows.size}
-                  </Badge>
-                )}
+                <IconFilter size={16} color={isEditMode ? "#ff6b6b" : undefined} />
               </Button>
             </SwiperSlide>
           )}
@@ -312,7 +234,7 @@ function FastEditBrandContent({
 }
 
 // ✅ FIXED: Category Mode content with green button indicator
-function FastEditCategoryContent({ 
+function FastEditCategoryContent({
   user,
   filters_category_mode,
   setFilters_category_mode,
@@ -333,7 +255,9 @@ function FastEditCategoryContent({
   isLandscape,
   filterValues,
   availableLocations,
-  isMobile
+  isMobile,
+  isEditMode,
+  onEditModeChange
 }) {
   const { checkedRows } = useCategoryRowSelection();
   const { currencyPrice } = useSelector((state) => state.currencyPrice);
@@ -347,25 +271,25 @@ function FastEditCategoryContent({
   return (
     <>
       <div>
-        <SearchComponentCategory 
-          filters={filters_category_mode} 
+        <SearchComponentCategory
+          filters={filters_category_mode}
           setFilters={setFilters_category_mode}
-          setNodesSubCategories={setNodesSubCategories} 
-          setNodes={setNodes} 
+          setNodesSubCategories={setNodesSubCategories}
+          setNodes={setNodes}
           setAvailableLocations={setAvailableLocations}
-          searchType={searchType} 
+          searchType={searchType}
           setSearchType={setSearchType}
           filterSettingsModalOpened={filterSettingsModalOpened}
           setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+          onEditModeChange={onEditModeChange}
         />
       </div>
 
-      <Paper 
-        mt="2px"
+      <Paper
         id="fastorder-tablesettings"
         p={isMobile ? "sm" : "md"}
         bg="white"
-        style={{ 
+        style={{
           borderRadius: '8px',
           overflow: 'hidden'
         }}
@@ -375,8 +299,8 @@ function FastEditCategoryContent({
           spaceBetween={8}
           slidesPerView="auto"
           freeMode={true}
-          style={{ 
-            height: '50px',
+          style={{
+            height: '32px',
             overflow: 'visible'
           }}
         >
@@ -393,28 +317,11 @@ function FastEditCategoryContent({
           {user && (
             <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
               <Button
-                leftSection={<IconCurrencyDollar size={18} />}
+                size="xs"
+                variant="light"
                 onClick={() => setCurrencyModalOpened(true)}
-                size="md"
-                styles={{
-                  root: {
-                    backgroundColor: currencyPrice ? '#10b981' : '#f59e0b',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    border: 'none',
-                    '&:hover': {
-                      backgroundColor: currencyPrice ? '#059669' : '#d97706',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
-                    },
-                    transition: 'all 0.2s ease',
-                  },
-                }}
               >
-                <Text fw={600} size="sm" c="#ffffff">
-                  قیمت ارز
-                </Text>
+                <IconCurrencyDollar size={16} />
               </Button>
             </SwiperSlide>
           )}
@@ -423,45 +330,11 @@ function FastEditCategoryContent({
           {user && (
             <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
               <Button
-                leftSection={<IconPercentage size={18} />}
+                size="xs"
+                variant="light"
                 onClick={() => setBulkPriceModalOpened(true)}
-                size="md"
-                styles={{
-                  root: {
-                    backgroundColor: '#8b5cf6',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    border: 'none',
-                    '&:hover': {
-                      backgroundColor: '#7c3aed',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
-                    },
-                    transition: 'all 0.2s ease',
-                  },
-                }}
               >
-                <Text fw={600} size="sm" c="#ffffff">
-                  تغییر درصدی
-                </Text>
-                {productCount > 0 && (
-                  <Badge 
-                    color="white" 
-                    size="lg" 
-                    ml={8}
-                    styles={{
-                      root: {
-                        backgroundColor: 'rgba(255,255,255,0.25)',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        border: '1px solid rgba(255,255,255,0.3)',
-                      },
-                    }}
-                  >
-                    {productCount}
-                  </Badge>
-                )}
+                <IconPercentage size={16} />
               </Button>
             </SwiperSlide>
           )}
@@ -470,45 +343,16 @@ function FastEditCategoryContent({
           {user && (
             <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
               <Button
-                leftSection={<IconFilter size={18} />}
+                size="xs"
+                variant="light"
                 onClick={() => setFilterSettingsModalOpened(true)}
-                size="md"
-                styles={{
-                  root: {
-                    backgroundColor: checkedRows.size > 0 ? '#10b981' : '#3b82f6',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    border: 'none',
-                    '&:hover': {
-                      backgroundColor: checkedRows.size > 0 ? '#059669' : '#2563eb',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
-                    },
-                    transition: 'all 0.2s ease',
-                  },
+                color={isEditMode ? "red" : undefined}
+                style={{
+                  backgroundColor: isEditMode ? '#ffe0e0' : undefined,
+                  borderColor: isEditMode ? '#ff6b6b' : undefined,
                 }}
               >
-                <Text fw={600} size="sm" c="#ffffff">
-                  فیلترها
-                </Text>
-                {checkedRows.size > 0 && (
-                  <Badge 
-                    color="white" 
-                    size="lg" 
-                    ml={8}
-                    styles={{
-                      root: {
-                        backgroundColor: 'rgba(255,255,255,0.25)',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        border: '1px solid rgba(255,255,255,0.3)',
-                      },
-                    }}
-                  >
-                    {checkedRows.size}
-                  </Badge>
-                )}
+                <IconFilter size={16} color={isEditMode ? "#ff6b6b" : undefined} />
               </Button>
             </SwiperSlide>
           )}
@@ -594,6 +438,22 @@ function FastEdit() {
 
   // ✅ NEW: Bulk price update modal state
   const [bulkPriceModalOpened, setBulkPriceModalOpened] = useState(false);
+
+  // Edit mode state for red IconFilter indicator
+  const [isEditModeBrand, setIsEditModeBrand] = useState(false);
+  const [editingFilterNameBrand, setEditingFilterNameBrand] = useState('');
+  const [isEditModeCategory, setIsEditModeCategory] = useState(false);
+  const [editingFilterNameCategory, setEditingFilterNameCategory] = useState('');
+
+  const handleEditModeChangeBrand = useCallback((editMode, filterName) => {
+    setIsEditModeBrand(editMode);
+    setEditingFilterNameBrand(filterName || '');
+  }, []);
+
+  const handleEditModeChangeCategory = useCallback((editMode, filterName) => {
+    setIsEditModeCategory(editMode);
+    setEditingFilterNameCategory(filterName || '');
+  }, []);
 
   const [errMessage, setErrMessage] = useState()
 
@@ -1035,6 +895,8 @@ function FastEdit() {
                     filterValues={filterValues}
                     availableLocations={availableLocations}
                     isMobile={isMobile}
+                    isEditMode={isEditModeBrand}
+                    onEditModeChange={handleEditModeChangeBrand}
                   />
                 </BrandRowSelectionProvider>
                 :
@@ -1061,6 +923,8 @@ function FastEdit() {
                     filterValues={filterValues}
                     availableLocations={availableLocations}
                     isMobile={isMobile}
+                    isEditMode={isEditModeCategory}
+                    onEditModeChange={handleEditModeChangeCategory}
                   />
                 </CategoryRowSelectionProvider>
               }
