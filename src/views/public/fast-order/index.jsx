@@ -216,7 +216,7 @@ const handleCookieUpdate = useCallback(() => {
     { key: "image", label: "تصویر", width: "160px" },
     { key: "name", label: "نام کالا", width: "160px" },
     { key: "price", label: "قیمت", width: "160px" },
-    { key: "attributes", label: "ویژگی ها", width: "160px" },
+    { key: "attributes", label: "ویژگی ها", width: "60px" },
     { key: "stock", label: "موجودی", width: "160px" },
     { key: "minOrder", label: "حداقل سفارش", width: "120px" },
     { key: "maxOrder", label: "حداکثر سفارش", width: "120px" },

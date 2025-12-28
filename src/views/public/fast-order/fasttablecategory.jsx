@@ -337,7 +337,7 @@ case "name":
       name: isMobile ? 150 : 200,
       shortName: isMobile ? 120 : 150,
       psid: isMobile ? 100 : 120,
-      attributes: isMobile ? 100 : 120,
+      attributes: isMobile ? 50 : 60,
       price: isMobile ? 100 : 120,
       discount: isMobile ? 100 : 120,
       stock: isMobile ? 90 : 100,
@@ -354,8 +354,8 @@ case "name":
 
   const columns = COLUMNS.filter(col => !visibleColumns.includes(col.key)).map(column => ({
     title: (
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 16, fontWeight: 600 }}>{column.label}</div>
+      <div style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600 }}>{column.label}</div>
         {column.key === 'price' && filters_category_mode.priceFormat === 'million' && (
           <Text style={{ fontSize: isMobile ? 7 : 9, color: '#8c8c8c' }}>میلیون تومان</Text>
         )}

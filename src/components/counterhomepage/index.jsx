@@ -1,3 +1,4 @@
+// src\components\counterhomepage\index.jsx
 import { ActionIcon, Flex, Input, LoadingOverlay, Modal, Text, Box, Button } from "@mantine/core";
 import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useDispatch, useSelector } from "react-redux";

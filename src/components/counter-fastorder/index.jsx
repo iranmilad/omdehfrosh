@@ -1,5 +1,6 @@
-import { ActionIcon, Button, Flex, Input, LoadingOverlay, Modal, Text } from "@mantine/core";
-import { IconPlus, IconMinus, IconTrash, IconBasket } from "@tabler/icons-react";
+// src\components\counter-fastorder\index.jsx
+import { ActionIcon, Button, Flex, LoadingOverlay, Modal, Text, Box } from "@mantine/core";
+import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { setInitial, clearCart } from "../../redux/cart";
@@ -301,10 +302,10 @@ const CounterFastOrder = (props) => {
   const isComponentLoading = !item;
 
   // Calculate dynamic width based on number of digits
-  const getInputWidth = (number) => {
+  const getTextWidth = (number) => {
     const digits = String(number).length;
-    // Base width + additional width per digit
-    return Math.max(35, 20 + (5 * 7));
+    // Minimum width of 20px, add 8px per digit
+    return Math.max(20, digits * 8);
   };
 
   return (
@@ -342,99 +343,146 @@ const CounterFastOrder = (props) => {
         </Flex>
       </Modal>
 
-      {/* Single LoadingOverlay for all loading states */}
-      <LoadingOverlay 
-        pos="fixed" 
-        visible={isPending || isLoading || isComponentLoading} 
-        zIndex={1000} 
-        h="100%" 
-        w="100%"
-        top={0}
-        left={0}
-      />
-
       {/* Show counter UI if item is in cart (count > 0) */}
       {count > 0 ? (
-        <Flex align="center" gap="2px" style={{ minWidth: 'fit-content' }}>
-          <Button
-            p={0}
-            px={0}
-            h={15}
-            w={70}
-            variant="transparent"
-            size="10px"
-            onClick={() => {
-              if (item?.stock) {
-                handleChange(item.stock);
-              }
-            }}
-          >
-            حداکثر
-          </Button>
-
-          <ActionIcon
-            size="md"
-            radius="999999"
-            variant="light"
-            color="green"
-            onClick={increment}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <IconPlus size={15} />
-          </ActionIcon>
-
-          <Input
-            type="number"
-            w={getInputWidth(count)}
-            styles={{ 
-              input: { 
-                textAlign: "center",
-                padding: "0 4px",
-                fontSize: "14px",
-                fontWeight: 500,
-              } 
-            }}
-            variant="unstyled"
-            value={count}
-            readOnly
-            px={0}
-          />
-
-          <ActionIcon
-            size="md"
-            radius="999999"
-            variant="light"
-            color="red"
-            onClick={decrement}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <IconMinus size={10} />
-          </ActionIcon>
-        </Flex>
-      ) : (
-        // Show "افزودن" button if item is not in cart
-        <Button
-          fullWidth
-          h={30}
-          onClick={handleAddToCart}
+        <Box
+          pos="relative"
           style={{
             display: "flex",
-            alignItems: "center",
             justifyContent: "center",
+            alignItems: "center",
+            width: "100%"
           }}
         >
-          <IconBasket />
-        </Button>
+          <LoadingOverlay
+            visible={isPending || isLoading}
+            zIndex={10}
+            overlayProps={{ radius: "md", blur: 2 }}
+            loaderProps={{ size: "xs" }}
+          />
+          <Flex
+            align="center"
+            gap="2px"
+            style={{
+              border: "1px solid var(--mantine-color-gray-4)",
+              borderRadius: "var(--mantine-radius-xl)",
+              padding: "2px 4px",
+              minWidth: "fit-content",
+              maxWidth: "100%",
+              backgroundColor: "var(--mantine-color-white)",
+            }}
+          >
+            {/* Plus button */}
+            <ActionIcon
+              size="xs"
+              variant="transparent"
+              color="gray"
+              onClick={increment}
+              disabled={!item?.stock || count >= item.stock}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <IconPlus size={14} />
+            </ActionIcon>
+
+            {/* Divider */}
+            <Box
+              style={{
+                width: "0.5px",
+                height: "16px",
+                backgroundColor: "var(--mantine-color-gray-4)",
+                flexShrink: 0,
+              }}
+            />
+
+            {/* Count display */}
+            <Text
+              fw={500}
+              size="xs"
+              c="blue"
+              style={{
+                minWidth: `${getTextWidth(count)}px`,
+                textAlign: "center",
+                padding: "0 2px",
+              }}
+            >
+              {count}
+            </Text>
+
+            {/* Divider */}
+            <Box
+              style={{
+                width: "0.5px",
+                height: "16px",
+                backgroundColor: "var(--mantine-color-gray-4)",
+                flexShrink: 0,
+              }}
+            />
+
+            {/* Minus/Trash button */}
+            <ActionIcon
+              size="xs"
+              variant="transparent"
+              color="red"
+              onClick={decrement}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              {count === (Number(item?.minOrder) || 1) ? <IconTrash size={14} /> : <IconMinus size={14} />}
+            </ActionIcon>
+          </Flex>
+        </Box>
+      ) : (
+        // Show add button if item is not in cart
+        <Box
+          pos="relative"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%"
+          }}
+        >
+          <LoadingOverlay
+            visible={isPending || isLoading || isComponentLoading}
+            zIndex={10}
+            overlayProps={{ radius: "6px", blur: 2 }}
+            loaderProps={{ size: "sm" }}
+          />
+          <ActionIcon
+            size="36px"
+            radius="6px"
+            variant="filled"
+            onClick={handleAddToCart}
+            disabled={!item?.stock || item.stock === 0}
+            styles={{
+              root: {
+                backgroundColor: "white",
+                border: "1px solid #ccc",
+                color: "black",
+                "&:hover": {
+                  backgroundColor: "#f8f8f8",
+                },
+                "&:disabled": {
+                  backgroundColor: "#f5f5f5",
+                  borderColor: "#e0e0e0",
+                  opacity: 0.6,
+                  cursor: "not-allowed",
+                },
+              },
+            }}
+          >
+            <IconPlus size={16} />
+          </ActionIcon>
+        </Box>
       )}
     </>
   );
