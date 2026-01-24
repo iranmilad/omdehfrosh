@@ -3,7 +3,7 @@ import { ActionIcon, Flex, Input, LoadingOverlay, Modal, Text, Box, Button } fro
 import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setInitial } from "../../redux/cart";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 
 const cartAPI = {
@@ -160,22 +160,6 @@ const CounterHomePage = ({
     // Minimum width of 20px, add 8px per digit
     return Math.max(20, digits * 8);
   };
-
-  // Load cart data on component mount
-  useEffect(() => {
-    const loadCartData = async () => {
-      try {
-        const result = await cartAPI.getCart();
-        if (result.cart && result.cart.length > 0) {
-          dispatch(setInitial([...result.cart]));
-        }
-      } catch (error) {
-        console.error("Failed to load cart data:", error);
-      }
-    };
-    
-    loadCartData();
-  }, [dispatch]);
 
   // Get the count for this specific product
   const getProductCount = () => {

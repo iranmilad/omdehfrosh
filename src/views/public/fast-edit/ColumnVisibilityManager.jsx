@@ -44,8 +44,43 @@ function ColumnVisibilityManager({
         onClose={() => setOpened(false)}
         title="نمایش دادن ستون‌ها"
         zIndex={1100}
+        styles={{
+          header: {
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            backgroundColor: 'var(--mantine-color-body)',
+            paddingBottom: 'var(--mantine-spacing-md)',
+            borderBottom: '1px solid var(--mantine-color-gray-3)',
+            margin: 0,
+            marginTop: 0,
+            paddingTop: 0,
+          },
+          title: {
+            margin: 0,
+            marginTop: 0,
+            paddingTop: 0,
+          },
+          body: {
+            paddingTop: 'var(--mantine-spacing-md)',
+            paddingBottom: 'var(--mantine-spacing-lg)',
+            maxHeight: 'calc(100vh - 140px)',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            marginBottom: 0,
+          },
+          content: {
+            overflow: 'visible',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '90vh',
+          },
+          inner: {
+            padding: 0,
+          }
+        }}
       >
-        <Stack>
+        <Stack gap="sm" pb="xs">
           {columns.map((column) => (
             <Checkbox
               key={column.key}

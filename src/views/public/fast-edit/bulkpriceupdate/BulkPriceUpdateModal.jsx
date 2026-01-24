@@ -136,15 +136,41 @@ useEffect(() => {
       size="md"
       styles={{
         header: {
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          backgroundColor: 'var(--mantine-color-body)',
           borderBottom: "1px solid #e9ecef",
-          paddingBottom: 12,
+          paddingBottom: 'var(--mantine-spacing-md)',
+          margin: 0,
+          marginTop: 0,
+          paddingTop: 0,
+        },
+        title: {
+          margin: 0,
+          marginTop: 0,
+          paddingTop: 0,
         },
         body: {
-          paddingTop: 20,
+          paddingTop: 'var(--mantine-spacing-md)',
+          paddingBottom: 'var(--mantine-spacing-lg)',
+          maxHeight: 'calc(100vh - 140px)',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          marginBottom: 0,
         },
+        content: {
+          overflow: 'visible',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: '90vh',
+        },
+        inner: {
+          padding: 0,
+        }
       }}
     >
-      <Stack gap="lg">
+      <Stack gap="lg" pb="xs">
         {/* Product Count Info */}
         <Alert 
           icon={<IconAlertCircle size={16} />} 

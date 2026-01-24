@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import { getSearchResults } from '../../redux/search/searchActions';
 import { clearSearchResults } from '../../redux/search/searchSlice.js';
 
 const Search = ({ onSearchClick }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -14,19 +16,9 @@ const Search = ({ onSearchClick }) => {
   // Get search results from Redux
   const { results, loading, error } = useSelector((state) => state.search);
   
-  // Transform array structure to object structure (same as MobileSearch)
-  const transformedResults = Array.isArray(results) 
-    ? results.reduce((acc, item) => {
-        if (item.searchResultName === 'product') {
-          acc.products = item.products || [];
-        } else if (item.searchResultName === 'brand') {
-          acc.brands = item.brands || [];
-        } else if (item.searchResultName === 'category') {
-          acc.categories = item.categories || [];
-        }
-        return acc;
-      }, {})
-    : results || {};
+  // Results is already an object with products, brands, categories from the Redux slice
+  // No transformation needed since the slice already parses it
+  const transformedResults = results || { products: [], brands: [], categories: [] };
   
   useEffect(() => {
     const checkIfMobile = () => {
@@ -78,11 +70,19 @@ const Search = ({ onSearchClick }) => {
     }
   };
 
-  const handleResultClick = (url) => {
-    console.log('Navigate to:', url);
+  const handleResultClick = (type, id) => {
     setSearchValue('');
     setShowResults(false);
     dispatch(clearSearchResults());
+    
+    // Navigate based on type
+    if (type === 'product') {
+      navigate(`/product/${id}`);
+    } else if (type === 'brand') {
+      navigate(`/brands/${id}`);
+    } else if (type === 'category') {
+      navigate(`/fastorder/${id}`);
+    }
   };
 
   const hasProducts = transformedResults?.products?.length > 0;
@@ -243,7 +243,7 @@ const Search = ({ onSearchClick }) => {
                     {transformedResults.brands.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => handleResultClick(`/brand/${item.slug || item.id}`)}
+                        onClick={() => handleResultClick('brand', item.id)}
                         style={{
                           padding: '10px 12px',
                           border: '1px solid #e6e7e8',
@@ -290,7 +290,7 @@ const Search = ({ onSearchClick }) => {
                     {transformedResults.categories.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => handleResultClick(`/category/${item.slug || item.id}`)}
+                        onClick={() => handleResultClick('category', item.id)}
                         style={{
                           padding: '10px 12px',
                           border: '1px solid #e6e7e8',
@@ -337,7 +337,7 @@ const Search = ({ onSearchClick }) => {
                     {transformedResults.products.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => handleResultClick(`/product/${item.slug || item.id}`)}
+                        onClick={() => handleResultClick('product', item.id)}
                         style={{
                           padding: '12px',
                           border: '1px solid #e6e7e8',

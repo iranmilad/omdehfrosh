@@ -28,7 +28,6 @@ import { useLocation, Outlet, NavLink, useNavigate } from "react-router";
 import NavItem from "./navitem";
 import { useData } from "../../Libs/api";
 import { useCookies } from "react-cookie";
-import { verifyToken } from "../../redux/auth/authusers/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserMyAccount } from "../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
 import { CiWallet } from "react-icons/ci";
@@ -104,19 +103,12 @@ const Account = () => {
 
   const { userAccount, loading, error } = useSelector((state) => state.userMyAccounts);
 
-
+  // Fetch user account data only if not already in Redux and user is authenticated
   useEffect(() => {
-    dispatch(verifyToken());
-  }, [dispatch]);
-
-
-  useEffect(() => {
-    if (user) {
+    if (user && !userAccount && !loading) {
       dispatch(getUserMyAccount());
     }
-  }, [dispatch, user]); 
-  
-
+  }, [dispatch, user, userAccount, loading]);
 
   useEffect(() => {
     // حذف /account از مسیر

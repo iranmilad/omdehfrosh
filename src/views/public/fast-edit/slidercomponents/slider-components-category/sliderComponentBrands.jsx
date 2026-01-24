@@ -1,5 +1,7 @@
+import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import SliderArrows from '../SliderArrows';
 
 // Default SVG image for brands when image is null or empty
 const DEFAULT_BRAND_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
@@ -25,6 +27,9 @@ const SliderComponentBrandsCMFastEdit = ({
   filterCategorySubCategoryBrandsStorage,
   setFilterCategorySubCategoryBrandsStorage,
 }) => {
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const [swiperState, setSwiperState] = useState({ isBeginning: true, isEnd: true });
 
   // Extract all selected subcategory IDs
   const selectedSubcategories = filterCategorySubCategoryStorage
@@ -40,14 +45,43 @@ const SliderComponentBrandsCMFastEdit = ({
     };
   }).filter((item) => item.subCategories.length > 0);
 
+  // Only show arrows if there are filtered items with visible brands
+  const hasVisibleContent = filteredItems && filteredItems.length > 0 &&
+    filteredItems.some(item =>
+      item.subCategories && item.subCategories.some(sub =>
+        sub.brands && sub.brands.length > 0
+      )
+    );
+
   return (
-    <Swiper 
-      modules={[FreeMode, Navigation]} 
-      slidesPerView="auto" 
-      spaceBetween={8}
-      className="mt-2"
-      style={{ width: "100%" }}
-    >
+    <div style={{ position: 'relative', width: '100%' }}>
+      <Swiper
+        modules={[FreeMode, Navigation]}
+        slidesPerView="auto"
+        spaceBetween={8}
+        className="mt-2"
+        style={{ width: "100%" }}
+        navigation={{
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
+        }}
+        onBeforeInit={(swiper) => {
+          swiper.params.navigation.prevEl = prevRef.current;
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        onSwiper={(swiper) => {
+          setSwiperState({ isBeginning: swiper.isBeginning, isEnd: swiper.isEnd });
+        }}
+        onProgress={(swiper) => {
+          setSwiperState({ isBeginning: swiper.isBeginning, isEnd: swiper.isEnd });
+        }}
+        onReachBeginning={() => {
+          setSwiperState(prev => ({ ...prev, isBeginning: true }));
+        }}
+        onReachEnd={() => {
+          setSwiperState(prev => ({ ...prev, isEnd: true }));
+        }}
+      >
       {filteredItems?.map((item) => (
         <SwiperSlide 
           key={item.idCategory} 
@@ -67,7 +101,9 @@ const SliderComponentBrandsCMFastEdit = ({
           />
         </SwiperSlide>
       ))}
-    </Swiper>
+      </Swiper>
+      {hasVisibleContent && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={swiperState.isBeginning} isEnd={swiperState.isEnd} />}
+    </div>
   );
 };
 
@@ -288,17 +324,18 @@ export function SingleCategory1({
                       }}
                       onClick={() => onClick(subcategory, brand, parentItem)}
                     >
-                      <div 
+                      <div
                         className='rounded-full overflow-hidden flex-shrink-0'
-                        style={{ 
-                          width: '24px', 
+                        style={{
+                          width: '24px',
                           height: '24px',
-                          lineHeight: 0
+                          lineHeight: 0,
+                          marginRight: 0
                         }}
                       >
                         <img
                           className="w-full inline-block"
-                          style={{ objectFit: 'cover', width: '24px', height: '24px' }}
+                          style={{ objectFit: 'cover', width: '24px', height: '24px', marginRight: 0 }}
                           src={getBrandImageSrc(brand.image)}
                           alt={brand.name}
                           onError={(e) => handleImageError(e, brand.name)}
@@ -314,35 +351,6 @@ export function SingleCategory1({
                 );
               })}
 
-              {subcategory.brands && subcategory.brands.length > 0 && (
-                <div className="flex-shrink-0">
-                  <button
-                    className="flex items-center justify-center whitespace-nowrap cursor-pointer"
-                    style={{
-                      height: '40px',
-                      paddingTop: '4px',
-                      paddingBottom: '4px',
-                      paddingLeft: '8px',
-                      paddingRight: '8px',
-                      backgroundColor: 'rgb(247, 247, 248)',
-                      borderRadius: '100px',
-                      border: areAllBrandsSelectedInSubcategory(subcategory) 
-                        ? '0.666667px solid rgb(9, 54, 114)' 
-                        : '0.666667px solid rgb(250, 250, 250)',
-                      fontSize: '16px',
-                      fontWeight: areAllBrandsSelectedInSubcategory(subcategory) ? 700 : 400,
-                      color: 'rgb(77, 80, 83)',
-                      gap: '8px',
-                      flexDirection: 'row'
-                    }}
-                    onClick={() => handleSelectAllForSubcategory(subcategory, parentItem)}
-                  >
-                    <span className="leading-none">
-                      انتخاب همه
-                    </span>
-                  </button>
-                </div>
-              )}
             </>
           ))}
         </div>

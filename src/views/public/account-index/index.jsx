@@ -32,7 +32,6 @@ import "swiper/css/thumbs";
 import { FreeMode, Navigation, Thumbs } from "swiper/modules";
 import ProductBox from "../../../components/productBox";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
 import MyAccountProductBox from "../../../components/myaccountproductbox";
 import { clearTicketCreationState } from "../../../redux/usermyaccounts/usermyaccounts/newuserticket/newUserTicketSlice";
@@ -52,8 +51,10 @@ function Account_Index() {
 
   const { primaryColor } = useMantineTheme();
 
+  // Track if data has been fetched to prevent duplicate calls
+  const [hasFetchedData, setHasFetchedData] = useState(false);
+
   useEffect(() => {
-    dispatch(verifyToken());
     dispatch(clearTicketCreationState())
   }, [dispatch]);
 
@@ -67,17 +68,20 @@ function Account_Index() {
         const timer = setTimeout(() => {
           navigate('/login');
         }, 3000);
-        
+
         // Cleanup timer if component unmounts
         return () => clearTimeout(timer);
       } else {
         setLoginModalOpen(false);
-        // User is authenticated, fetch data
-        dispatch(getUserMyAccount());
-        dispatch(getAllOrdersByUserId());
+        // User is authenticated, fetch data only once
+        if (!hasFetchedData) {
+          dispatch(getUserMyAccount());
+          dispatch(getAllOrdersByUserId());
+          setHasFetchedData(true);
+        }
       }
     }
-  }, [dispatch, isVerified, user, authLoading, navigate]);
+  }, [dispatch, isVerified, user, authLoading, navigate, hasFetchedData]);
 
   // Format date function
   const formatDate = (dateString) => {

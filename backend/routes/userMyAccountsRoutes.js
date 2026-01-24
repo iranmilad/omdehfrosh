@@ -42,8 +42,13 @@ router.get("/", getUserMyAccountById);
 
 
 router.get("/wallet", getWalletBalance);
-router.post("/wallet/deduct", deductFromWallet);
+
+
+// router.post("/wallet/deduct", deductFromWallet);
+
+
 router.post("/wallet/refund", refundToWallet);
+
 router.post("/create", createUserMyAccount);
 
 router.get("/user-messages", getAllUserMessages); 
@@ -58,7 +63,10 @@ router.post("/notifications/set-seen", setNotificationSeen);
 
 router.get("/user-tickets", getAllUserTickets)
 
-router.post("/user-tickets/create", createNewUserTicket)
+router.post("/user-tickets/create", (req, res, next) => {
+  console.log("Route /user-tickets/create hit");
+  next();
+}, createNewUserTicket)
 
 router.get("/user-tickets/:id", getUserTicketsById)
 

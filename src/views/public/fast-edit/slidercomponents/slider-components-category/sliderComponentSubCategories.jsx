@@ -1,5 +1,7 @@
+import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import SliderArrows from '../SliderArrows';
 
 // SVG icon created using data URL - Subcategory placeholder with folder icon
 const DEFAULT_SUBCATEGORY_PLACEHOLDER = 'data:image/svg+xml;base64,' + btoa(`
@@ -25,15 +27,49 @@ const SliderComponentSubCategoriesCMFastEdit = ({
   filterCategorySubCategoryBrandsStorage,
   setFilterCategorySubCategoryBrandsStorage,
 }) => {
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const [swiperState, setSwiperState] = useState({ isBeginning: true, isEnd: true });
+
+  // Only show arrows if there are items AND category is active with subcategories to show
+  const hasVisibleContent = items && items.length > 0 &&
+    filterCategoryStorage && filterCategoryStorage.length > 0 &&
+    items.some(item =>
+      filterCategoryStorage.includes(item.idCategory) &&
+      item.subCategories &&
+      item.subCategories.length > 0
+    );
+
   return (
-    <Swiper 
-      modules={[FreeMode, Navigation]}       
-      freeMode={true} 
-      slidesPerView="auto" 
-      spaceBetween={8}
-      className="mt-2 !m-0 !p-0"
-      style={{ width: "100%" }}
-    >
+    <div style={{ position: 'relative', width: '100%' }}>
+      <Swiper
+        modules={[FreeMode, Navigation]}
+        freeMode={true}
+        slidesPerView="auto"
+        spaceBetween={8}
+        className="mt-2 !m-0 !p-0"
+        style={{ width: "100%" }}
+        navigation={{
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
+        }}
+        onBeforeInit={(swiper) => {
+          swiper.params.navigation.prevEl = prevRef.current;
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        onSwiper={(swiper) => {
+          setSwiperState({ isBeginning: swiper.isBeginning, isEnd: swiper.isEnd });
+        }}
+        onProgress={(swiper) => {
+          setSwiperState({ isBeginning: swiper.isBeginning, isEnd: swiper.isEnd });
+        }}
+        onReachBeginning={() => {
+          setSwiperState(prev => ({ ...prev, isBeginning: true }));
+        }}
+        onReachEnd={() => {
+          setSwiperState(prev => ({ ...prev, isEnd: true }));
+        }}
+      >
       {items?.map((item, index) => (
         <SwiperSlide 
           key={index} 
@@ -54,7 +90,9 @@ const SliderComponentSubCategoriesCMFastEdit = ({
           />
         </SwiperSlide>
       ))}
-    </Swiper>
+      </Swiper>
+      {hasVisibleContent && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={swiperState.isBeginning} isEnd={swiperState.isEnd} />}
+    </div>
   );
 };
 
@@ -180,17 +218,18 @@ export function SingleCategoryWithSubcategories({
                       flexDirection: 'row'
                     }}
                   >
-                    <div 
+                    <div
                       className='rounded-full overflow-hidden flex-shrink-0'
-                      style={{ 
-                        width: '24px', 
+                      style={{
+                        width: '24px',
                         height: '24px',
-                        lineHeight: 0
+                        lineHeight: 0,
+                        marginRight: 0
                       }}
                     >
                       <img
                         className="w-full inline-block"
-                        style={{ objectFit: 'cover', width: '24px', height: '24px' }}
+                        style={{ objectFit: 'cover', width: '24px', height: '24px', marginRight: 0 }}
                         src={getSubcategoryImageSrc(subcategory.image)}
                         alt={subcategory.name}
                         onError={(e) => handleImageError(e, subcategory.name)}

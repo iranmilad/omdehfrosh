@@ -146,6 +146,8 @@ export const walletWithdraw = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
+    const { withdrawData } = req.body;
+    const { amount } = withdrawData;
 
     const userAccount = await UserMyAccount.findOne({ userId: user_id });
 
@@ -153,15 +155,14 @@ export const walletWithdraw = async (req, res) => {
       return res.status(404).json({ message: "User account not found" });
     }
 
-    if (userAccount.phoneNumber !== withdrawData.phone) {
-      return res.status(400).json({ message: "Phone number mismatch" });
-    }
+    // Phone number is no longer sent from frontend - get it from user account
+    // No need to validate phone match anymore since we get it from token
 
     // Create new pending withdrawal
     const newWithdraw = {
       requestId: generateRequestId(),
       date: "13/03/1400",
-      amount: parseInt(withdrawData.amount, 10),
+      amount: parseInt(amount, 10),
       status: "pending",
       statusDescriptionFa: "در انتظار بررسی",
       note: "درخواست برداشت در انتظار بررسی",
@@ -208,16 +209,24 @@ export const walletTransfer = async (req, res) => {
     }
 
     const { transferData } = req.body;
-    const { senderPhone, receiverPhone, amount, note } = transferData;
+    const { receiverPhone, amount, note } = transferData;
     const numericAmount = Number(amount);
 
-
-    // Fetch sender and receiver
-    const sender = await UserMyAccount.findOne({ phoneNumber: senderPhone });
+    // Get sender from token (user_id), receiver from receiverPhone
+    const sender = await UserMyAccount.findOne({ userId: user_id });
     const receiver = await UserMyAccount.findOne({ phoneNumber: receiverPhone });
 
-    if (!sender || !receiver) {
-      return res.status(404).json({ message: "Sender or receiver not found" });
+    if (!sender) {
+      return res.status(404).json({ message: "Sender account not found" });
+    }
+
+    if (!receiver) {
+      return res.status(404).json({ message: "Receiver not found" });
+    }
+
+    // Prevent transferring to self
+    if (sender.phoneNumber === receiverPhone) {
+      return res.status(400).json({ message: "Cannot transfer to yourself" });
     }
 
     if (sender.wallet.balance < numericAmount) {

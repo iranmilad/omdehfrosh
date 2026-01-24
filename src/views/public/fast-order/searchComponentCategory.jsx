@@ -42,7 +42,7 @@ import { useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import { useMediaQuery } from "@mantine/hooks";
 import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import isEqual from "lodash/isEqual";
-import { logout, verifyTokenSilent } from "../../../redux/auth/authusers/auth";
+import { logout } from "../../../redux/auth/authusers/auth";
 import { clearCart } from "../../../redux/cart";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import { clearSaveFilterState } from "../../../redux/savefiltersettings/saveFilterSettingsSlice";
@@ -116,7 +116,6 @@ const SearchComponentCategory = ({
 
   // Auth modal state
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authVerificationLoading, setAuthVerificationLoading] = useState(false);
 
   // Component state
   const [brands, setBrands] = useState({ parent: [], clickedBrands: [], categories: [] });
@@ -134,19 +133,16 @@ const SearchComponentCategory = ({
       try {
         // Clear localStorage
         localStorage.removeItem("user");
-        
+
         // Clear Redux auth state
         dispatch(logout());
-        
+
         // Clear cart state
         dispatch(clearCart());
-        
-        // Silent re-verification to update auth state across all components
-        await dispatch(verifyTokenSilent());
-        
+
         // Show auth modal
         setShowAuthModal(true);
-        
+
         return true;
       } catch (authError) {
         console.error("Error during token expiration handling:", authError);
@@ -197,62 +193,20 @@ const SearchComponentCategory = ({
     return false;
   };
 
-  // Server authentication verification function using Redux action
-  const verifyAuthFromServer = async () => {
-    const token = localStorage.getItem("user");
-    
-    if (!token) {
-      setShowAuthModal(true);
-      return false;
-    }
-
-    try {
-      setAuthVerificationLoading(true);
-      
-      // Use the existing Redux action for token verification
-      const result = await dispatch(verifyTokenSilent());
-      
-      // Check if verification was successful
-      if (result.type.includes('rejected') || result.error) {
-        // Token is invalid or expired
-        await handleTokenExpiration({ status: 401, message: 'Unauthorized' });
-        return false;
-      }
-      
-      // If we get here, token is valid
-      return true;
-      
-    } catch (error) {
-      console.error("Error verifying auth:", error);
-      await handleTokenExpiration(error);
-      return false;
-    } finally {
-      setAuthVerificationLoading(false);
-    }
-  };
-
   // Handle login redirect
   const handleLoginRedirect = () => {
     setShowAuthModal(false);
     navigate('/login');
   };
 
-  // Enhanced menu click handler with server verification
-  const handleMenuClick = async () => {
-    // First check local auth state
+  // Enhanced menu click handler
+  const handleMenuClick = () => {
     if (!user || !isVerified) {
       setShowAuthModal(true);
       return;
     }
 
-    // If local state shows authenticated, verify with server
-    const isServerAuthenticated = await verifyAuthFromServer();
-    
-    if (isServerAuthenticated) {
-      // If server confirms authentication, open the menu
-      setMenuOpened(!menuOpened);
-    }
-    // If server auth fails, modal will be shown by verifyAuthFromServer
+    setMenuOpened(!menuOpened);
   };
 
   const getInitialFilters = useCallback(() => {
@@ -886,12 +840,12 @@ useEffect(() => {
           overflow: 'hidden'
         }}
       >
-        {/* Loading Overlay for auth verification */}
-        <LoadingOverlay 
-          pos="fixed" 
-          visible={authVerificationLoading || loading} 
-          zIndex={1000} 
-          h="100%" 
+        {/* Loading Overlay */}
+        <LoadingOverlay
+          pos="fixed"
+          visible={loading}
+          zIndex={1000}
+          h="100%"
         />
 
         {/* Action Buttons - Responsive */}
@@ -942,12 +896,12 @@ useEffect(() => {
           orientation="horizontal"
         >
           <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
-            <Tabs.Tab 
-              value="brand" 
-              style={{ 
-                flex: '1 1 0', 
+            <Tabs.Tab
+              value="brand"
+              style={{
+                flex: '1 1 0',
                 minWidth: 0,
-                border: searchType === 'brand' ? '1px solid #093572' : '1px solid #e0e0e0',
+                border: searchType === 'brand' ? '1px solid #093572' : '1px solid #093572',
                 borderRadius: '6px',
                 backgroundColor: searchType === 'brand' ? '#093572' : 'white',
                 color: searchType === 'brand' ? 'white' : '#333',
@@ -955,13 +909,13 @@ useEffect(() => {
             >
               {isMobile ? "برند" : "برند"}
             </Tabs.Tab>
-            
-            <Tabs.Tab 
-              value="category" 
-              style={{ 
-                flex: '1 1 0', 
+
+            <Tabs.Tab
+              value="category"
+              style={{
+                flex: '1 1 0',
                 minWidth: 0,
-                border: searchType === 'category' ? '1px solid #093572' : '1px solid #e0e0e0',
+                border: searchType === 'category' ? '1px solid #093572' : '1px solid #093572',
                 borderRadius: '6px',
                 backgroundColor: searchType === 'category' ? '#093572' : 'white',
                 color: searchType === 'category' ? 'white' : '#333',

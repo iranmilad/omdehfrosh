@@ -7,7 +7,12 @@ import ProductBoxCompare from "../productBoxCompare";
 const ProductList = React.memo(({ products, onSelectProduct }) => {
   
     return (
-      <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 3, lg: 4 }} mb="xl" mt="15">
+      <SimpleGrid 
+        cols={{ base: 1, xs: 2, sm: 3, md: 3, lg: 4 }} 
+        spacing={{ base: "xs", sm: "sm", md: "md", lg: "lg" }}
+        mb={{ base: "md", md: "xl" }} 
+        mt={{ base: "sm", md: "md" }}
+      >
         {products?.map((item, index) => (
           <ProductBoxCompare onSelectProduct={onSelectProduct} key={index} {...item} />
         ))}

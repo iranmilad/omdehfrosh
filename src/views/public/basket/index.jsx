@@ -33,7 +33,10 @@ import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/g
 import { updateBasketOrdersAddress, updateOrderAddress } from "../../../redux/orders/updateOrderAddress/updateOrderAddressActions";
 import { notifications } from "@mantine/notifications";
 
+
 const { useBreakpoint } = GridAnt;
+
+
 
 /* ---------------------- Pretty SVG placeholder as DATA URI ---------------------- */
 const buildPlaceholderDataUri = (label = "تصویر در دسترس نیست") => {
@@ -368,6 +371,8 @@ const Basket = () => {
         loading: true,
         autoClose: false,
       });
+
+      
 
       // Update address for ALL basket orders
       const result = await dispatch(updateBasketOrdersAddress({

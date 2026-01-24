@@ -2,73 +2,63 @@ import { Button, Center, Loader, LoadingOverlay, Portal } from "@mantine/core";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { updateFastEditBrandMode } from "../../../../redux/fastedit/fasteditbrandmode/fastEditBrandModeUpdateActions";
-import { fetchFastEditBrandModeTableData } from "../../../../redux/fastedit/fastedittabledata/fastedittablebrandmode/fastEditTableBrandModeDataActions";
-import { fetchFastEditCategoryModeTableData } from "../../../../redux/fastedit/fastedittabledata/fastedittablecategorymode/fastEditTableCategoryModeDataActions";
 import Cookies from "js-cookie";
 
 const EditItemsFastOrder = (props) => {
   const {
     item,
     formData,
-    mode = "brand"
+    mode = "brand",
+    setNodes  // Add this to update local state
   } = props;
 
   const { brandModeUpdate } = useSelector((state) => state.fastEditBrandMode);
   const dispatch = useDispatch();
   const [showLoader, setShowLoader] = useState(false);
+  const [previousData, setPreviousData] = useState(null);
 
-  // ⭐ Refetch data when update succeeds
+  // ⭐ Handle update success/error - UPDATE LOCAL STATE ONLY, NO REFETCH
   useEffect(() => {
     if (brandModeUpdate && brandModeUpdate.state === "ok") {
-      // console.log(`✅ Update successful, refetching ${mode} data...`);
-      
-      const COOKIE_NAME = mode === "brand" 
-        ? "search_filters_brand_fast_edit" 
-        : "search_filters_category_fast_edit";
-      
-      const cookieRaw = Cookies.get(COOKIE_NAME);
-      
-      if (cookieRaw) {
-        try {
-          const parsedFilters = JSON.parse(cookieRaw);
-          
-          if (mode === "brand") {
-            const filterArray = [{
-              searchType: parsedFilters.searchType || 'brand',
-              uniqueIDClickedBrands: parsedFilters.uniqueIDClickedBrands || [],
-              uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
-              filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || [],
-              filters: parsedFilters.filters || {}
-            }];
-            dispatch(fetchFastEditBrandModeTableData(filterArray));
-          } else {
-            const filterArray = [{
-              searchType: parsedFilters.searchType || 'category',
-              uniqueIDClickedCategories: parsedFilters.uniqueIDClickedCategories || [],
-              uniqueIDClickedSubCategories: parsedFilters.uniqueIDClickedSubCategories || [],
-              uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || [],
-              filters: parsedFilters.filters || {}
-            }];
-            dispatch(fetchFastEditCategoryModeTableData(filterArray));
-          }
-        } catch (error) {
-          console.error('Error refetching data:', error);
-        }
-      }
-      
-      // ⭐ Hide loader after refetch is triggered
+      // ✅ Success: Keep the updated data (already in formData/local state)
+      console.log(`✅ Update successful for psid: ${item.psid}`);
       setShowLoader(false);
+      setPreviousData(null); // Clear backup
+    } else if (brandModeUpdate && brandModeUpdate.state === "error") {
+      // ❌ Error: Revert to previous data
+      console.log(`❌ Update failed for psid: ${item.psid}, reverting...`);
+
+      if (previousData && setNodes) {
+        // Revert the local state to previous values
+        setNodes(prevNodes => {
+          return prevNodes.map(group => ({
+            ...group,
+            items: group.items.map(currentItem => {
+              if (currentItem.psid === item.psid) {
+                return previousData; // Restore previous data
+              }
+              return currentItem;
+            })
+          }));
+        });
+      }
+
+      setShowLoader(false);
+      setPreviousData(null); // Clear backup
     }
-  }, [brandModeUpdate, dispatch, mode]);
+  }, [brandModeUpdate, item.psid, previousData, setNodes]);
 
   const handleEdit = () => {
     const matchingDataKey = Object.keys(formData).find(key => key === item.psid);
     const matchingData = matchingDataKey ? formData[matchingDataKey] : null;
-   
+
     if (!matchingData) {
       console.error("❌ No matching data found for psid:", item.psid);
       return;
     }
+
+    // ⭐ Save current item data as backup before updating
+    setPreviousData({...item});
 
     const sanitizedData = {
       ...matchingData,
@@ -89,7 +79,7 @@ const EditItemsFastOrder = (props) => {
     // console.log(`📤 Sending update for ${mode} mode:`, sanitizedData);
 
     dispatch(updateFastEditBrandMode({
-      updateData: sanitizedData, 
+      updateData: sanitizedData,
       itemId: item.psid
     }));
   };

@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router';
+import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useCategoryRowSelection } from '../../CategoryRowSelectionContext';
+import SliderArrows from '../SliderArrows';
 
 // Default SVG image for categories when image is null or empty
 const DEFAULT_CATEGORY_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
@@ -32,13 +34,17 @@ const SliderComponentCategoriesCMFastOrder = ({
 
   const { checkedRows } = useCategoryRowSelection();
   const navigate = useNavigate();
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(true);
   // console.log("SliderComponentCategoriesCM rendered with:", {
   //   items: items?.length,
   //   filterCategoryStorage,  // Should show the selected category
   //   itemsData: items?.map(i => ({ id: i.idCategory, title: i.title }))
   // });
   // console.log("SliderComponentCategoriesCM rendered with items:", items);
-  
+
   const isSlideSelectionActive = checkedRows.size > 0;
 
   const handleSelectAll = () => {
@@ -59,14 +65,31 @@ const SliderComponentCategoriesCMFastOrder = ({
   const allSelected = allCategoryIds.length > 0 && allCategoryIds.every(id => filterCategoryStorage.includes(id));
 
   return (
-    <Swiper 
-      modules={[FreeMode, Navigation]}       
-      freeMode={true} 
-      slidesPerView="auto" 
-      spaceBetween={8}
-      className="mt-2"
-      style={{ width: "100%" }}
-    >
+    <div style={{ position: 'relative', width: '100%' }}>
+      <Swiper
+        modules={[FreeMode, Navigation]}
+        freeMode={true}
+        slidesPerView="auto"
+        spaceBetween={8}
+        className="mt-2"
+        style={{ width: "100%" }}
+        navigation={{
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
+        }}
+        onBeforeInit={(swiper) => {
+          swiper.params.navigation.prevEl = prevRef.current;
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        onInit={(swiper) => {
+          if (swiper.isBeginning !== isBeginning) setIsBeginning(swiper.isBeginning);
+          if (swiper.isEnd !== isEnd) setIsEnd(swiper.isEnd);
+        }}
+        onProgress={(swiper) => {
+          if (swiper.isBeginning !== isBeginning) setIsBeginning(swiper.isBeginning);
+          if (swiper.isEnd !== isEnd) setIsEnd(swiper.isEnd);
+        }}
+      >
       {items?.map((item, index) => (
         <SwiperSlide 
           key={index} 
@@ -92,7 +115,9 @@ const SliderComponentCategoriesCMFastOrder = ({
       <SwiperSlide style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}>
         {/* Select All Button commented out */}
       </SwiperSlide>
-    </Swiper>
+      </Swiper>
+      {items && items.length > 0 && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={isBeginning} isEnd={isEnd} />}
+    </div>
   );
 };
 
@@ -151,7 +176,7 @@ export function SingleCategoryGroupCM({
             paddingTop: '4px',
             paddingBottom: '4px',
             paddingLeft: '8px',
-            paddingRight: '8px',
+            paddingRight: '4px',
             backgroundColor: 'rgb(247, 247, 248)',
             borderRadius: '100px',
             border: !isDisabled && isActive 
@@ -165,19 +190,20 @@ export function SingleCategoryGroupCM({
           }}
           onClick={onClick}
         >
-          <div 
+          <div
             className='rounded-full overflow-hidden flex-shrink-0'
-            style={{ 
-              width: '24px', 
+            style={{
+              width: '24px',
               height: '24px',
-              lineHeight: 0
+              lineHeight: 0,
+              marginRight: 0
             }}
           >
-            <img 
-              className="w-full inline-block" 
-              style={{ objectFit: 'cover', width: '24px', height: '24px' }}
-              src={getCategoryImageSrc(parentItem.image)} 
-              alt={parentItem.title} 
+            <img
+              className="w-full inline-block"
+              style={{ objectFit: 'cover', width: '24px', height: '24px', marginRight: 0 }}
+              src={getCategoryImageSrc(parentItem.image)}
+              alt={parentItem.title}
               onError={handleImageError}
               width="24"
               height="24"

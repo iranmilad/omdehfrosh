@@ -52,11 +52,11 @@ export const verifyTokenSilent = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("user");
-      
+
       if (!token) {
         return rejectWithValue('No token found');
       }
-      
+
       const response = await fetch(getApiUrl('/auth/verify-user'), {
         method: 'GET',
         headers: {
@@ -76,6 +76,41 @@ export const verifyTokenSilent = createAsyncThunk(
       console.error("Silent verification error:", error);
       localStorage.removeItem("user");
       return rejectWithValue('Verification error');
+    }
+  }
+);
+
+// Combined endpoint that fetches user + cart + notifications in ONE request
+export const getUserInitialData = createAsyncThunk(
+  'auth/getUserInitialData',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("user");
+
+      if (!token) {
+        return rejectWithValue('No token found');
+      }
+
+      const response = await fetch(getApiUrl('/auth/user-initial-data'), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem("user");
+        return rejectWithValue('Failed to fetch user data');
+      }
+
+      const data = await response.json();
+      // Returns { valid, user, cart, total, notificationsCount }
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch user initial data:", error);
+      localStorage.removeItem("user");
+      return rejectWithValue('Failed to fetch user data');
     }
   }
 );
@@ -133,6 +168,29 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(verifyTokenSilent.rejected, (state, action) => {
+        state.loading = false;
+        state.isVerified = false;
+        state.user = null;
+        state.error = null; // Silent failure - no error shown
+      })
+
+      // getUserInitialData cases - combined endpoint
+      .addCase(getUserInitialData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getUserInitialData.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload && action.payload.user) {
+          state.isVerified = action.payload.valid || true;
+          state.user = action.payload.user;
+        } else {
+          state.isVerified = false;
+          state.user = null;
+        }
+        state.error = null;
+      })
+      .addCase(getUserInitialData.rejected, (state, action) => {
         state.loading = false;
         state.isVerified = false;
         state.user = null;

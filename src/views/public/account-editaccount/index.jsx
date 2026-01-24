@@ -6,7 +6,6 @@ import * as yup from 'yup';
 import { IMaskInput } from 'react-imask';
 import {useSend,useData} from "../../../Libs/api"
 import { useDispatch, useSelector } from "react-redux";
-import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { fetchUserInfo } from '../../../redux/users/userinfo/userInfo';
 import { updateUserInfo } from '../../../redux/users/updateuserinfo/updateUserInforActions';
 import moment from "moment-jalaali";
@@ -142,16 +141,12 @@ function Account_EditAccount() {
     }, [errorUpdateUser, dispatch, navigate]);
     
 
+    // Fetch user info only if not already in Redux
     useEffect(() => {
-        dispatch(verifyToken());
-      }, [dispatch]);
-
-
-    useEffect(() => {
-      if (user) {
-        dispatch(fetchUserInfo())
+      if (user && !userInfo) {
+        dispatch(fetchUserInfo());
       }
-    }, [dispatch, user])
+    }, [dispatch, user, userInfo]);
 
 
     // Helper function to convert Persian/Jalali date to Gregorian YYYY-MM-DD format for API

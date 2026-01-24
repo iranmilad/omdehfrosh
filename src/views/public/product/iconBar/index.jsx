@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import CompareBtn from "../../../../components/compareBtn";
 import ShareModal from "../../../../components/shareModal";
 import PriceChart from "../priceChart";
-import { verifyToken } from '../../../../redux/auth/authusers/auth'
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import DelayedFullScreenLoader from "../../../../components/centerloading";
@@ -172,9 +171,6 @@ function IconBar({ favorite, data }) {
     dispatch(clearRemoveFavoriteStatus())
   }, [removeFromFavoritesData, data.id, addToFavoritesCache, dispatch]);
 
-  useEffect(() => {
-    dispatch(verifyToken());
-  }, [dispatch]);
 
   const removeFavorite = () => {
     // Check if user is logged in

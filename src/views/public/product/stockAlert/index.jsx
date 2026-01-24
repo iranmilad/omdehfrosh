@@ -437,6 +437,7 @@ function StockAlert(props) {
               data={filteredAlertTypes}
               w={mobile ? "100%" : tablet ? "250px" : "200px"}
               disabled={!user}
+              comboboxProps={{ zIndex: 1020 }}
               {...form.getInputProps("alertType")}
             />
           </Box>
@@ -482,6 +483,7 @@ function StockAlert(props) {
                   w={mobile ? "100%" : tablet ? "250px" : "200px"}
                   mb="xs"
                   disabled={!user}
+                  comboboxProps={{ zIndex: 1020 }}
                 />
 
                 {form.values.supplierSelection === "select" && uniqueSuppliers.length > 0 && (

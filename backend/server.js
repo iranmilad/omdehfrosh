@@ -12,7 +12,8 @@ import userRoutes from "./routes/userRoutes.js";
 import purchasedProducts from "./routes/purchasedProductsRoutes.js"; 
 import smsRoutes from "./routes/smsRoutes.js"; 
 import discountCodeRoutes from './routes/discountCodeRoutes.js'
-import paymentRoutes from './routes/paymentRoutes.js' 
+import paymentRoutes from './routes/paymentRoutes.js'
+import universalPaymentRoutes from './routes/universalPaymentRoutes.js'
 import productRoutes from './routes/productRoutes.js'
 import bannerRoutes from './routes/master-dashboard/bannerRoutes.js'
 import brandRoutes from './routes/master-dashboard/brandRoutes.js'
@@ -88,10 +89,12 @@ connectDB();
 
 // CORS options
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:5000'],
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001',
+     'http://localhost:5000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: '*',
-  credentials: true,
   optionsSuccessStatus: 200
 };
 
@@ -144,6 +147,9 @@ app.use("/api/discount", discountCodeRoutes); // Use discount code routes
 // payment routes
 app.use("/api/payment", paymentRoutes); // Use discount code routes
 
+// universal payment routes
+console.log('✅ Universal payment routes loaded');
+app.use("/api/universal-payment", universalPaymentRoutes);
 
 app.use("/fetch-table-by-ids", checkedRowsTableDataRoutes);
 
@@ -153,6 +159,7 @@ app.use("/api/brandspagedata", brandsPageDataRoutes)
 app.use("/api/products", productRoutes); // Use product routes
 
 app.use("/api/comparelist", compareListRoutes)
+
 
 // order routes
 app.use("/api/orders", orderRoutes)

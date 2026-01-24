@@ -23,8 +23,6 @@ import { IconArrowRight } from "@tabler/icons-react";
 import Product from "./product";
 import PriceText from "../../../components/priceText";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyToken } from "../../../redux/auth/authusers/auth";
-import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
 import { getOrderByID } from "../../../redux/orders/orders/getorderbyid/getOrderByIDActions";
 import { fetchUserInfo } from "../../../redux/users/userinfo/userInfo";
 import { updateOrderDelivered } from "../../../redux/orders/orders/updateorderdelivered/updateOrderDeliveredActions";
@@ -135,16 +133,12 @@ const getOrderStatusBadge = (status) => {
   }
 };
 
+  // Fetch orders if not already in Redux
   useEffect(() => {
-    dispatch(verifyToken());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (user) {
-      dispatch(getUserMyAccount({userId: user.id}));
+    if (user && !ordersByUserId?.orders) {
       dispatch(getAllOrdersByUserId());
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, ordersByUserId]);
 
   useEffect(() => {
     if (user && id) {

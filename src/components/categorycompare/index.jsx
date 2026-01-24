@@ -39,7 +39,7 @@ function CategoryCompare({ enabled, url = "/seller/123/products", slug: propSlug
   const slug = propSlug || routeSlug;
 
   const dispatch = useDispatch();
-  const { categoryData, loadingCategoryData } = useSelector((state) => state.categoryData);
+  const { categoryData, loadingCategoryData, errorCategoryData } = useSelector((state) => state.categoryData);
 
   const [page, setPage] = useState(1);
   const [sortValue, setSortValue] = useState("newest");
@@ -81,10 +81,32 @@ function CategoryCompare({ enabled, url = "/seller/123/products", slug: propSlug
 
 
   useEffect(() => {
-    if (slug) {
-      dispatch(getCategoryData({ slug, filters: changeFilters().filters }));
+    // Fetch data when modal is opened and slug is available
+    if (enabled && slug) {
+      const filters = changeFilters().filters;
+      dispatch(getCategoryData({ slug, filters }));
     }
-  }, [dispatch, slug, queryKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, slug, queryKey, enabled]);
+
+  // Log for debugging
+  useEffect(() => {
+    if (enabled && slug) {
+      console.log('CategoryCompare: Fetching data for slug:', slug);
+    }
+  }, [enabled, slug]);
+
+  useEffect(() => {
+    if (errorCategoryData) {
+      console.error('CategoryCompare: Error fetching category data:', errorCategoryData);
+    }
+    if (categoryData) {
+      console.log('CategoryCompare: Received data:', {
+        productsCount: categoryData?.products?.length || 0,
+        hasProducts: !!(categoryData?.products && categoryData.products.length > 0)
+      });
+    }
+  }, [errorCategoryData, categoryData]);
 
   useEffect(() => {
     if (categoryData) {
@@ -110,17 +132,49 @@ function CategoryCompare({ enabled, url = "/seller/123/products", slug: propSlug
     [form]
   );
 
+  const handlePageChange = useCallback(
+    (newPage) => {
+      setPage(newPage);
+      // The useEffect will automatically trigger when page changes via queryKey
+    },
+    []
+  );
+
   if (loadingCategoryData) {
     return <DelayedFullScreenLoader showR={true} />;
   }
 
+  // Show error message if API call failed
+  if (errorCategoryData) {
+    return (
+      <Center p="xl">
+        <Text c="red" size="lg">
+          خطا در دریافت اطلاعات: {errorCategoryData}
+        </Text>
+      </Center>
+    );
+  }
 
-
+  // Show message if no data and not loading
+  if (!loadingCategoryData && (!categoryData || !categoryData.products || categoryData.products.length === 0)) {
+    return (
+      <Center p="xl">
+        <Text c="dimmed" size="lg">
+          {slug ? `محصولی در دسته‌بندی "${slug}" یافت نشد` : 'لطفا دسته‌بندی را انتخاب کنید'}
+        </Text>
+        {slug && (
+          <Text c="dimmed" size="sm" mt="md">
+            ممکن است نام دسته‌بندی در URL با نام موجود در سیستم مطابقت نداشته باشد
+          </Text>
+        )}
+      </Center>
+    );
+  }
 
   return (
     <Box pos="relative">
       {/* <LoadingOverlay visible={isFetching} zIndex={50} /> */}
-      {categoryData && (
+      {categoryData && categoryData.products && categoryData.products.length > 0 && (
         <Grid>
           <GridCol span={{md:3}}>
           <Stack visibleFrom="md">
@@ -173,7 +227,15 @@ function CategoryCompare({ enabled, url = "/seller/123/products", slug: propSlug
               </Flex>
             </Paper>
             <ProductList onSelectProduct={onSelectProduct} products={categoryData?.products}  />
-            <Center><Pagination total={20} value={page} onChange={setPage} /></Center>
+            {categoryData?.totalPages && categoryData.totalPages >= 1 && (
+              <Center mt="xl" mb="150px">
+                <Pagination 
+                  total={categoryData.totalPages} 
+                  value={page} 
+                  onChange={handlePageChange}
+                />
+              </Center>
+            )}
           </GridCol>
         </Grid>
       )}

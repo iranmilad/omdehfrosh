@@ -5,7 +5,9 @@ import dotenv from "dotenv";
 import { verifySMSCode } from "../libs/verifySMSCode.js";
 import { generateToken } from "../jwt/jwt_func.js";
 import getUserFromToken from "../libs/verifyToken.js";
-
+import OrderJ2B from '../models/Orders_J2B.js';
+import OrderItemJ2B from '../models/OrderItemJ2B.js';
+import NotificationTable from '../models/NotificationsTable.js';
 
 
 dotenv.config();
@@ -293,21 +295,153 @@ export const verifyTokenMaster = (req, res) => {
   const {decoded, user_id} = getUserFromToken(req, res);
 
   if (!user_id) {
-    return res.status(401).json({ 
-      valid: false, 
-      message: "No token provided" 
+    return res.status(401).json({
+      valid: false,
+      message: "No token provided"
     });
   }
 
   try {
-    return res.json({ 
-      valid: true, 
-      user: decoded 
+    return res.json({
+      valid: true,
+      user: decoded
     });
   } catch (error) {
-    return res.status(401).json({ 
-      valid: false, 
-      message: "Invalid or expired token" 
+    return res.status(401).json({
+      valid: false,
+      message: "Invalid or expired token"
+    });
+  }
+};
+
+// Combined endpoint that returns user verification + cart + notifications in ONE request
+export const getUserInitialData = async (req, res) => {
+  try {
+
+    const s = req.body
+
+
+    console.log(JSON.stringify(s));
+
+
+    const user = getUserFromToken(req);
+
+    if (!user || !user.user_id || !user.decoded) {
+      return res.status(401).json({
+        valid: false,
+        message: "Unauthorized",
+        user: null,
+        cart: [],
+        total: 0,
+        notificationsCount: 0
+      });
+    }
+
+    const { decoded, user_id } = user;
+
+    // Fetch user data from database
+    const userData = await UserAccounts.findOne({ userId: decoded.id });
+
+    if (!userData) {
+      return res.status(404).json({
+        valid: false,
+        message: "User not found",
+        user: null,
+        cart: [],
+        total: 0,
+        notificationsCount: 0
+      });
+    }
+
+    // Prepare user object
+    const userObject = {
+      ...decoded,
+      name: `${userData.name} ${userData.family}`,
+      email: userData.email,
+      mobile: userData.mobile,
+    };
+
+    // Fetch cart data
+    let cartItems = [];
+    let totalAmount = 0;
+
+    const basketOrders = await OrderJ2B.find({
+      user_id: user_id.toString(),
+      status: "basket"
+    });
+
+    if (basketOrders && basketOrders.length > 0) {
+      for (const basketOrder of basketOrders) {
+        const orderItems = await OrderItemJ2B.find({ order_id: basketOrder.id });
+
+        if (orderItems && orderItems.length > 0) {
+          for (const orderItem of orderItems) {
+            const itemData = {
+              id: orderItem.product_id,
+              title: orderItem.product_name,
+              count: orderItem.count,
+              seller: orderItem.seller,
+              combinationsID: orderItem.combinationsID,
+              attributes: orderItem.attributes || [],
+              price: {
+                regularPrice: orderItem.unit_price || 0,
+                discountedPrice: orderItem.unit_price || 0,
+                discountPercent: orderItem.discount_percent || 0
+              },
+              images: orderItem.images || []
+            };
+
+            cartItems.push(itemData);
+            totalAmount += (orderItem.unit_price || 0) * (orderItem.count || 0);
+          }
+        }
+      }
+    }
+
+    // Fetch unread notifications count
+    let notificationsCount = 0;
+
+    const query = {
+      isRead: false,
+      $and: [
+        {
+          $or: [
+            { userId: user_id },
+            { userId: { $exists: false } },
+            { userId: null },
+            { userId: undefined }
+          ]
+        },
+        {
+          $or: [
+            { expiresAt: { $exists: false } },
+            { expiresAt: null },
+            { expiresAt: { $gte: new Date() } }
+          ]
+        }
+      ]
+    };
+
+    notificationsCount = await NotificationTable.countDocuments(query);
+
+    // Return combined response
+    return res.json({
+      valid: true,
+      user: userObject,
+      cart: cartItems,
+      total: totalAmount,
+      notificationsCount: notificationsCount
+    });
+
+  } catch (error) {
+    console.error("Error in getUserInitialData:", error);
+    return res.status(500).json({
+      valid: false,
+      message: "Internal server error",
+      user: null,
+      cart: [],
+      total: 0,
+      notificationsCount: 0
     });
   }
 };

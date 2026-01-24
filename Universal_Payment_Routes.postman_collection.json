@@ -1,0 +1,705 @@
+{
+	"info": {
+		"_postman_id": "universal-payment-routes-2024",
+		"name": "Universal Payment Routes - Complete Collection",
+		"description": "Complete collection for testing universal payment routes covering all payment types: gateway payments (melli, mellat), wallet recharge, wallet payment from order, and COD",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Payment Link",
+			"item": [
+				{
+					"name": "Wallet Recharge - Melli Gateway",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save transaction ID and body for verify payment",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.body && response.body.transactionId) {",
+									"        pm.environment.set(\"transaction_id\", response.body.transactionId);",
+									"        pm.environment.set(\"payment_body\", JSON.stringify(response.body));",
+									"        pm.environment.set(\"user_id\", response.body.user_id);",
+									"        pm.environment.set(\"amount\", response.body.amount);",
+									"        pm.environment.set(\"link\", response.link);",
+									"        console.log(\"✅ Wallet Recharge (Melli) - Saved transaction data:\", response.body);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": \"1000000\",\n  \"gateway\": \"melli\",\n  \"payment_type\": \"wallet\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"get-payment-link"
+							]
+						},
+						"description": "Wallet recharge with Melli gateway. Returns { link, body } for redirect to fake gateway."
+					},
+					"response": []
+				},
+				{
+					"name": "Wallet Recharge - Mellat Gateway",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save transaction ID and body for verify payment",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.body && response.body.transactionId) {",
+									"        pm.environment.set(\"transaction_id\", response.body.transactionId);",
+									"        pm.environment.set(\"payment_body\", JSON.stringify(response.body));",
+									"        pm.environment.set(\"user_id\", response.body.user_id);",
+									"        pm.environment.set(\"amount\", response.body.amount);",
+									"        pm.environment.set(\"link\", response.link);",
+									"        console.log(\"✅ Wallet Recharge (Mellat) - Saved transaction data:\", response.body);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": \"5000000\",\n  \"gateway\": \"mellat\",\n  \"payment_type\": \"wallet\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"get-payment-link"
+							]
+						},
+						"description": "Wallet recharge with Mellat gateway. Returns { link, body } for redirect to fake gateway."
+					},
+					"response": []
+				},
+				{
+					"name": "Order Payment - Melli Gateway",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save transaction ID, order ID, and body for verify payment",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.body && response.body.transactionId) {",
+									"        pm.environment.set(\"transaction_id\", response.body.transactionId);",
+									"        pm.environment.set(\"payment_body\", JSON.stringify(response.body));",
+									"        pm.environment.set(\"user_id\", response.body.user_id);",
+									"        pm.environment.set(\"amount\", response.body.amount);",
+									"        pm.environment.set(\"order_id\", response.body.order_id);",
+									"        pm.environment.set(\"link\", response.link);",
+									"        console.log(\"✅ Order Payment (Melli) - Saved transaction data:\", response.body);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"order_12345678-abcd-1234-abcd-123456789012\",\n  \"gateway\": \"melli\",\n  \"payment_type\": \"gateway\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"get-payment-link"
+							]
+						},
+						"description": "Order payment with Melli gateway. Returns { link, body } for redirect to fake gateway. Replace order_id with actual order ID from your system."
+					},
+					"response": []
+				},
+				{
+					"name": "Order Payment - Mellat Gateway",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save transaction ID, order ID, and body for verify payment",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.body && response.body.transactionId) {",
+									"        pm.environment.set(\"transaction_id\", response.body.transactionId);",
+									"        pm.environment.set(\"payment_body\", JSON.stringify(response.body));",
+									"        pm.environment.set(\"user_id\", response.body.user_id);",
+									"        pm.environment.set(\"amount\", response.body.amount);",
+									"        pm.environment.set(\"order_id\", response.body.order_id);",
+									"        pm.environment.set(\"link\", response.link);",
+									"        console.log(\"✅ Order Payment (Mellat) - Saved transaction data:\", response.body);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"order_12345678-abcd-1234-abcd-123456789012\",\n  \"gateway\": \"mellat\",\n  \"payment_type\": \"gateway\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"get-payment-link"
+							]
+						},
+						"description": "Order payment with Mellat gateway. Returns { link, body } for redirect to fake gateway. Replace order_id with actual order ID from your system."
+					},
+					"response": []
+				},
+				{
+					"name": "Order Payment - COD",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save link and message for COD payment",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.link && response.message) {",
+									"        pm.environment.set(\"cod_link\", response.link);",
+									"        pm.environment.set(\"cod_message\", response.message);",
+									"        console.log(\"✅ COD Payment Response:\", response);",
+									"    }",
+									"} else if (pm.response.code === 200 && response.body) {",
+									"    // If it returns { link, body } instead (shouldn't happen but handle it)",
+									"    const response = pm.response.json();",
+									"    if (response.body && response.body.transactionId) {",
+									"        pm.environment.set(\"transaction_id\", response.body.transactionId);",
+									"        pm.environment.set(\"payment_body\", JSON.stringify(response.body));",
+									"        pm.environment.set(\"order_id\", response.body.order_id);",
+									"        pm.environment.set(\"link\", response.link);",
+									"        console.log(\"✅ COD Payment - Saved transaction data:\", response.body);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"order_12345678-abcd-1234-abcd-123456789012\",\n  \"payment_type\": \"cod\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"get-payment-link"
+							]
+						},
+						"description": "COD payment. Backend redirects directly to listener (no fake gateway). Returns { link, body } with listener URL. Replace order_id with actual order ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Order Payment - Wallet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save link and message for wallet payment from order",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.body && response.body.transactionId) {",
+									"        pm.environment.set(\"transaction_id\", response.body.transactionId);",
+									"        pm.environment.set(\"payment_body\", JSON.stringify(response.body));",
+									"        pm.environment.set(\"order_id\", response.body.order_id);",
+									"        pm.environment.set(\"link\", response.link);",
+									"        pm.environment.set(\"user_id\", response.body.user_id);",
+									"        pm.environment.set(\"amount\", response.body.amount);",
+									"        console.log(\"✅ Wallet Payment from Order - Saved transaction data:\", response.body);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"order_12345678-abcd-1234-abcd-123456789012\",\n  \"payment_type\": \"wallet\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"get-payment-link"
+							]
+						},
+						"description": "Pay order from wallet balance. Backend redirects directly to listener (no fake gateway). Returns { link, body } with listener URL. Replace order_id with actual order ID."
+					},
+					"response": []
+				}
+			],
+			"description": "All requests to get payment link. Returns { link, body } for gateway payments or { link, message } for immediate processing (COD/wallet from order)."
+		},
+		{
+			"name": "Verify Payment",
+			"item": [
+				{
+					"name": "Verify Gateway Payment - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test verify payment response",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.test(\"Response has link and message\", function () {",
+									"        pm.expect(response).to.have.property('link');",
+									"        pm.expect(response).to.have.property('message');",
+									"    });",
+									"    pm.test(\"Message contains success indicators\", function () {",
+									"        pm.expect(response.message).to.include('موفق');",
+									"    });",
+									"    console.log(\"✅ Verify Payment Success Response:\", response);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"link\": \"http://localhost:3000/payment-listener?tried1234567&success=true\",\n  \"body\": {\n    \"transactionId\": \"{{transaction_id}}\",\n    \"user_id\": {{user_id}},\n    \"amount\": \"{{amount}}\",\n    \"redirect_url\": \"http://localhost:3000/payment-listener\",\n    \"order_id\": \"{{order_id}}\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/verify-payment",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"verify-payment"
+							]
+						},
+						"description": "Verify gateway payment (Melli/Mellat). Requires transaction_id, order_id, user_id, and amount from get-payment-link response. Success parameter should be 'true'."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Gateway Payment - Failed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test verify payment failure response",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.test(\"Response has link and message\", function () {",
+									"        pm.expect(response).to.have.property('link');",
+									"        pm.expect(response).to.have.property('message');",
+									"    });",
+									"    pm.test(\"Message indicates failure\", function () {",
+									"        pm.expect(response.message).to.include('ناموفق');",
+									"    });",
+									"    console.log(\"❌ Verify Payment Failure Response:\", response);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"link\": \"http://localhost:3000/payment-listener?tried1234567&success=false\",\n  \"body\": {\n    \"transactionId\": \"{{transaction_id}}\",\n    \"user_id\": {{user_id}},\n    \"amount\": \"{{amount}}\",\n    \"redirect_url\": \"http://localhost:3000/payment-listener\",\n    \"order_id\": \"{{order_id}}\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/verify-payment",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"verify-payment"
+							]
+						},
+						"description": "Verify gateway payment with failure (success=false). Tests failure handling."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify COD Payment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test COD payment verification",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.test(\"Response has link and message\", function () {",
+									"        pm.expect(response).to.have.property('link');",
+									"        pm.expect(response).to.have.property('message');",
+									"    });",
+									"    pm.test(\"Message indicates COD confirmation\", function () {",
+									"        pm.expect(response.message).to.include('پرداخت در محل');",
+									"    });",
+									"    console.log(\"✅ COD Payment Verification Response:\", response);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"link\": \"http://localhost:3000/payment-listener?tried1234567&success=true\",\n  \"body\": {\n    \"transactionId\": \"{{transaction_id}}\",\n    \"user_id\": {{user_id}},\n    \"amount\": \"{{amount}}\",\n    \"redirect_url\": \"http://localhost:3000/payment-listener\",\n    \"order_id\": \"{{order_id}}\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/verify-payment",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"verify-payment"
+							]
+						},
+						"description": "Verify COD payment. Requires transaction_id from COD get-payment-link response. Gateway name should be 'cod' in transaction record."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Wallet Payment from Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test wallet payment from order verification",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.test(\"Response has link and message\", function () {",
+									"        pm.expect(response).to.have.property('link');",
+									"        pm.expect(response).to.have.property('message');",
+									"    });",
+									"    pm.test(\"Message indicates wallet payment success\", function () {",
+									"        pm.expect(response.message).to.include('کیف پول');",
+									"    });",
+									"    console.log(\"✅ Wallet Payment from Order Verification Response:\", response);",
+									"} else if (pm.response.code === 400) {",
+									"    const response = pm.response.json();",
+									"    pm.test(\"Error for insufficient balance\", function () {",
+									"        pm.expect(response.message).to.include('کافی نیست');",
+									"    });",
+									"    console.log(\"❌ Wallet Payment Error (Insufficient Balance):\", response);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"link\": \"http://localhost:3000/payment-listener?tried1234567&success=true\",\n  \"body\": {\n    \"transactionId\": \"{{transaction_id}}\",\n    \"user_id\": {{user_id}},\n    \"amount\": \"{{amount}}\",\n    \"redirect_url\": \"http://localhost:3000/payment-listener\",\n    \"order_id\": \"{{order_id}}\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/verify-payment",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"verify-payment"
+							]
+						},
+						"description": "Verify wallet payment from order. Requires transaction_id from wallet get-payment-link response. Gateway name should be 'wallet' in transaction record. Will check wallet balance and deduct amount."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Wallet Recharge",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test wallet recharge verification",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.test(\"Response has link and message\", function () {",
+									"        pm.expect(response).to.have.property('link');",
+									"        pm.expect(response).to.have.property('message');",
+									"    });",
+									"    pm.test(\"Link points to wallet page\", function () {",
+									"        pm.expect(response.link).to.include('wallet');",
+									"    });",
+									"    pm.test(\"Message indicates success\", function () {",
+									"        pm.expect(response.message).to.include('موفق');",
+									"    });",
+									"    console.log(\"✅ Wallet Recharge Verification Response:\", response);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"link\": \"http://localhost:3000/payment-listener?tried1234567&success=true\",\n  \"body\": {\n    \"transactionId\": \"{{transaction_id}}\",\n    \"user_id\": {{user_id}},\n    \"amount\": \"{{amount}}\",\n    \"redirect_url\": \"http://localhost:3000/payment-listener\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/universal-payment/verify-payment",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"universal-payment",
+								"verify-payment"
+							]
+						},
+						"description": "Verify wallet recharge. Requires transaction_id from wallet recharge get-payment-link response. Note: body should NOT have order_id for wallet recharge."
+					},
+					"response": []
+				}
+			],
+			"description": "All requests to verify payment. Requires link (full URL with query params) and body (payment data) from get-payment-link or listener page."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
+}

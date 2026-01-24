@@ -14,12 +14,15 @@ import {
     useMantineTheme,
     Overlay,
     Loader,
+    Textarea,
+    FileButton,
+    Group,
   } from "@mantine/core";
   import { IconArrowRight, IconInfoCircle, IconUser } from "@tabler/icons-react";
   import { NavLink, useNavigate, useParams } from "react-router";
   import LabelValue from "../../../components/labelValue";
   import MessageItem from "./messageItem";
-  import { useDisclosure } from "@mantine/hooks";
+  import { useDisclosure, useMediaQuery } from "@mantine/hooks";
   import { useDispatch, useSelector } from "react-redux";
   import { useEffect, useState } from "react";
   import { getUserTicketById } from "../../../redux/usermyaccounts/usermyaccounts/getusertickets/getUserTicketById/getUserTicketByIdActions";
@@ -40,6 +43,8 @@ function Account_Message() {
     const { shadows } = useMantineTheme();
     const navigate = useNavigate();
     const [modalErrorMessage, setModalErrorMessage] = useState(null);
+    const isSmallScreen = useMediaQuery('(max-width: 640px)');
+    const isLargeScreen = useMediaQuery('(min-width: 1024px)');
 
     const [modalOpen, setModalOpen] = useState(false);
   
@@ -205,8 +210,15 @@ function Account_Message() {
                 </Text>
               </Alert>
             )}
-            <Flex justify="space-between">
+            <Flex 
+              justify="space-between" 
+              align="center"
+              direction={{ base: "column", sm: "row" }}
+              gap={{ base: "sm", sm: "md" }}
+            >
               <Title
+                order={{ base: 3, sm: 2 }}
+                fz={{ base: "md", sm: "lg", md: "xl" }}
                 display="flex"
                 style={{ alignItems: "center" }}
                 component={NavLink}
@@ -215,7 +227,7 @@ function Account_Message() {
                 <IconArrowRight style={{ marginLeft: "10px" }} />
                 {userTicketById?.ticketId + "#"} {userTicketById?.ticketTitle}
               </Title>
-              <ActionIcon variant="transparent" onClick={open}>
+              <ActionIcon variant="transparent" onClick={open} size={{ base: "md", sm: "lg" }}>
                 <IconInfoCircle />
               </ActionIcon>
             </Flex>
@@ -276,99 +288,132 @@ function Account_Message() {
   
             {userTicketById?.ticketStatus !== "closed" && (
               <Box
-                p="md"
-                mt="md"
+                p={{ base: "sm", sm: "md" }}
+                mt={{ base: "sm", md: "md" }}
                 style={{
                   border: "1px solid #e0e0e0",
                   borderRadius: "8px",
                   backgroundColor: "#f9f9f9",
                 }}
               >
-                <Text size="sm" mb="xs">
+                <Text size={{ base: "xs", sm: "sm" }} mb={{ base: "xs", sm: "xs" }}>
                   ارسال
                 </Text>
-                <Stack spacing="xs">
-                  <div style={{ position: "relative" }}>
-                    <textarea
-                      style={{
-                        width: "100%",
-                        minHeight: "80px",
-                        borderRadius: "6px",
-                        padding: "10px",
-                        border: errors.messageText
-                          ? "1px solid red"
-                          : "1px solid #ced4da",
-                      }}
-                      placeholder="پیام خود را بنویسید..."
-                      value={messageText}
-                      onChange={(e) => {
-                        setMessageText(e.target.value);
-                        if (errors.messageText)
-                          setErrors((prev) => ({ ...prev, messageText: null }));
-                      }}  
-                    />
-                    {(ticketData?.state === "error" && (ticketData?.errors?.message || ticketData?.errors?.file)) || errors.messageText ? (
-                        <div>
-                            {ticketData?.state === "error" && ticketData?.errors?.message && (
-                            <Text color="red" size="xs" mt={4}>
-                                {ticketData.errors.message}
-                            </Text>
-                            )}
-                            {ticketData?.state === "error" && ticketData?.errors?.file && (
-                            <Text color="red" size="xs" mt={4}>
-                                {ticketData.errors.file}
-                            </Text>
-                            )}
-                            {errors.messageText && (
-                            <Text color="red" size="xs" mt={4}>
-                                {errors.messageText}
-                            </Text>
-                            )}
-                        </div>
-                        ) : null}
-                  </div>
-                <Flex justify="space-between" align="center">
-                  <div>
-                    <input
-                      type="file"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFile(file);
-                          setErrors((prev) => ({ ...prev, file: null }));
-                        }
-                      }}
-                    />
-                    {errors.file && (
-                      <Text color="red" size="xs" mt={2}>
-                        {errors.file}
-                      </Text>
-                    )}
-                  </div>
-
-                  {/* Send Button */}
-                  <Button
-                    color="blue"
-                    variant="filled"
-                    disabled={sending}
-                    onClick={handleSendMessage}
-                    leftSection={<IconSend size={16} />}
-                    size="sm"
-                    radius="md"
+                <Stack gap={{ base: "xs", sm: "sm" }}>
+                  <Textarea
+                    placeholder="پیام خود را بنویسید..."
+                    value={messageText}
+                    onChange={(e) => {
+                      setMessageText(e.target.value);
+                      if (errors.messageText)
+                        setErrors((prev) => ({ ...prev, messageText: null }));
+                    }}
+                    minRows={3}
+                    maxRows={6}
+                    autosize
+                    error={
+                      (ticketData?.state === "error" && ticketData?.errors?.message) || 
+                      errors.messageText
+                    }
+                    styles={{
+                      input: {
+                        fontSize: "14px",
+                      }
+                    }}
+                  />
+                  {(ticketData?.state === "error" && ticketData?.errors?.message) || errors.messageText ? (
+                    <Text color="red" size="xs" mt={-8}>
+                      {ticketData?.state === "error" && ticketData?.errors?.message 
+                        ? ticketData.errors.message 
+                        : errors.messageText}
+                    </Text>
+                  ) : null}
+                  {ticketData?.state === "error" && ticketData?.errors?.file && (
+                    <Text color="red" size="xs">
+                      {ticketData.errors.file}
+                    </Text>
+                  )}
+                  
+                  <Flex 
+                    justify="space-between" 
+                    align={{ base: "stretch", sm: "center" }}
+                    direction={{ base: "column", sm: "row" }}
+                    gap={{ base: "sm", sm: "md" }}
                     style={{
-                      minWidth: '80px',
-                      fontWeight: 500
+                      ...(isLargeScreen && {
+                        display: 'flex',
+                        width: '100%'
+                      })
                     }}
                   >
-                    ارسال
-                  </Button>
-                </Flex>
+                    <Box 
+                      style={{ 
+                        flex: isLargeScreen ? '1 1' : 'none',
+                        width: isLargeScreen ? '100%' : 'auto'
+                      }}
+                    >
+                      <FileButton
+                        onChange={(selectedFile) => {
+                          if (selectedFile) {
+                            setFile(selectedFile);
+                            setErrors((prev) => ({ ...prev, file: null }));
+                          }
+                        }}
+                        accept="*"
+                      >
+                        {(props) => (
+                          <Button
+                            {...props}
+                            variant="outline"
+                            size={isSmallScreen ? "xs" : "sm"}
+                            fullWidth={isLargeScreen ? true : { base: true, sm: false }}
+                            style={{ 
+                              flexShrink: 0
+                            }}
+                          >
+                            {file ? file.name : "انتخاب فایل"}
+                          </Button>
+                        )}
+                      </FileButton>
+                      {errors.file && (
+                        <Text color="red" size="xs">
+                          {errors.file}
+                        </Text>
+                      )}
+                    </Box>
+
+                    {/* Send Button */}
+                    <Box 
+                      style={{ 
+                        flex: isLargeScreen ? '1 1' : 'none',
+                        width: isLargeScreen ? '100%' : 'auto'
+                      }}
+                    >
+                      <Button
+                        color="blue"
+                        variant="filled"
+                        disabled={sending}
+                        onClick={handleSendMessage}
+                        leftSection={<IconSend size={isSmallScreen ? 14 : 16} />}
+                        size={isSmallScreen ? "xs" : "sm"}
+                        radius="md"
+                        fullWidth={isLargeScreen ? true : { base: true, sm: false }}
+                        style={{
+                          minWidth: isSmallScreen ? '100%' : (isLargeScreen ? '100%' : '80px'),
+                          fontWeight: 500
+                        }}
+                      >
+                        ارسال
+                      </Button>
+                    </Box>
+                  </Flex>
+                  
+                  {error && (
+                    <Text color="red" size="xs" mt="sm">
+                      {typeof error === "string" ? error : error.message}
+                    </Text>
+                  )}
                 </Stack>
-                {error && (
-                  <Text color="red" size="xs" mt="sm">
-                    {typeof error === "string" ? error : error.message}
-                  </Text>
-                )}
               </Box>
             )}
           </>

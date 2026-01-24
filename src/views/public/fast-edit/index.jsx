@@ -42,7 +42,6 @@ import { clearFastEditBrandModeState } from "../../../redux/fastedit/fasteditbra
 import DelayedFullScreenLoader from "../../../components/centerloading";
 import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
-import { verifyToken } from "../../../redux/auth/authusers/auth";
 import RotateModal from "../../../components/rotatemodal";
 import { BrandRowSelectionProvider, useBrandRowSelection } from "./BrandRowSelectionContext";
 import { CategoryRowSelectionProvider, useCategoryRowSelection } from "./CategoryRowSelectionContext";
@@ -87,7 +86,8 @@ function FastEditBrandContent({
   availableLocations,
   isMobile,
   isEditMode,
-  onEditModeChange
+  onEditModeChange,
+  loadingStates
 }) {
   const { checkedRows } = useBrandRowSelection();
   const { currencyPrice } = useSelector((state) => state.currencyPrice);
@@ -98,136 +98,164 @@ function FastEditBrandContent({
     return nodes.reduce((total, group) => total + (group.items?.length || 0), 0);
   }, [nodes]);
 
+  const LoadingPlaceholder = ({ height = "200px" }) => (
+    <Box
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height,
+        backgroundColor: "#f8f9fa",
+        border: "1px dashed #dee2e6",
+        borderRadius: "8px",
+      }}
+    >
+      <Loader size="lg" />
+    </Box>
+  );
+
   return (
     <>
-      <div>
-        <SearchComponentBrand
-          filters={filters_brand_mode}
-          setFilters={setFilters_brand_mode}
-          setNodesSubCategories={setNodesSubCategories}
-          setNodes={setNodes}
-          setAvailableLocations={setAvailableLocations}
-          searchType={searchType}
-          setSearchType={setSearchType}
-          filterSettingsModalOpened={filterSettingsModalOpened}
-          setFilterSettingsModalOpened={setFilterSettingsModalOpened}
-          onEditModeChange={onEditModeChange}
-        />
-      </div>
-
-      <Paper
-        id="fastorder-tablesettings"
-        p={isMobile ? "sm" : "md"}
-        bg="white"
-        style={{
-          borderRadius: '8px',
-          overflow: 'hidden'
-        }}
-      >
-        <Swiper
-          modules={[FreeMode]}
-          spaceBetween={8}
-          slidesPerView="auto"
-          freeMode={true}
-          style={{
-            height: '32px',
-            overflow: 'visible'
-          }}
-        >
-          {/* Column Visibility Manager */}
-          <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
-            <ColumnVisibilityManager
-              columns={updatedColumns}
-              visibleColumns={visibleColumns}
-              setVisibleColumns={setVisibleColumns}
+      {loadingStates.componentsLoading ? (
+        <>
+          <div>
+            <SearchComponentBrand
+              filters={filters_brand_mode}
+              setFilters={setFilters_brand_mode}
+              setNodesSubCategories={setNodesSubCategories}
+              setNodes={setNodes}
+              setAvailableLocations={setAvailableLocations}
+              searchType={searchType}
+              setSearchType={setSearchType}
+              filterSettingsModalOpened={filterSettingsModalOpened}
+              setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+              onEditModeChange={onEditModeChange}
             />
-          </SwiperSlide>
+          </div>
 
-          {/* Currency Price Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => setCurrencyModalOpened(true)}
-              >
-                <IconCurrencyDollar size={16} />
-              </Button>
-            </SwiperSlide>
-          )}
+          <Paper
+            id="fastorder-tablesettings"
+            p={isMobile ? "sm" : "md"}
+            bg="white"
+            style={{
+              borderRadius: '8px',
+              overflow: 'hidden'
+            }}
+          >
+            <Swiper
+              modules={[FreeMode]}
+              spaceBetween={8}
+              slidesPerView="auto"
+              freeMode={true}
+              style={{
+                height: '32px',
+                overflow: 'visible'
+              }}
+            >
+              {/* Column Visibility Manager */}
+              <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+                <ColumnVisibilityManager
+                  columns={updatedColumns}
+                  visibleColumns={visibleColumns}
+                  setVisibleColumns={setVisibleColumns}
+                />
+              </SwiperSlide>
 
-          {/* Bulk Price Update Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => setBulkPriceModalOpened(true)}
-              >
-                <IconPercentage size={16} />
-              </Button>
-            </SwiperSlide>
-          )}
+              {/* Currency Price Button */}
+              {user && (
+                <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => setCurrencyModalOpened(true)}
+                  >
+                    <IconCurrencyDollar size={16} />
+                  </Button>
+                </SwiperSlide>
+              )}
 
-          {/* Filters Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => setFilterSettingsModalOpened(true)}
-                color={isEditMode ? "red" : undefined}
-                style={{
-                  backgroundColor: isEditMode ? '#ffe0e0' : undefined,
-                  borderColor: isEditMode ? '#ff6b6b' : undefined,
-                }}
-              >
-                <IconFilter size={16} color={isEditMode ? "#ff6b6b" : undefined} />
-              </Button>
-            </SwiperSlide>
-          )}
-        </Swiper>
-      </Paper>
+              {/* Bulk Price Update Button */}
+              {user && (
+                <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => setBulkPriceModalOpened(true)}
+                  >
+                    <IconPercentage size={16} />
+                  </Button>
+                </SwiperSlide>
+              )}
 
-      {nodes !== null && nodes?.length > 0 && (
-        <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-          <FastTableBrand 
-            type="head" 
-            isPortrait={isPortrait} 
-            setNodes={setNodes} 
-            isLandscape={isLandscape} 
-            filters_brand_mode={filters_brand_mode} 
-            filterValues={filterValues} 
-            availableLocations={availableLocations} 
-            COLUMNS={updatedColumns} 
-            nodes={nodes[0]?.items?.slice(0, 1) || []} 
-            setVisibleColumns={setVisibleColumns} 
-            visibleColumns={visibleColumns} 
-          />
-          {nodes.map((item, index) => (
-            <React.Fragment key={index}>
-              <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                <Text size="18px" c="dark">
-                  {item.label}
-                </Text>
-              </Flex>
-              <FastTableBrand 
-                keyIndex={index} 
-                isPortrait={isPortrait} 
-                isLandscape={isLandscape} 
-                filters_brand_mode={filters_brand_mode} 
-                filterValues={filterValues} 
-                setNodes={setNodes} 
-                availableLocations={availableLocations}  
-                type="data" 
-                COLUMNS={updatedColumns} 
-                nodes={item.items || []} 
-                setVisibleColumns={setVisibleColumns} 
-                visibleColumns={visibleColumns} 
+              {/* Filters Button */}
+              {user && (
+                <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => setFilterSettingsModalOpened(true)}
+                    color={isEditMode ? "red" : undefined}
+                    style={{
+                      backgroundColor: isEditMode ? '#ffe0e0' : undefined,
+                      borderColor: isEditMode ? '#ff6b6b' : undefined,
+                    }}
+                  >
+                    <IconFilter size={16} color={isEditMode ? "#ff6b6b" : undefined} />
+                  </Button>
+                </SwiperSlide>
+              )}
+            </Swiper>
+          </Paper>
+        </>
+      ) : (
+        <LoadingPlaceholder height="200px" />
+      )}
+
+      {loadingStates.tableLoading ? (
+        <>
+          {nodes !== null && nodes?.length > 0 && (
+            <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+              <FastTableBrand
+                type="head"
+                isPortrait={isPortrait}
+                setNodes={setNodes}
+                isLandscape={isLandscape}
+                filters_brand_mode={filters_brand_mode}
+                filterValues={filterValues}
+                availableLocations={availableLocations}
+                COLUMNS={updatedColumns}
+                nodes={nodes[0]?.items?.slice(0, 1) || []}
+                setVisibleColumns={setVisibleColumns}
+                visibleColumns={visibleColumns}
               />
-            </React.Fragment>
-          ))}
-        </Paper>
+              {nodes.map((item, index) => (
+                <React.Fragment key={index}>
+                  <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                    <Text size="18px" c="dark">
+                      {item.label}
+                    </Text>
+                  </Flex>
+                  <FastTableBrand
+                    keyIndex={index}
+                    isPortrait={isPortrait}
+                    isLandscape={isLandscape}
+                    filters_brand_mode={filters_brand_mode}
+                    filterValues={filterValues}
+                    setNodes={setNodes}
+                    availableLocations={availableLocations}
+                    type="data"
+                    COLUMNS={updatedColumns}
+                    nodes={item.items || []}
+                    setVisibleColumns={setVisibleColumns}
+                    visibleColumns={visibleColumns}
+                  />
+                </React.Fragment>
+              ))}
+            </Paper>
+          )}
+        </>
+      ) : (
+        <LoadingPlaceholder height="300px" />
       )}
     </>
   );
@@ -257,7 +285,8 @@ function FastEditCategoryContent({
   availableLocations,
   isMobile,
   isEditMode,
-  onEditModeChange
+  onEditModeChange,
+  loadingStates
 }) {
   const { checkedRows } = useCategoryRowSelection();
   const { currencyPrice } = useSelector((state) => state.currencyPrice);
@@ -268,135 +297,163 @@ function FastEditCategoryContent({
     return nodesSubCategoriesData.reduce((total, group) => total + (group.items?.length || 0), 0);
   }, [nodesSubCategoriesData]);
 
+  const LoadingPlaceholder = ({ height = "200px" }) => (
+    <Box
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height,
+        backgroundColor: "#f8f9fa",
+        border: "1px dashed #dee2e6",
+        borderRadius: "8px",
+      }}
+    >
+      <Loader size="lg" />
+    </Box>
+  );
+
   return (
     <>
-      <div>
-        <SearchComponentCategory
-          filters={filters_category_mode}
-          setFilters={setFilters_category_mode}
-          setNodesSubCategories={setNodesSubCategories}
-          setNodes={setNodes}
-          setAvailableLocations={setAvailableLocations}
-          searchType={searchType}
-          setSearchType={setSearchType}
-          filterSettingsModalOpened={filterSettingsModalOpened}
-          setFilterSettingsModalOpened={setFilterSettingsModalOpened}
-          onEditModeChange={onEditModeChange}
-        />
-      </div>
-
-      <Paper
-        id="fastorder-tablesettings"
-        p={isMobile ? "sm" : "md"}
-        bg="white"
-        style={{
-          borderRadius: '8px',
-          overflow: 'hidden'
-        }}
-      >
-        <Swiper
-          modules={[FreeMode]}
-          spaceBetween={8}
-          slidesPerView="auto"
-          freeMode={true}
-          style={{
-            height: '32px',
-            overflow: 'visible'
-          }}
-        >
-          {/* Column Visibility Manager */}
-          <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
-            <ColumnVisibilityManager
-              columns={updatedColumns}
-              visibleColumns={visibleColumns}
-              setVisibleColumns={setVisibleColumns}
+      {loadingStates.componentsLoading ? (
+        <>
+          <div>
+            <SearchComponentCategory
+              filters={filters_category_mode}
+              setFilters={setFilters_category_mode}
+              setNodesSubCategories={setNodesSubCategories}
+              setNodes={setNodes}
+              setAvailableLocations={setAvailableLocations}
+              searchType={searchType}
+              setSearchType={setSearchType}
+              filterSettingsModalOpened={filterSettingsModalOpened}
+              setFilterSettingsModalOpened={setFilterSettingsModalOpened}
+              onEditModeChange={onEditModeChange}
             />
-          </SwiperSlide>
+          </div>
 
-          {/* Currency Price Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => setCurrencyModalOpened(true)}
-              >
-                <IconCurrencyDollar size={16} />
-              </Button>
-            </SwiperSlide>
-          )}
+          <Paper
+            id="fastorder-tablesettings"
+            p={isMobile ? "sm" : "md"}
+            bg="white"
+            style={{
+              borderRadius: '8px',
+              overflow: 'hidden'
+            }}
+          >
+            <Swiper
+              modules={[FreeMode]}
+              spaceBetween={8}
+              slidesPerView="auto"
+              freeMode={true}
+              style={{
+                height: '32px',
+                overflow: 'visible'
+              }}
+            >
+              {/* Column Visibility Manager */}
+              <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+                <ColumnVisibilityManager
+                  columns={updatedColumns}
+                  visibleColumns={visibleColumns}
+                  setVisibleColumns={setVisibleColumns}
+                />
+              </SwiperSlide>
 
-          {/* Bulk Price Update Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => setBulkPriceModalOpened(true)}
-              >
-                <IconPercentage size={16} />
-              </Button>
-            </SwiperSlide>
-          )}
+              {/* Currency Price Button */}
+              {user && (
+                <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => setCurrencyModalOpened(true)}
+                  >
+                    <IconCurrencyDollar size={16} />
+                  </Button>
+                </SwiperSlide>
+              )}
 
-          {/* Filters Button */}
-          {user && (
-            <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => setFilterSettingsModalOpened(true)}
-                color={isEditMode ? "red" : undefined}
-                style={{
-                  backgroundColor: isEditMode ? '#ffe0e0' : undefined,
-                  borderColor: isEditMode ? '#ff6b6b' : undefined,
-                }}
-              >
-                <IconFilter size={16} color={isEditMode ? "#ff6b6b" : undefined} />
-              </Button>
-            </SwiperSlide>
-          )}
-        </Swiper>
-      </Paper>
+              {/* Bulk Price Update Button */}
+              {user && (
+                <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => setBulkPriceModalOpened(true)}
+                  >
+                    <IconPercentage size={16} />
+                  </Button>
+                </SwiperSlide>
+              )}
 
-      {nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 && (
-        <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-          <FastTableCategory 
-            type="head" 
-            isPortrait={isPortrait} 
-            isLandscape={isLandscape} 
-            filters_category_mode={filters_category_mode} 
-            filterValues={filterValues} 
-            availableLocations={availableLocations} 
-            COLUMNS={updatedColumns} 
-            nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} 
-            setVisibleColumns={setVisibleColumns} 
-            visibleColumns={visibleColumns} 
-          />
-          {nodesSubCategoriesData?.map((item, index) => (
-            <React.Fragment key={index}>
-              <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                <Text size="18px" c="dark">
-                  {item.label}
-                </Text>
-              </Flex>
-              <FastTableCategory 
-                isPortrait={isPortrait} 
-                isLandscape={isLandscape} 
-                filters_category_mode={filters_category_mode} 
-                filterValues={filterValues} 
-                keyIndex={index} 
-                availableLocations={availableLocations}  
-                setNodes={setNodesSubCategories} 
-                type="data" 
-                COLUMNS={updatedColumns} 
-                nodes={item.items || []} 
-                setVisibleColumns={setVisibleColumns} 
-                visibleColumns={visibleColumns} 
+              {/* Filters Button */}
+              {user && (
+                <SwiperSlide style={{ width: 'auto', display: 'flex', alignItems: 'center' }}>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => setFilterSettingsModalOpened(true)}
+                    color={isEditMode ? "red" : undefined}
+                    style={{
+                      backgroundColor: isEditMode ? '#ffe0e0' : undefined,
+                      borderColor: isEditMode ? '#ff6b6b' : undefined,
+                    }}
+                  >
+                    <IconFilter size={16} color={isEditMode ? "#ff6b6b" : undefined} />
+                  </Button>
+                </SwiperSlide>
+              )}
+            </Swiper>
+          </Paper>
+        </>
+      ) : (
+        <LoadingPlaceholder height="200px" />
+      )}
+
+      {loadingStates.tableLoading ? (
+        <>
+          {nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 && (
+            <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+              <FastTableCategory
+                type="head"
+                isPortrait={isPortrait}
+                isLandscape={isLandscape}
+                filters_category_mode={filters_category_mode}
+                filterValues={filterValues}
+                availableLocations={availableLocations}
+                COLUMNS={updatedColumns}
+                nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []}
+                setVisibleColumns={setVisibleColumns}
+                visibleColumns={visibleColumns}
               />
-            </React.Fragment>
-          ))}
-        </Paper>
+              {nodesSubCategoriesData?.map((item, index) => (
+                <React.Fragment key={index}>
+                  <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                    <Text size="18px" c="dark">
+                      {item.label}
+                    </Text>
+                  </Flex>
+                  <FastTableCategory
+                    isPortrait={isPortrait}
+                    isLandscape={isLandscape}
+                    filters_category_mode={filters_category_mode}
+                    filterValues={filterValues}
+                    keyIndex={index}
+                    availableLocations={availableLocations}
+                    setNodes={setNodesSubCategories}
+                    type="data"
+                    COLUMNS={updatedColumns}
+                    nodes={item.items || []}
+                    setVisibleColumns={setVisibleColumns}
+                    visibleColumns={visibleColumns}
+                  />
+                </React.Fragment>
+              ))}
+            </Paper>
+          )}
+        </>
+      ) : (
+        <LoadingPlaceholder height="300px" />
       )}
     </>
   );
@@ -408,13 +465,15 @@ function FastEdit() {
 
   const dispatch = useDispatch()
 
-  useEffect(() => {
-    dispatch(verifyToken());
-  }, [dispatch]);
-
   const location = useLocation();
 
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Loading states - simplified to 2 states
+  const [loadingStates, setLoadingStates] = useState({
+    componentsLoading: false,  // For search and filters
+    tableLoading: false,       // For table only
+  });
 
   // ✅ KEEP: visibleColumns state (managed by ColumnVisibilityManager)
   const [visibleColumns, setVisibleColumns] = useState([]);
@@ -558,6 +617,21 @@ function FastEdit() {
 
   const updatedColumns = COLUMNS;
 
+  // Simplified loading effect - only 2 loading states
+  useEffect(() => {
+    // Components (search + filters) load first
+    setLoadingStates(prev => ({ ...prev, componentsLoading: true }));
+
+    // Table loads after components
+    const timer = setTimeout(() => {
+      setLoadingStates(prev => ({ ...prev, tableLoading: true }));
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const supplierId = params.get("supplierid");
@@ -566,14 +640,14 @@ function FastEdit() {
     if (supplierId && supplierName) {
       setFilters_brand_mode((prevFilters) => ({
         ...prevFilters,
-        supplier: supplierId, 
+        supplier: supplierId,
       }));
     }
 
     if (supplierId && supplierName) {
       setFilters_category_mode((prevFilters) => ({
         ...prevFilters,
-        supplier: supplierId, 
+        supplier: supplierId,
       }));
     }
   }, [location, searchType]);
@@ -871,7 +945,7 @@ function FastEdit() {
             <FilterProvider>
 
               {
-                searchType === "brand" ? 
+                searchType === "brand" ?
                 <BrandRowSelectionProvider>
                   <FastEditBrandContent
                     user={user}
@@ -897,6 +971,7 @@ function FastEdit() {
                     isMobile={isMobile}
                     isEditMode={isEditModeBrand}
                     onEditModeChange={handleEditModeChangeBrand}
+                    loadingStates={loadingStates}
                   />
                 </BrandRowSelectionProvider>
                 :
@@ -925,6 +1000,7 @@ function FastEdit() {
                     isMobile={isMobile}
                     isEditMode={isEditModeCategory}
                     onEditModeChange={handleEditModeChangeCategory}
+                    loadingStates={loadingStates}
                   />
                 </CategoryRowSelectionProvider>
               }

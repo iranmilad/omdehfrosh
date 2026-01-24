@@ -1,6 +1,8 @@
 import { Box, Container } from '@mantine/core';
+import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import SliderArrows from '../SliderArrows';
 
 const SliderComponentSubCategoriesFastOrder = ({ 
   items,
@@ -14,21 +16,56 @@ const SliderComponentSubCategoriesFastOrder = ({
   filterBrandsCategorySubCategoryStorage,
   setFilterBrandsCategorySubCategoryStorage
 }) => {
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(true);
+
+  // Only show arrows if there are items with visible subcategories
+  const hasVisibleContent = items && items.length > 0 &&
+    filterBrandStorage && filterBrandStorage.length > 0 &&
+    filterBrandsCategoryStorage && filterBrandsCategoryStorage.length > 0 &&
+    items.some(item => {
+      const isActiveBrands = filterBrandStorage.includes(item.idBrand);
+      const isActiveCategories = item.categories && item.categories.some((category) =>
+        filterBrandsCategoryStorage.some(
+          (entry) =>
+            entry.idBrand === item.idBrand && entry.idCategories.includes(category.idCategory)
+        )
+      );
+      return isActiveBrands && isActiveCategories && item.categories && item.categories.length > 0;
+    });
 
   return (
-    <div style={{ width: "100%", margin: 0, padding: 0 }}>
-      <Swiper 
-        modules={[FreeMode, Navigation]}       
-        freeMode={true} 
-        slidesPerView="auto" 
+    <div style={{ width: "100%", margin: 0, padding: 0, position: 'relative' }}>
+      <Swiper
+        modules={[FreeMode, Navigation]}
+        freeMode={true}
+        slidesPerView="auto"
         spaceBetween={8}
         className="mt-2 !m-0 !p-0"
-        style={{ 
+        style={{
           width: "100%",
           margin: 0,
           padding: 0
         }}
         loop={true}
+        navigation={{
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
+        }}
+        onBeforeInit={(swiper) => {
+          swiper.params.navigation.prevEl = prevRef.current;
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        onInit={(swiper) => {
+          if (swiper.isBeginning !== isBeginning) setIsBeginning(swiper.isBeginning);
+          if (swiper.isEnd !== isEnd) setIsEnd(swiper.isEnd);
+        }}
+        onProgress={(swiper) => {
+          if (swiper.isBeginning !== isBeginning) setIsBeginning(swiper.isBeginning);
+          if (swiper.isEnd !== isEnd) setIsEnd(swiper.isEnd);
+        }}
       >
         {items?.map((item, index) => (
           <SwiperSlide 
@@ -51,6 +88,7 @@ const SliderComponentSubCategoriesFastOrder = ({
           </SwiperSlide>
         ))}
       </Swiper>
+      {hasVisibleContent && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={isBeginning} isEnd={isEnd} />}
     </div>
   );
 };
@@ -235,7 +273,7 @@ export function SingleCategoryWithSubcategories({
                               paddingTop: '4px',
                               paddingBottom: '4px',
                               paddingLeft: '8px',
-                              paddingRight: '8px',
+                              paddingRight: '4px',
                               backgroundColor: 'rgb(247, 247, 248)',
                               borderRadius: '100px',
                               border: isActiveBorder 
@@ -248,19 +286,20 @@ export function SingleCategoryWithSubcategories({
                               flexDirection: 'row'
                             }}
                           >
-                            <div 
+                            <div
                               className='rounded-full overflow-hidden flex-shrink-0 image-container relative'
-                              style={{ 
-                                width: '24px', 
+                              style={{
+                                width: '24px',
                                 height: '24px',
-                                lineHeight: 0
+                                lineHeight: 0,
+                                marginRight: 0
                               }}
                             >
                               {showImage ? (
                                 <>
                                   <img
                                     className="w-full inline-block"
-                                    style={{ objectFit: 'cover', display: 'block', width: '24px', height: '24px' }}
+                                    style={{ objectFit: 'cover', display: 'block', width: '24px', height: '24px', marginRight: 0 }}
                                     src={subCategory.image}
                                     alt={subCategory.name}
                                     onError={(e) => handleImageError(e, subCategory.name)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Modal,
   Button,
@@ -44,8 +44,13 @@ const addressValidationSchema = Yup.object().shape({
     .matches(/^(\d{4})\s?(\d{3})\s?(\d{4})$/, 'فرمت شماره موبایل صحیح نیست')
     .required('شماره موبایل الزامی است'),
   nationalCode: Yup.string()
-    .matches(/^[0-9]{10}$/, 'کد ملی باید 10 رقم باشد')
-    .required('کد ملی الزامی است'),
+    .nullable()
+    .optional()
+    .test('nationalCode-format', 'کد ملی باید 10 رقم باشد', function(value) {
+      // Only validate format if value is provided
+      if (!value || value.trim() === '') return true;
+      return /^[0-9]{10}$/.test(value);
+    }),
   province: Yup.string().required('استان الزامی است'),
   city: Yup.string().required('شهر الزامی است'),
   address: Yup.string().required('آدرس الزامی است'),
@@ -53,8 +58,6 @@ const addressValidationSchema = Yup.object().shape({
     .matches(/^[0-9]{10}$/, 'کد پستی باید 10 رقم باشد')
     .required('کد پستی الزامی است'),
 });
-
-const Provinces = iranCity.map((item) => ({ label: item.name, value: item.name }));
 
 const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
   const [addresses, setAddresses] = useState([]);
@@ -64,6 +67,21 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
   const [editingAddress, setEditingAddress] = useState(null);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Ensure Provinces is properly computed with safety checks
+  const Provinces = useMemo(() => {
+    if (!iranCity || !Array.isArray(iranCity)) {
+      console.error('iranCity data is not available or not an array', iranCity);
+      return [];
+    }
+    try {
+      const provinces = iranCity.map((item) => ({ label: item.name, value: item.name }));
+      return provinces;
+    } catch (error) {
+      console.error('Error mapping provinces:', error);
+      return [];
+    }
+  }, []);
 
   const form = useForm({
     initialValues: {
@@ -186,13 +204,19 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
       
       const method = editingAddress ? 'PUT' : 'POST';
       
+      // Prepare data - remove nationalCode if empty
+      const submitData = { ...form.values };
+      if (!submitData.nationalCode || submitData.nationalCode.trim() === '') {
+        submitData.nationalCode = '';
+      }
+      
       const response = await fetch(url, {
         method,
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(form.values),
+        body: JSON.stringify(submitData),
       });
 
       const data = await response.json();
@@ -280,11 +304,19 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
   return (
     <>
       {/* Digikala-style Address Display */}
-      <div className=" bg-white px-4 py-5 pt-4 pb-5 mb-4">
+      <div className="bg-white mb-4">
         <div className="hidden"></div>
         
-        {/* Header */}
-        <div className="flex">
+        {/* Sticky Header */}
+        <div 
+          className="flex px-4 py-5 pt-4 pb-5"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 100,
+            backgroundColor: 'white',
+          }}
+        >
           <div
             className="text-[14px]  md:text-sm font-normal"
             style={{ color: "#818588" }}
@@ -318,38 +350,40 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
         </div>
 
         {/* Address Content */}
-        {selectedAddress ? (
-          <>
-            <div className="text-xs md:text-sm font-bold text-[#111827] flex gap-1 items-center">
-              {selectedAddress.address}
-            </div>
-            
-            <div className="flex items-center justify-between md:flex-row flex-col mt-2">
-              <div className="flex flex-col md:flex-row w-full md:gap-8 gap-1 text-xs font-normal text-[#818588]">
-                <span className="flex gap-1 items-center">
-                  <div className="flex">
-                    <svg style={{ width: '16px', height: '16px', fill: '#9ca3af' }} viewBox="0 0 24 24">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                  </div>
-                  گیرنده : {selectedAddress.name} {selectedAddress.family}
-                </span>
-                <span className="flex gap-1 items-center">
-                  <div className="flex">
-                    <svg style={{ width: '16px', height: '16px', fill: '#9ca3af' }} viewBox="0 0 24 24">
-                      <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                    </svg>
-                  </div>
-                  موبایل : {selectedAddress.mobile}
-                </span>
+        <div className="px-4 pb-5">
+          {selectedAddress ? (
+            <>
+              <div className="text-xs md:text-sm font-bold text-[#111827] flex gap-1 items-center">
+                {selectedAddress.address}
               </div>
+              
+              <div className="flex items-center justify-between md:flex-row flex-col mt-2">
+                <div className="flex flex-col md:flex-row w-full md:gap-8 gap-1 text-xs font-normal text-[#818588]">
+                  <span className="flex gap-1 items-center">
+                    <div className="flex">
+                      <svg style={{ width: '16px', height: '16px', fill: '#9ca3af' }} viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
+                    </div>
+                    گیرنده : {selectedAddress.name} {selectedAddress.family}
+                  </span>
+                  <span className="flex gap-1 items-center">
+                    <div className="flex">
+                      <svg style={{ width: '16px', height: '16px', fill: '#9ca3af' }} viewBox="0 0 24 24">
+                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                      </svg>
+                    </div>
+                    موبایل : {selectedAddress.mobile}
+                  </span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-6 text-gray-500">
+              لطفا یک آدرس انتخاب کنید
             </div>
-          </>
-        ) : (
-          <div className="text-center py-6 text-gray-500">
-            لطفا یک آدرس انتخاب کنید
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Address List Modal */}
@@ -357,10 +391,65 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
         opened={isAddressListOpen}
         onClose={() => setIsAddressListOpen(false)}
         title="انتخاب آدرس"
-        zIndex={1100} 
+        zIndex={2000} 
         size="md"
+        centered={false}
         styles={{
-          title: { fontSize: 18, fontWeight: 600 },
+          root: {
+            marginTop: '0 !important',
+            paddingTop: '0 !important',
+          },
+          inner: {
+            marginTop: '0 !important',
+            paddingTop: '0 !important',
+            paddingBottom: 0,
+            top: '0 !important',
+            alignItems: 'flex-start',
+          },
+          content: {
+            marginTop: '0 !important',
+            paddingTop: '0 !important',
+            top: '0 !important',
+            maxHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+          },
+          title: { 
+            fontSize: 18, 
+            fontWeight: 600,
+            marginTop: '0 !important',
+            marginBottom: '0 !important',
+            paddingTop: '0 !important',
+            paddingBottom: '0 !important',
+            margin: '0 !important',
+            padding: '0 !important',
+          },
+          header: {
+            position: 'sticky',
+            top: 0,
+            marginTop: '0 !important',
+            marginBottom: 0,
+            paddingTop: '0 !important',
+            paddingBottom: '1rem',
+            paddingLeft: 'var(--mantine-spacing-md)',
+            paddingRight: 'var(--mantine-spacing-md)',
+            margin: '0 !important',
+            zIndex: 101,
+            backgroundColor: 'white',
+            borderBottom: '1px solid #dee2e6',
+          },
+          body: {
+            marginTop: 0,
+            paddingTop: 0,
+            overflowY: 'auto',
+            flex: 1,
+          },
+          close: {
+            marginTop: 0,
+            paddingTop: 0,
+          },
         }}
       >
         <Stack gap="md">
@@ -457,6 +546,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
         onClose={() => setIsModalOpen(false)}
         title={editingAddress ? 'ویرایش آدرس' : 'افزودن آدرس جدید'}
         size="lg"
+        zIndex={2100}
       >
         <Stack gap="md">
           <TextInput
@@ -502,7 +592,6 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
                 mask="0000000000"
                 dir="ltr"
                 styles={{ input: { textAlign: 'left' } }}
-                withAsterisk
                 {...form.getInputProps('nationalCode')}
               />
             </GridCol>
@@ -516,7 +605,19 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
                 placeholder="انتخاب استان"
                 searchable
                 withAsterisk
-                {...form.getInputProps('province')}
+                withinPortal
+                zIndex={2200}
+                value={form.values.province}
+                onChange={(value) => {
+                  form.setFieldValue('province', value);
+                }}
+                error={form.errors.province}
+                comboboxProps={{ withinPortal: true, zIndex: 2200 }}
+                styles={{
+                  dropdown: {
+                    zIndex: 2200,
+                  },
+                }}
               />
             </GridCol>
             <GridCol span={6}>
@@ -531,7 +632,17 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
                 searchable
                 disabled={!form.values.province}
                 withAsterisk
-                {...form.getInputProps('city')}
+                withinPortal
+                zIndex={2200}
+                value={form.values.city}
+                onChange={(value) => form.setFieldValue('city', value)}
+                error={form.errors.city}
+                comboboxProps={{ withinPortal: true, zIndex: 2200 }}
+                styles={{
+                  dropdown: {
+                    zIndex: 2200,
+                  },
+                }}
               />
             </GridCol>
           </Grid>

@@ -13,7 +13,7 @@ export const getCompareListData = createAsyncThunk(
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         }),
-        body: JSON.stringify({ items: itemIds }) // Assuming the backend expects "items"
+        body: JSON.stringify({ items: { itemIds: itemIds } }) // Backend expects { items: { itemIds: [...] } }
       });
 
       if (!response.ok) {

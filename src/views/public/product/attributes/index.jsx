@@ -22,14 +22,14 @@ const Attribute = ({ id, label, slug, children }) => {
   }
 
   return (
-    <div>
+    <div style={{ marginBottom: "16px" }}>
       <label
-        style={{ fontWeight: "bold", marginBottom: "5px", display: "block" }}
+        style={{ fontWeight: "bold", marginBottom: "8px", display: "block" }}
       >
         {label}
       </label>
       {isColor ? (
-        <Group>
+        <Group gap="xs" wrap="wrap">
           {children.map((child, index) => (
             <ColorSwatch
               key={index}
@@ -60,7 +60,8 @@ const Attribute = ({ id, label, slug, children }) => {
             }
           }}
           placeholder="یک گزینه انتخاب کنید"
-          w={{ base: "100%", md: "50%" }}
+          w={{ base: "100%", md: "100%" }}
+          style={{ maxWidth: "100%" }}
         />
       )}
     </div>

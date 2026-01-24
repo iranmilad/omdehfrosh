@@ -32,6 +32,7 @@ import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import CounterMiniCart from "../counterminicart";
 import PriceText from "../priceText";
 import { IoCloseSharp } from "react-icons/io5";
+import ImageIcon from "../../resources/defaultImageIcon";
 
 
 // Custom Cart Icon Component
@@ -65,6 +66,7 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
   const navigate = useNavigate();
   const [isRemoving, setIsRemoving] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const { primaryColor } = useMantineTheme();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
@@ -94,30 +96,34 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     };
   }, [isRemoving]);
 
-  const defaultImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <rect width="200" height="200" fill="url(#grad1)" stroke="#dee2e6" stroke-width="1"/>
-      <rect x="40" y="60" width="120" height="80" fill="#ffffff" stroke="#ced4da" stroke-width="1" rx="8"/>
-      <circle cx="100" cy="100" r="25" fill="#f8f9fa" stroke="#adb5bd" stroke-width="2"/>
-      <path d="M85 95 L95 105 L115 85" stroke="#6c757d" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <text x="100" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#6c757d">تصویر محصول</text>
-    </svg>
-  `)}`;
-  
-  const getValidImageSrc = () => {
+  // Reset image error when image changes
+  useEffect(() => {
+    setImageError(false);
+  }, [image]);
+
+  const isImageValid = () => {
     if (!image || 
         image === "" || 
         image === null || 
         image === undefined ||
         (Array.isArray(image) && image.length === 0) ||
-        (Array.isArray(image) && image[0] === "")) {
-      return defaultImage;
+        (Array.isArray(image) && image.every(img => !img || img === ""))) {
+      return false;
+    }
+    // If it's an array, check if the first element is valid
+    if (Array.isArray(image)) {
+      return image[0] && image[0] !== "";
+    }
+    return true;
+  };
+
+  const getValidImageSrc = () => {
+    if (!isImageValid()) {
+      return null; // Return null to indicate we should use ImageIcon
+    }
+    // If it's an array, use the first valid image
+    if (Array.isArray(image)) {
+      return image.find(img => img && img !== "") || null;
     }
     return image;
   };
@@ -430,9 +436,9 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
       {/* Main container matching the design */}
       <Box
         style={{
-          padding: isMobile ? '8px' : '16px',
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
+          padding: isMobile ? '8px 16px' : '16px',
+          borderBottom: '1px solid #e0e0e0',
+          borderRadius: 0,
           opacity: isRemoving ? 0.5 : 1,
           transition: 'all 0.3s ease',
           backgroundColor: '#fff'
@@ -442,15 +448,35 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         <Flex gap={isMobile ? 4 : 8} align="flex-start">
           {/* Image */}
           <Anchor component={NavLink} to={`product/${productId}`}>
-            <Image 
-              src={getValidImageSrc()} 
-              w={60}
-              h={60}
-              fit="contain" 
-              style={{
-                objectFit: 'contain'
-              }}
-            />
+            {getValidImageSrc() && !imageError ? (
+              <Image 
+                src={getValidImageSrc()} 
+                w={60}
+                h={60}
+                fit="contain" 
+                style={{
+                  objectFit: 'contain'
+                }}
+                onError={() => {
+                  setImageError(true);
+                }}
+              />
+            ) : (
+              <Box
+                w={60}
+                h={60}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '4px',
+                  border: '1px solid #e9ecef'
+                }}
+              >
+                <ImageIcon size={32} color="#6B7280" />
+              </Box>
+            )}
           </Anchor>
 
           {/* Product details */}
@@ -629,6 +655,7 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
 const MiniCart = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSmallMobile = useMediaQuery('(max-width: 480px)');
 
@@ -647,6 +674,37 @@ const MiniCart = () => {
   const shouldShowCart = user && isVerified;
   const cartCount = shouldShowCart ? items.length : 0;
 
+  // Fetch fresh cart data when minicart is opened
+  useEffect(() => {
+    const fetchCartData = async () => {
+      if (!opened || !user || !isVerified) return;
+
+      const token = localStorage.getItem("user");
+      if (!token) return;
+
+      try {
+        const response = await fetch(getApiUrl("/cart"), {
+          method: "GET",
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.cart) {
+            dispatch(setInitial(data.cart));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch cart data:", error);
+      }
+    };
+
+    fetchCartData();
+  }, [opened, user, isVerified, dispatch]);
+
   const handleNavigateToBasket = () => {
     close();
     setTimeout(() => {
@@ -657,7 +715,7 @@ const MiniCart = () => {
   const drawerSize = isSmallMobile ? '500px' : isMobile ? '500px' : 500;
 
   return (
-    <>
+    <div style={{ paddingBottom: '8px' }}>
       <Indicator
         offset={2}
         withBorder
@@ -820,10 +878,9 @@ const MiniCart = () => {
                     <ScrollArea 
                       style={{ height: '100%', width: '100%' }}
                       type="hover"
-                      px={isMobile ? "sm" : "md"}
-                      py={isMobile ? "xs" : "md"}
+                      py={isMobile ? "xs" : "sm"}
                     >
-                      <Stack gap={isMobile ? "sm" : "md"}>
+                      <Stack gap={0}>
                         {items.map((item, index) => {
                           const uniqueKey = `${item.productId}-${item.combinationsID || 'no-combo'}-${index}-${items.length}`;
                           return (
@@ -842,7 +899,7 @@ const MiniCart = () => {
                   <Box
                     style={{
                       borderTop: '1px solid #e0e0e0',
-                      padding: isMobile ? '12px 16px' : '16px',
+                      padding: isMobile ? '12px 16px 24px 16px' : '16px 16px 24px 16px',
                       backgroundColor: '#fff',
                       zIndex: 10,
                       width: '100%'
@@ -894,7 +951,7 @@ const MiniCart = () => {
           </Drawer.Body>
         </Drawer.Content>
       </Drawer.Root>
-    </>
+    </div>
   );
 };
 

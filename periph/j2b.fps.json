@@ -1,0 +1,273 @@
+[{
+  "_id": {
+    "$oid": "69238b5ecfacb17dbc8164a7"
+  },
+  "id": "brand0-category0-subCategory1-item0i0000",
+  "__v": 0,
+  "attributes": [
+    {
+      "name": "رنگ",
+      "nameEng": "color",
+      "value": "مشکی",
+      "colorCode": "#000000",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb0"
+      }
+    },
+    {
+      "name": "حافظه داخلی",
+      "nameEng": "storage",
+      "value": "256 گیگابایت",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb1"
+      }
+    }
+  ],
+  "combinationId": 19,
+  "createdAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  },
+  "image": "https://dkstatics-public.digikala.com/digikala-products/c0e079b958167bd0fdef1f0e12440e7fed29b1bd_1727853611.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+  "regularPrice": 21000000,
+  "seller": {
+    "id": 1,
+    "label": "دیجیکالا"
+  },
+  "slug": "brand0-category0-subCategory1-item0i0000",
+  "stock": 10,
+  "minOrder": 10,
+  "maxOrder": 94,
+  "title": "گوشی موبایل اپل مدل پرومکس دو سیم‌ کارت نات اکتیو سیزده",
+  "updatedAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69238b5ecfacb17dbc8164a8"
+  },
+  "id": "brand1-category0-subCategory1-item0is0001",
+  "__v": 0,
+  "attributes": [
+    {
+      "name": "رنگ",
+      "nameEng": "color",
+      "value": "آبی",
+      "colorCode": "#0066CC",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb2"
+      }
+    },
+    {
+      "name": "حافظه داخلی",
+      "nameEng": "storage",
+      "value": "128 گیگابایت",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb3"
+      }
+    }
+  ],
+  "combinationId": 19,
+  "createdAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  },
+  "discountPercent": "30",
+  "discountedPrice": 10500000,
+  "image": "https://dkstatics-public.digikala.com/digikala-products/ddeaf714d818733ba1d7077a3682aa8ffebde268_1727162245.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+  "regularPrice": 15000000,
+  "seller": {
+    "id": 2,
+    "label": "ترب"
+  },
+  "slug": "brand1-category0-subCategory1-item0is0001",
+  "stock": 10,
+  "minOrder": 10,
+  "maxOrder": 94,
+  "title": "گوشی موبایل سامسونگ مدل گلکسی A54 دو سیم‌ کارت",
+  "updatedAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69238b5ecfacb17dbc8164a9"
+  },
+  "id": "brand0-category1-subCategory2-item0i0002",
+  "__v": 0,
+  "attributes": [
+    {
+      "name": "رنگ",
+      "nameEng": "color",
+      "value": "نقره‌ای",
+      "colorCode": "#C0C0C0",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb4"
+      }
+    },
+    {
+      "name": "نوع اتصال",
+      "nameEng": "connection",
+      "value": "GPS",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb5"
+      }
+    }
+  ],
+  "combinationId": 19,
+  "createdAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  },
+  "discountPercent": "10",
+  "discountedPrice": 18000000,
+  "image": "https://dkstatics-public.digikala.com/digikala-products/b0af2ec78668c85506c1edc260b42ff447f019c8_1667201885.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+  "regularPrice": 20000000,
+  "seller": {
+    "id": 1,
+    "label": "دیجی‌کالا"
+  },
+  "slug": "brand0-category1-subCategory2-item0i0002",
+  "stock": 10,
+  "minOrder": 10,
+  "maxOrder": 94,
+  "title": "ساعت هوشمند اپل سری 8 مدل GPS",
+  "updatedAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69238b5ecfacb17dbc8164aa"
+  },
+  "id": "brand6-category2-subCategory1-item0lg0003",
+  "__v": 0,
+  "attributes": [
+    {
+      "name": "سایز",
+      "nameEng": "size",
+      "value": "55 اینچ",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb6"
+      }
+    },
+    {
+      "name": "نوع پنل",
+      "nameEng": "panel",
+      "value": "OLED",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb7"
+      }
+    }
+  ],
+  "combinationId": 19,
+  "createdAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  },
+  "discountPercent": "10",
+  "discountedPrice": 36000000,
+  "image": "https://dkstatics-public.digikala.com/digikala-products/3cca1d5f59bfe07ba8d27a8c8c60ef1956ff2291_1734332212.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+  "regularPrice": 40000000,
+  "seller": {
+    "id": 1,
+    "label": "دیجیکالا"
+  },
+  "slug": "brand6-category2-subCategory1-item0lg0003",
+  "stock": 10,
+  "minOrder": 10,
+  "maxOrder": 94,
+  "title": "تلویزیون هوشمند ال جی مدل OLED55C1GI",
+  "updatedAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69238b5ecfacb17dbc8164ab"
+  },
+  "id": "brand4-category1-subCategory0-item0as0005",
+  "__v": 0,
+  "attributes": [
+    {
+      "name": "رنگ",
+      "nameEng": "color",
+      "value": "خاکستری",
+      "colorCode": "#808080",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb8"
+      }
+    },
+    {
+      "name": "رم",
+      "nameEng": "ram",
+      "value": "16 گیگابایت",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cb9"
+      }
+    }
+  ],
+  "combinationId": 19,
+  "createdAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  },
+  "discountPercent": "10",
+  "discountedPrice": 45000000,
+  "image": "https://dkstatics-public.digikala.com/digikala-products/2abc557175aac1753bfbe11bed27ebb55ab4633a_1724603081.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+  "regularPrice": 50000000,
+  "seller": {
+    "id": 1,
+    "label": "دیجیکالا"
+  },
+  "slug": "brand4-category1-subCategory0-item0as0005",
+  "stock": 10,
+  "minOrder": 10,
+  "maxOrder": 94,
+  "title": "لپ تاپ ایسوس مدل TUF Dash F15",
+  "updatedAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69238b5ecfacb17dbc8164ac"
+  },
+  "id": "brand5-category1-subCategory1-item0b0004",
+  "__v": 0,
+  "attributes": [
+    {
+      "name": "رنگ",
+      "nameEng": "color",
+      "value": "Skyline Collection",
+      "colorCode": "#87CEEB",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cba"
+      }
+    },
+    {
+      "name": "نوع اتصال",
+      "nameEng": "connection",
+      "value": "بی‌سیم",
+      "_id": {
+        "$oid": "69238b5e653e864fdcf26cbb"
+      }
+    }
+  ],
+  "combinationId": 19,
+  "createdAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  },
+  "discountPercent": "20",
+  "discountedPrice": 6400000,
+  "image": "https://dkstatics-public.digikala.com/digikala-products/4528651.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+  "regularPrice": 8000000,
+  "seller": {
+    "id": 1,
+    "label": "دیجیکالا"
+  },
+  "slug": "brand5-category1-subCategory1-item0b0004",
+  "stock": 10,
+  "minOrder": 10,
+  "maxOrder": 94,
+  "title": "هدفون بی سیم بیتس مدل Studio 3 – The Beats Skyline Collection",
+  "updatedAt": {
+    "$date": "2025-11-23T22:31:58.378Z"
+  }
+}]

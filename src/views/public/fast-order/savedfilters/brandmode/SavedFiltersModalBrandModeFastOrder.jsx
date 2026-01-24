@@ -27,7 +27,6 @@ import { deleteFilterSettings } from "../../../../../redux/savefiltersettings/de
 import { updateFilterSettings } from "../../../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import { fetchFastOrderBrandModeTableData } from "../../../../../redux/fastorder/fastordertabledata/fastordertablebrandmode/fastOrderTableBrandModeDataActions";
 import { useBrandRowSelection } from "../../BrandRowSelectionContext";
-import { verifyTokenSilent } from "../../../../../redux/auth/authusers/auth";
 import { useNavigate } from 'react-router-dom';
 
 
@@ -98,21 +97,18 @@ const SavedFiltersModalBrandModeFastOrder = ({
   // ✅ Check authentication when modal opens (only when user clicks the icon)
   useEffect(() => {
     if (opened) {
-      // Verify token silently when modal opens
-      dispatch(verifyTokenSilent()).then(() => {
-        // After verification, check if user is authenticated
-        if (!user || !isVerified) {
-          notifications.show({
-            title: 'لطفا ابتدا وارد حساب کاربری خود شوید',
-            message: 'برای استفاده از فیلترهای ذخیره شده باید وارد شوید',
-            color: 'red',
-            autoClose: 4000,
-          });
-          onClose();
-        }
-      });
+      // Check if user is authenticated from Redux state
+      if (!user || !isVerified) {
+        notifications.show({
+          title: 'لطفا ابتدا وارد حساب کاربری خود شوید',
+          message: 'برای استفاده از فیلترهای ذخیره شده باید وارد شوید',
+          color: 'red',
+          autoClose: 4000,
+        });
+        onClose();
+      }
     }
-  }, [opened, dispatch]);
+  }, [opened, user, isVerified, onClose]);
 
   // Helper functions to build filter arrays
   const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {

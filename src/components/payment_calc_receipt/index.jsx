@@ -9,6 +9,7 @@ import { useNavigate } from "react-router";
 import { requestFinalReceipt } from "../../redux/cartfinalreceipt/cartfinalreceiptrequestreceipt/cartFinalReceiptRequestReceiptActions";
 import { notifications } from "@mantine/notifications";
 import ImageIcon from '../../resources/defaultImageIcon';
+import { processPayment } from '../../utils/paymentHelper';
 
 const { Title, Text } = Typography;
 
@@ -75,73 +76,9 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
     dispatch(updateFinalReceiptPaymentMethod({ paymentMethod: gateway }));
     dispatch(fetchFinalReceipt());
 
-    let selectedSeller = null;
-    let sellerOrderTracking = [];
-    
-    if (sellerId && orderfinalreceipt?.sellers) {
-      selectedSeller = orderfinalreceipt.sellers.find(
-        sellerGroup => sellerGroup.seller.id === sellerId
-      );
-
-      if (orderfinalreceipt?.orderTracking) {
-        sellerOrderTracking = orderfinalreceipt.orderTracking.filter(
-          tracking => tracking.supplierId === sellerId
-        );
-      }
-    }
-
-    // Check if gateway is COD (Cash on Delivery)
-    const isCODPayment = gateway?.name === "cod" || gateway?.paymentMethod === "cod";
-
-    if (isCODPayment) {
-      // Calculate amount for this seller
-      let amount = 0;
-      if (sellerId && orderfinalreceipt?.sellers) {
-        const seller = orderfinalreceipt.sellers.find(s => s.seller.id === sellerId);
-        amount = seller?.priceApplyEachSeller || 0;
-      } else {
-        amount = orderfinalreceipt?.totalPriceToPay || 0;
-      }
-
-      // Get orderId for this seller
-      const orderId = getOrderIdForSeller(sellerId);
-      
-      if (!orderId) {
-        notifications.show({
-          title: "خطا",
-          message: "شناسه سفارش یافت نشد!",
-          color: "red",
-        });
-        return;
-      }
-
-      // Navigate to COD payment page
-      navigate("/cod-payment", {
-        state: {
-          orderId: orderId,
-          sellerId: sellerId,
-          amount: amount,
-          gateway: gateway
-        }
-      });
-      return;
-    }
-    
-    // Original navigation for non-COD payments
-    navigate("/payment-info", { 
-      state: { 
-        gateway: gateway, 
-        sellerId: sellerId,
-        sellerData: selectedSeller,
-        orderTracking: sellerOrderTracking
-      } 
-    });
-  };
-
-  // Handle wallet payment
-  const handleWalletPayment = (sellerId = null) => {
+    // Get orderId for this seller
     const orderId = getOrderIdForSeller(sellerId);
-    
+
     if (!orderId) {
       notifications.show({
         title: "خطا",
@@ -160,14 +97,99 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
       amount = orderfinalreceipt?.totalPriceToPay || 0;
     }
 
-    // Navigate to wallet payment page
-    navigate("/wallet-payment", {
-      state: {
-        orderId: orderId,
-        sellerId: sellerId,
-        amount: amount
+    // Check if gateway is COD (Cash on Delivery) - will use same flow as gateway payments
+    // COD can be identified as: "cod", "COD", "نقدی", or "cash"
+    const isCODPayment = gateway?.name === "cod" || 
+                         gateway?.name === "COD" || 
+                         gateway?.name === "نقدی" || 
+                         gateway?.name === "cash" ||
+                         gateway?.paymentMethod === "cod" ||
+                         gateway?.paymentMethod === "COD";
+    
+    // For COD and regular gateways: Use processPayment which redirects through listener
+
+    // For all payment methods (COD, wallet, and regular gateways): Use processPayment
+    // This will redirect to listener (COD/wallet) or gateway (regular gateways)
+    try {
+      // Determine payment_type based on gateway
+      let payment_type;
+      if (gateway?.name === "wallet" || gateway?.paymentMethod === "wallet") {
+        payment_type = "wallet";
+      } else if (isCODPayment) {
+        payment_type = "cod";
+      } else {
+        payment_type = "gateway";
       }
-    });
+
+      const success = await processPayment({
+        order_id: orderId,
+        amount: amount,
+        gateway: gateway.name,
+        payment_type: payment_type
+      });
+      
+      if (!success) {
+        notifications.show({
+          title: "خطا",
+          message: "خطا در ایجاد لینک پرداخت. لطفا مجددا تلاش کنید.",
+          color: "red",
+        });
+      }
+    } catch (error) {
+      console.error('Error in applySettings:', error);
+      notifications.show({
+        title: "خطا",
+        message: error.message || "خطا در پردازش پرداخت",
+        color: "red",
+      });
+    }
+  };
+
+  // Handle wallet payment from order - use processPayment (same flow as gateway payments)
+  const handleWalletPayment = async (sellerId = null) => {
+    const orderId = getOrderIdForSeller(sellerId);
+
+    if (!orderId) {
+      notifications.show({
+        title: "خطا",
+        message: "شناسه سفارش یافت نشد!",
+        color: "red",
+      });
+      return;
+    }
+
+    // Calculate amount for this seller
+    let amount = 0;
+    if (sellerId && orderfinalreceipt?.sellers) {
+      const seller = orderfinalreceipt.sellers.find(s => s.seller.id === sellerId);
+      amount = seller?.priceApplyEachSeller || 0;
+    } else {
+      amount = orderfinalreceipt?.totalPriceToPay || 0;
+    }
+
+    // Use processPayment for wallet payment (redirects to listener, then verify)
+    try {
+      const success = await processPayment({
+        order_id: orderId,
+        amount: amount,
+        payment_type: 'wallet'
+      });
+      
+      if (!success) {
+        notifications.show({
+          title: "خطا",
+          message: "خطا در پردازش پرداخت از کیف پول. لطفا مجددا تلاش کنید.",
+          color: "red",
+        });
+      }
+    } catch (error) {
+      console.error('Error in wallet payment from order:', error);
+      notifications.show({
+        title: "خطا",
+        message: error.message || "خطا در پردازش پرداخت از کیف پول",
+        color: "red",
+      });
+    }
   };
 
   const applyReceipt = async (sellerId) => {
@@ -320,7 +342,13 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
 
   // Check if gateway is wallet or COD
   const isWalletPayment = gateway?.name === "wallet" || gateway?.paymentMethod === "wallet";
-  const isCODPayment = gateway?.name === "cod" || gateway?.paymentMethod === "cod";
+  // COD can be identified as: "cod", "COD", "نقدی", or "cash"
+  const isCODPayment = gateway?.name === "cod" || 
+                       gateway?.name === "COD" || 
+                       gateway?.name === "نقدی" || 
+                       gateway?.name === "cash" ||
+                       gateway?.paymentMethod === "cod" ||
+                       gateway?.paymentMethod === "COD";
 
   return (
     <div style={{ maxWidth: '', margin: '', padding: '' }}>

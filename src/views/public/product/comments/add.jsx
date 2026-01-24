@@ -19,7 +19,6 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useCookies } from "react-cookie";
 import { useProduct } from "..";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyToken } from "../../../../redux/auth/authusers/auth";
 import { submitComment } from "../../../../redux/products/productcomments/addcomments/submitCommentActions";
 import {
   clearSubmitCommentState,
@@ -87,9 +86,6 @@ const AddComment = ({ active }) => {
     return Array.from(suppliersMap.values());
   }, [product?.combinations]);
 
-  useEffect(() => {
-    dispatch(verifyToken());
-  }, [dispatch]);
 
   // const getPurchasedProducts = useSend({ url: "/purchasedproducts" });
 

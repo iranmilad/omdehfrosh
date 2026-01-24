@@ -19,8 +19,6 @@ import {
 } from '@mantine/core'
 import { NavLink, useNavigate } from 'react-router';
 import InfoBox from "../../../components/InfoBox"
-import { verifyToken } from '../../../redux/auth/authusers/auth';
-import { getUserMyAccount } from '../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllOrdersByUserId } from '../../../redux/orders/orders/getallordersbyuserid/getAllOrdersByUserIdActions';
 
@@ -28,9 +26,12 @@ function Account_Orders() {
     const { primaryColor } = useMantineTheme();
     const [activePage, setActivePage] = useState(1);
     const itemsPerPage = 10;
-    
+
     // State for login modal
     const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+    // Track if data has been fetched to prevent duplicate calls
+    const [hasFetchedData, setHasFetchedData] = useState(false);
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -71,10 +72,6 @@ function Account_Orders() {
       }
     };
 
-    useEffect(() => {
-      dispatch(verifyToken());
-    }, [dispatch]);
-
     // Check authentication status and show modal, then redirect
     useEffect(() => {
       // Only check after auth loading is complete
@@ -85,17 +82,19 @@ function Account_Orders() {
           const timer = setTimeout(() => {
             navigate('/login');
           }, 3000);
-          
+
           // Cleanup timer if component unmounts
           return () => clearTimeout(timer);
         } else {
           setLoginModalOpen(false);
-          // User is authenticated, fetch data
-          dispatch(getUserMyAccount({userId: user.id}));
-          dispatch(getAllOrdersByUserId());
+          // User is authenticated, fetch data only once
+          if (!hasFetchedData) {
+            dispatch(getAllOrdersByUserId());
+            setHasFetchedData(true);
+          }
         }
       }
-    }, [dispatch, isVerified, user, authLoading, navigate]);
+    }, [dispatch, isVerified, user, authLoading, navigate, hasFetchedData]);
 
     // Handle immediate redirect to login page
     const handleGoToLogin = () => {
@@ -293,8 +292,14 @@ function ItemRow(props) {
     // Get payment method text
     const getPaymentMethodText = (paymentMethod) => {
       switch (paymentMethod) {
+        case 'cod':
+        case 'COD':
         case 'cash':
-          return 'نقدی';
+          return 'پرداخت در محل';
+        case 'wallet':
+          return 'کیف پول';
+        case 'gateway':
+          return 'درگاه پرداخت';
         case 'card':
           return 'کارتی';
         case 'online':
@@ -363,7 +368,7 @@ function ItemRow(props) {
         </Table.Td>
         <Table.Td>
           <Badge variant="outline" size="sm">
-            {getPaymentMethodText(props.paymentMethod)}
+            {getPaymentMethodText(props.paymentType || props.paymentMethod)}
           </Badge>
         </Table.Td>
         <Table.Td ta="end">

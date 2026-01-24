@@ -171,16 +171,18 @@ function Account_Notifications() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Redux selectors (adjust based on your actual state structure)
-  const { 
+  const {
     user,
     userMessagesComponent,
     isLoadingComponent,
-    reduxComponentError 
+    reduxComponentError,
+    userAccount
   } = useSelector(state => ({
     user: state.auth?.user,
     userMessagesComponent: state.userMessages?.component,
     isLoadingComponent: state.userMessages?.isLoading,
-    reduxComponentError: state.userMessages?.error
+    reduxComponentError: state.userMessages?.error,
+    userAccount: state.userMyAccounts?.userAccount
   }));
 
   // Initial auth check - only verify token
@@ -232,8 +234,8 @@ function Account_Notifications() {
         setRedirectTimer(null);
       }
       
-      // Fetch user account data
-      if (user?.id) {
+      // Fetch user account data only if not in Redux
+      if (user?.id && !userAccount) {
         dispatch(getUserMyAccount({userId: user.id}));
       }
     }

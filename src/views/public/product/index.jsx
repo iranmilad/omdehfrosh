@@ -1,4 +1,4 @@
-import { Center, Flex, Loader, Paper } from "@mantine/core";
+import { Center, Flex, Loader, Paper, Grid, GridCol, Stack } from "@mantine/core";
 import { useIsFirstRender } from "@mantine/hooks";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
@@ -101,22 +101,22 @@ const Product = () => {
     <ProductContext.Provider
       value={{ options, setOptions, combinations, loading, product, slug, supplier }}
     >
-      <div className=" lg:my-10">
-        <Paper pt="xl" px="xl">
-          <div className="flex flex-col lg:flex-row">
-            <div className="lg:w-4/12">
-              <Flex gap="md" direction={{ base: "column", lg: "row" }}>
+      <div className="lg:my-10">
+        <Paper pt="xl" px={{ base: "md", md: "xl", lg: "xl" }}>
+          <Grid gutter={{ base: "md", md: "lg", lg: "xl" }}>
+            <GridCol span={{ base: 12, md: 5, lg: 4 }}>
+              <Flex gap="md" direction={{ base: "column", md: "column", lg: "row" }}>
                 <IconBar favorite={product?.general?.addedToFavorite} data={product} />
                 <Slider slides={product?.general.images} />
               </Flex>
-            </div>
-            <div className="lg:w-5/12">
+            </GridCol>
+            <GridCol span={{ base: 12, md: 7, lg: 5 }}>
               <SummaryEntry data={product} />
-            </div>
-            <div className="lg:w-3/12">
+            </GridCol>
+            <GridCol span={{ base: 12, md: 12, lg: 3 }}>
               <InfoSection/>
-            </div>
-          </div>
+            </GridCol>
+          </Grid>
         </Paper>
         
         {supplier?.suppliers && supplier.suppliers.length > 0 && (

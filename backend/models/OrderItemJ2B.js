@@ -27,7 +27,7 @@ const orderItemSchema = new mongoose.Schema(
     // NEW: Payment type for this item
     payment_type: {
       type: String,
-      enum: ["gateway", "wallet", "cash", "credit"],
+      enum: ["gateway", "wallet", "cod", "cash", "credit"],
       default: "gateway",
     },
     // NEW: Wallet transaction ID for this item

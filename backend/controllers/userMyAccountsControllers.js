@@ -821,22 +821,50 @@ export const submitNewMessageToTicket = async (req, res) => {
 
 
 export const createNewUserTicket = async (req, res) => {
+  console.log("createNewUserTicket function called");
   const { title, department, departmentLabel, description, ticketShortDesc } = req.body;
 
-  console.log(JSON.stringify(req.body));
+  console.log("Request body:", JSON.stringify(req.body));
 
-  const { user_id } = getUserFromToken(req, res); // your custom token auth
+  const tokenData = getUserFromToken(req); // your custom token auth
+  const user_id = tokenData?.user_id;
+  
+  console.log("User ID from token:", user_id);
+  
+  if (!user_id) {
+    console.log("No user_id found, returning 401");
+    return res.status(401).json({ message: "Unauthorized", state: "error" });
+  }
 
   try {
+    console.log("Looking for user tickets with userId:", user_id);
     // Find existing user document
-    const userTickets = await Ticket.findOne({ userId: user_id });
+    let userTickets = await Ticket.findOne({ userId: user_id });
+    
+    console.log("User tickets found:", !!userTickets);
 
     // If user doc doesn't exist, create a new one
+    let requesterName = "کاربر";
     if (!userTickets) {
-      return res.status(404).json({
-        message: "User tickets not found",
-        state: "error"
+      console.log("User tickets not found, creating new Ticket document");
+      // Get user info for requesterName
+      const user = await User.findOne({ userId: user_id });
+      requesterName = user ? `${user.name || ''} ${user.family || ''}`.trim() || "کاربر" : "کاربر";
+      
+      // Create new Ticket document for this user
+      userTickets = new Ticket({
+        userId: user_id,
+        tickets: []
       });
+      await userTickets.save();
+      console.log("New Ticket document created for user:", user_id);
+    } else if (userTickets.tickets && userTickets.tickets.length > 0) {
+      // Use name from existing tickets if available
+      requesterName = userTickets.tickets[0]?.requesterName || "کاربر";
+    } else {
+      // Get user info for requesterName if no existing tickets
+      const user = await User.findOne({ userId: user_id });
+      requesterName = user ? `${user.name || ''} ${user.family || ''}`.trim() || "کاربر" : "کاربر";
     }
 
     // Generate a unique ticket ID (you can also use UUID)
@@ -864,7 +892,7 @@ export const createNewUserTicket = async (req, res) => {
           sender: {
             role: "user",
             userId: user_id,
-            name: userTickets.tickets[0]?.requesterName || "کاربر", // fallback if needed
+            name: requesterName,
           },
           message: description,
           file: "", // empty file field as per schema
@@ -872,7 +900,7 @@ export const createNewUserTicket = async (req, res) => {
       ],
       ticketStatus: "open",
       requesterId: user_id,
-      requesterName: userTickets.tickets[0]?.requesterName || "کاربر", // reuse or fallback
+      requesterName: requesterName,
       priority: "medium", // Default priority
       createdAt: new Date().toLocaleDateString("fa-IR"),
       updatedAt: new Date().toLocaleDateString("fa-IR"),
@@ -883,6 +911,8 @@ export const createNewUserTicket = async (req, res) => {
 
     // Save the updated document
     await userTickets.save();
+    
+    console.log("Ticket saved successfully, sending response");
 
     // Uncomment below for testing error responses
     // return res.status(200).json({
@@ -1180,7 +1210,7 @@ export const getWalletBalance = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    const userAccount = await UserMyAccount.findOne({ userId: user_id });
+    const userAccount = await UserMyAccount.findOne({ userId: user_id }).lean();
 
     console.log(userAccount)
 
@@ -1188,9 +1218,15 @@ export const getWalletBalance = async (req, res) => {
       return res.status(404).json({ message: "User account not found" });
     }
 
+    // Remove _id from wallet object if it exists
+    const wallet = userAccount.wallet ? { ...userAccount.wallet } : null;
+    if (wallet && wallet._id) {
+      delete wallet._id;
+    }
+
     return res.status(200).json({
-      wallet: userAccount.wallet,
-      balance: userAccount.wallet?.balance || 0
+      wallet: wallet,
+      balance: wallet?.balance || 0
     });
 
   } catch (error) {

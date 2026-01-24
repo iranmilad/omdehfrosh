@@ -68,7 +68,7 @@ export const updateProduct = async (req, res) => {
         //   {name: "price", label: "قیمت", message: "قیمت را به عدد وارد کنید"},
         //   {name: "maxOrder", label: "حداکثر موجودی", message: "حداکثر موجودی را به عدد وارد کنید"},
         // ],
-        product: result  
+        product: {}  
       });
 
       // res.status(201).json({ 

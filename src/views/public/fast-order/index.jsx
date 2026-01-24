@@ -62,9 +62,8 @@ function FastOrder() {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [loadingStates, setLoadingStates] = useState({
-    searchComponent: false,
-    filtersComponent: false,
-    tableComponent: false,
+    componentsLoading: false,  // For search and filters
+    tableLoading: false,       // For table only
   });
 
 
@@ -242,21 +241,18 @@ const handleCookieUpdate = useCallback(() => {
     );
   };
 
-  // Staggered loading effect
+  // Simplified loading effect - only 2 loading states
   useEffect(() => {
-    setLoadingStates(prev => ({ ...prev, searchComponent: true }));
+    // Components (search + filters) load first
+    setLoadingStates(prev => ({ ...prev, componentsLoading: true }));
 
-    const timer1 = setTimeout(() => {
-      setLoadingStates(prev => ({ ...prev, filtersComponent: true }));
-    }, 2000);
-
-    const timer2 = setTimeout(() => {
-      setLoadingStates(prev => ({ ...prev, tableComponent: true }));
-    }, 3000);
+    // Table loads after components
+    const timer = setTimeout(() => {
+      setLoadingStates(prev => ({ ...prev, tableLoading: true }));
+    }, 500);
 
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
+      clearTimeout(timer);
     };
   }, []);
 
@@ -523,94 +519,70 @@ useEffect(() => {
               >
                 <FilterProvider>
 
-                  {loadingStates.searchComponent ? (
-                    <div>
-                      <SearchComponentBrandFastOrder
-                        filters={filters_brand_mode} 
-                        setFilters={setFilters_brand_mode}
-                        setNodesSubCategories={setNodesSubCategoriesData} 
-                        setNodes={setNodes} 
-                        setAvailableLocations={setAvailableLocations}
-                        searchType={searchType} 
-                        setSearchType={setSearchType}
-                        cookieUpdateTrigger={cookieUpdateTrigger} 
-                        // ✅ ADD THESE PROPS:
-                        filterBrandStorage={filterBrandStorage}
-                        setFilterBrandStorage={setFilterBrandStorage}
-                        filterBrandsCategoryStorage={filterBrandsCategoryStorage}
-                        setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                        filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
-                        setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-                        localFilters={localFilters_brand}
-                        setLocalFilters={setLocalFilters_brand}
-                        onCookieUpdate={handleCookieUpdate} 
-                      />
-                    </div>
-                  ) : (
-                    <LoadingPlaceholder height="120px" />
-                  )}
-
-                  <Group>
-                    {loadingStates.filtersComponent ? (
-                      <div
-                        ref={componentRef}
-                        style={{
-                          position: isFixed ? "fixed" : "static",
-                          top: isFixed ? 0 : "auto",
-                          left: isFixed ? containerLeft : "auto",
-                          width: isFixed ? containerWidth : "100%",
-                          zIndex: 999,
-                          background: isFixed ? "white" : "transparent",
-                          boxShadow: isFixed ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
-                          transition: "all 0.3s ease",
-                        }}
-                      >
-                        <FiltersBrandMode
+                  {loadingStates.componentsLoading ? (
+                    <>
+                      <div>
+                        <SearchComponentBrandFastOrder
+                          filters={filters_brand_mode} 
                           setFilters={setFilters_brand_mode}
-                          nodes={nodes}
-                          setNodesSubCategories={setNodesSubCategoriesData}
-                          setNodes={setNodes}
-                          filters={filters_brand_mode}
-                          searchType={searchType}
+                          setNodesSubCategories={setNodesSubCategoriesData} 
+                          setNodes={setNodes} 
+                          setAvailableLocations={setAvailableLocations}
+                          searchType={searchType} 
                           setSearchType={setSearchType}
-                          COOKIE_NAME={COOKIE_NAME_BRAND_MODE}
-                          getInitialFilters={getInitialFilters_brand_mode}
+                          cookieUpdateTrigger={cookieUpdateTrigger} 
+                          filterBrandStorage={filterBrandStorage}
                           setFilterBrandStorage={setFilterBrandStorage}
+                          filterBrandsCategoryStorage={filterBrandsCategoryStorage}
                           setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+                          filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
                           setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-                          setLocalFilters={setLocalFilters_brand}
                           localFilters={localFilters_brand}
-                          onCookieUpdate={handleCookieUpdate}
-                          
+                          setLocalFilters={setLocalFilters_brand}
+                          onCookieUpdate={handleCookieUpdate} 
                         />
                       </div>
-                    ) : (
-                      <LoadingPlaceholder height="80px" />
-                    )}
-                  </Group>
 
-                  {loadingStates.tableComponent ? (
-                    <>
-
-                      {/* ✅ Saved filters modal - already inside BrandRowSelectionProvider */}
-                          {/* <SavedFiltersModalBrandModeFastOrder
-                            opened={savedFiltersModalOpened}
-                            onClose={() => setSavedFiltersModalOpened(false)}
-                            isMobile={isMobile}
+                      <Group>
+                        <div
+                          ref={componentRef}
+                          style={{
+                            position: isFixed ? "fixed" : "static",
+                            top: isFixed ? 0 : "auto",
+                            left: isFixed ? containerLeft : "auto",
+                            width: isFixed ? containerWidth : "100%",
+                            zIndex: 999,
+                            background: isFixed ? "white" : "transparent",
+                            boxShadow: isFixed ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
+                            transition: "all 0.3s ease",
+                          }}
+                        >
+                          <FiltersBrandMode
+                            setFilters={setFilters_brand_mode}
+                            nodes={nodes}
+                            setNodesSubCategories={setNodesSubCategoriesData}
+                            setNodes={setNodes}
+                            filters={filters_brand_mode}
+                            searchType={searchType}
+                            setSearchType={setSearchType}
                             COOKIE_NAME={COOKIE_NAME_BRAND_MODE}
                             getInitialFilters={getInitialFilters_brand_mode}
-                            // ✅ These should already be there:
                             setFilterBrandStorage={setFilterBrandStorage}
                             setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
                             setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
                             setLocalFilters={setLocalFilters_brand}
-                            setFilters={setFilters_brand_mode}
-                            setSearchType={setSearchType}
-                            filters={filters_brand_mode}
                             localFilters={localFilters_brand}
                             onCookieUpdate={handleCookieUpdate}
-                          /> */}
+                          />
+                        </div>
+                      </Group>
+                    </>
+                  ) : (
+                    <LoadingPlaceholder height="200px" />
+                  )}
 
+                  {loadingStates.tableLoading ? (
+                    <>
                       {nodes !== null && nodes?.length > 0 && (
                         <>
                           <FastTableBrand 
@@ -661,8 +633,43 @@ useEffect(() => {
                     onClose={() => setOpened(false)}
                     title="نمایش دادن ستون‌ها"
                     zIndex={1100}
+                    styles={{
+                      header: {
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 10,
+                        backgroundColor: 'var(--mantine-color-body)',
+                        borderBottom: '1px solid var(--mantine-color-gray-3)',
+                        paddingBottom: 'var(--mantine-spacing-md)',
+                        margin: 0,
+                        marginTop: 0,
+                        paddingTop: 0,
+                      },
+                      title: {
+                        margin: 0,
+                        marginTop: 0,
+                        paddingTop: 0,
+                      },
+                      body: {
+                        paddingTop: 'var(--mantine-spacing-md)',
+                        paddingBottom: 'var(--mantine-spacing-lg)',
+                        maxHeight: 'calc(100vh - 140px)',
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        marginBottom: 0,
+                      },
+                      content: {
+                        overflow: 'visible',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        maxHeight: '90vh',
+                      },
+                      inner: {
+                        padding: 0,
+                      }
+                    }}
                   >
-                    <Stack>
+                    <Stack gap="sm" pb="xs">
                       {updatedColumns.map((column) => (
                         <Checkbox
                           key={column.key}
@@ -697,94 +704,70 @@ useEffect(() => {
               >
                 <FilterProvider>
 
-                  {loadingStates.searchComponent ? (
-                    <div>
-                    <SearchComponentCategory 
-                      filters={filters_category_mode} 
-                      setFilters={setFilters_category_mode}
-                      setNodesSubCategories={setNodesSubCategoriesData} 
-                      setNodes={setNodes} 
-                      setAvailableLocations={setAvailableLocations}
-                      searchType={searchType} 
-                      setSearchType={setSearchType}
-                      cookieUpdateTrigger={cookieUpdateTrigger}
-                      onCookieUpdate={handleCookieUpdate}  // ✅ VERIFY THIS LINE EXISTS
-                      filterCategoryStorage={filterCategoryStorage}
-                      setFilterCategoryStorage={setFilterCategoryStorage}
-                      filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                      setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                      filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                      setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                      localFilters={localFilters_category}
-                      setLocalFilters={setLocalFilters_category}
-                    />
-                    </div>
-                  ) : (
-                    <LoadingPlaceholder height="120px" />
-                  )}
-
-                  <Group>
-                    {loadingStates.filtersComponent ? (
-                      <div
-                        ref={componentRef}
-                        style={{
-                          position: isFixed ? "fixed" : "static",
-                          top: isFixed ? 0 : "auto",
-                          left: isFixed ? containerLeft : "auto",
-                          width: isFixed ? containerWidth : "100%",
-                          zIndex: 999,
-                          background: isFixed ? "white" : "transparent",
-                          boxShadow: isFixed ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
-                          transition: "all 0.3s ease",
-                        }}
-                      >
-                        <FiltersCategoryMode
+                  {loadingStates.componentsLoading ? (
+                    <>
+                      <div>
+                        <SearchComponentCategory 
+                          filters={filters_category_mode} 
                           setFilters={setFilters_category_mode}
-                          nodes={nodes}
-                          setNodesSubCategories={setNodesSubCategoriesData}
-                          setNodes={setNodes}
-                          filters={filters_category_mode}
-                          searchType={searchType}
+                          setNodesSubCategories={setNodesSubCategoriesData} 
+                          setNodes={setNodes} 
+                          setAvailableLocations={setAvailableLocations}
+                          searchType={searchType} 
                           setSearchType={setSearchType}
-                          COOKIE_NAME={COOKIE_NAME_CATEGORY_MODE}
-                          getInitialFilters={getInitialFilters_category_mode}
-                          setFilterCategoryStorage={setFilterCategoryStorage}
-                          setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                          setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                          setLocalFilters={setLocalFilters_category}
-                          localFilters={localFilters_category}
+                          cookieUpdateTrigger={cookieUpdateTrigger}
                           onCookieUpdate={handleCookieUpdate}
+                          filterCategoryStorage={filterCategoryStorage}
+                          setFilterCategoryStorage={setFilterCategoryStorage}
+                          filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                          setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                          filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                          setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                          localFilters={localFilters_category}
+                          setLocalFilters={setLocalFilters_category}
                         />
                       </div>
-                    ) : (
-                      <LoadingPlaceholder height="80px" />
-                    )}
-                  </Group>
 
-                  {loadingStates.tableComponent ? (
+                      <Group>
+                        <div
+                          ref={componentRef}
+                          style={{
+                            position: isFixed ? "fixed" : "static",
+                            top: isFixed ? 0 : "auto",
+                            left: isFixed ? containerLeft : "auto",
+                            width: isFixed ? containerWidth : "100%",
+                            zIndex: 999,
+                            background: isFixed ? "white" : "transparent",
+                            boxShadow: isFixed ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
+                            transition: "all 0.3s ease",
+                          }}
+                        >
+                          <FiltersCategoryMode
+                            setFilters={setFilters_category_mode}
+                            nodes={nodes}
+                            setNodesSubCategories={setNodesSubCategoriesData}
+                            setNodes={setNodes}
+                            filters={filters_category_mode}
+                            searchType={searchType}
+                            setSearchType={setSearchType}
+                            COOKIE_NAME={COOKIE_NAME_CATEGORY_MODE}
+                            getInitialFilters={getInitialFilters_category_mode}
+                            setFilterCategoryStorage={setFilterCategoryStorage}
+                            setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                            setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                            setLocalFilters={setLocalFilters_category}
+                            localFilters={localFilters_category}
+                            onCookieUpdate={handleCookieUpdate}
+                          />
+                        </div>
+                      </Group>
+                    </>
+                  ) : (
+                    <LoadingPlaceholder height="200px" />
+                  )}
+
+                  {loadingStates.tableLoading ? (
                     <>
-                      {/* ✅ REMOVED: Column settings button group */}
-
-                      {/* ✅ Saved filters modal - already inside CategoryRowSelectionProvider */}
-                      {/* <SavedFiltersModalCategoryMode
-                        opened={savedFiltersModalOpened}
-                        onClose={() => setSavedFiltersModalOpened(false)}
-                        isMobile={isMobile}
-                        COOKIE_NAME={COOKIE_NAME_CATEGORY_MODE}
-                        getInitialFilters={getInitialFilters_category_mode}
-                        setFilterCategoryStorage={setFilterCategoryStorage}
-                        setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                        setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                        setLocalFilters={setLocalFilters_category}
-                        setFilters={setFilters_category_mode}
-                        setSearchType={setSearchType}
-                        filters={filters_category_mode}
-                        onCookieUpdate={handleCookieUpdate}  // ✅ ADD THIS LINE
-                        localFilters={localFilters_category}
-                          isManualFilterUpdateRef={isManualFilterUpdate}  // ✅ ADD THIS LINE - pass the ref
-
-                      /> */}
-
                       {nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 && (
                         <Paper p={0} className="overflow-hidden" bg="white" id="tables">
                           <FastTableCategory 
@@ -835,8 +818,43 @@ useEffect(() => {
                     onClose={() => setOpened(false)}
                     title="نمایش دادن ستون‌ها"
                     zIndex={1100}
+                    styles={{
+                      header: {
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 10,
+                        backgroundColor: 'var(--mantine-color-body)',
+                        borderBottom: '1px solid var(--mantine-color-gray-3)',
+                        paddingBottom: 'var(--mantine-spacing-md)',
+                        margin: 0,
+                        marginTop: 0,
+                        paddingTop: 0,
+                      },
+                      title: {
+                        margin: 0,
+                        marginTop: 0,
+                        paddingTop: 0,
+                      },
+                      body: {
+                        paddingTop: 'var(--mantine-spacing-md)',
+                        paddingBottom: 'var(--mantine-spacing-lg)',
+                        maxHeight: 'calc(100vh - 140px)',
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        marginBottom: 0,
+                      },
+                      content: {
+                        overflow: 'visible',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        maxHeight: '90vh',
+                      },
+                      inner: {
+                        padding: 0,
+                      }
+                    }}
                   >
-                    <Stack>
+                    <Stack gap="sm" pb="xs">
                       {updatedColumns.map((column) => (
                         <Checkbox
                           key={column.key}

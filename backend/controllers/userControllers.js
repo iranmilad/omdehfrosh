@@ -210,7 +210,7 @@ export const addUserAddress = async (req, res) => {
     } = req.body;
 
     // Validation
-    if (!title || !name || !family || !mobile || !nationalCode || !province || !city || !address || !postalCode) {
+    if (!title || !name || !family || !mobile || !province || !city || !address || !postalCode) {
       return res.status(400).json({
         message: "تمام فیلدهای آدرس الزامی است",
         state: "error"
@@ -224,11 +224,14 @@ export const addUserAddress = async (req, res) => {
       });
     }
 
-    if (!/^\d{10}$/.test(nationalCode.replace(/\s+/g, ""))) {
-      return res.status(400).json({
-        message: "کد ملی باید 10 رقم باشد",
-        state: "error"
-      });
+    // Validate nationalCode only if provided
+    if (nationalCode && nationalCode.trim() !== '') {
+      if (!/^\d{10}$/.test(nationalCode.replace(/\s+/g, ""))) {
+        return res.status(400).json({
+          message: "کد ملی باید 10 رقم باشد",
+          state: "error"
+        });
+      }
     }
 
     const user = await UserAccounts.findOne({ userId: user_id });
@@ -239,7 +242,7 @@ export const addUserAddress = async (req, res) => {
     // Clean phone numbers
     const cleanedMobile = mobile ? mobile.replace(/\s+/g, "") : mobile;
     const cleanedPostalCode = postalCode ? postalCode.replace(/\s+/g, "") : postalCode;
-    const cleanedNationalCode = nationalCode ? nationalCode.replace(/\s+/g, "") : nationalCode;
+    const cleanedNationalCode = (nationalCode && nationalCode.trim() !== '') ? nationalCode.replace(/\s+/g, "") : '';
 
     // If this is set as default, unset all other defaults
     if (isDefault) {
@@ -255,7 +258,7 @@ export const addUserAddress = async (req, res) => {
       name,
       family,
       mobile: cleanedMobile,
-      nationalCode: cleanedNationalCode,
+      nationalCode: cleanedNationalCode || undefined, // Only include if provided
       province,
       city,
       address,
@@ -327,15 +330,20 @@ export const updateUserAddress = async (req, res) => {
     if (name) user.addresses[addressIndex].name = name;
     if (family) user.addresses[addressIndex].family = family;
     if (mobile) user.addresses[addressIndex].mobile = mobile.replace(/\s+/g, "");
-    if (nationalCode) {
-      const cleanedNC = nationalCode.replace(/\s+/g, "");
-      if (!/^\d{10}$/.test(cleanedNC)) {
-        return res.status(400).json({
-          message: "کد ملی باید 10 رقم باشد",
-          state: "error"
-        });
+    if (nationalCode !== undefined) {
+      if (nationalCode && nationalCode.trim() !== '') {
+        const cleanedNC = nationalCode.replace(/\s+/g, "");
+        if (!/^\d{10}$/.test(cleanedNC)) {
+          return res.status(400).json({
+            message: "کد ملی باید 10 رقم باشد",
+            state: "error"
+          });
+        }
+        user.addresses[addressIndex].nationalCode = cleanedNC;
+      } else {
+        // Allow clearing nationalCode by setting it to empty
+        user.addresses[addressIndex].nationalCode = undefined;
       }
-      user.addresses[addressIndex].nationalCode = cleanedNC;
     }
     if (province) user.addresses[addressIndex].province = province;
     if (city) user.addresses[addressIndex].city = city;

@@ -14,8 +14,13 @@ export const getCategoryDataBySlug = async (req, res) => {
 
   console.log(filters, slug)
 
+  console.log(JSON.stringify(req.body));
+
   const minPrice = filters.price_min;
   const maxPrice = filters.price_max;
+  const page = parseInt(filters.page) || 1;
+  const limit = parseInt(filters.limit) || 20;
+  const skip = (page - 1) * limit;
 
   try {
     // Get user information from token (optional - user might not be logged in)
@@ -33,19 +38,35 @@ export const getCategoryDataBySlug = async (req, res) => {
     } else {
     }
 
-    // Get category information
-
+    // Get category information (optional - if not found, we'll still try to get products)
     const category = await Category.findOne({ 
       url: { $regex: `^${slug}$`, $options: "i" } 
     });
 
-    if (!category) {
+    // Build query for products
+    const productQuery = { "general.categoryName": slug };
+    
+    // Get total count of products for pagination
+    const totalProducts = await SingleProduct.countDocuments(productQuery);
+    
+    // Calculate total pages
+    const totalPages = Math.ceil(totalProducts / limit);
 
+    // Get products by categoryName with pagination (works even if Category document doesn't exist)
+    const products = await SingleProduct.find(productQuery)
+      .skip(skip)
+      .limit(limit);
+    
+    // If no category found and no products found, return 404
+    if (!category && (!products || products.length === 0)) {
       return res.status(404).json({ message: "Category not found." });
     }
-
-    // Get products
-    const products = await SingleProduct.find({ "general.categoryName": slug });
+    
+    // If category not found but products exist, continue with default subscription settings
+    if (!category) {
+      // Use default subscription settings when category document doesn't exist
+      // This allows the compare feature to work even if Category collection is incomplete
+    }
     
     // Get filters
     const allfilters = await CategoryFilter.find().lean();
@@ -56,7 +77,8 @@ export const getCategoryDataBySlug = async (req, res) => {
     // }
 
     // 💡 Determine subscription logic
-    const categorySubscriptionModelId = category.subscriptionModel?.modelId;
+    // Use category subscription if available, otherwise default to "basic" (free)
+    const categorySubscriptionModelId = category?.subscriptionModel?.modelId || "basic";
     
     // Default subscription model names mapping
     const subscriptionModelNames = {
@@ -69,7 +91,7 @@ export const getCategoryDataBySlug = async (req, res) => {
     let subscriptionRequired = false;
     let userHasPurchasedSubscription = false;
     let subscriptionModel = {
-      modelName: subscriptionModelNames[categorySubscriptionModelId] || "نامشخص",
+      modelName: subscriptionModelNames[categorySubscriptionModelId] || "رایگان",
       modelId: categorySubscriptionModelId
     };
 
@@ -131,7 +153,10 @@ export const getCategoryDataBySlug = async (req, res) => {
       filters: updatedFilters,
       price: { min: allfiltersNew.price.min, max: allfiltersNew.price.max },
       userPriceSet: { min: minPrice, max: maxPrice },
-      totalPages: allfiltersNew.totalPages,
+      totalPages: totalPages,
+      totalProducts: totalProducts,
+      currentPage: page,
+      limit: limit,
       subscriptionRequired,
       userHasPurchasedSubscription,
       subscriptionModel

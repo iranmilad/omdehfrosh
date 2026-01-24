@@ -4,7 +4,7 @@ import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { setInitial, clearCart } from "../../redux/cart";
-import { logout, verifyTokenSilent } from "../../redux/auth/authusers/auth";
+import { logout } from "../../redux/auth/authusers/auth";
 import { useEffect, useState } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import { useNavigate } from "react-router-dom";
@@ -38,15 +38,14 @@ const CounterFastOrder = (props) => {
 
   // Enhanced helper function to handle token expiration and update global auth state
   const handleTokenExpiration = async (error) => {
-    if (error.message.includes('توکن نامعتبر است') || 
-        error.message.includes('Unauthorized') || 
+    if (error.message.includes('توکن نامعتبر است') ||
+        error.message.includes('Unauthorized') ||
         error.status === 401) {
-      
+
       try {
         localStorage.removeItem("user");
         dispatch(logout());
         dispatch(clearCart());
-        await dispatch(verifyTokenSilent());
         setShowAuthModal(true);
         return true;
       } catch (authError) {
@@ -200,18 +199,9 @@ const CounterFastOrder = (props) => {
   // Calculate current item count using Redux items
   const itemCount = getItemCount(items, item);
 
-  // Load cart data on component mount and when user changes
-  useEffect(() => {
-    if (user && isVerified) {
-      fetchCartData();
-    } else {
-      dispatch(setInitial([]));
-    }
-  }, [user, isVerified]);
-  
   // Update local count when itemCount changes
   useEffect(() => {
-    setCount(itemCount); 
+    setCount(itemCount);
   }, [itemCount]);
 
   const handleChange = async (value) => {

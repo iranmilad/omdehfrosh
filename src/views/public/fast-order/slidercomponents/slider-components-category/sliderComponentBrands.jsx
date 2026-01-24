@@ -1,5 +1,7 @@
+import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import SliderArrows from '../SliderArrows';
 
 // Default SVG image for brands
 const DEFAULT_BRAND_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
@@ -23,15 +25,53 @@ const SliderComponentBrandsCMFastOrder = ({
   setFilterCategorySubCategoryBrandsStorage,
   isDisabled = false // Add isDisabled prop
 }) => {
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(true);
+
+  // Only show arrows if there are items with visible brands
+  const hasVisibleContent = items && items.length > 0 &&
+    filterCategoryStorage && filterCategoryStorage.length > 0 &&
+    filterCategorySubCategoryStorage && filterCategorySubCategoryStorage.length > 0 &&
+    items.some(item => {
+      const isCategoryActive = filterCategoryStorage.includes(item.idCategory);
+      return isCategoryActive && item.subCategories && item.subCategories.some(subcategory => {
+        const isSubcategoryActive = filterCategorySubCategoryStorage.some(
+          (entry) =>
+            entry.idCategory === item.idCategory &&
+            entry.idSubCategories.includes(subcategory.idSubCategory)
+        );
+        return isSubcategoryActive && subcategory.brands && subcategory.brands.length > 0;
+      });
+    });
+
   return (
-    <Swiper
-      modules={[FreeMode, Navigation]}
-      freeMode={true}
-      slidesPerView="auto"
-      spaceBetween={8}
-      className="mt-2 !m-0 !p-0"
-      style={{ width: "100%" }}
-    >
+    <div style={{ position: 'relative', width: '100%' }}>
+      <Swiper
+        modules={[FreeMode, Navigation]}
+        freeMode={true}
+        slidesPerView="auto"
+        spaceBetween={8}
+        className="mt-2 !m-0 !p-0"
+        style={{ width: "100%" }}
+        navigation={{
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
+        }}
+        onBeforeInit={(swiper) => {
+          swiper.params.navigation.prevEl = prevRef.current;
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        onInit={(swiper) => {
+          if (swiper.isBeginning !== isBeginning) setIsBeginning(swiper.isBeginning);
+          if (swiper.isEnd !== isEnd) setIsEnd(swiper.isEnd);
+        }}
+        onProgress={(swiper) => {
+          if (swiper.isBeginning !== isBeginning) setIsBeginning(swiper.isBeginning);
+          if (swiper.isEnd !== isEnd) setIsEnd(swiper.isEnd);
+        }}
+      >
       {items?.map((item, index) => (
         <SwiperSlide
           key={index}
@@ -53,7 +93,9 @@ const SliderComponentBrandsCMFastOrder = ({
           />
         </SwiperSlide>
       ))}
-    </Swiper>
+      </Swiper>
+      {hasVisibleContent && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={isBeginning} isEnd={isEnd} />}
+    </div>
   );
 };
 
@@ -184,7 +226,7 @@ export function SingleSubcategoryWithBrands({
                         paddingTop: '4px',
                         paddingBottom: '4px',
                         paddingLeft: '8px',
-                        paddingRight: '8px',
+                        paddingRight: '4px',
                         backgroundColor: 'rgb(247, 247, 248)',
                         borderRadius: '100px',
                         border: isActiveBorder
@@ -202,12 +244,13 @@ export function SingleSubcategoryWithBrands({
                         style={{
                           width: '24px',
                           height: '24px',
-                          lineHeight: 0
+                          lineHeight: 0,
+                          marginRight: 0
                         }}
                       >
                         <img
                           className="w-full inline-block"
-                          style={{ objectFit: 'cover', width: '24px', height: '24px' }}
+                          style={{ objectFit: 'cover', width: '24px', height: '24px', marginRight: 0 }}
                           src={getBrandImageSrc(brand.image)}
                           alt={brand.title}
                           onError={handleImageError}

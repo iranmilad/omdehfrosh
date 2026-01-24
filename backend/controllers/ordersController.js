@@ -17,7 +17,9 @@ export const updateBasketOrdersAddress = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized: user not found" });
     }
 
-    const { address } = req.body;
+    const address = req.body;
+
+    console.log(JSON.stringify(address));
 
     if (!address) {
       return res.status(400).json({ message: "Address data is required" });
@@ -53,13 +55,17 @@ export const updateBasketOrdersAddress = async (req, res) => {
 export const updateOrderAddress = async (req, res) => {
   try {
     const { user_id } = getUserFromToken(req, res);
+
     
     if (!user_id) {
       return res.status(401).json({ message: "Unauthorized: user not found" });
     }
 
     const { orderId } = req.params;
-    const { address } = req.body;
+
+    const address = req.body;
+
+    console.log(JSON.stringify(address));
 
     if (!orderId) {
       return res.status(400).json({ message: "Order ID is required" });
@@ -211,7 +217,8 @@ export const getAllOrdersByUserId = async (req, res) => {
       discountCodeId: order.discount_code_id,
       status: order.status,
       deliveryType: order.delivery_type,
-      paymentMethod: order.payment_method,
+      paymentMethod: order.payment_type || order.payment_method, // Use payment_type if available, fallback to payment_method
+      paymentType: order.payment_type, // Also include payment_type separately
       isPaid: order.isPaid,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt

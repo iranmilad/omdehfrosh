@@ -35,6 +35,7 @@ import { useEffect, useState } from "react";
 import { useProduct } from "..";
 import Counter from "../../../../components/counter";
 import CounterSellers from "../../../../components/counter-sellers/counter-sellers";
+import persianDate from "persian-date";
 
 const RowSeller = ({ item, index }) => {
   const { supplier, product, options } = useProduct();
@@ -61,6 +62,129 @@ const RowSeller = ({ item, index }) => {
     }
     return "اطلاعات ارسال موجود نیست";
   };
+
+  // Helper function to parse special_offer date from various formats
+  const parseSpecialOfferDate = (specialOffer) => {
+    if (!specialOffer) return null;
+
+    // Handle empty objects - treat as null
+    if (typeof specialOffer === 'object' && !Array.isArray(specialOffer) && Object.keys(specialOffer).length === 0) {
+      return null;
+    }
+
+    let date = null;
+
+    // Handle MongoDB date format: { "$date": { "$numberLong": "..." } }
+    if (specialOffer && typeof specialOffer === 'object' && specialOffer.$date) {
+      if (specialOffer.$date.$numberLong !== undefined) {
+        date = new Date(parseInt(specialOffer.$date.$numberLong));
+      } else if (specialOffer.$date instanceof Date) {
+        date = specialOffer.$date;
+      } else if (typeof specialOffer.$date === 'string' || typeof specialOffer.$date === 'number') {
+        date = new Date(specialOffer.$date);
+      }
+    }
+    // Handle Date object
+    else if (specialOffer instanceof Date) {
+      date = specialOffer;
+    }
+    // Handle ISO string or timestamp
+    else if (typeof specialOffer === 'string') {
+      // Check if the string contains a Persian year (1400+)
+      // Format might be "1404-12-29T00:00:00.000Z" which is invalid ISO
+      const yearMatch = specialOffer.match(/^(\d{4})-/);
+      if (yearMatch && parseInt(yearMatch[1]) >= 1400) {
+        // This is likely a Persian date in ISO-like format
+        // Extract the date part and parse as Persian date
+        const datePart = specialOffer.split('T')[0]; // "1404-12-29"
+        try {
+          const [year, month, day] = datePart.split('-').map(Number);
+          // Create Persian date and convert to Gregorian for comparison
+          const persianDateObj = new persianDate([year, month, day]);
+          date = persianDateObj.toDate(); // Convert to JavaScript Date
+        } catch (error) {
+          console.error('Error parsing Persian date:', error);
+          return null;
+        }
+      } else {
+        // Try to parse as ISO date or timestamp
+        if (specialOffer.includes('T') && (specialOffer.includes('Z') || specialOffer.includes('+'))) {
+          date = new Date(specialOffer);
+        } else {
+          // Might be a timestamp string
+          const timestamp = parseInt(specialOffer);
+          if (!isNaN(timestamp)) {
+            date = new Date(timestamp);
+          } else {
+            date = new Date(specialOffer);
+          }
+        }
+      }
+    } else if (typeof specialOffer === 'number') {
+      date = new Date(specialOffer);
+    }
+
+    // Validate date
+    if (!date || isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date;
+  };
+
+  // Check if special_offer is valid and not passed
+  const getValidSpecialOffer = () => {
+    // If special_offer is already a Persian date string (YYYY-MM-DD format)
+    if (typeof item.special_offer === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.special_offer.split('T')[0])) {
+      const datePart = item.special_offer.split('T')[0];
+      const [year, month, day] = datePart.split('-').map(Number);
+      
+      // Check if it's a Persian year (1400+)
+      if (year >= 1400) {
+        // Validate the date is in the future
+        try {
+          const persianDateObj = new persianDate([year, month, day]);
+          const gregorianDate = persianDateObj.toDate();
+          const now = new Date();
+          
+          if (gregorianDate > now) {
+            // Date is in the future, return the Persian date string for CountdownTimer
+            return datePart;
+          }
+        } catch (error) {
+          console.error('Error validating Persian date:', error);
+          return null;
+        }
+      }
+    }
+    
+    // Otherwise, parse as regular date
+    const offerDate = parseSpecialOfferDate(item.special_offer);
+    
+    if (!offerDate) {
+      return null;
+    }
+
+    // Check if date is in the future
+    const now = new Date();
+    if (offerDate <= now) {
+      return null; // Date has passed
+    }
+
+    // Convert to Persian date format (YYYY-MM-DD) for CountdownTimer
+    try {
+      const persian = new persianDate(offerDate);
+      const year = persian.year();
+      const month = String(persian.month()).padStart(2, '0');
+      const day = String(persian.date()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.error('Error converting date to Persian:', error);
+      return null;
+    }
+  };
+
+  const validSpecialOffer = getValidSpecialOffer();
 
   return (
     <Box key={index}>
@@ -171,8 +295,8 @@ const RowSeller = ({ item, index }) => {
                 min={item.minOrder}
                 max={item.maxOrder}
               />
-              {item.special_offer ? (
-                <CountdownTimer shamsiDate={item.special_offer} />
+              {validSpecialOffer ? (
+                <CountdownTimer shamsiDate={validSpecialOffer} />
               ) : null}
             </Flex>
           </Flex>

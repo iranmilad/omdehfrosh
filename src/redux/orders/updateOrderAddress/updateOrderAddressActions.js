@@ -41,7 +41,7 @@ export const updateOrderAddress = createAsyncThunk(
 // NEW: Update all basket orders address
 export const updateBasketOrdersAddress = createAsyncThunk(
   "orders/updateBasketOrdersAddress",
-  async ({ address }, { rejectWithValue }) => {
+  async (address, { rejectWithValue }) => {
     const token = localStorage.getItem("user");
 
     try {
@@ -51,7 +51,7 @@ export const updateBasketOrdersAddress = createAsyncThunk(
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ address }),
+        body: JSON.stringify(address),
       });
 
       if (!response.ok) {

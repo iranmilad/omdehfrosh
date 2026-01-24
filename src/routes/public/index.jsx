@@ -97,6 +97,8 @@ import Bootstrap from "../../views/public/master-dashboard/bootstrap/bootstrap"
 import AddBatchBootstrap from "../../views/public/master-dashboard/bootstrap/bootstrap/addbatchbootstrap"
 import WalletPaymentPage from "../../views/public/walletpayment"
 import CODPaymentPage from "../../views/public/codpayment"
+import NewFakeGateway from "../../views/public/fake-gateway"
+import PaymentListener from "../../views/public/payment-listener"
 
 export const PublicRoutes = [
     {
@@ -384,7 +386,11 @@ export const PublicRoutes = [
             },
             {
                 path: 'fake-gateway',
-                element: <FakeGateway />
+                element: <NewFakeGateway />
+            },
+            {
+                path: 'payment-listener',
+                element: <PaymentListener />
             },
             {
                 path: "/compare/:category",

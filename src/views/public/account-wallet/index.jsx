@@ -1,3 +1,4 @@
+// H:\projects\React\j2b.market\src\views\public\account-wallet\index.jsx
 import {
   Alert,
   Badge,
@@ -24,7 +25,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from 'react-router';
 import { notifications } from '@mantine/notifications';
 
-import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { fetchUserInfo } from '../../../redux/users/userinfo/userInfo';
 import { updateUserInfo } from '../../../redux/users/updateuserinfo/updateUserInforActions';
 import { clearUserInfo } from '../../../redux/users/updateuserinfo/updateUserInfoSlice';
@@ -40,6 +40,7 @@ import { clearWithdrawState } from '../../../redux/payment/wallet/walletwithdraw
 import { clearTransferState } from '../../../redux/payment/wallet/wallettransfer/walletTransferSlice';
 import { get } from 'http';
 import { getAllOrdersByUserId } from '../../../redux/orders/orders/getallordersbyuserid/getAllOrdersByUserIdActions';
+import { processPayment } from '../../../utils/paymentHelper';
 
 
 const depositValidationSchema = yup.object().shape({
@@ -51,10 +52,6 @@ const depositValidationSchema = yup.object().shape({
     .string()
     .matches(/^[\u0600-\u06FF\s]{3,}$/, "نام خانوادگی باید حداقل ۳ حرف و فقط شامل حروف فارسی باشد")
     .required("نام خانوادگی الزامی است"),
-  phone: yup
-    .string()
-    .matches(/^09\d{9}$/, "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود")
-    .required("شماره موبایل الزامی است"),
   amount: yup
     .number()
     .typeError("مبلغ باید عدد باشد")
@@ -63,10 +60,6 @@ const depositValidationSchema = yup.object().shape({
 });
 
 const withdrawValidationSchema = yup.object().shape({
-  phone: yup
-    .string()
-    .matches(/^09\d{9}$/, "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود")
-    .required("شماره موبایل الزامی است"),
   amount: yup
     .number()
     .typeError("مبلغ باید عدد باشد")
@@ -98,10 +91,6 @@ const validationSchema = yup.object().shape({
 });
 
 const transferValidationSchema = yup.object().shape({
-  senderPhone: yup
-    .string()
-    .matches(/^09\d{9}$/, "شماره موبایل فرستنده باید ۱۱ رقم و با ۰۹ شروع شود")
-    .required("شماره موبایل فرستنده الزامی است"),
   receiverPhone: yup
     .string()
     .matches(/^09\d{9}$/, "شماره موبایل گیرنده باید ۱۱ رقم و با ۰۹ شروع شود")
@@ -150,9 +139,9 @@ function Account_Wallet() {
 
   const [confirmWithdrawModal, setConfirmWithdrawModal] = useState(false);
 
-  const [depositData, setDepositData] = useState({ name: '', family: '', phone: '', amount: '' });
-  const [withdrawData, setWithdrawData] = useState({ amount: '', phone: '' });
-  const [transferData, setTransferData] = useState({ senderPhone: '', receiverPhone: '', amount: '', note: '' });
+  const [depositData, setDepositData] = useState({ name: '', family: '', amount: '' });
+  const [withdrawData, setWithdrawData] = useState({ amount: '' });
+  const [transferData, setTransferData] = useState({ receiverPhone: '', amount: '', note: '' });
 
 
   const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData); // Use the state from Redux
@@ -176,16 +165,12 @@ const handleSubmitModal = (e) => {
 
       const info = fetchedGateways.find(gateway => gateway._id === selectedGatewayId);
 
-      navigate("/payment-info-online-wallet", {
-        state: {
-          depositData: {
-            ...depositForm.values,
-            user_id: userInfo?.user?.id || user?.id,
-            description: "شارژ کیف پول",
-          },
-          gateway: info?.info || 'fake',
-          gatewayId: info?.info,
-        },
+      // Use new universal payment flow for wallet recharge
+      // Send amount, gateway, and payment_type - backend will get wallet_id from user token
+      processPayment({
+        amount: depositForm.values.amount,
+        gateway: info?.info?.name || 'fake',
+        payment_type: 'wallet'
       });
     }
     return;
@@ -198,7 +183,6 @@ const handleSubmitModal = (e) => {
       setWalletModalOpen(false);
       setConfirmWithdrawModal(true);
     }
-          dispatch(getUserMyAccount());
 
     return;
   }
@@ -281,7 +265,6 @@ useEffect(() => {
     initialValues: {
       name: '',
       family: '',
-      phone: '',
       amount: '',
     },
     validate: yupResolver(depositValidationSchema),
@@ -290,7 +273,6 @@ useEffect(() => {
 
 const withdrawForm = useForm({
   initialValues: {
-    phone: '',
     amount: '',
   },
   validate: yupResolver(withdrawValidationSchema),
@@ -298,7 +280,6 @@ const withdrawForm = useForm({
 
 const transferForm = useForm({
   initialValues: {
-    senderPhone: '',
     receiverPhone: '',
     amount: '',
     note: '',
@@ -318,16 +299,18 @@ const transferForm = useForm({
     validate: yupResolver(validationSchema),
   });
 
+  // Fetch user info and account data only if not already in Redux
   useEffect(() => {
-    dispatch(verifyToken());
-  }, [dispatch]);
+    if (user && !userInfo) {
+      dispatch(fetchUserInfo());
+    }
+  }, [dispatch, user, userInfo]);
 
   useEffect(() => {
-    if (user) {
-      dispatch(fetchUserInfo());
+    if (user && !userAccount) {
       dispatch(getUserMyAccount());
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, userAccount]);
 
   useEffect(() => {
     if (userInfo?.user) {
@@ -371,8 +354,7 @@ const transferForm = useForm({
     const updatedValues = { ...values, phone: values.mobile };
     await dispatch(updateUserInfo(updatedValues));
     await dispatch(fetchUserInfo());
-              dispatch(getUserMyAccount());
-
+    
   }, [dispatch]);
 
   const handleDeposit = () => {
@@ -403,8 +385,7 @@ const transferForm = useForm({
             autoClose: true
           });
         }
-            dispatch(getUserMyAccount());
-
+  
         if (withdrawResult && withdrawResult?.state === "error" ) {
             notifications.show({
               title: withdrawResult.message,
@@ -476,8 +457,7 @@ const transferForm = useForm({
           });
         }
 
-            dispatch(getUserMyAccount());
-
+  
         if (transferResult && transferResult?.state === "error" ) {
             notifications.show({
               title: transferResult.message,
@@ -491,24 +471,19 @@ const transferForm = useForm({
 useEffect(() => {
   // This will refresh data when user returns from payment page
   const handleVisibilityChange = () => {
-    if (!document.hidden && user) {
-      // Page became visible, refresh wallet data
+    if (!document.hidden && user && !userAccount) {
+      // Page became visible, refresh wallet data only if not in Redux
       dispatch(getUserMyAccount());
     }
   };
 
   // Listen for when user returns to the tab/page
   document.addEventListener('visibilitychange', handleVisibilityChange);
-  
-  // Also refresh when component mounts if user exists
-  if (user) {
-    dispatch(getUserMyAccount());
-  }
 
   return () => {
     document.removeEventListener('visibilitychange', handleVisibilityChange);
   };
-}, [user, dispatch]);
+}, [user, dispatch, userAccount]);
             useEffect(() => {
               if (
                   errorTransfer && 
@@ -575,9 +550,7 @@ useEffect(() => {
           return () => clearTimeout(timer);
         } else {
           setLoginModalOpen(false);
-          // User is authenticated, fetch data
-          dispatch(getUserMyAccount({userId: user.id}));
-          dispatch(getAllOrdersByUserId());
+          // User is authenticated - data already fetched by other useEffects
         }
       }
     }, [dispatch, isVerified, user, authLoading, navigate]);
@@ -686,11 +659,6 @@ useEffect(() => {
                 {...depositForm.getInputProps('family')}
               />
               <TextInput
-                label="شماره تلفن"
-                required
-                {...depositForm.getInputProps('phone')}
-              />
-              <TextInput
                 label="مبلغ واریز"
                 required
                 {...depositForm.getInputProps('amount')}
@@ -767,21 +735,12 @@ useEffect(() => {
                   required
                   {...withdrawForm.getInputProps('amount')}
                 />
-                <TextInput
-                  label="شماره تلفن"
-                  required
-                  {...withdrawForm.getInputProps('phone')}
-                />
+                {/* Phone number removed - backend will get it from token */}
               </>
             )}
 
             {walletModalType === "transfer" && (
               <>
-                <TextInput
-                  label="شماره تلفن فرستنده"
-                  required
-                  {...transferForm.getInputProps('senderPhone')}
-                />
                 <TextInput
                   label="شماره تلفن گیرنده"
                   required
@@ -822,7 +781,8 @@ useEffect(() => {
               color="red"
               onClick={() => {
                 setConfirmWithdrawModal(false);
-                dispatch(withdrawFromWallet({ withdrawData: withdrawForm.values }));
+                // Only send amount, backend will get phone from token
+                dispatch(withdrawFromWallet({ withdrawData: { amount: withdrawForm.values.amount } }));
               }}
             >
               بله، برداشت کن
@@ -844,7 +804,14 @@ useEffect(() => {
           <Button
             color="blue"
             onClick={() => {
-              dispatch(transferFromWallet({ transferData: transferForm.values }));
+              // Only send receiverPhone, amount, and note. Backend will get senderPhone from token
+              dispatch(transferFromWallet({ 
+                transferData: { 
+                  receiverPhone: transferForm.values.receiverPhone,
+                  amount: transferForm.values.amount,
+                  note: transferForm.values.note
+                } 
+              }));
               setConfirmTransferModal(false);
             }}
           >

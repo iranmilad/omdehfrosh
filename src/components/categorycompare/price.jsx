@@ -6,7 +6,7 @@ import Tooman from "../tooman";
 import { useSelector } from "react-redux";
 
 
-function Price({ priceRange, onPriceChange, data }) {
+function Price({ priceRange, onPriceChange, data, filterDisclosure }) {
 
 
   const dynamicFilters = data || [];
@@ -33,6 +33,10 @@ function Price({ priceRange, onPriceChange, data }) {
 
   const submitPrice = () => {
     onPriceChange({min: price[0], max: price[1]});
+    // Close drawer on mobile when price filter is applied
+    if (filterDisclosure && filterDisclosure[0]) {
+      filterDisclosure[1].close();
+    }
   }
 
 

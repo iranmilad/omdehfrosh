@@ -39,7 +39,7 @@ import { fetchCheckedRowsTableData } from "../../../redux/fastorder/fastordertab
 import { useMediaQuery } from "@mantine/hooks";
 import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import isEqual from "lodash/isEqual";
-import { logout, verifyTokenSilent } from "../../../redux/auth/authusers/auth";
+import { logout } from "../../../redux/auth/authusers/auth";
 import { clearCart } from "../../../redux/cart";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import { useNavigate } from "react-router-dom";
@@ -96,7 +96,6 @@ const SearchComponentBrandFastOrder = ({
 
   // Auth modal state
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authVerificationLoading, setAuthVerificationLoading] = useState(false);
 
   // Component state
   const [brands, setBrands] = useState({ parent: [], clickedBrands: [], categories: [] });
@@ -114,15 +113,14 @@ const SearchComponentBrandFastOrder = ({
 
   // Enhanced helper function to handle token expiration and update global auth state
   const handleTokenExpiration = async (error) => {
-    if (error.message.includes('توکن نامعتبر است') || 
-        error.message.includes('Unauthorized') || 
+    if (error.message.includes('توکن نامعتبر است') ||
+        error.message.includes('Unauthorized') ||
         error.status === 401) {
-      
+
       try {
         localStorage.removeItem("user");
         dispatch(logout());
         dispatch(clearCart());
-        await dispatch(verifyTokenSilent());
         setShowAuthModal(true);
         return true;
       } catch (authError) {
@@ -197,51 +195,19 @@ const SearchComponentBrandFastOrder = ({
   };
 
   // Server authentication verification function using Redux action
-  const verifyAuthFromServer = async () => {
-    const token = localStorage.getItem("user");
-    
-    if (!token) {
-      setShowAuthModal(true);
-      return false;
-    }
-
-    try {
-      setAuthVerificationLoading(true);
-      const result = await dispatch(verifyTokenSilent());
-      
-      if (result.type.includes('rejected') || result.error) {
-        await handleTokenExpiration({ status: 401, message: 'Unauthorized' });
-        return false;
-      }
-      
-      return true;
-      
-    } catch (error) {
-      console.error("Error verifying auth:", error);
-      await handleTokenExpiration(error);
-      return false;
-    } finally {
-      setAuthVerificationLoading(false);
-    }
-  };
-
   // Handle login redirect
   const handleLoginRedirect = () => {
     setShowAuthModal(false);
     navigate('/login');
   };
 
-  const handleMenuClick = async () => {
+  const handleMenuClick = () => {
     if (!user || !isVerified) {
       setShowAuthModal(true);
       return;
     }
 
-    const isServerAuthenticated = await verifyAuthFromServer();
-    
-    if (isServerAuthenticated) {
-      setFilterSettingsModalOpened(true);
-    }
+    setFilterSettingsModalOpened(true);
   };
 
   const initialFilters = useMemo(() => getInitialFilters(), [getInitialFilters]);
@@ -704,12 +670,12 @@ useEffect(() => {
           overflow: 'hidden'
         }}
       >
-        {/* Loading Overlay for auth verification */}
-        <LoadingOverlay 
-          pos="fixed" 
-          visible={authVerificationLoading || loading} 
-          zIndex={1000} 
-          h="100%" 
+        {/* Loading Overlay */}
+        <LoadingOverlay
+          pos="fixed"
+          visible={loading}
+          zIndex={1000}
+          h="100%"
         />
 
         {/* Tabs */}
@@ -748,12 +714,12 @@ useEffect(() => {
         >
 
           <Tabs.List grow={false} style={{ width: '100%', display: 'flex', gap: isMobile ? '8px' : '12px' }}>
-            <Tabs.Tab 
-              value="brand" 
-              style={{ 
-                flex: '1 1 0', 
+            <Tabs.Tab
+              value="brand"
+              style={{
+                flex: '1 1 0',
                 minWidth: 0,
-                border: searchType === 'brand' ? '1px solid #093572' : '1px solid #e0e0e0',
+                border: searchType === 'brand' ? '1px solid #093572' : '1px solid #093572',
                 borderRadius: '6px',
                 backgroundColor: searchType === 'brand' ? '#093572' : 'white',
                 color: searchType === 'brand' ? 'white' : '#333',
@@ -761,13 +727,13 @@ useEffect(() => {
             >
               {isMobile ? "برند" : "برند"}
             </Tabs.Tab>
-            
-            <Tabs.Tab 
-              value="category" 
-              style={{ 
-                flex: '1 1 0', 
+
+            <Tabs.Tab
+              value="category"
+              style={{
+                flex: '1 1 0',
                 minWidth: 0,
-                border: searchType === 'category' ? '1px solid #093572' : '1px solid #e0e0e0',
+                border: searchType === 'category' ? '1px solid #093572' : '1px solid #093572',
                 borderRadius: '6px',
                 backgroundColor: searchType === 'category' ? '#093572' : 'white',
                 color: searchType === 'category' ? 'white' : '#333',

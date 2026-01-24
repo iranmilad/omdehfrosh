@@ -31,9 +31,15 @@ export const getSingleProductById = async (req, res) => {
     }).limit(10);
 
     // Convert to plain object and remove unwanted fields recursively
-    const productObj = singleProduct.toObject();
+    // Use toObject with getters to ensure dates are properly handled
+    const productObj = singleProduct.toObject({ 
+      getters: true,
+      virtuals: false 
+    });
     const cleanedProduct = removeUnwantedFields(productObj);
-    const cleanedRelatedProducts = relatedProducts.map(p => removeUnwantedFields(p.toObject()));
+    const cleanedRelatedProducts = relatedProducts.map(p => 
+      removeUnwantedFields(p.toObject({ getters: true, virtuals: false }))
+    );
 
     res.json({
       ...cleanedProduct,
@@ -47,13 +53,63 @@ export const getSingleProductById = async (req, res) => {
 
 // Helper function to recursively remove unwanted fields
 function removeUnwantedFields(obj) {
+  // Handle null or undefined
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  // Handle Date objects - convert to ISO string
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
+  
+  // Handle MongoDB extended JSON date format: { "$date": { "$numberLong": "..." } }
+  // This format can appear when data is imported or exported
+  if (obj && typeof obj === 'object' && obj.$date) {
+    try {
+      if (obj.$date.$numberLong !== undefined) {
+        const timestamp = parseInt(obj.$date.$numberLong);
+        if (!isNaN(timestamp)) {
+          return new Date(timestamp).toISOString();
+        }
+      } else if (obj.$date instanceof Date) {
+        return obj.$date.toISOString();
+      } else if (typeof obj.$date === 'string') {
+        const date = new Date(obj.$date);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString();
+        }
+      } else if (typeof obj.$date === 'number') {
+        const date = new Date(obj.$date);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString();
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing date from MongoDB format:', error);
+      return null;
+    }
+  }
+  
+  // Handle empty objects - check if it's a special_offer field that should be null
+  // Empty objects in special_offer should be treated as null
+  if (obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0) {
+    // Check if this might be a date field that got corrupted
+    // If it's an empty object, return null (will be filtered out if needed)
+    return null;
+  }
+  
   if (Array.isArray(obj)) {
     return obj.map(item => removeUnwantedFields(item));
   } else if (obj !== null && typeof obj === 'object') {
     const newObj = {};
     for (const key in obj) {
       if (key !== '_id' && key !== '__v' && key !== 'ICPrice') {
-        newObj[key] = removeUnwantedFields(obj[key]);
+        const value = removeUnwantedFields(obj[key]);
+        // Only add non-null values (unless it's explicitly null in the data)
+        if (value !== undefined) {
+          newObj[key] = value;
+        }
       }
     }
     return newObj;

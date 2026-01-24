@@ -1,7 +1,8 @@
-import { FreeMode } from 'swiper/modules';
+import { useRef, useState } from 'react';
+import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { useEffect } from 'react';
 import { useCategoryRowSelection } from '../../CategoryRowSelectionContext';
+import SliderArrows from '../SliderArrows';
 
 // Default SVG image for categories when image is null or empty
 const DEFAULT_CATEGORY_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
@@ -32,6 +33,9 @@ const SliderComponentCategoriesCMFastEdit = ({
 
   const { checkedRows } = useCategoryRowSelection();
   const isSlideSelectionActive = checkedRows.size > 0;
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+  const [swiperState, setSwiperState] = useState({ isBeginning: true, isEnd: true });
 
   // Early return with helpful message
   if (!items) {
@@ -69,13 +73,34 @@ const SliderComponentCategoriesCMFastEdit = ({
   const allSelected = allCategoryIds.length > 0 && allCategoryIds.every(id => filterCategoryStorage.includes(id));
 
   return (
-    <Swiper 
-      modules={[FreeMode]} 
-      slidesPerView="auto" 
-      spaceBetween={8}
-      className="mt-2"
-      style={{ width: "100%" }}
-    >
+    <div style={{ position: 'relative', width: '100%' }}>
+      <Swiper
+        modules={[FreeMode, Navigation]}
+        slidesPerView="auto"
+        spaceBetween={8}
+        className="mt-2"
+        style={{ width: "100%" }}
+        navigation={{
+          prevEl: prevRef.current,
+          nextEl: nextRef.current,
+        }}
+        onBeforeInit={(swiper) => {
+          swiper.params.navigation.prevEl = prevRef.current;
+          swiper.params.navigation.nextEl = nextRef.current;
+        }}
+        onSwiper={(swiper) => {
+          setSwiperState({ isBeginning: swiper.isBeginning, isEnd: swiper.isEnd });
+        }}
+        onProgress={(swiper) => {
+          setSwiperState({ isBeginning: swiper.isBeginning, isEnd: swiper.isEnd });
+        }}
+        onReachBeginning={() => {
+          setSwiperState(prev => ({ ...prev, isBeginning: true }));
+        }}
+        onReachEnd={() => {
+          setSwiperState(prev => ({ ...prev, isEnd: true }));
+        }}
+      >
       {/* Category items */}
       {items.map((item, index) => {
         return (
@@ -100,39 +125,9 @@ const SliderComponentCategoriesCMFastEdit = ({
         );
       })}
 
-      {/* Select All Button */}
-      <SwiperSlide style={{ width: "auto", display: "flex", margin: 0, padding: 0 }}>
-        <button
-          className={`flex items-center justify-center whitespace-nowrap
-            ${isSlideSelectionActive ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-          style={{
-            height: '40px',
-            paddingTop: '4px',
-            paddingBottom: '4px',
-            paddingLeft: '8px',
-            paddingRight: '8px',
-            backgroundColor: 'rgb(247, 247, 248)',
-            borderRadius: '100px',
-            border: allSelected 
-              ? '0.666667px solid rgb(9, 54, 114)' 
-              : '0.666667px solid rgb(250, 250, 250)',
-            fontSize: '16px',
-            fontWeight: allSelected ? 700 : 400,
-            color: 'rgb(77, 80, 83)',
-            gap: '8px',
-            flexDirection: 'row'
-          }}
-          onClick={() => {
-            if (!isSlideSelectionActive) handleSelectAll();
-          }}
-          disabled={isSlideSelectionActive}
-        >
-          <span className="leading-none">
-            انتخاب همه
-          </span>
-        </button>
-      </SwiperSlide>
-    </Swiper>
+      </Swiper>
+      {items && items.length > 0 && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={swiperState.isBeginning} isEnd={swiperState.isEnd} />}
+    </div>
   );
 };
 
@@ -214,19 +209,20 @@ export function SingleCategoryGroupCM({
           }}
           onClick={() => onClick(parentItem)}
         >
-          <div 
+          <div
             className='rounded-full overflow-hidden flex-shrink-0'
-            style={{ 
-              width: '24px', 
+            style={{
+              width: '24px',
               height: '24px',
-              lineHeight: 0
+              lineHeight: 0,
+              marginRight: 0
             }}
           >
-            <img 
-              className="w-full inline-block" 
-              style={{ objectFit: 'cover', width: '24px', height: '24px' }}
-              src={getCategoryImageSrc(parentItem.image)} 
-              alt={parentItem.title} 
+            <img
+              className="w-full inline-block"
+              style={{ objectFit: 'cover', width: '24px', height: '24px', marginRight: 0 }}
+              src={getCategoryImageSrc(parentItem.image)}
+              alt={parentItem.title}
               onError={handleImageError}
               width="24"
               height="24"

@@ -1,0 +1,174 @@
+[
+	{
+		"name": "COD Payment - Get Link",
+		"event": [
+			{
+				"listen": "test",
+				"script": {
+					"exec": [
+						"// Save link and message for COD payment",
+						"if (pm.response.code === 200) {",
+						"    const response = pm.response.json();",
+						"    if (response.link && response.message) {",
+						"        pm.environment.set(\"cod_link\", response.link);",
+						"        pm.environment.set(\"cod_message\", response.message);",
+						"        console.log(\"✅ COD Payment Response:\", response);",
+						"        console.log(\"📄 Message:\", response.message);",
+						"        console.log(\"🔗 Redirect Link:\", response.link);",
+						"    }",
+						"}"
+					],
+					"type": "text/javascript"
+				}
+			}
+		],
+		"request": {
+			"method": "POST",
+			"header": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"type": "text"
+				},
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"type": "text"
+				}
+			],
+			"body": {
+				"mode": "raw",
+				"raw": "{\n  \"order_id\": \"order_12345678-abcd-1234-abcd-123456789012\",\n  \"geteway\": \"cod\"\n}",
+				"options": {
+					"raw": {
+						"language": "json"
+					}
+				}
+			},
+			"url": {
+				"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+				"host": [
+					"{{base_url}}"
+				],
+				"path": [
+					"api",
+					"universal-payment",
+					"get-payment-link"
+				]
+			},
+			"description": "Create COD (Cash on Delivery) payment. Backend processes immediately, marks order as paid with payment_type='cod', and returns { link, message } for display. No gateway redirect - payment is processed directly."
+		},
+		"response": []
+	},
+	{
+		"name": "Wallet Payment from Order - Get Link",
+		"event": [
+			{
+				"listen": "test",
+				"script": {
+					"exec": [
+						"// Save link and message for wallet payment from order",
+						"if (pm.response.code === 200) {",
+						"    const response = pm.response.json();",
+						"    if (response.link && response.message) {",
+						"        pm.environment.set(\"wallet_order_link\", response.link);",
+						"        pm.environment.set(\"wallet_order_message\", response.message);",
+						"        console.log(\"✅ Wallet Payment from Order Response:\", response);",
+						"        console.log(\"📄 Message:\", response.message);",
+						"        console.log(\"🔗 Redirect Link:\", response.link);",
+						"    }",
+						"}",
+						"",
+						"// Test for insufficient balance",
+						"if (pm.response.code === 400) {",
+						"    const response = pm.response.json();",
+						"    console.log(\"❌ Error Response:\", response);",
+						"    if (response.message && response.message.includes('موجودی')) {",
+						"        console.log(\"⚠️ Insufficient wallet balance\");",
+						"    }",
+						"}"
+					],
+					"type": "text/javascript"
+				}
+			}
+		],
+		"request": {
+			"method": "POST",
+			"header": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"type": "text"
+				},
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"type": "text"
+				}
+			],
+			"body": {
+				"mode": "raw",
+				"raw": "{\n  \"order_id\": \"order_12345678-abcd-1234-abcd-123456789012\",\n  \"geteway\": \"wallet\"\n}",
+				"options": {
+					"raw": {
+						"language": "json"
+					}
+				}
+			},
+			"url": {
+				"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+				"host": [
+					"{{base_url}}"
+				],
+				"path": [
+					"api",
+					"universal-payment",
+					"get-payment-link"
+				]
+			},
+			"description": "Pay order from wallet balance. Backend checks wallet balance, deducts amount, marks order as paid with payment_type='wallet', and returns { link, message } for display. No gateway redirect - payment is processed directly from wallet."
+		},
+		"response": []
+	},
+	{
+		"name": "Wallet Payment from Order - Insufficient Balance",
+		"request": {
+			"method": "POST",
+			"header": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"type": "text"
+				},
+				{
+					"key": "Authorization",
+					"value": "Bearer {{token}}",
+					"type": "text"
+				}
+			],
+			"body": {
+				"mode": "raw",
+				"raw": "{\n  \"order_id\": \"order_with_high_amount_that_exceeds_wallet_balance\",\n  \"geteway\": \"wallet\"\n}",
+				"options": {
+					"raw": {
+						"language": "json"
+					}
+				}
+			},
+			"url": {
+				"raw": "{{base_url}}/api/universal-payment/get-payment-link",
+				"host": [
+					"{{base_url}}"
+				],
+				"path": [
+					"api",
+					"universal-payment",
+					"get-payment-link"
+				]
+			},
+			"description": "Error test: Wallet payment with insufficient balance. Should return 400 Bad Request with message about insufficient balance."
+		},
+		"response": []
+	}
+]
+

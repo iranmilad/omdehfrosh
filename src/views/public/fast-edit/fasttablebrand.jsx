@@ -7,7 +7,11 @@ import usePrint from "../../../hooks/usePrint";
 import { Attributes } from "../fast-edit/orderRow";
 import EditItemsFastOrder from "./edit-items";
 
+
+
 const { Text, Link } = Typography;
+
+
 
 const FastTableBrandFastEdit = ({ 
   nodes, 

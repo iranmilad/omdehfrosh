@@ -20,12 +20,13 @@ import {
 } from "@tabler/icons-react";
 import PriceText from "../priceText";
 import { useEffect, useState } from "react";
-import { useDisclosure, useElementSize } from "@mantine/hooks";
+import { useDisclosure, useElementSize, useMediaQuery } from "@mantine/hooks";
 import { useSend } from "../../Libs/api";
 import { notifications } from "@mantine/notifications";
 import { NavLink } from "react-router";
 import ProductPrice from "../ProductPrice";
 import { useSelector } from "react-redux";
+import ImageIcon from "../../resources/defaultImageIcon";
 
 function ProductBoxCompare({
   id,
@@ -43,19 +44,62 @@ function ProductBoxCompare({
 
   const compare = useSelector((state) => state.compare.items);
 
-
   const isProductInCompare = compare.some(group => group.items.includes(id));
   
   const { colors } = useMantineTheme();
   const { ref, width } = useElementSize();
+  const [imageError, setImageError] = useState(false);
+  const isSmallScreen = useMediaQuery('(max-width: 640px)');
+  const isMediumScreen = useMediaQuery('(max-width: 768px)');
+  
+  // Calculate responsive icon size
+  const getIconSize = () => {
+    if (isSmallScreen) return 36;
+    if (isMediumScreen) return 42;
+    return 48;
+  };
+
+  // Check if image is valid
+  const isImageValid = () => {
+    if (!image || 
+        image === "" || 
+        image === null || 
+        image === undefined ||
+        (Array.isArray(image) && image.length === 0) ||
+        (Array.isArray(image) && image.every(img => !img || img === ""))) {
+      return false;
+    }
+    // If it's an array, check if the first element is valid
+    if (Array.isArray(image)) {
+      return image[0] && image[0] !== "";
+    }
+    return true;
+  };
+
+  // Get valid image source
+  const getValidImageSrc = () => {
+    if (!isImageValid()) {
+      return null;
+    }
+    // If it's an array, use the first valid image
+    if (Array.isArray(image)) {
+      return image.find(img => img && img !== "") || null;
+    }
+    return image;
+  };
+
+  // Reset image error when image changes
+  useEffect(() => {
+    setImageError(false);
+  }, [image]);
 
   return (
     <Paper
       ref={ref}
       shadow="sm"
-      px="25"
-      pb="lg"
-      pt="40"
+      px={{ base: "xs", sm: "md", md: "lg", lg: "xl" }}
+      pb={{ base: "sm", md: "lg" }}
+      pt={{ base: "md", sm: "lg", md: "xl" }}
       pos="relative"
       display="flex"
       style={{ flexDirection: "column" }}
@@ -64,18 +108,38 @@ function ProductBoxCompare({
       {!skeleton ? (
         <>
           <Box component={NavLink} to={`/product/${slug}`}>
-            <Image
-              className="hover:scale-105 transition-transform duration-300"
-              w="100%"
-              h="150px"
-              fit="contain"
-              src={image}
-            />
+            {getValidImageSrc() && !imageError ? (
+              <Image
+                className="hover:scale-105 transition-transform duration-300"
+                w="100%"
+                h={{ base: "120px", sm: "140px", md: "150px", lg: "160px" }}
+                fit="contain"
+                src={getValidImageSrc()}
+                onError={() => {
+                  setImageError(true);
+                }}
+              />
+            ) : (
+              <Box
+                w="100%"
+                h={{ base: "120px", sm: "140px", md: "150px", lg: "160px" }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#f8f9fa',
+                  border: '1px solid #e9ecef',
+                  borderRadius: '4px'
+                }}
+              >
+                <ImageIcon size={getIconSize()} color="#6B7280" />
+              </Box>
+            )}
           </Box>
-          <Box my="lg">
+          <Box my={{ base: "sm", md: "lg" }}>
             <Text
               fw="600"
-              size="sm"
+              fz={{ base: "xs", sm: "sm", md: "sm" }}
               component={NavLink}
               to={`/product/${slug}`}
               style={{
@@ -90,15 +154,28 @@ function ProductBoxCompare({
               {title}
             </Text>
           </Box>
-          <Flex justify="space-between" align="end" mt="auto">
-            <Button component={NavLink} to={`/product/${slug}`}>
-              {width < 240 ? <IconEye size={20} /> : "مشاهده محصول"}
+          <Flex 
+            justify="space-between" 
+            align="end" 
+            mt="auto"
+            direction={{ base: "column", sm: "row" }}
+            gap={{ base: "sm", sm: "md" }}
+          >
+            <Button 
+              component={NavLink} 
+              to={`/product/${slug}`}
+              size={isSmallScreen ? "xs" : "sm"}
+              fullWidth={{ base: true, sm: false }}
+            >
+              {width < 240 ? <IconEye size={18} /> : "مشاهده محصول"}
             </Button>
-            <ProductPrice 
-              regularPrice={regularPrice} 
-              discountPercent={discountPercent} 
-              discountedPrice={discountedPrice} 
-            />
+            <Box style={{ flexShrink: 0 }}>
+              <ProductPrice 
+                regularPrice={regularPrice} 
+                discountPercent={discountPercent} 
+                discountedPrice={discountedPrice} 
+              />
+            </Box>
           </Flex>
         </>
       ) : (
@@ -122,9 +199,11 @@ function ProductBoxCompare({
         </>
       )}
       <Button 
-        mt="md" 
+        mt={{ base: "sm", md: "md" }}
         onClick={() => onSelectProduct(id)} 
-        color={isProductInCompare ? "red" : "blue"} // Red for حذف, blue for افزودن
+        color={isProductInCompare ? "red" : "blue"}
+        size={isSmallScreen ? "xs" : "sm"}
+        fullWidth
       >
         {isProductInCompare ? "حذف" : "افزودن به مقایسه"}
       </Button>

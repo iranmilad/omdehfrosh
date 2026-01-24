@@ -29,7 +29,7 @@ const AddressSchema = new mongoose.Schema({
   },
   nationalCode: {
     type: String,
-    required: [true, "National code is required"],
+    required: false, // Made optional
     trim: true,
   },
   // Location information

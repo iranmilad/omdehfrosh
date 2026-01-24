@@ -1,3 +1,5 @@
+// H:\projects\React\j2b.market\src\views\public\payment-method\index.jsx
+
 import {
   Grid,
   GridCol,

@@ -38,9 +38,10 @@ import MobileSearch from "../mobileSearch";
 import MiniCart from "../miniCart";
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { setInitial, clearCart } from "../../redux/cart";
-import { logout, verifyTokenSilent } from "../../redux/auth/authusers/auth";
+import { logout, getUserInitialData } from "../../redux/auth/authusers/auth";
 import Notifications from "../notifications";
 import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
+import { updateNotificationCount } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberSlice";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import { ChevronDown, ChevronLeft, LucideChevronDownCircle, LucideChevronDownSquare, MessageCircle } from "lucide-react";
 import ImageIcon from "../../resources/defaultImageIcon";
@@ -70,6 +71,16 @@ const Header = () => {
   const [isSticky, setIsSticky] = useState(false);
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
+  
+  // Initialize scroll position on mount
+  useEffect(() => {
+    const initialScrollY = window.scrollY;
+    lastScrollY.current = initialScrollY;
+    // Show bottom nav if already scrolled down on page load
+    if (initialScrollY > 5) {
+      setShowBottomNav(true);
+    }
+  }, []);
 
   const [cartData, setCartData] = useState({ cart: [], totalPrice: 0 });
   const [isLoadingCart, setIsLoadingCart] = useState(false);
@@ -127,59 +138,146 @@ const Header = () => {
   }, [dispatch]);
 
   const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
+    // Get scroll position from window or document
+    const currentScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
     if (!ticking.current) {
       requestAnimationFrame(() => {
         const newIsSticky = currentScrollY > 0;
-        let newShowBottomNav = showBottomNav;
+        let newShowBottomNav = false;
         
-        if (currentScrollY < 10) {
+        // Hide nav only when at the very top
+        if (currentScrollY < 5) {
           newShowBottomNav = false;
-        } else if (currentScrollY > lastScrollY.current + 5) {
+        } else if (currentScrollY > lastScrollY.current + 3) {
+          // Scrolling down - show nav
           newShowBottomNav = true;
-        } else if (currentScrollY < lastScrollY.current - 5) {
+        } else if (currentScrollY < lastScrollY.current - 3) {
+          // Scrolling up - hide nav
           newShowBottomNav = false;
+        } else {
+          // No significant scroll change - show nav if already scrolled down
+          newShowBottomNav = currentScrollY > 5;
         }
         
         setIsSticky(prev => prev !== newIsSticky ? newIsSticky : prev);
-        setShowBottomNav(prev => prev !== newShowBottomNav ? newShowBottomNav : prev);
+        setShowBottomNav(newShowBottomNav);
         
         lastScrollY.current = currentScrollY;
         ticking.current = false;
       });
       ticking.current = true;
     }
-  }, [showBottomNav]);
+  }, []);
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Listen to scroll on window (primary)
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    
+    // Also listen on document for better compatibility
+    document.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    
+    // Listen on document.body as well
+    document.body.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    
+    // Also check scroll position periodically to catch any missed events
+    const intervalId = setInterval(() => {
+      const currentScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      if (Math.abs(currentScrollY - lastScrollY.current) > 2) {
+        handleScroll();
+      }
+    }, 150);
+    
+    // Initial check
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, { capture: true });
+      document.removeEventListener('scroll', handleScroll, { capture: true });
+      document.body.removeEventListener('scroll', handleScroll, { capture: true });
+      clearInterval(intervalId);
+    };
   }, [handleScroll]);
 
+  // Combined request: fetch user verification + cart + notifications in ONE API call
   useEffect(() => {
-    dispatch(verifyTokenSilent());
+    const fetchData = async () => {
+      const token = localStorage.getItem("user");
+
+      if (!token) {
+        setCartData({ cart: [], totalPrice: 0 });
+        dispatch(setInitial([]));
+        return;
+      }
+
+      setIsLoadingCart(true);
+
+      try {
+        const result = await dispatch(getUserInitialData());
+
+        if (result.type === 'auth/getUserInitialData/fulfilled' && result.payload) {
+          const data = result.payload;
+
+          // Update cart state
+          const newCartData = {
+            cart: data.cart || [],
+            totalPrice: data.total || 0
+          };
+          setCartData(newCartData);
+
+          // Always update Redux cart state (even if empty after payment)
+          dispatch(setInitial(newCartData.cart));
+
+          // Update notifications state
+          dispatch(updateNotificationCount(data.notificationsCount || 0));
+        } else {
+          setCartData({ cart: [], totalPrice: 0 });
+          dispatch(setInitial([]));
+        }
+      } catch (error) {
+        console.error("Failed to fetch user initial data:", error);
+        setCartData({ cart: [], totalPrice: 0 });
+        dispatch(setInitial([]));
+      } finally {
+        setIsLoadingCart(false);
+      }
+    };
+
+    fetchData();
   }, [dispatch]);
 
+  // Refetch cart data when returning from payment
+  const prevLocationRef = useRef(location.pathname);
   useEffect(() => {
-    if (user && isVerified) {
-      dispatch(getNotificationNumber({ forceRefresh: true }));
-    }
-  }, [dispatch, user, isVerified]);
+    const prevPath = prevLocationRef.current;
+    const currentPath = location.pathname;
 
-  useEffect(() => {
-    if (user && isVerified) {
-      fetchCartData();
-    } else {
-      setCartData({ cart: [], totalPrice: 0 });
+    // If we just left the payment-listener page, refetch cart data
+    if (prevPath === '/payment-listener' && currentPath !== '/payment-listener') {
+      const token = localStorage.getItem("user");
+      if (token) {
+        dispatch(getUserInitialData()).then((result) => {
+          if (result.type === 'auth/getUserInitialData/fulfilled' && result.payload) {
+            const data = result.payload;
+            const newCartData = {
+              cart: data.cart || [],
+              totalPrice: data.total || 0
+            };
+            setCartData(newCartData);
+            dispatch(setInitial(newCartData.cart));
+            dispatch(updateNotificationCount(data.notificationsCount || 0));
+          }
+        });
+      }
     }
-  }, [user, isVerified, fetchCartData]);
+
+    prevLocationRef.current = currentPath;
+  }, [location.pathname, dispatch]);
 
   const Logout = useCallback(async () => {
-    localStorage.removeItem("user"); 
+    localStorage.removeItem("user");
     dispatch(logout());
     dispatch(clearCart());
     setCartData({ cart: [], totalPrice: 0 });
-    await dispatch(verifyTokenSilent());
     navigate("/");
   }, [dispatch, navigate]);
 
@@ -224,7 +322,7 @@ const Header = () => {
           zIndex: 1000,
           width: '100%',
           maxWidth: '100vw',
-          overflow: 'hidden'
+          marginBottom: '8px'
         }} 
         id="header"
       >
@@ -233,16 +331,14 @@ const Header = () => {
           style={{ 
             zIndex: 1000,
             width: '100%',
-            maxWidth: '100%',
-            overflow: 'hidden'
+            maxWidth: '100%'
           }}
         >
           <Container 
             px={{ base: 'xs', sm: 'md' }}
             style={{
               width: '100%',
-              maxWidth: '100%',
-              overflow: 'hidden'
+              maxWidth: '100%'
             }}
           >
             <Flex 
@@ -251,8 +347,7 @@ const Header = () => {
               gap={{ base: 4, sm: 8 }}
               style={{
                 width: '100%',
-                maxWidth: '100%',
-                overflow: 'hidden'
+                maxWidth: '100%'
               }}
             >
               {/* Left Flex: Logo, Search, and Categories */}
@@ -261,8 +356,7 @@ const Header = () => {
                 gap={{ base: 4, sm: 8 }} 
                 style={{ 
                   minWidth: 0,
-                  flex: 1,
-                  overflow: 'hidden'
+                  flex: 1
                 }}
               >
                 {/* Logo - Reduced sizes */}
@@ -317,12 +411,26 @@ const Header = () => {
                 {/* Category Menu - Shows at 600px and above */}
                 {showCategoryMenu && (
                   <Box style={{ flexShrink: 0 }}>
-                    <Menu shadow="md" position="bottom-end" trigger="hover" openDelay={100} closeDelay={200}
-                      styles={{ dropdown: { minWidth: 192, padding: "15px", maxHeight: '500px', overflowY: 'auto', zIndex: 1001 } }}
+                    <Menu 
+                      shadow="md" 
+                      position="bottom" 
+                      trigger="hover" 
+                      openDelay={100} 
+                      closeDelay={200}
+                      offset={5}
+                      styles={{ 
+                        dropdown: { 
+                          minWidth: 192, 
+                          padding: "15px", 
+                          maxHeight: '500px', 
+                          overflowY: 'auto', 
+                          zIndex: 1001
+                        } 
+                      }}
                       >
                       <MenuTarget>
                         <Flex align="center" gap={2} dir="rtl" style={{ cursor: 'pointer' }}>
-                          <span style={{ fontSize: "13px", color: "#1a1a1a", whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: "14px", color: "#1a1a1a", whiteSpace: 'nowrap' }}>
                             دسته‌بندی‌ها
                           </span>
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="#4A4A4A">
@@ -544,13 +652,17 @@ const Header = () => {
         </div>
       </div>
 
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
-        transform: `translateY(${showBottomNav ? '0px' : '100px'})`,
-        transition: 'transform 0.3s ease-in-out', willChange: 'transform'
-      }}>
+      <Box
+        hiddenFrom="md"
+        style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
+          transform: `translateY(${showBottomNav ? '0px' : '100px'})`,
+          transition: 'transform 0.3s ease-in-out', willChange: 'transform',
+          pointerEvents: showBottomNav ? 'auto' : 'none'
+        }}
+      >
         <BottomNavigation category={mobileMenuDrawer[1].toggle} basket={open} search={mobileSearchDrawer[1].toggle} user={user} />
-      </div>
+      </Box>
       
       <MobileSearch 
         opened={mobileSearchDrawer[0]} 

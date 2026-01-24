@@ -194,8 +194,6 @@ const CounterSellers = (props) => {
   const [price, setPrice] = useState(undefined);
 
   // Replace hook state with regular state
-  const [cartData, setCartData] = useState({ cart: [], totalPrice: 0 });
-  const [isLoading, setIsLoading] = useState(true);
   const [isPending, setIsPending] = useState(false);
 
   // Authentication state
@@ -211,27 +209,6 @@ const CounterSellers = (props) => {
     // Base width + additional width per digit
     return Math.max(35, 20 + (5 * 7));
   };
-
-  // Load cart data function
-  const loadCartData = async () => {
-    setIsLoading(true);
-    try {
-      const result = await cartAPI.getCart();
-      setCartData(result);
-      if (result.cart && result.cart.length > 0) {
-        dispatch(setInitial([...result.cart]));
-      }
-    } catch (error) {
-      console.error("Failed to load cart data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load cart data on component mount
-  useEffect(() => {
-    loadCartData();
-  }, []);
 
   const findMatchingCombination = (productId, options, combinations) => {
     if (!Array.isArray(options) || !Array.isArray(combinations)) return null;
@@ -390,9 +367,8 @@ const CounterSellers = (props) => {
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
-        setCartData(result);
       } else {
-        throw new Error("Failed to fetch cart data");              
+        throw new Error("Failed to fetch cart data");
       }
     } catch (error) {
       console.error("Failed to update cart:", error);
@@ -426,7 +402,6 @@ const CounterSellers = (props) => {
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
-        setCartData(result);
       }
     } catch (error) {
       console.error("Failed to remove from cart:", error);
@@ -630,11 +605,11 @@ const CounterSellers = (props) => {
         <Text>لطفا وارد حساب کاربری شوید</Text>
       </Modal>
 
-      <LoadingOverlay 
-        pos="fixed" 
-        visible={isPending || isLoading} 
-        zIndex={1000} 
-        h="100%" 
+      <LoadingOverlay
+        pos="fixed"
+        visible={isPending}
+        zIndex={1000}
+        h="100%"
         w="100%"
         top={0}
         left={0}

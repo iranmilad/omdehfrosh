@@ -16,11 +16,19 @@ const Filters = React.memo(({ isFetching, data, slug, changeFilters, getCategory
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
     setPage(1);
+    // Close drawer on mobile when search changes
+    if (filterDisclosure && filterDisclosure[0]) {
+      filterDisclosure[1].close();
+    }
   };
 
   const handlePriceChange = (updatedPrice) => {
     form.setFieldValue("price", updatedPrice);
     setPage(1);
+    // Close drawer on mobile when price changes
+    if (filterDisclosure && filterDisclosure[0]) {
+      filterDisclosure[1].close();
+    }
   };
 
   const handleFilterChange = (filterKey, optionValue, checked) => {
@@ -29,10 +37,18 @@ const Filters = React.memo(({ isFetching, data, slug, changeFilters, getCategory
       ? [...currentValues, optionValue]
       : currentValues.filter((val) => val !== optionValue);
     handleDynamicChange(filterKey, updatedValues);
+    // Close drawer on mobile when filter changes
+    if (filterDisclosure && filterDisclosure[0]) {
+      filterDisclosure[1].close();
+    }
   };
 
   const submitFilters = () => {
-      dispatch(getCategoryData({slug: slug, filters: changeFilters}))
+      dispatch(getCategoryData({slug: slug, filters: changeFilters}));
+      // Close drawer when filter button is clicked
+      if (filterDisclosure && filterDisclosure[0]) {
+        filterDisclosure[1].close();
+      }
   }
 
   return (
@@ -54,6 +70,7 @@ const Filters = React.memo(({ isFetching, data, slug, changeFilters, getCategory
         priceSliderMin={100}
         priceSliderMax={200000}
         onPriceChange={handlePriceChange}
+        filterDisclosure={filterDisclosure}
       />
 
       {dynamicFilters.map((filter, index) => (
@@ -97,6 +114,7 @@ const Filters = React.memo(({ isFetching, data, slug, changeFilters, getCategory
           priceSliderMin={100}
           priceSliderMax={200000}
           onPriceChange={handlePriceChange}
+          filterDisclosure={filterDisclosure}
         />
 
         {dynamicFilters.map((filter, index) => (
