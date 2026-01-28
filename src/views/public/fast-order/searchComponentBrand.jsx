@@ -617,6 +617,8 @@ useEffect(() => {
           backgroundOpacity: 0,
           blur: 0,
         }}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Text mb="md">
           زمان حضور شما منقضی شده است

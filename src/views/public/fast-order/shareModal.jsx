@@ -42,6 +42,8 @@ function ShareModal(filters) {
         title="اشتراک گذاری محصولات شما"
         onClose={close}
         opened={opened}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         {isLoading ? (
           <Center>

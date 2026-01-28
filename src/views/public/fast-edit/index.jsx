@@ -880,6 +880,8 @@ function FastEdit() {
         withCloseButton={false}
         closeOnClickOutside={false}
         zIndex={50}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Stack>
           <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>

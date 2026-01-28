@@ -497,6 +497,8 @@ useEffect(() => {
 
   return (
     <>
+      <RotateModal isPortrait={isPortrait} />
+
       <Box ref={containerRef} style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
         <RowSelectionProvider>
           {/* ✅ Wrap brand mode in BrandRowSelectionProvider */}
@@ -668,6 +670,8 @@ useEffect(() => {
                         padding: 0,
                       }
                     }}
+                    lockScroll={false}
+                    removeScrollBar={false}
                   >
                     <Stack gap="sm" pb="xs">
                       {updatedColumns.map((column) => (
@@ -853,6 +857,8 @@ useEffect(() => {
                         padding: 0,
                       }
                     }}
+                    lockScroll={false}
+                    removeScrollBar={false}
                   >
                     <Stack gap="sm" pb="xs">
                       {updatedColumns.map((column) => (

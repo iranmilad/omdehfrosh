@@ -79,6 +79,8 @@ function ColumnVisibilityManager({
             padding: 0,
           }
         }}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Stack gap="sm" pb="xs">
           {columns.map((column) => (

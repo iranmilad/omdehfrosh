@@ -317,30 +317,27 @@ const Header = () => {
       )}
       
       <div 
-        className={`${(isFastOrderPage || isFastEditPage) ? '' : 'sticky top-0'} bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} 
+        className={`${(isFastOrderPage || isFastEditPage) ? '' : 'fixed top-0 left-0 right-0'} bg-white transition-shadow duration-300 ${isSticky ? 'shadow-md' : 'shadow-sm'}`} 
         style={{ 
           zIndex: 1000,
           width: '100%',
           maxWidth: '100vw',
-          marginBottom: '8px'
+          height: '68px',
+          display: 'flex',
+          alignItems: 'center',
+          transform: isSmallScreen && showBottomNav ? 'translateY(-100%)' : 'translateY(0)',
+          transition: 'transform 0.25s ease-out'
         }} 
         id="header"
       >
-        <div 
-          className="relative gap-x-4 bg-white py-1 sm:py-2" 
-          style={{ 
-            zIndex: 1000,
+        <Box
+          px={{ base: 'xs', sm: 'md' }}
+          style={{
             width: '100%',
-            maxWidth: '100%'
+            maxWidth: '1336px',
+            margin: '0 auto'
           }}
         >
-          <Container 
-            px={{ base: 'xs', sm: 'md' }}
-            style={{
-              width: '100%',
-              maxWidth: '100%'
-            }}
-          >
             <Flex 
               justify="space-between" 
               align="center" 
@@ -360,7 +357,7 @@ const Header = () => {
                 }}
               >
                 {/* Logo - Reduced sizes */}
-                  <Box style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "40px", sm: "80px", md: "120px" }}>
+                  <Box visibleFrom="md" style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "40px", sm: "80px", md: "120px" }}>
                     <Anchor component={NavLink} to="/">
                       {loadingBootstrap ? (
                         <Skeleton h={{ base: 28, sm: 36, md: 42 }} w="100%" />
@@ -394,7 +391,7 @@ const Header = () => {
                     flex: 1,
                     minWidth: 0,
                     maxWidth: '100%',
-                    marginRight: '20px',
+                    marginRight: '8px',
                     cursor: window.innerWidth <= 768 ? 'pointer' : 'default',
                     overflow: 'visible',
                     zIndex: 1000
@@ -413,24 +410,25 @@ const Header = () => {
                   <Box style={{ flexShrink: 0 }}>
                     <Menu 
                       shadow="md" 
-                      position="bottom" 
+                      position="bottom-start" 
                       trigger="hover" 
                       openDelay={100} 
                       closeDelay={200}
-                      offset={5}
+                      offset={28}
                       styles={{ 
                         dropdown: { 
                           minWidth: 192, 
-                          padding: "15px", 
+                          padding: "8px", 
                           maxHeight: '500px', 
                           overflowY: 'auto', 
-                          zIndex: 1001
+                          zIndex: 1001,
+                          top: 'calc(68px + 10px)'
                         } 
                       }}
                       >
                       <MenuTarget>
                         <Flex align="center" gap={2} dir="rtl" style={{ cursor: 'pointer' }}>
-                          <span style={{ fontSize: "14px", color: "#1a1a1a", whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: "14px", color: "#1a1b1c", whiteSpace: 'nowrap', marginRight: '8px' }}>
                             دسته‌بندی‌ها
                           </span>
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="#4A4A4A">
@@ -448,26 +446,26 @@ const Header = () => {
               </Flex>
               
               {/* Right Flex: Notifications, User Icon, and Basket */}
-              <Flex 
-                gap={{ base: 6, sm: 8, md: 10 }} 
-                align="center" 
-                style={{ 
-                  flexShrink: 0, 
+              <Flex
+                gap={{ base: 4, sm: 24, md: 24 }}
+                align="flex-end"
+                style={{
+                  flexShrink: 0,
                   zIndex: 1000,
                   overflow: 'visible'
                 }}
               >
                 <Box visibleFrom="sm"><Notifications /></Box>
-                
+
                 {authLoading ? (
                   <Button h={{ base: 34, sm: 36 }} size="sm" loading>بارگذاری...</Button>
                 ) : user && isVerified ? (
 
-                    <Menu 
-                      shadow="sm" 
+                    <Menu
+                      shadow="sm"
                       position="bottom-end"
-                      styles={{ 
-                        dropdown: { 
+                      styles={{
+                        dropdown: {
                           minWidth: 200,
                           padding: 0,
                           border: '1px solid #e5e7eb',
@@ -493,26 +491,45 @@ const Header = () => {
                       }}
                     >
                       <MenuTarget>
-                        <div className="flex w-[57px] h-[42px] items-center justify-center relative grow" style={{ cursor: 'pointer' }}>
-                          <div className="flex flex-col items-center">
-                            <div className="flex">
-                              <RiUserLine style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
+                        <div style={{
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          minWidth: '50px',
+                          height: '42px',
+                          gap: '4px'
+                        }}>
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            height: '42px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px' }}>
+                              <RiUserLine style={{ width: '24px', height: '24px', color: '#6E7172'}} />
                             </div>
-                            <p className=" font-uiKit-normal text-uiKit-muted-foreground" style={{ 
+                            <p style={{
                               fontSize: '12px',
-                              lineHeight: '',
                               fontWeight: '400',
                               color: '#6E7172',
-                              margin: 0
+                              margin: 0,
+                              lineHeight: 1.2,
+                              marginTop: '2px',
+                              textAlign: 'center',
+                              width: '100%'
                             }}>
                               پروفایل
                             </p>
                           </div>
-                          <div className="flex">
-                            <svg style={{ width: '20px', height: '20px', fill: 'var(--color-icon-high-emphasis)' }} viewBox="0 0 24 24">
-                              <path d="M7 10l5 5 5-5H7z"/>
-                            </svg>
-                          </div>
+                          <svg style={{ 
+                            width: '14px', 
+                            height: '14px',
+                            fill: '#1a1a1a'
+                          }} viewBox="0 0 24 24">
+                            <path d="M6.5 9.5l5.5 5.5 5.5-5.5" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2"/>
+                          </svg>
                         </div>
                       </MenuTarget>
                       <MenuDropdown>
@@ -648,8 +665,7 @@ const Header = () => {
           >
             <MobileMenu toggle={mobileMenuDrawer[1].toggle} menu={mainMenu} />
           </Drawer>
-          </Container>
-        </div>
+        </Box>
       </div>
 
       <Box

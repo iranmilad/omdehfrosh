@@ -804,6 +804,8 @@ useEffect(() => {
             alignItems: 'center',
           },
         }}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Text mb="md">
           زمان حضور شما منقضی شده است

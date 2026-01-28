@@ -429,6 +429,8 @@ const SavedFiltersModalCategory = ({
         centered
         size={isMobile ? "sm" : "md"}
         padding={isMobile ? "sm" : "md"}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <TextInput
           label="نام فیلتر"
@@ -475,6 +477,8 @@ const SavedFiltersModalCategory = ({
         centered
         size={isMobile ? "sm" : "md"}
         padding={isMobile ? "sm" : "md"}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Stack spacing="md">
           {/* Edit Mode Badge and Actions */}

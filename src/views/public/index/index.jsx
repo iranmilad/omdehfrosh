@@ -68,7 +68,11 @@ function Home() {
   // Show content if we have data
   if (!homeData) {
     return (
-      <Container className="px-3 md:px-5 my-10">
+      <Container
+        className="px-3 md:px-5 my-10"
+        size={1336}
+        style={{ width: '100%' }}
+      >
         <Center>
           <div>هیچ اطلاعاتی موجود نیست</div>
         </Center>
@@ -81,13 +85,13 @@ function Home() {
 
 return (
   <>
-    <Container className="px-3 md:px-5 my-10">
-      <Stack gap={70}>
+    <Container className="px-3 md:px-5">
+      <Stack gap="1rem">
         {homeData?.map((section, index) => {
           switch (section.type) {
             case "wideslider":
               return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', marginTop: index === 0 ? '-40px' : '0' }}>
+                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
                   <WideSlider items={section.data} />
                 </Box>
               );

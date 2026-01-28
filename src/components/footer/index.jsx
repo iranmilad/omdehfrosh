@@ -40,8 +40,15 @@ const Footer = () => {
 
 
   return (
-    <Box className="border-t pt-10 mt-32 bg-white z-30" id="footer">
-      <Container>
+    <Box className="border-t pt-10 bg-white z-30" id="footer">
+      <Box
+        px={{ base: 'xs', sm: 'md' }}
+        style={{
+          width: '100%',
+          maxWidth: '1336px',
+          margin: '0 auto'
+        }}
+      >
         {/* Header with Logo and Scroll Button */}
         <Group justify="space-between" w="100%">
           <Stack gap="xs">
@@ -272,7 +279,7 @@ const Footer = () => {
   ))}
 </Group>
         </Group>
-      </Container>
+      </Box>
     </Box>
   );
 };

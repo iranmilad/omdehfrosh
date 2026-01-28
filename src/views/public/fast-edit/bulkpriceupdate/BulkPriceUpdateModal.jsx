@@ -169,6 +169,8 @@ useEffect(() => {
           padding: 0,
         }
       }}
+      lockScroll={false}
+      removeScrollBar={false}
     >
       <Stack gap="lg" pb="xs">
         {/* Product Count Info */}

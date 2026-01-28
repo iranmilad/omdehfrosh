@@ -136,7 +136,7 @@ const CurrencyPriceModal = ({ opened, onClose }) => {
           borderRadius: '12px',
         },
         header: {
-          backgroundColor: '#f9fafb',
+          backgroundColor: '#ffffff',
           borderBottom: '1px solid #e5e7eb',
           padding: '16px 24px',
         },
@@ -145,7 +145,8 @@ const CurrencyPriceModal = ({ opened, onClose }) => {
         },
       }}
       // Fix for screen margin issue when modal opens
-      lockScroll={true}
+      lockScroll={false}
+      removeScrollBar={false}
       trapFocus={false}
       withCloseButton={true}
     >

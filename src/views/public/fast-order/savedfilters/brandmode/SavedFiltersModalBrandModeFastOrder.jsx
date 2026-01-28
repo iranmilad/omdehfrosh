@@ -620,6 +620,8 @@ const handleEditFilter = useCallback((filter) => {
         size={isMobile ? "sm" : "md"}
         padding={isMobile ? "sm" : "md"}
         zIndex={1006}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <TextInput
           label="نام فیلتر"
@@ -668,6 +670,8 @@ const handleEditFilter = useCallback((filter) => {
         size={isMobile ? "sm" : "md"}
         padding={isMobile ? "sm" : "md"}
         zIndex={1006}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Stack spacing="md">
           {/* Edit Mode Badge and Actions */}

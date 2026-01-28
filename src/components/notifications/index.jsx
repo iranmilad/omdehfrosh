@@ -118,28 +118,41 @@ const Notifications = () => {
     return 0;
   })();
 
+  // Unified container style - matching MiniCart exactly
+  const containerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    minWidth: '50px',
+    height: '42px',
+    cursor: 'pointer'
+  };
+
+  // Text style matching MiniCart
+  const textStyle = {
+    fontSize: '12px',
+    fontWeight: '400',
+    color: '#6E7172',
+    margin: 0,
+    lineHeight: 1.2,
+    marginTop: '2px'
+  };
+
+  // Icon style
+  const iconStyle = { width: '24px', height: '24px', color: '#6E7172' };
+
   // Always render something - never return null to avoid Menu.Target issues
   // If user is not authenticated, show a simple notification icon that leads to login
   if (!user || !isVerified) {
     return (
-      <div 
-        className="flex flex-col items-center" 
-        style={{ cursor: 'pointer' }}
+      <div
+        style={containerStyle}
         onClick={() => navigate('/login')}
         title="وارد شوید تا اعلان‌ها را ببینید"
       >
-        <div className="flex">
-          <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
-        </div>
-        <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
-          fontSize: '12px',
-          lineHeight: '',
-          fontWeight: '400',
-          color: '#6E7172',
-          margin: 0
-        }}>
-          اعلانات
-        </p>
+        <IoIosNotificationsOutline style={iconStyle} />
+        <p style={textStyle}>اعلانات</p>
       </div>
     );
   }
@@ -148,24 +161,13 @@ const Notifications = () => {
   if (errorNotificationNumber) {
     console.error('Notification error:', errorNotificationNumber);
     return (
-      <div 
-        className="flex flex-col items-center" 
-        style={{ cursor: 'pointer', opacity: 0.5 }}
+      <div
+        style={{ ...containerStyle, opacity: 0.5 }}
         onClick={handleClick}
         title="خطا در بارگیری اعلان‌ها"
       >
-        <div className="flex">
-          <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
-        </div>
-        <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
-          fontSize: '12px',
-          lineHeight: '',
-          fontWeight: '400',
-          color: '#6E7172',
-          margin: 0
-        }}>
-          اعلانات
-        </p>
+        <IoIosNotificationsOutline style={iconStyle} />
+        <p style={textStyle}>اعلانات</p>
       </div>
     );
   }
@@ -173,23 +175,12 @@ const Notifications = () => {
   // Show loading state only when actively loading and no cached data
   if (loadingNotificationNumber && !notificationNumber) {
     return (
-      <div 
-        className="flex flex-col items-center" 
-        style={{ cursor: 'pointer' }}
+      <div
+        style={containerStyle}
         onClick={handleClick}
       >
-        <div className="flex">
-          <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
-        </div>
-        <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
-          fontSize: '12px',
-          lineHeight: '',
-          fontWeight: '400',
-          color: '#6E7172',
-          margin: 0
-        }}>
-          اعلانات
-        </p>
+        <IoIosNotificationsOutline style={iconStyle} />
+        <p style={textStyle}>اعلانات</p>
       </div>
     );
   }
@@ -197,58 +188,42 @@ const Notifications = () => {
   // Show with indicator if there are unread notifications
   if (unreadCount > 0) {
     return (
-      <div 
-        className="flex flex-col items-center" 
-        style={{ cursor: 'pointer' }}
+      <div
+        style={containerStyle}
         onClick={handleClick}
       >
-        <div className="flex" style={{ position: 'relative' }}>
-          <Indicator
-            offset={2}
-            withBorder
-            size={20}
-            label={unreadCount}
-            color="green"
-            inline
-            styles={{
-              indicator: { paddingTop: "1px" },
-            }}
-          >
-            <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
-          </Indicator>
-        </div>
-        <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
-          fontSize: '12px',
-          lineHeight: '',
-          fontWeight: '400',
-          color: '#6E7172',
-          margin: 0
-        }}>
-          اعلانات
-        </p>
+        <Indicator
+          offset={4}
+          withBorder
+          size={18}
+          label={unreadCount}
+          color="green"
+          inline
+          styles={{
+            indicator: {
+              paddingTop: "1px",
+              fontSize: "10px",
+              borderRadius: "5px",
+              width: "20px",
+              height: "18px"
+            }
+          }}
+        >
+          <IoIosNotificationsOutline style={iconStyle} />
+        </Indicator>
+        <p style={textStyle}>اعلانات</p>
       </div>
     );
   }
 
   // Default: show without indicator
   return (
-    <div 
-      className="flex flex-col items-center" 
-      style={{ cursor: 'pointer' }}
+    <div
+      style={containerStyle}
       onClick={handleClick}
     >
-      <div className="flex">
-        <IoIosNotificationsOutline style={{ fontSize: '8px', fontWeight: '700', width: '20px', height: '24px', color: '#6E7172'}} />
-      </div>
-      <p className="font-uiKit-normal text-uiKit-muted-foreground" style={{ 
-        fontSize: '12px',
-        lineHeight: '',
-        fontWeight: '400',
-        color: '#6E7172',
-        margin: 0
-      }}>
-        اعلانات
-      </p>
+      <IoIosNotificationsOutline style={iconStyle} />
+      <p style={textStyle}>اعلانات</p>
     </div>
   );
 };

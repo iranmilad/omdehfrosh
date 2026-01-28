@@ -884,6 +884,8 @@ const handleBulkPriceUpdateSuccess = useCallback(() => {
         withCloseButton={false}
         closeOnClickOutside={false}
         zIndex={50}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Stack>
           <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>
@@ -906,7 +908,7 @@ const handleBulkPriceUpdateSuccess = useCallback(() => {
   return (
     <>
       {/* ✅ FIXED: RotateModal at root level - ALWAYS renders when isPortrait is true */}
-      {/* <RotateModal isPortrait={isPortrait} /> */}
+      <RotateModal isPortrait={isPortrait} />
 
       {
         !loadingBrandModeUpdate &&

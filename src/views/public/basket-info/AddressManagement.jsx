@@ -121,6 +121,42 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
     fetchAddresses();
   }, []);
 
+  // Prevent body padding shift when modals open
+  useEffect(() => {
+    if (isModalOpen || isAddressListOpen) {
+      // Store original padding
+      const originalPaddingRight = document.body.style.paddingRight;
+      
+      // Prevent padding shift by forcing padding-right to 0
+      const preventPaddingShift = () => {
+        if (document.body.style.paddingRight && document.body.style.paddingRight !== '0px') {
+          document.body.style.paddingRight = '0px';
+        }
+      };
+      
+      // Use MutationObserver to prevent Mantine from adding padding
+      const observer = new MutationObserver(preventPaddingShift);
+      
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['style'],
+      });
+      
+      // Set initial padding to 0
+      document.body.style.paddingRight = '0px';
+      
+      // Also check periodically (fallback)
+      const interval = setInterval(preventPaddingShift, 50);
+      
+      return () => {
+        // Restore original styles
+        document.body.style.paddingRight = originalPaddingRight;
+        observer.disconnect();
+        clearInterval(interval);
+      };
+    }
+  }, [isModalOpen, isAddressListOpen]);
+
   const fetchAddresses = async () => {
     setLoading(true);
     try {
@@ -394,10 +430,13 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
         zIndex={2000} 
         size="md"
         centered={false}
+        lockScroll={false}
+        removeScrollBar={false}
         styles={{
           root: {
             marginTop: '0 !important',
             paddingTop: '0 !important',
+            paddingRight: '0 !important',
           },
           inner: {
             marginTop: '0 !important',
@@ -547,6 +586,46 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
         title={editingAddress ? 'ویرایش آدرس' : 'افزودن آدرس جدید'}
         size="lg"
         zIndex={2100}
+        lockScroll={false}
+        removeScrollBar={false}
+        styles={{
+          root: {
+            paddingRight: '0 !important',
+          },
+          header: {
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            backgroundColor: 'var(--mantine-color-body)',
+            borderBottom: '1px solid #e9ecef',
+            paddingBottom: 'var(--mantine-spacing-md)',
+            margin: 0,
+            marginTop: 0,
+            paddingTop: 0,
+          },
+          title: {
+            margin: 0,
+            marginTop: 0,
+            paddingTop: 0,
+          },
+          body: {
+            paddingTop: 'var(--mantine-spacing-md)',
+            paddingBottom: 'var(--mantine-spacing-lg)',
+            maxHeight: 'calc(100vh - 140px)',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            marginBottom: 0,
+          },
+          content: {
+            overflow: 'visible',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '90vh',
+          },
+          inner: {
+            padding: 0,
+          }
+        }}
       >
         <Stack gap="md">
           <TextInput

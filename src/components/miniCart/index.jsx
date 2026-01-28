@@ -436,7 +436,7 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
       {/* Main container matching the design */}
       <Box
         style={{
-          padding: isMobile ? '8px 16px' : '16px',
+          padding: isMobile ? '8px 8px' : '12px 12px',
           borderBottom: '1px solid #e0e0e0',
           borderRadius: 0,
           opacity: isRemoving ? 0.5 : 1,
@@ -712,12 +712,27 @@ const MiniCart = () => {
     }, 100);
   };
 
+  const handleClose = () => {
+    close();
+  };
+
   const drawerSize = isSmallMobile ? '500px' : isMobile ? '500px' : 500;
 
   return (
-    <div style={{ paddingBottom: '8px' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        minWidth: '50px',
+        height: '42px',
+        cursor: 'pointer'
+      }}
+      onClick={open}
+    >
       <Indicator
-        offset={2}
+        offset={4}
         withBorder
         size={18}
         label={cartCount > 0 ? cartCount : ""}
@@ -725,70 +740,55 @@ const MiniCart = () => {
         color="red"
         inline
         styles={{
-          indicator: { paddingTop: "1px", fontSize: "10px", borderRadius: "5px",     
-          width: "22px",             
-          height: "24px",  
-          marginTop:'10px',
-          marginRight: '5px'
-        },
-
+          indicator: {
+            paddingTop: "1px",
+            fontSize: "10px",
+            borderRadius: "5px",
+            width: "20px",
+            height: "18px"
+          }
         }}
       >
-        <Button
-          variant="subtle"
-          color="gray"
-          onClick={open}
-          styles={{
-            root: {
-              height: '42px',
-              width: '47px',
-              minWidth: '45px',
-              padding: '2px 8px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1px',
-              backgroundColor: 'transparent',
-              '&:hover': {
-                backgroundColor: 'transparent'
-              }
-            },
-            label: {
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '1px'
-            }
-          }}
-        >
-          <CartIcon size={35} color="var(--mantine-color-gray-7)" />
-          <Text size="12px" fw={400} c="gray.7" style={{ lineHeight: 1, paddingTop: '2px' }}>
-            سبد خرید
-          </Text>
-        </Button>
+        <CartIcon size={24} color="#6E7172" />
       </Indicator>
+      <Text
+        size="12px"
+        fw={400}
+        c="#6E7172"
+        style={{ lineHeight: 1.2, marginTop: '2px' }}
+      >
+        سبد خرید
+      </Text>
 
       <Drawer.Root
         opened={opened}
-        onClose={close}
-        position="right"
+        onClose={handleClose}
+        position="left"
         size={drawerSize}
+        closeOnClickOutside={true}
+        closeOnEscape={true}
+        lockScroll={false}
+        removeScrollBar={false}
+        transitionProps={{ transition: 'slide-right', duration: 200 }}
         styles={{
           root: { zIndex: 1005 },
           inner: {
-            right: 0,
-            left: 'auto',
+            left: 0,
+            right: 'auto',
             top: 0,
             bottom: 0,
             height: '100vh',
             position: 'fixed',
             zIndex: 1005
           },
-          overlay: { zIndex: 1005 },
+          overlay: { 
+            zIndex: 1004,
+            cursor: 'pointer',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          },
           content: {
-            right: 0,
-            left: 'auto',
+            left: 0,
+            right: 'auto',
             top: 0,
             bottom: 0,
             height: '100vh',
@@ -798,12 +798,12 @@ const MiniCart = () => {
             position: 'fixed',
             display: 'flex',
             flexDirection: 'column',
-            zIndex: 1005,
+            zIndex: 1006,
             backgroundColor: '#f7f7f7'
           },
           header: {
             flexShrink: 0,
-            padding: isMobile ? '12px 16px' : '14px 20px',
+            padding: 0,
             backgroundColor: '#fff',
             borderBottom: '1px solid #e0e0e0',
             height: '56px'
@@ -818,15 +818,29 @@ const MiniCart = () => {
           }
         }}
       >
-        <Drawer.Overlay />
-        <Drawer.Content>
+        <Drawer.Overlay 
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClose();
+          }}
+        />
+        <Drawer.Content
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
           <Drawer.Header>
-            <Flex justify="space-between" align="center" w="100%">
+            <Flex justify="space-between" align="center" w="100%" px={isMobile ? 1 : 2} py={isMobile ? 2 : 2.5}>
               <ActionIcon
                 size="lg"
                 variant="subtle"
                 color="black"
-                onClick={close}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleClose();
+                }}
               >
               <IoCloseSharp size={24} color="var(--mantine-color-gray-7)" />
 
@@ -878,7 +892,7 @@ const MiniCart = () => {
                     <ScrollArea 
                       style={{ height: '100%', width: '100%' }}
                       type="hover"
-                      py={isMobile ? "xs" : "sm"}
+                      py={0}
                     >
                       <Stack gap={0}>
                         {items.map((item, index) => {
@@ -899,7 +913,7 @@ const MiniCart = () => {
                   <Box
                     style={{
                       borderTop: '1px solid #e0e0e0',
-                      padding: isMobile ? '12px 16px 24px 16px' : '16px 16px 24px 16px',
+                      padding: 0,
                       backgroundColor: '#fff',
                       zIndex: 10,
                       width: '100%'
@@ -909,6 +923,8 @@ const MiniCart = () => {
                       justify="space-between" 
                       align="center"
                       gap="md"
+                      px={isMobile ? 2 : 3}
+                      py={isMobile ? 2 : 3}
                     >
                       {/* Price section */}
                       <Flex direction="column" gap={4}>

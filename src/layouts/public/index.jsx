@@ -1,4 +1,5 @@
 import {
+  Box,
   Container,
   Flex,
   Loader,
@@ -119,13 +120,32 @@ const Public = (props) => {
       <Header />
       <InstallPWA />
       
-      {curr.pathname === "/" ? (
-        <Outlet />
-      ) : (
-        <Container className="px-3 md:px-5 my-3 lg:my-10">
-          <Outlet />
-        </Container>
-      )}
+      <Box
+        style={{
+          width: '100%',
+          backgroundColor: '#F0F1F2',
+          minHeight: '100vh',
+          // 68px header height + spacing below it
+          paddingTop: 'calc(68px + 1.5rem)',
+          paddingBottom: '1rem'
+        }}
+      >
+        <Box
+          style={{
+            maxWidth: '1336px',
+            width: '100%',
+            margin: '0 auto'
+          }}
+        >
+          {curr.pathname === "/" ? (
+            <Outlet />
+          ) : (
+            <Container className="px-3 md:px-5 my-3 lg:my-10">
+              <Outlet />
+            </Container>
+          )}
+        </Box>
+      </Box>
       
       <Footer />
     </>

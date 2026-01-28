@@ -29,6 +29,8 @@ const ErrorMessageModal = ({ opened, onClose, status, message }) => {
       centered
       overlayProps={{ blur: 3, opacity: 0.45 }}
       withCloseButton={false}
+      lockScroll={false}
+      removeScrollBar={false}
     >
       <Box>
         <Badge
