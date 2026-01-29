@@ -6,6 +6,7 @@ import { setInitial } from "../../redux/cart";
 import { useProduct } from "../../views/public/product";
 import { useEffect, useState } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
+import { useQueryClient } from "../../Libs/reactQuery";
 
 
 const cartAPI = {
@@ -183,6 +184,7 @@ const CounterSellers = (props) => {
 
   const [cookies] = useCookies(["user"]);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   const [itemSellerId, setItemSellerId] = useState(undefined);
   const [itemSellerName, setItemSellerName] = useState(undefined);
@@ -367,6 +369,8 @@ const CounterSellers = (props) => {
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
+        // Refresh session-persisted user/cart snapshot (Header uses this)
+        queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
       } else {
         throw new Error("Failed to fetch cart data");
       }
@@ -402,6 +406,8 @@ const CounterSellers = (props) => {
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
+        // Refresh session-persisted user/cart snapshot (Header uses this)
+        queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
       }
     } catch (error) {
       console.error("Failed to remove from cart:", error);

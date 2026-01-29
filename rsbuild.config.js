@@ -1,7 +1,7 @@
-import { defineConfig,loadEnv } from "@rsbuild/core";
+import { defineConfig, loadEnv } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
 
-const { parsed, publicVars } = loadEnv(); 
+const { parsed, publicVars } = loadEnv();
 
 export default defineConfig({
   plugins: [pluginReact()],
@@ -15,8 +15,9 @@ export default defineConfig({
     }
   },
   source: {
-    define : {
-      'process.env': JSON.stringify(process.env),
+    define: {
+      // Expose all parsed env variables
+      'process.env': JSON.stringify(parsed),
     },
     entry: {
       index: "./src/main.jsx",

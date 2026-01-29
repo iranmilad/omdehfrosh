@@ -1,4 +1,4 @@
-import { Center, Flex, Loader, Paper, Grid, GridCol, Stack } from "@mantine/core";
+import { Center, Flex, Loader, Paper, Grid, GridCol } from "@mantine/core";
 import { useIsFirstRender } from "@mantine/hooks";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
@@ -10,42 +10,25 @@ import Slider from "./slider";
 import SummaryEntry from "./summaryEntry";
 import Tab from "./Tab";
 import Sellers from "./sellers";
-import { useDispatch, useSelector } from "react-redux";
-import { 
-  getSingleProductDetails, 
-} from "../../../redux/products/singleproductpage/singleProductPageGetActions";
+import { useApiQuery } from "../../../Libs/reactQuery";
 
 const ProductContext = createContext();
 
 const Product = () => {
   const { slug } = useParams();
   const [options, setOptions] = useState([]);
-  const [delayedLoading, setDelayedLoading] = useState(true); // ⬅️ new state
-  const dispatch = useDispatch();
-
-  const { product, loading, error } = useSelector((state) => state.singleProduct);
-
-
-
-
-  console.log("product",product )
-
-
-  // Fetch product details with throttling (no caching) + 5s delay
-  useEffect(() => {
-    if (!slug) return;
-
-    setDelayedLoading(true); // show loader during delay
-
-    const timer = setTimeout(() => {
-      
-        dispatch(getSingleProductDetails({ slug }));
-
-      setDelayedLoading(false); // delay finished, now rely on redux loading
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, slug]);
+  
+  // Product details via React Query (cached + persisted)
+  const {
+    data: product,
+    loading,
+    error,
+  } = useApiQuery({
+    endpoint: slug ? `/singleproduct/${slug}` : null,
+    queryKey: ['singleProduct', slug],
+    strategy: 'CACHED',
+    enabled: !!slug,
+  });
 
   // Clean up throttle when component unmounts (optional)
   // useEffect(() => {
@@ -85,8 +68,8 @@ const Product = () => {
     }
   }
 
-  // Show loading during 5s delay OR API fetch
-  if (delayedLoading || loading) {
+  // Show loading while product is being fetched
+  if (loading) {
     return (
       <Center mih="50vh">
         <Loader size="lg" />

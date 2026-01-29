@@ -86,6 +86,11 @@ const enrichProductsWithInventory = (products) => {
 
 // Combined home page data endpoint
 export const getHomePageData = async (req, res) => {
+
+  console.log("Fetching home page data...");
+
+
+
   try {
     const userData = getUserFromToken(req, res);
 

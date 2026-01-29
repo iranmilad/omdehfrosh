@@ -8,27 +8,31 @@ import {
   Text
 } from "@mantine/core";
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Outlet, useLocation } from "react-router";
 import Footer from "../../components/footer";
 import Header from "../../components/header";
-import { setBootstrap } from "../../redux/global"
-import { getBootstrap } from "../../redux/bootstrap/bootstrapActions"
 import { PublicRoutes } from "../../routes/public";
 import InstallPWA from "../../components/installPWA";
-import { bootstrap } from "../../mock/data/bootstrap";
+import { useStaticQuery } from "../../Libs/reactQuery";
 
 
 const Public = (props) => {
   const curr = useLocation();
-  const dispatch = useDispatch();
   const routes = PublicRoutes;
-  
-  // Get bootstrap data and loading state from Redux
-  const { bootstrapData, loadingBootstrap, errorBootstrap } = useSelector(
-    (state) => state.bootstrap
-  );
   const loading = useSelector((state) => state.global.loading);
+
+  // Fetch bootstrap data via React Query with static caching + persistence
+  const {
+    data: bootstrapData,
+    loading: loadingBootstrap,
+    error: errorBootstrap,
+  } = useStaticQuery({
+    endpoint: '/bootstrap',
+    queryKey: ['bootstrap'],
+    // Keep same shape as previous Redux data: { message, data: {...} }
+    transformer: (response) => response?.data ?? null,
+  });
 
   // Update page title based on current route
   useEffect(() => {
@@ -48,15 +52,6 @@ const Public = (props) => {
       document.title = currentRouteTitle;
     }
   }, [curr, routes]);
-
-  // Fetch bootstrap data on component mount
-  useEffect(() => {
-    // Option 1: Use mock data (for development/testing)
-    // dispatch(setBootstrap(bootstrap));
-    
-    // Option 2: Fetch from API (uncomment when API is ready)
-    dispatch(getBootstrap());
-  }, [dispatch]);
 
   // Show error state if bootstrap fetch fails
   if (errorBootstrap) {

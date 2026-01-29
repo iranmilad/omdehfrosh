@@ -43,6 +43,10 @@ function mockRunner({ environment }) {
       server.create('user', user);
     },
     routes() {
+      // IMPORTANT: Passthroughs must come BEFORE route handlers
+      // Specific passthroughs for endpoints that need to work with axios
+      this.passthrough('http://localhost:5000/api/homepage/homepagedata');
+      this.passthrough('http://localhost:5000/api/homepage/**');
       this.passthrough('http://localhost:5000/api/***');
       this.passthrough('http://localhost:5000/api/cart/update');
       this.passthrough('http://localhost:5000/api/cart');

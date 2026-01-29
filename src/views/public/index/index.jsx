@@ -1,72 +1,110 @@
-import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { fetchShopHomeData } from '../../../redux/shophome/shopHomeActions'
-import WideSlider from "../../../components/wideSlider";
+import { useEffect } from "react";
 import { Box, Center, Container, Loader, Stack, Alert } from "@mantine/core";
+
+// Components
+import WideSlider from "../../../components/wideSlider";
 import BadgedSlider from "../../../components/badgedSlider";
 import Categories from "../../../components/categories";
 import GridBanner from "../../../components/gridBanner";
 import ProductHighlightCard from "../../../components/productHighlightCard";
-import HeroSection from "../../../components/heroSection";
-import ProductGrid from "../../../components/productGrid";
 import BrandSlider from "../../../components/brandSlider";
 import ProductCarousel from "../../../components/productCarousel";
-import Banner from "../../../components/banner";
 import PriceList from "../../../components/pricelist";
 
+// React Query Cache System
+import { useApiQuery } from "../../../Libs/reactQuery";
+
 function Home() {
-  const dispatch = useDispatch();
-  
-  // Get shop home data from Redux
-  const { 
-    homeData, 
-    loadingShopHome, 
-    errorShopHome, 
-    successShopHome,
-    lastFetched 
-  } = useSelector((state) => state.shopHome);
 
+  // ============================================================================
+  // API CALLS WITH REACT QUERY CACHING
+  // ============================================================================
 
-  // Get user from Redux to trigger refetch on auth changes
-  const { user } = useSelector((state) => state.auth);
+  // Homepage data - CACHED strategy (5 min stale, 15 min gc)
+  // This is public data, same for all users - no need to include user ID
+  const {
+    data: homeData,
+    isLoading: loadingHome,
+    isFetching: fetchingHome,
+    error: errorHome,
+    isError,
+    status,
+  } = useApiQuery({
+    endpoint: '/homepage/homepagedata',
+    queryKey: ['homepage', 'data'],
+    strategy: 'CACHED', // 5 min stale time
+  });
 
-
-  // console.log("homeData", homeData)
-
+  // Comprehensive debug logging and monitoring
   useEffect(() => {
-    // You can add additional conditions like cache expiration here
-    const shouldFetch = !homeData || !lastFetched || (user && !successShopHome);
-    
-    if (shouldFetch) {
-      dispatch(fetchShopHomeData());
-    }
-  }, [dispatch, user, homeData, lastFetched, successShopHome]);
+    if (process.env.NODE_ENV === 'development') {
+      const cacheInfo = {
+        hasData: !!homeData,
+        dataLength: Array.isArray(homeData) ? homeData.length : 'not array',
+        dataType: typeof homeData,
+        isLoading: loadingHome,
+        isFetching: fetchingHome,
+        isError,
+        status,
+        error: errorHome,
+      };
 
-  // Show loading state
-  if (loadingShopHome && !homeData) {
+      // Log state changes with clear indicators
+      if (loadingHome) {
+        console.log('🏠 [Home Component] ⏳ LOADING STATE:', cacheInfo);
+      } else if (fetchingHome && homeData) {
+        console.log('🏠 [Home Component] 🔄 BACKGROUND FETCH (showing cached data):', cacheInfo);
+      } else if (homeData) {
+        console.log('🏠 [Home Component] ✅ RENDERED WITH DATA:', {
+          ...cacheInfo,
+          sections: Array.isArray(homeData) ? homeData.map(s => s.type) : 'not array',
+          sample: Array.isArray(homeData) ? homeData.slice(0, 2) : homeData,
+        });
+      } else if (isError) {
+        console.log('🏠 [Home Component] ❌ ERROR STATE:', cacheInfo);
+      } else {
+        console.log('🏠 [Home Component] 📭 EMPTY STATE:', cacheInfo);
+      }
+    }
+  }, [loadingHome, fetchingHome, isError, status, homeData, errorHome]);
+
+  // ============================================================================
+  // LOADING STATE
+  // ============================================================================
+
+  if (loadingHome) {
     return (
-      <Center>
+      <Center style={{ minHeight: '50vh' }}>
         <Loader />
       </Center>
     );
   }
 
-  // Show error state
-  if (errorShopHome && !homeData) {
+  // ============================================================================
+  // ERROR STATE
+  // ============================================================================
+
+  if (isError && !homeData) {
     return (
       <Container className="px-3 md:px-5 my-10">
         <Alert color="red" title="خطا در بارگذاری">
-          {typeof errorShopHome === 'string' 
-            ? errorShopHome 
-            : errorShopHome.message || 'خطا در دریافت اطلاعات'
-          }
+          {errorHome?.message || errorHome?.response?.data?.message || 'خطا در دریافت اطلاعات'}
+          {process.env.NODE_ENV === 'development' && (
+            <pre style={{ marginTop: 10, fontSize: 12 }}>
+              {JSON.stringify(errorHome, null, 2)}
+            </pre>
+          )}
         </Alert>
       </Container>
     );
   }
 
-  // Show content if we have data
-  if (!homeData) {
+  // ============================================================================
+  // EMPTY STATE
+  // ============================================================================
+
+  // Check if data is null, undefined, or empty array
+  if (!homeData || (Array.isArray(homeData) && homeData.length === 0)) {
     return (
       <Container
         className="px-3 md:px-5 my-10"
@@ -80,84 +118,95 @@ function Home() {
     );
   }
 
-  
+  // ============================================================================
+  // RENDER SECTIONS
+  // ============================================================================
 
+  // Ensure homeData is an array before mapping
+  if (!Array.isArray(homeData)) {
+    console.error('Home data is not an array:', homeData);
+    return (
+      <Container className="px-3 md:px-5 my-10">
+        <Alert color="orange" title="خطا در فرمت داده">
+          داده دریافتی معتبر نیست
+        </Alert>
+      </Container>
+    );
+  }
 
-return (
-  <>
-    <Container className="px-3 md:px-5">
-      <Stack gap="1rem">
-        {homeData?.map((section, index) => {
-          switch (section.type) {
-            case "wideslider":
-              return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                  <WideSlider items={section.data} />
-                </Box>
-              );
-            case "featured_promo":
-              return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                  <BadgedSlider items={section.data} />
-                </Box>
-              );
-            case "categories":
-              return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                  <Categories items={section?.data} />
-                </Box>
-              );
-            case "banners":
-              return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                  <GridBanner items={section.data} />
-                </Box>
-              );
-            case "prices": 
-              return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                  <PriceList items={section.data} />
-                </Box>
-              );
-            case "trendProducts":
-              return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                  <ProductHighlightCard items={section.data} />
-                </Box>
-              );
-            // case "productGrid":
-            //   return <ProductGrid key={index} items={section.data} />;
-            case "brands":
-              return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                  <BrandSlider items={section?.data} />
-                </Box>
-              );
-            case "featured_products":
-              return (
-                <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                  <ProductCarousel
-                    style={{ marginTop: "30px" }}
-                    title="محصولات منتخب"
-                    items={section.data}
-                  />
-                </Box>
-              );
-            default:
-              return null;
-          }
-        })}
-      </Stack>
-    </Container>
-    
-    {/* Show loading indicator during background refresh */}
-    {loadingShopHome && homeData && (
-      <Box style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
-        <Loader size="sm" />
-      </Box>
-    )}
-  </>
-);
+  return (
+    <>
+      <Container className="px-3 md:px-5">
+        <Stack gap="1rem">
+          {homeData.map((section, index) => {
+            switch (section.type) {
+              case "wideslider":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <WideSlider items={section.data} />
+                  </Box>
+                );
+              case "featured_promo":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <BadgedSlider items={section.data} />
+                  </Box>
+                );
+              case "categories":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <Categories items={section?.data} />
+                  </Box>
+                );
+              case "banners":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <GridBanner items={section.data} />
+                  </Box>
+                );
+              case "prices":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <PriceList items={section.data} />
+                  </Box>
+                );
+              case "trendProducts":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <ProductHighlightCard items={section.data} />
+                  </Box>
+                );
+              case "brands":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <BrandSlider items={section?.data} />
+                  </Box>
+                );
+              case "featured_products":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <ProductCarousel
+                      style={{ marginTop: "30px" }}
+                      title="محصولات منتخب"
+                      items={section.data}
+                    />
+                  </Box>
+                );
+              default:
+                return null;
+            }
+          })}
+        </Stack>
+      </Container>
+
+      {/* Show loading indicator during background refresh */}
+      {fetchingHome && homeData && (
+        <Box style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
+          <Loader size="sm" />
+        </Box>
+      )}
+    </>
+  );
 }
 
 export default Home;

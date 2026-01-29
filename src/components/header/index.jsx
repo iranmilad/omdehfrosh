@@ -38,13 +38,14 @@ import MobileSearch from "../mobileSearch";
 import MiniCart from "../miniCart";
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { setInitial, clearCart } from "../../redux/cart";
-import { logout, getUserInitialData } from "../../redux/auth/authusers/auth";
+import { logout, setAuthFromUserInitialData } from "../../redux/auth/authusers/auth";
 import Notifications from "../notifications";
 import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
 import { updateNotificationCount } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberSlice";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import { ChevronDown, ChevronLeft, LucideChevronDownCircle, LucideChevronDownSquare, MessageCircle } from "lucide-react";
 import ImageIcon from "../../resources/defaultImageIcon";
+import { useStaticQuery, useSessionQuery, useQueryClient } from "../../Libs/reactQuery";
 
 
 
@@ -86,13 +87,41 @@ const Header = () => {
   const [isLoadingCart, setIsLoadingCart] = useState(false);
 
   const { notificationNumber, errorNotificationNumber } = useSelector((state) => state.notificationNumber);
-  const { bootstrapData: bootstrap, loadingBootstrap } = useSelector((state) => state.bootstrap);
   const { isVerified, user, loading: authLoading } = useSelector((state) => state.auth);
   const cartItems = useSelector((state) => state.cart.items);
+
+  // Bootstrap data via React Query (static strategy with persistence)
+  // Keep same shape as old Redux: { message, data: {...} }
+  const { data: bootstrap, loading: loadingBootstrap } = useStaticQuery({
+    endpoint: '/bootstrap',
+    queryKey: ['bootstrap'],
+    transformer: (response) => response?.data ?? null,
+  });
 
   const theme = useMantineTheme();
   const isSmallScreen = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
   const showCategoryMenu = useMediaQuery('(min-width: 600px)');
+  const queryClient = useQueryClient();
+
+  // User initial data (user + cart + notifications) with session-level caching + persistence
+  const token = typeof window !== 'undefined' ? localStorage.getItem("user") : null;
+  const {
+    data: userInitialData,
+    error: userInitialError,
+    refetch: refetchUserInitialData,
+  } = useSessionQuery({
+    endpoint: '/auth/user-initial-data',
+    queryKey: ['userInitialData'],
+    enabled: !!token,
+    // Don't retry on 401 errors (token invalid/expired)
+    retry: (failureCount, error) => {
+      const errorMessage = typeof error === 'string' ? error : error?.message || String(error);
+      if (errorMessage.includes('401')) {
+        return false; // Don't retry on 401
+      }
+      return failureCount < 2; // Retry up to 2 times for other errors
+    },
+  });
 
   const hideMiniCart = useMemo(() => (
     ["/payment-statuscheck", "/payment-method", "/payment-info", "/payment-checkstatus"].includes(location.pathname)
@@ -104,38 +133,65 @@ const Header = () => {
 
   const navigate = useNavigate();
 
-  const mainMenu = useMemo(() => bootstrap?.data.menu?.main, [bootstrap?.data.menu?.main]);
+  const mainMenu = useMemo(
+    () => bootstrap?.data?.menu?.main ?? [],
+    [bootstrap?.data?.menu?.main]
+  );
 
-  const fetchCartData = useCallback(async () => {
-    const token = localStorage.getItem("user");
-    if (!token) {
-      setCartData({ cart: [], totalPrice: 0 });
+  // Sync cached user initial data into Redux cart + notifications when it changes
+  useEffect(() => {
+    if (!userInitialData) {
+      // If no data and no token, clear cart
+      if (!token) {
+        setCartData({ cart: [], totalPrice: 0 });
+        dispatch(setInitial([]));
+        dispatch(updateNotificationCount(0));
+      }
       return;
     }
-    
-    setIsLoadingCart(true);
-    try {
-      const response = await fetch(getApiUrl("/cart"), {
-        method: "GET",
-        headers: { 'Authorization': `Bearer ${token}`, "Content-Type": "application/json" },        
-      });
-      
-      if (!response.ok) {
-        localStorage.removeItem("user");
-        throw new Error("Failed to fetch cart data");
-      }
-      
-      const serverData = await response.json();
-      const newCartData = { cart: serverData.cart || [], totalPrice: serverData.total || 0 };
-      setCartData(newCartData);
-      if (newCartData.cart.length > 0) dispatch(setInitial(newCartData.cart));
-    } catch (error) {
-      console.error("Cart fetch error:", error);
-      setCartData({ cart: [], totalPrice: 0 });
-    } finally {
-      setIsLoadingCart(false);
+
+    // Also sync auth state (so Header shows profile after login)
+    if (userInitialData.user) {
+      dispatch(setAuthFromUserInitialData(userInitialData));
     }
-  }, [dispatch]);
+
+    const newCartData = {
+      cart: userInitialData.cart || [],
+      totalPrice: userInitialData.total || 0,
+    };
+
+    setCartData(newCartData);
+    dispatch(setInitial(newCartData.cart));
+    dispatch(updateNotificationCount(userInitialData.notificationsCount || 0));
+  }, [userInitialData, token, dispatch]);
+
+  // Handle 401 / unauthorized: clear token, redux state, and remove cached query
+  useEffect(() => {
+    if (!userInitialError) return;
+
+    const errorMessage =
+      typeof userInitialError === 'string'
+        ? userInitialError
+        : userInitialError?.message || String(userInitialError);
+
+    if (!errorMessage.includes('401')) return;
+
+    // Clear token first to disable the query
+    localStorage.removeItem("user");
+    
+    // Clear Redux state
+    dispatch(logout());
+    dispatch(clearCart());
+    dispatch(setInitial([]));
+    dispatch(updateNotificationCount(0));
+    
+    // Remove query from cache (don't invalidate - that would trigger refetch)
+    queryClient.removeQueries({ queryKey: ['userInitialData'] });
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Header] 🔒 401 detected - cleared token and userInitialData cache');
+    }
+  }, [userInitialError, dispatch, queryClient]);
 
   const handleScroll = useCallback(() => {
     // Get scroll position from window or document
@@ -198,80 +254,27 @@ const Header = () => {
     };
   }, [handleScroll]);
 
-  // Combined request: fetch user verification + cart + notifications in ONE API call
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem("user");
-
-      if (!token) {
-        setCartData({ cart: [], totalPrice: 0 });
-        dispatch(setInitial([]));
-        return;
-      }
-
-      setIsLoadingCart(true);
-
-      try {
-        const result = await dispatch(getUserInitialData());
-
-        if (result.type === 'auth/getUserInitialData/fulfilled' && result.payload) {
-          const data = result.payload;
-
-          // Update cart state
-          const newCartData = {
-            cart: data.cart || [],
-            totalPrice: data.total || 0
-          };
-          setCartData(newCartData);
-
-          // Always update Redux cart state (even if empty after payment)
-          dispatch(setInitial(newCartData.cart));
-
-          // Update notifications state
-          dispatch(updateNotificationCount(data.notificationsCount || 0));
-        } else {
-          setCartData({ cart: [], totalPrice: 0 });
-          dispatch(setInitial([]));
-        }
-      } catch (error) {
-        console.error("Failed to fetch user initial data:", error);
-        setCartData({ cart: [], totalPrice: 0 });
-        dispatch(setInitial([]));
-      } finally {
-        setIsLoadingCart(false);
-      }
-    };
-
-    fetchData();
-  }, [dispatch]);
-
-  // Refetch cart data when returning from payment
+  // Refetch user initial data when navigating to /cart routes or returning from payment
   const prevLocationRef = useRef(location.pathname);
   useEffect(() => {
     const prevPath = prevLocationRef.current;
     const currentPath = location.pathname;
 
-    // If we just left the payment-listener page, refetch cart data
-    if (prevPath === '/payment-listener' && currentPath !== '/payment-listener') {
-      const token = localStorage.getItem("user");
+    // Refetch if navigating to /cart routes
+    const isCartRoute = currentPath.startsWith('/cart') || currentPath.startsWith('/basket');
+    const wasCartRoute = prevPath.startsWith('/cart') || prevPath.startsWith('/basket');
+
+    // Refetch if we just left the payment-listener page
+    const leftPaymentListener = prevPath === '/payment-listener' && currentPath !== '/payment-listener';
+
+    if ((isCartRoute && !wasCartRoute) || leftPaymentListener) {
       if (token) {
-        dispatch(getUserInitialData()).then((result) => {
-          if (result.type === 'auth/getUserInitialData/fulfilled' && result.payload) {
-            const data = result.payload;
-            const newCartData = {
-              cart: data.cart || [],
-              totalPrice: data.total || 0
-            };
-            setCartData(newCartData);
-            dispatch(setInitial(newCartData.cart));
-            dispatch(updateNotificationCount(data.notificationsCount || 0));
-          }
-        });
+        refetchUserInitialData();
       }
     }
 
     prevLocationRef.current = currentPath;
-  }, [location.pathname, dispatch]);
+  }, [location.pathname, token, refetchUserInitialData]);
 
   const Logout = useCallback(async () => {
     localStorage.removeItem("user");

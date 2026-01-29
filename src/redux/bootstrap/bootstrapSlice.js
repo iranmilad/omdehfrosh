@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getBootstrap } from "./bootstrapActions";
 
 const bootstrapSlice = createSlice({
   name: "bootstrap",
@@ -17,21 +16,6 @@ const bootstrapSlice = createSlice({
       state.loadingBootstrap = false;
       state.errorBootstrap = null;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(getBootstrap.pending, (state) => {
-        state.loadingBootstrap = true;
-        state.errorBootstrap = null;
-      })
-      .addCase(getBootstrap.fulfilled, (state, action) => {
-        state.loadingBootstrap = false;
-        state.bootstrapData = action.payload || null;
-      })
-      .addCase(getBootstrap.rejected, (state, action) => {
-        state.loadingBootstrap = false;
-        state.errorBootstrap = action.payload;
-      });
   },
 });
 

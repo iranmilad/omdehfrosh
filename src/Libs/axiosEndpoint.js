@@ -1,68 +1,71 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { notifications } from "@mantine/notifications"; // Ensure mantine/notifications is installed: npm install @mantine/notifications
+import { notifications } from "@mantine/notifications";
 
+// Get API URL from environment variables
+// For Rsbuild: process.env is defined in rsbuild.config.js
+const getBaseUrl = () => {
+  const apiUrl = process.env.REACT_APP_API_URL || process.env.API || '/api';
 
-const environment = import.meta.env.MODE;
+  // Debug log in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Axios] Base URL:', apiUrl);
+  }
+
+  return apiUrl;
+};
+
+const baseURL = getBaseUrl();
 
 let headers = {
   Accept: "application/json",
   "Content-Type": "application/json",
-}
+};
 
-if(environment === "development"){
-  headers.url = window.location.pathname
+// Add current path to headers in development (for debugging)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  headers.url = window.location.pathname;
 }
 
 const axiosInstance = axios.create({
   headers,
   responseType: "json",
-  baseURL: environment === "development" && process.env.VITE_MODE === "development" ? "/api" : process.env.API,
-  // withCredentials: environment === "production",
+  baseURL,
 });
 
 axiosInstance.interceptors.request.use(
   (request) => {
     const token = Cookies.get("user");
-    request.headers["Authorization"] = `Bearer ${token}`;
+    // Only set Authorization header if token exists and is not undefined
+    if (token && token !== 'undefined') {
+      request.headers["Authorization"] = `Bearer ${token}`;
+    } else {
+      // Remove Authorization header if no valid token
+      delete request.headers["Authorization"];
+    }
     return request;
   },
   (error) => {
-    Promise.reject(error);
+    return Promise.reject(error);
   }
 );
 
 axiosInstance.interceptors.response.use(
   (response) => {
-    // If the response is successful, simply return it
     return response;
   },
   (error) => {
-    // Check if there's an error response
     if (error.response) {
-      const { status, data } = error.response;
+      const { status } = error.response;
 
       // Handle 401 Unauthorized
       if (status === 401) {
-        // Remove the 'user' cookie if it exists
         if (Cookies.get("user")) {
           Cookies.remove("user");
         }
-        // Redirect the user to the /login page if they are not on /login or /register
-        // if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
-        //   window.location.href = "/login";
-        // }
-        
-      } else {
-        // Show notification for all other errors
-        // notifications.show({
-        //   title: "پیام سیستم",
-        //   message: `${data?.message || "خطایی رخ داده است"}`,
-        //   color: "yellow", // Use yellow for all errors except 401
-        // });
       }
-    } else {
-      // Handle network errors or other issues without a response
+    } else if (!error.response && error.request) {
+      // Network error - no response received
       notifications.show({
         title: "پیام سیستم",
         message: "ارتباط با سرور برقرار نشد.",
@@ -70,10 +73,8 @@ axiosInstance.interceptors.response.use(
       });
     }
 
-    // Reject the promise with the error to propagate it
     return Promise.reject(error);
   }
 );
-
 
 export default axiosInstance;

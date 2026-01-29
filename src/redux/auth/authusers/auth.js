@@ -130,6 +130,20 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    /**
+     * Sync auth state from `/auth/user-initial-data` response.
+     * This avoids a second API call after login and keeps Header/UI in sync.
+     */
+    setAuthFromUserInitialData: (state, action) => {
+      const payload = action.payload || {};
+      const nextUser = payload.user || null;
+      const nextValid = payload.valid;
+
+      state.user = nextUser;
+      state.isVerified = !!nextUser && (typeof nextValid === 'boolean' ? nextValid : true);
+      state.loading = false;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -199,5 +213,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, setAuthFromUserInitialData } = authSlice.actions;
 export default authSlice.reducer;

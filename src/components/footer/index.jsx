@@ -12,9 +12,8 @@ import {
   Flex,
   Skeleton,
 } from "@mantine/core";
-import { useSelector } from "react-redux";
-import ImageIcon from '../../resources/defaultImageIcon'
-import { useState } from "react"; // Make sure useState is imported
+import { useStaticQuery } from "../../Libs/reactQuery";
+import ImageIcon from '../../resources/defaultImageIcon';
 
 
 const Footer = () => {
@@ -28,7 +27,13 @@ const Footer = () => {
     return true;
   };
 
-  const { bootstrapData: bootstrap, loadingBootstrap } = useSelector((state) => state.bootstrap);
+  // Bootstrap data via React Query (static strategy with persistence)
+  // Keep same shape as old Redux: { message, data: {...} }
+  const { data: bootstrap, loading: loadingBootstrap } = useStaticQuery({
+    endpoint: '/bootstrap',
+    queryKey: ['bootstrap'],
+    transformer: (response) => response?.data ?? null,
+  });
 
 
 
