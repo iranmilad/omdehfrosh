@@ -56,6 +56,36 @@ const isValidLogo = (logo) => {
   return true;
 };
 
+const ChevronDownIcon = ({ size = 14, color = '#4D5053' }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    <path
+      d="M6 9l6 6 6-6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+
+const ProfileIcon = ({ style, size = 24 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 25 24"
+    width={size}
+    height={size}
+    fill="currentColor"     // ← REQUIRED
+    style={style}           // ← REQUIRED
+  >
+    <path d="M18.417 19.731c0-.859-.338-1.83-1.184-2.591-.844-.761-2.262-1.374-4.524-1.374s-3.68.616-4.524 1.381C7.338 17.914 7 18.891 7 19.75a.75.75 0 0 1-1.5 0c0-1.25.494-2.64 1.678-3.714 1.186-1.075 2.997-1.77 5.531-1.77 2.532 0 4.342.69 5.528 1.76 1.185 1.068 1.68 2.455 1.68 3.705a.75.75 0 0 1-1.5 0M16.084 7.876a3.375 3.375 0 1 0-6.75-.001 3.375 3.375 0 0 0 6.75.001m1.5 0a4.875 4.875 0 1 1-9.75 0 4.875 4.875 0 0 1 9.75 0" />
+  </svg>
+);
 
 
 
@@ -109,10 +139,12 @@ const Header = () => {
     data: userInitialData,
     error: userInitialError,
     refetch: refetchUserInitialData,
+    isLoading: isLoadingUserData,
+    isFetching: isFetchingUserData,
   } = useSessionQuery({
     endpoint: '/auth/user-initial-data',
     queryKey: ['userInitialData'],
-    enabled: !!token,
+    enabled: !!token, // Only fetch if token exists
     // Don't retry on 401 errors (token invalid/expired)
     retry: (failureCount, error) => {
       const errorMessage = typeof error === 'string' ? error : error?.message || String(error);
@@ -141,11 +173,15 @@ const Header = () => {
   // Sync cached user initial data into Redux cart + notifications when it changes
   useEffect(() => {
     if (!userInitialData) {
-      // If no data and no token, clear cart
+      // If no data and no token, clear everything
       if (!token) {
         setCartData({ cart: [], totalPrice: 0 });
         dispatch(setInitial([]));
         dispatch(updateNotificationCount(0));
+        // Also clear user from Redux if it's still there
+        if (user) {
+          dispatch(logout());
+        }
       }
       return;
     }
@@ -163,7 +199,7 @@ const Header = () => {
     setCartData(newCartData);
     dispatch(setInitial(newCartData.cart));
     dispatch(updateNotificationCount(userInitialData.notificationsCount || 0));
-  }, [userInitialData, token, dispatch]);
+  }, [userInitialData, token, dispatch, user]);
 
   // Handle 401 / unauthorized: clear token, redux state, and remove cached query
   useEffect(() => {
@@ -277,15 +313,39 @@ const Header = () => {
   }, [location.pathname, token, refetchUserInitialData]);
 
   const Logout = useCallback(async () => {
+    // Clear token first
     localStorage.removeItem("user");
+    
+    // Clear Redux state
     dispatch(logout());
     dispatch(clearCart());
     setCartData({ cart: [], totalPrice: 0 });
+    dispatch(updateNotificationCount(0));
+    
+    // Remove the userInitialData query from cache to force immediate UI update
+    queryClient.removeQueries({ queryKey: ['userInitialData'] });
+    
+    // Navigate to home
     navigate("/");
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, queryClient]);
 
+  // Determine if we should show loading state
+  // Only show loading if:
+  // 1. We have a token (user should be logged in)
+  // 2. We're actually fetching data (isLoadingUserData or isFetchingUserData)
+  // 3. We don't have user data yet
+  const shouldShowLoading = !!token && (isLoadingUserData || isFetchingUserData) && !user;
 
-  console.log("Header render:", { isVerified, user, cartData });
+  console.log("Header render:", { 
+    isVerified, 
+    user, 
+    cartData, 
+    token: !!token,
+    isLoadingUserData,
+    isFetchingUserData,
+    shouldShowLoading,
+    authLoading 
+  });
 
   const renderNotificationBadge = useCallback(() => {
     if (errorNotificationNumber || !notificationNumber) return null;
@@ -460,10 +520,10 @@ const Header = () => {
               >
                 <Box visibleFrom="sm"><Notifications /></Box>
 
-                {authLoading ? (
+                {/* Fixed loading state logic */}
+                {shouldShowLoading ? (
                   <Button h={{ base: 34, sm: 36 }} size="sm" loading>بارگذاری...</Button>
                 ) : user && isVerified ? (
-
                     <Menu
                       shadow="sm"
                       position="bottom-end"
@@ -511,7 +571,8 @@ const Header = () => {
                             height: '42px'
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '24px' }}>
-                              <RiUserLine style={{ width: '24px', height: '24px', color: '#6E7172'}} />
+                              <ProfileIcon style={{ width: 24, height: 24, color: '#4D5053' }} />
+                              
                             </div>
                             <p style={{
                               fontSize: '12px',
@@ -529,9 +590,9 @@ const Header = () => {
                           <svg style={{ 
                             width: '14px', 
                             height: '14px',
-                            fill: '#1a1a1a'
+                            fill: '#4d5053'
                           }} viewBox="0 0 24 24">
-                            <path d="M6.5 9.5l5.5 5.5 5.5-5.5" fill="#1a1a1a" stroke="#1a1a1a" strokeWidth="2"/>
+                            <path d="M6.5 9.5l5.5 5.5 5.5-5.5" fill="#4d5053" stroke="#4D5053" strokeWidth="2"/>
                           </svg>
                         </div>
                       </MenuTarget>
@@ -548,7 +609,8 @@ const Header = () => {
                           >
                             مشاهده حساب کاربری 
                           
-                          <ChevronLeft size={14} style={{ display: 'inline-block', marginRight: '4px', verticalAlign: 'middle' }} />
+<ChevronLeft size={14} style={{ display: 'inline-block', marginRight: '4px', verticalAlign: 'middle', color: '#4D5053' }} />
+
                           </Anchor>
                         </Box>
 
@@ -571,10 +633,6 @@ const Header = () => {
                           leftSection={
                           <Box ml={6}>
                             <MessageCircle size={18} color="#6b7280" />
-                            {/* <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
-                              <rect x="2" y="5" width="20" height="14" rx="2"/>
-                              <path d="M2 10h20"/>
-                            </svg> */}
                               </Box>
                           }
                         >
@@ -594,21 +652,6 @@ const Header = () => {
                         >
                            علاقه مندی‌ها
                         </MenuItem> 
-
-                        {/* <MenuItem 
-                          component={NavLink} 
-                          to="/account/addresses"
-                          leftSection={
-                              <Box ml={6}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
-                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                              <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                              </Box>
-                          }
-                        >
-                          آدرس‌ها
-                        </MenuItem> */}
 
                         <MenuItem 
                           component={NavLink} 

@@ -60,6 +60,22 @@ const CartIcon = ({ size = 18, color = "currentColor", ...props }) => (
   </svg>
 );
 
+const NewBasketIcon = ({ size = 24, color = "currentColor", ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill={color}
+    width={size}
+    height={size}
+    {...props}
+  >
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M7.543 19.952a1.296 1.296 0 0 1 0 2.589 1.296 1.296 0 0 1 0-2.59m11.28 0c.716 0 1.297.58 1.297 1.294s-.581 1.295-1.296 1.295a1.296 1.296 0 0 1 0-2.59M3.269 3.009l2.08.36c.335.06.59.337.619.677l.235 2.801h.873l.424.001h1.604l.38.001h1.77l.33.001h1.242l.291.001h1.092l.255.001h.952l.222.001h.625l.196.001h.725l.166.001h.612l.14.001h.389l.12.001h.433l.097.001h.267l.08.001h.286l.063.001h.167l.05.001h.17l.035.001h.093l.026.001h.067l.018.001h.046l.012.001h.028l.008.001h.02l.004.001.013.001a2.08 2.08 0 0 1 1.38.82c.335.447.475.998.395 1.55l-.95 6.558a2.56 2.56 0 0 1-2.522 2.19H7.975a2.56 2.56 0 0 1-2.54-2.344L4.52 4.748l-1.507-.26A.75.75 0 0 1 2.4 3.62a.76.76 0 0 1 .867-.61m3.607 5.339h-.547l.603 7.171c.044.552.495.966 1.046.966h10.917c.52 0 .966-.388 1.04-.903l.95-6.559a.59.59 0 0 0-.112-.438.58.58 0 0 0-.388-.23h-.16l-.076.001h-.566l-.149.001h-1.559l-1.52-.001h-1.136l-.297-.001-.91-.001h-.938l-.317-.001-.958-.001h-.96l-.32-.001h-.636l-.315-.001h-.93l-.304-.001-1.176-.001zm10.413 2.196a.75.75 0 0 1 0 1.5h-2.773a.75.75 0 1 1 0-1.5z"
+    />
+  </svg>
+);
 
 const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min }) => {
   const dispatch = useDispatch();
@@ -731,26 +747,33 @@ const MiniCart = () => {
       }}
       onClick={open}
     >
-      <Indicator
-        offset={4}
-        withBorder
-        size={18}
-        label={cartCount > 0 ? cartCount : ""}
-        disabled={!shouldShowCart || cartCount === 0}
-        color="red"
-        inline
-        styles={{
-          indicator: {
-            paddingTop: "1px",
-            fontSize: "10px",
-            borderRadius: "5px",
-            width: "20px",
-            height: "18px"
-          }
-        }}
-      >
-        <CartIcon size={24} color="#6E7172" />
-      </Indicator>
+<Indicator
+  offset={4}
+  withBorder
+  label={cartCount > 0 ? cartCount : ""}
+  disabled={!shouldShowCart || cartCount === 0}
+  color="#ed1944"
+  inline
+  styles={{
+    indicator: (base) => ({
+      ...base,
+      paddingLeft: '6px',   // ✅ left padding
+      paddingRight: '6px',  // ✅ right padding
+      paddingTop: '1px',    // keep top padding if needed
+      paddingBottom: '1px', // optional for vertical spacing
+      fontSize: "10px",
+      borderRadius: "5px",
+      minWidth: '20px',      // optional: ensures small numbers don’t shrink
+      height: '18px',        // optional: control badge height
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }),
+  }}
+>
+  <NewBasketIcon size={24} color="#4d5053" />
+</Indicator>
+
       <Text
         size="12px"
         fw={400}
@@ -861,7 +884,7 @@ const MiniCart = () => {
                 <Center style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', width: '100%' }}>
                   <InfoBox back={false} shadow="0" style={{ width: '100%', textAlign: 'center' }}>
                     <Stack align="center" gap="md">
-                      <CartIcon size={35} color="gray" />
+<NewBasketIcon size={24} color="#4d5053" />
                       <Text size={isMobile ? "sm" : "md"} c="dimmed">لطفا وارد حساب کاربری شوید</Text>
                       <Button 
                         component={NavLink} 
@@ -879,7 +902,7 @@ const MiniCart = () => {
                 <Center style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', width: '100%' }}>
                   <InfoBox back={false} shadow="0" style={{ width: '100%', textAlign: 'center' }}>
                     <Stack align="center" gap="md">
-                      <CartIcon size={35} color="gray" />
+<NewBasketIcon size={24} color="#4d5053" />
                       <Text size={isMobile ? "sm" : "md"} c="dimmed">سبد خرید خالی است</Text>
                       <Text size="sm" c="dimmed">محصولات مورد نظر خود را اضافه کنید</Text>
                     </Stack>
