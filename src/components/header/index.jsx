@@ -235,20 +235,17 @@ const Header = () => {
     if (!ticking.current) {
       requestAnimationFrame(() => {
         const newIsSticky = currentScrollY > 0;
-        let newShowBottomNav = false;
+        let newShowBottomNav = showBottomNav; // Keep current state by default
         
         // Hide nav only when at the very top
         if (currentScrollY < 5) {
           newShowBottomNav = false;
-        } else if (currentScrollY > lastScrollY.current + 3) {
-          // Scrolling down - show nav
+        } else if (currentScrollY > lastScrollY.current + 5) {
+          // Scrolling down - show bottom nav, hide header
           newShowBottomNav = true;
-        } else if (currentScrollY < lastScrollY.current - 3) {
-          // Scrolling up - hide nav
+        } else if (currentScrollY < lastScrollY.current - 5) {
+          // Scrolling up - hide bottom nav, show header
           newShowBottomNav = false;
-        } else {
-          // No significant scroll change - show nav if already scrolled down
-          newShowBottomNav = currentScrollY > 5;
         }
         
         setIsSticky(prev => prev !== newIsSticky ? newIsSticky : prev);
@@ -259,7 +256,7 @@ const Header = () => {
       });
       ticking.current = true;
     }
-  }, []);
+  }, [showBottomNav]);
 
   useEffect(() => {
     // Listen to scroll on window (primary)
@@ -389,7 +386,7 @@ const Header = () => {
           display: 'flex',
           alignItems: 'center',
           transform: isSmallScreen && showBottomNav ? 'translateY(-100%)' : 'translateY(0)',
-          transition: 'transform 0.25s ease-out'
+          transition: 'transform 0.3s ease-in-out'
         }} 
         id="header"
       >
@@ -470,22 +467,24 @@ const Header = () => {
 
                 {/* Category Menu - Shows at 600px and above */}
                 {showCategoryMenu && (
-                  <Box style={{ flexShrink: 0 }}>
+                  <Box style={{ flexShrink: 0, pointerEvents: (isSmallScreen && showBottomNav) ? 'none' : 'auto' }}>
                     <Menu 
                       shadow="md" 
                       position="bottom-start" 
-                      trigger="hover" 
+                      trigger={isSmallScreen ? "click" : "hover"}
                       openDelay={100} 
                       closeDelay={200}
-                      offset={28}
+                      offset={38}
+                      withinPortal={true}
+                      disabled={isSmallScreen && showBottomNav}
+                      closeOnClickOutside={true}
                       styles={{ 
                         dropdown: { 
                           minWidth: 192, 
                           padding: "8px", 
                           maxHeight: '500px', 
                           overflowY: 'auto', 
-                          zIndex: 1001,
-                          top: 'calc(68px + 10px)'
+                          zIndex: 1002
                         } 
                       }}
                       >
