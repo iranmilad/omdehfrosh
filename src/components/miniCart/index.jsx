@@ -747,33 +747,33 @@ const MiniCart = () => {
       }}
       onClick={open}
     >
-<Indicator
-  offset={4}
-  withBorder
-  label={cartCount > 0 ? cartCount : ""}
-  disabled={!shouldShowCart || cartCount === 0}
-  color="#ed1944"
-  inline
-  styles={{
-    indicator: (base) => ({
-      ...base,
-      paddingLeft: '6px',   // ✅ left padding
-      paddingRight: '6px',  // ✅ right padding
-      paddingTop: '1px',    // keep top padding if needed
-      paddingBottom: '1px', // optional for vertical spacing
-      fontSize: "10px",
-      borderRadius: "5px",
-      minWidth: '20px',      // optional: ensures small numbers don’t shrink
-      height: '18px',        // optional: control badge height
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }),
-  }}
->
+<div style={{ position: 'relative', display: 'inline-block' }}>
   <NewBasketIcon size={24} color="#4d5053" />
-</Indicator>
-
+  {shouldShowCart && cartCount > 0 && (
+    <div
+      style={{
+        position: 'absolute',
+        top: '-2px',
+        right: '-11px',
+        minWidth: '16px',
+        height: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#ed1944',
+        color: '#fff',
+        fontSize: '9px',
+        fontWeight: 600,
+        borderRadius: '4px',
+        padding: '2px 4px',
+        boxSizing: 'border-box',
+        zIndex: 1
+      }}
+    >
+      {cartCount}
+    </div>
+  )}
+</div>
       <Text
         size="12px"
         fw={400}
