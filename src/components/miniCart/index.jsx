@@ -754,9 +754,10 @@ const MiniCart = () => {
       style={{
         position: 'absolute',
         top: '-2px',
-        right: '-11px',
-        minWidth: '16px',
-        height: '24px',
+        right: '-7px',
+        // minWidth: '16px',
+        height: '23px',
+        width: '15px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
