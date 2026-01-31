@@ -91,14 +91,14 @@ const Search = ({ onSearchClick }) => {
   const hasResults = hasProducts || hasCategories || hasBrands;
   
   return (
-    <div style={{ position: 'relative', width: '', flex: 1, minWidth: 0 }}>
+    <div style={{ position: 'relative', width: '100%', minWidth: 0 }}>
       <div 
         ref={inputRef}
         onClick={handleClick}
         style={{
           display: 'flex',
           alignItems: 'center',
-          width: isMobile ? '200px' : '286px',
+          width: '100%',
           height: '36px',
           backgroundColor: 'transparent',
           border: '1px solid #e6e7e8',

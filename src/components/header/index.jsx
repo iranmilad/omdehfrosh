@@ -401,13 +401,13 @@ const Header = () => {
             <Flex 
               justify="space-between" 
               align="center" 
-              gap={{ base: 4, sm: 8 }}
+              gap={{ base: 8, sm: 8 }}
               style={{
                 width: '100%',
                 maxWidth: '100%'
               }}
             >
-              {/* Left Flex: Logo, Search, and Categories */}
+              {/* Left side: Logo, Search and Category Menu together */}
               <Flex 
                 align="center" 
                 gap={{ base: 4, sm: 8 }} 
@@ -416,101 +416,111 @@ const Header = () => {
                   flex: 1
                 }}
               >
-                {/* Logo - Reduced sizes */}
-                  <Box visibleFrom="md" style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "40px", sm: "80px", md: "120px" }}>
-                    <Anchor component={NavLink} to="/">
-                      {loadingBootstrap ? (
-                        <Skeleton h={{ base: 28, sm: 36, md: 42 }} w="100%" />
-                      ) : isValidLogo(bootstrap?.data.logo) && !logoError ? (
-                        <Image 
-                          src={bootstrap?.data.logo} 
-                          h={{ base: "28px", sm: "36px", md: "42px" }} 
-                          w="100%" 
-                          fit="contain" 
-                          alt={bootstrap?.data.siteTitle || "Logo"}
-                          onError={() => setLogoError(true)}
+                {/* Logo - Hidden on mobile */}
+                <Box visibleFrom="md" style={{ flexShrink: 0, zIndex: 1000 }} w={{ base: "40px", sm: "80px", md: "120px" }}>
+                  <Anchor component={NavLink} to="/">
+                    {loadingBootstrap ? (
+                      <Skeleton h={{ base: 28, sm: 36, md: 42 }} w="100%" />
+                    ) : isValidLogo(bootstrap?.data.logo) && !logoError ? (
+                      <Image 
+                        src={bootstrap?.data.logo} 
+                        h={{ base: "28px", sm: "36px", md: "42px" }} 
+                        w="100%" 
+                        fit="contain" 
+                        alt={bootstrap?.data.siteTitle || "Logo"}
+                        onError={() => setLogoError(true)}
+                      />
+                    ) : (
+                      <Flex justify="center" align="center" h={{ base: "28px", sm: "36px", md: "42px" }}>
+                        <ImageIcon 
+                          size={window.innerWidth < 640 ? 28 : window.innerWidth < 768 ? 36 : 42} 
+                          color="#6B7280" 
                         />
-                      ) : (
-                        <Flex justify="center" align="center" h={{ base: "28px", sm: "36px", md: "42px" }}>
-                          <ImageIcon 
-                            size={window.innerWidth < 640 ? 28 : window.innerWidth < 768 ? 36 : 42} 
-                            color="#6B7280" 
-                          />
-                        </Flex>
-                      )}
-                    </Anchor>
+                      </Flex>
+                    )}
+                  </Anchor>
+                </Box>
+
+                {/* Search and Category wrapper - keeps them tightly together on the left */}
+                <Flex align="center" gap={50} style={{ flexShrink: 0, flex: isSmallScreen ? '1' : '0 1 auto', minWidth: 0, width: isSmallScreen ? '100%' : 'auto' }}>
+                  {/* Search */}
+                  <Box
+                    style={{
+                      position: 'relative',
+                      width: isSmallScreen ? '100%' : '350px',
+                      maxWidth: isSmallScreen ? '100%' : '350px',
+                      minWidth: 0,
+                      cursor: window.innerWidth <= 768 ? 'pointer' : 'default',
+                      overflow: 'visible',
+                      zIndex: 1000
+                    }}
+                    onClick={window.innerWidth <= 768 ? mobileSearchDrawer[1].toggle : undefined}
+                    tabIndex={-1}
+                  >
+                    <Search onSearchClick={mobileSearchDrawer[1].toggle} />
                   </Box>
 
-                <Flex>
-
-
-                {/* Search - More flexible */}
-                <Box
-                  style={{
-                    position: 'relative',
-                    flex: 1,
-                    minWidth: 0,
-                    maxWidth: '100%',
-                    marginRight: '8px',
-                    cursor: window.innerWidth <= 768 ? 'pointer' : 'default',
-                    overflow: 'visible',
-                    zIndex: 1000
-                  }}
-                  onClick={window.innerWidth <= 768 ? mobileSearchDrawer[1].toggle : undefined}
-                  tabIndex={-1}
-                >
-                  <Search onSearchClick={mobileSearchDrawer[1].toggle} />
-                </Box>
+                  {/* Category Menu - Shows at 600px and above */}
+                  {showCategoryMenu && (
+                    <Box style={{ flexShrink: 0, pointerEvents: (isSmallScreen && showBottomNav) ? 'none' : 'auto' }}>
+                      <Menu 
+                        shadow="md" 
+                        position="bottom-start" 
+                        trigger={isSmallScreen ? "click" : "hover"}
+                        openDelay={100} 
+                        closeDelay={200}
+                        offset={38}
+                        withinPortal={true}
+                        disabled={isSmallScreen && showBottomNav}
+                        closeOnClickOutside={true}
+                        styles={{ 
+                          dropdown: { 
+                            minWidth: 192, 
+                            padding: "8px", 
+                            maxHeight: '500px', 
+                            overflowY: 'auto', 
+                            zIndex: 1002
+                          } 
+                        }}
+                        >
+                        <MenuTarget>
+                          <Flex align="center" gap={2} dir="rtl" style={{ cursor: 'pointer' }}>
+                            <span style={{ fontSize: "14px", color: "#1a1b1c", whiteSpace: 'nowrap' }}>
+                              دسته‌بندی‌ها
+                            </span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#4A4A4A">
+                              <path d="M7 10l5 5 5-5H7z" />
+                            </svg>
+                          </Flex>
+                        </MenuTarget>
+                        <MenuDropdown>
+                          <DropDownMenu menuItems={mainMenu} />
+                        </MenuDropdown>
+                      </Menu>
+                    </Box>
+                  )}
                 </Flex>
 
-                  <Flex>
-
-                {/* Category Menu - Shows at 600px and above */}
-                {showCategoryMenu && (
-                  <Box style={{ flexShrink: 0, pointerEvents: (isSmallScreen && showBottomNav) ? 'none' : 'auto' }}>
-                    <Menu 
-                      shadow="md" 
-                      position="bottom-start" 
-                      trigger={isSmallScreen ? "click" : "hover"}
-                      openDelay={100} 
-                      closeDelay={200}
-                      offset={38}
-                      withinPortal={true}
-                      disabled={isSmallScreen && showBottomNav}
-                      closeOnClickOutside={true}
-                      styles={{ 
-                        dropdown: { 
-                          minWidth: 192, 
-                          padding: "8px", 
-                          maxHeight: '500px', 
-                          overflowY: 'auto', 
-                          zIndex: 1002
-                        } 
-                      }}
-                      >
-                      <MenuTarget>
-                        <Flex align="center" gap={2} dir="rtl" style={{ cursor: 'pointer' }}>
-                          <span style={{ fontSize: "14px", color: "#1a1b1c", whiteSpace: 'nowrap', marginRight: '8px' }}>
-                            دسته‌بندی‌ها
-                          </span>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="#4A4A4A">
-                            <path d="M7 10l5 5 5-5H7z" />
-                          </svg>
-                        </Flex>
-                      </MenuTarget>
-                      <MenuDropdown>
-                        <DropDownMenu menuItems={mainMenu} />
-                      </MenuDropdown>
-                    </Menu>
-                  </Box>
+                {/* Login button for mobile when not logged in */}
+                {isSmallScreen && !user && (
+                  <Button 
+                    h={34} 
+                    px={14} 
+                    size="sm" 
+                    component={NavLink} 
+                    to="/login"
+                    style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                  >
+                    <span style={{ fontSize: '12px' }}>ورود/ثبت‌نام</span>
+                  </Button>
                 )}
               </Flex>
-              </Flex>
-              
-              {/* Right Flex: Notifications, User Icon, and Basket */}
+
+              {/* Right side: Icons (Notifications, Profile, Basket) */}
               <Flex
                 gap={{ base: 4, sm: 24, md: 24 }}
                 align="flex-end"
+                visibleFrom="sm"
                 style={{
                   flexShrink: 0,
                   zIndex: 1000,
@@ -683,7 +693,7 @@ const Header = () => {
                   </Button>
                 )}
                 
-                {!hideMiniCart && <Box><MiniCart cartItems={cartItems} /></Box>}
+                {!hideMiniCart && <Box><MiniCart externalOpened={opened} externalOpen={open} externalClose={close} cartItems={cartItems} /></Box>}
               </Flex>
             </Flex>
 

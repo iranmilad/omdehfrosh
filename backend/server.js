@@ -6,6 +6,7 @@ import connectDB from "./db/db.js";
 import { getCart, removeFromCart, updateCart } from '../backend/controllers/cartControllers.js'
 import "dotenv/config"; // No need for .config()
 import cors from "cors";
+
 import cartRoutes from "./routes/cartRoutes.js"; 
 import authRoutes from "./routes/authRoutes.js"; 
 import userRoutes from "./routes/userRoutes.js";

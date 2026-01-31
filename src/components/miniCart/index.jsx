@@ -525,9 +525,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
                       <circle cx="6" cy="6" r="6" fill={getColorCode(attr.color)} />
                     </svg>
                   </div>
-                  {/* <Text size="xs" c="#81858b" mr={8}>
-                    {attr.color}
-                  </Text> */}
                 </>
               )}
               
@@ -601,9 +598,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         <NumberFormatter thousandSeparator value={price?.discountedPrice || price?.regularPrice} />
       </Text>
       <PriceText fontSize="10px">تومان</PriceText>
-      
-      {/* Discount badge next to price */}
-
     </Flex>
 
     {/* Show regular price if there's a discount */}
@@ -631,32 +625,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
           <NumberFormatter thousandSeparator value={price.regularPrice} />
         </Text>
         <PriceText fontSize="10px">تومان</PriceText>
-
-        
-          {/* <Flex
-            align="center"
-            justify="center"
-            w={32}
-            h={20}
-            style={{
-              borderRadius: '45%',
-              backgroundColor: 'red',
-              padding: '4px 8px',
-            }}
-          >
-          <Text c="white" size="xs" fw={700}>
-            {price.regularPrice > 0
-              ? (
-                  ((price.regularPrice - price.discountedPrice) /
-                    price.regularPrice) *
-                  100
-                ).toFixed(1)
-              : '0.0'}
-            %
-          </Text>
-
-          </Flex> */}
-
       </Flex>
     )}
   </Flex>
@@ -668,12 +636,17 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
   );
 };
 
-const MiniCart = () => {
-  const [opened, { open, close }] = useDisclosure(false);
+const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
+  const [internalOpened, internalHandlers] = useDisclosure(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSmallMobile = useMediaQuery('(max-width: 480px)');
+
+  // Use external state if provided, otherwise use internal state
+  const opened = externalOpened !== undefined ? externalOpened : internalOpened;
+  const open = externalOpen || internalHandlers.open;
+  const close = externalClose || internalHandlers.close;
 
   const cartState = useSelector((state) => state.cart);
   const items = cartState?.items || [];
@@ -755,7 +728,6 @@ const MiniCart = () => {
         position: 'absolute',
         top: '-2px',
         right: '-7px',
-        // minWidth: '16px',
         height: '23px',
         width: '15px',
         display: 'flex',
