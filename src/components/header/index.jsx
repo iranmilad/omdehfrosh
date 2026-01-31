@@ -732,7 +732,7 @@ const Header = () => {
           pointerEvents: showBottomNav ? 'auto' : 'none'
         }}
       >
-        <BottomNavigation category={mobileMenuDrawer[1].toggle} basket={open} search={mobileSearchDrawer[1].toggle} user={user} />
+        <BottomNavigation category={mobileMenuDrawer[1].toggle} basket={open} search={mobileSearchDrawer[1].toggle} user={user} isCategoryOpen={mobileMenuDrawer[0]} />
       </Box>
       
       <MobileSearch 
