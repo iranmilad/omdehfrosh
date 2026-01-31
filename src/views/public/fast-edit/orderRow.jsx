@@ -84,13 +84,13 @@ export function Attributes({items}){
   return (
     <div style={{
       display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'flex-start',
       minHeight: '20px',
       padding: 0,
       margin: 0,
-      gap: '2px',
+      gap: '8px',
       flexWrap: 'nowrap'
     }}>
       {hasAttributes ? (
@@ -105,22 +105,47 @@ export function Attributes({items}){
 
 function Attribute (props){
   let {type, attribute_name, value} = props;
+  const [opened, setOpened] = useState(false);
 
   const getIconForType = () => {
     switch (type?.toLowerCase()) {
       case 'color':
       case 'رنگ':
         return (
-          <Tooltip label={attribute_name} position="top" withArrow>
-            <ColorSwatch size={20} color={value} style={{ margin: 0, cursor: 'pointer' }} />
+          <Tooltip 
+            label={attribute_name} 
+            position="top" 
+            withArrow
+            opened={opened}
+            onClick={() => setOpened(!opened)}
+            onMouseEnter={() => setOpened(true)}
+            onMouseLeave={() => setOpened(false)}
+          >
+            <ColorSwatch 
+              size={20} 
+              color={value} 
+              style={{ margin: 0, cursor: 'pointer' }}
+              onClick={() => setOpened(!opened)}
+            />
           </Tooltip>
         );
 
       case 'warranty':
       case 'گارانتی':
         return (
-          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
-            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+          <Tooltip 
+            label={`${attribute_name}: ${value}`} 
+            position="top" 
+            withArrow
+            opened={opened}
+            onClick={() => setOpened(!opened)}
+            onMouseEnter={() => setOpened(true)}
+            onMouseLeave={() => setOpened(false)}
+          >
+            <div 
+              style={{ display: 'inline-flex', cursor: 'pointer' }}
+              onClick={() => setOpened(!opened)}
+            >
               <IconShieldCheck size={20} color="#228be6" stroke={1.5} />
             </div>
           </Tooltip>
@@ -129,8 +154,19 @@ function Attribute (props){
       case 'material':
       case 'جنس':
         return (
-          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
-            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+          <Tooltip 
+            label={`${attribute_name}: ${value}`} 
+            position="top" 
+            withArrow
+            opened={opened}
+            onClick={() => setOpened(!opened)}
+            onMouseEnter={() => setOpened(true)}
+            onMouseLeave={() => setOpened(false)}
+          >
+            <div 
+              style={{ display: 'inline-flex', cursor: 'pointer' }}
+              onClick={() => setOpened(!opened)}
+            >
               <IconBox size={20} color="#7950f2" stroke={1.5} />
             </div>
           </Tooltip>
@@ -140,8 +176,19 @@ function Attribute (props){
       case 'اندازه':
       case 'سایز':
         return (
-          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
-            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+          <Tooltip 
+            label={`${attribute_name}: ${value}`} 
+            position="top" 
+            withArrow
+            opened={opened}
+            onClick={() => setOpened(!opened)}
+            onMouseEnter={() => setOpened(true)}
+            onMouseLeave={() => setOpened(false)}
+          >
+            <div 
+              style={{ display: 'inline-flex', cursor: 'pointer' }}
+              onClick={() => setOpened(!opened)}
+            >
               <IconRuler size={20} color="#f59f00" stroke={1.5} />
             </div>
           </Tooltip>
@@ -150,8 +197,19 @@ function Attribute (props){
       case 'weight':
       case 'وزن':
         return (
-          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
-            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+          <Tooltip 
+            label={`${attribute_name}: ${value}`} 
+            position="top" 
+            withArrow
+            opened={opened}
+            onClick={() => setOpened(!opened)}
+            onMouseEnter={() => setOpened(true)}
+            onMouseLeave={() => setOpened(false)}
+          >
+            <div 
+              style={{ display: 'inline-flex', cursor: 'pointer' }}
+              onClick={() => setOpened(!opened)}
+            >
               <IconWeight size={20} color="#12b886" stroke={1.5} />
             </div>
           </Tooltip>
@@ -160,8 +218,19 @@ function Attribute (props){
       case 'dimensions':
       case 'ابعاد':
         return (
-          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
-            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+          <Tooltip 
+            label={`${attribute_name}: ${value}`} 
+            position="top" 
+            withArrow
+            opened={opened}
+            onClick={() => setOpened(!opened)}
+            onMouseEnter={() => setOpened(true)}
+            onMouseLeave={() => setOpened(false)}
+          >
+            <div 
+              style={{ display: 'inline-flex', cursor: 'pointer' }}
+              onClick={() => setOpened(!opened)}
+            >
               <IconDimensions size={20} color="#e64980" stroke={1.5} />
             </div>
           </Tooltip>
@@ -169,8 +238,19 @@ function Attribute (props){
 
       default:
         return (
-          <Tooltip label={`${attribute_name}: ${value}`} position="top" withArrow>
-            <div style={{ display: 'inline-flex', cursor: 'pointer' }}>
+          <Tooltip 
+            label={`${attribute_name}: ${value}`} 
+            position="top" 
+            withArrow
+            opened={opened}
+            onClick={() => setOpened(!opened)}
+            onMouseEnter={() => setOpened(true)}
+            onMouseLeave={() => setOpened(false)}
+          >
+            <div 
+              style={{ display: 'inline-flex', cursor: 'pointer' }}
+              onClick={() => setOpened(!opened)}
+            >
               <IconTag size={20} color="#868e96" stroke={1.5} />
             </div>
           </Tooltip>

@@ -162,6 +162,8 @@ const Header = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const mobileMenuDrawer = useDisclosure(false);
   const mobileSearchDrawer = useDisclosure(false);
+  const [categoryMenuOpened, setCategoryMenuOpened] = useState(false);
+  const dropdownScrollRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -237,6 +239,16 @@ const Header = () => {
         const newIsSticky = currentScrollY > 0;
         let newShowBottomNav = showBottomNav; // Keep current state by default
         
+        // Don't hide header if category menu is open ON MOBILE ONLY
+        if (categoryMenuOpened && isSmallScreen) {
+          newShowBottomNav = false;
+          setIsSticky(prev => prev !== newIsSticky ? newIsSticky : prev);
+          setShowBottomNav(false);
+          lastScrollY.current = currentScrollY;
+          ticking.current = false;
+          return;
+        }
+        
         // Hide nav only when at the very top
         if (currentScrollY < 5) {
           newShowBottomNav = false;
@@ -256,7 +268,55 @@ const Header = () => {
       });
       ticking.current = true;
     }
-  }, [showBottomNav]);
+  }, [showBottomNav, categoryMenuOpened, isSmallScreen]);
+
+  // Prevent body scroll when dropdown is open (MOBILE ONLY)
+  useEffect(() => {
+    console.log('=== BODY SCROLL LOCK EFFECT ===');
+    console.log('categoryMenuOpened:', categoryMenuOpened);
+    console.log('isSmallScreen:', isSmallScreen);
+    
+    if (categoryMenuOpened && isSmallScreen) {
+      const scrollY = window.scrollY;
+      console.log('Locking body scroll. Current scrollY:', scrollY);
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      console.log('Body styles applied:', {
+        position: document.body.style.position,
+        top: document.body.style.top,
+        overflow: document.body.style.overflow
+      });
+    } else {
+      console.log('Unlocking body scroll');
+      const scrollY = document.body.style.top;
+      console.log('Saved scrollY from top:', scrollY);
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      if (scrollY) {
+        const scrollPosition = parseInt(scrollY || '0') * -1;
+        console.log('Restoring scroll to:', scrollPosition);
+        window.scrollTo(0, scrollPosition);
+      }
+    }
+  }, [categoryMenuOpened, isSmallScreen]);
+
+  // Debug ref assignment
+  useEffect(() => {
+    console.log('=== DROPDOWN REF CHECK ===');
+    console.log('dropdownScrollRef.current:', dropdownScrollRef.current);
+    if (dropdownScrollRef.current) {
+      console.log('Ref element details:', {
+        scrollHeight: dropdownScrollRef.current.scrollHeight,
+        clientHeight: dropdownScrollRef.current.clientHeight,
+        offsetHeight: dropdownScrollRef.current.offsetHeight,
+        overflowY: window.getComputedStyle(dropdownScrollRef.current).overflowY
+      });
+    }
+  }, [categoryMenuOpened]);
 
   useEffect(() => {
     // Listen to scroll on window (primary)
@@ -473,13 +533,22 @@ const Header = () => {
                         withinPortal={true}
                         disabled={isSmallScreen && showBottomNav}
                         closeOnClickOutside={true}
+                        closeOnItemClick={false}
+                        clickOutsideEvents={['mousedown', 'touchstart']}
+                        onChange={(opened) => {
+                          console.log('=== MENU onChange ===');
+                          console.log('Menu opened state changed to:', opened);
+                          setCategoryMenuOpened(opened);
+                        }}
                         styles={{ 
                           dropdown: { 
                             minWidth: 192, 
-                            padding: "8px", 
-                            maxHeight: '500px', 
-                            overflowY: 'auto', 
-                            zIndex: 1002
+                            padding: '8px',
+                            maxHeight: isSmallScreen ? 'none' : '400px',
+                            overflowY: isSmallScreen ? 'visible' : 'auto',
+                            overflowX: 'hidden',
+                            zIndex: 1002,
+                            pointerEvents: 'auto'
                           } 
                         }}
                         >
@@ -494,7 +563,41 @@ const Header = () => {
                           </Flex>
                         </MenuTarget>
                         <MenuDropdown>
-                          <DropDownMenu menuItems={mainMenu} />
+                          {isSmallScreen ? (
+                            <div
+                              ref={dropdownScrollRef}
+                              onTouchStart={(e) => {
+                                console.log('=== BOX TOUCH START ===');
+                                console.log('Touch started on dropdown box');
+                                console.log('dropdownScrollRef.current:', dropdownScrollRef.current);
+                              }}
+                              onTouchMove={(e) => {
+                                console.log('=== BOX TOUCH MOVE ===');
+                                if (dropdownScrollRef.current) {
+                                  console.log('Scroll position:', dropdownScrollRef.current.scrollTop);
+                                  console.log('Scroll height:', dropdownScrollRef.current.scrollHeight);
+                                  console.log('Client height:', dropdownScrollRef.current.clientHeight);
+                                  console.log('IS SCROLLABLE:', dropdownScrollRef.current.scrollHeight > dropdownScrollRef.current.clientHeight);
+                                }
+                              }}
+                              onScroll={(e) => {
+                                console.log('=== BOX SCROLL EVENT ===');
+                                console.log('Scrolling dropdown, scrollTop:', e.target.scrollTop);
+                              }}
+                              style={{
+                                maxHeight: '200px',
+                                minHeight: '150px',
+                                overflowY: 'auto',
+                                overflowX: 'hidden',
+                                WebkitOverflowScrolling: 'touch',
+                                padding: '8px'
+                              }}
+                            >
+                              <DropDownMenu menuItems={mainMenu} />
+                            </div>
+                          ) : (
+                            <DropDownMenu menuItems={mainMenu} />
+                          )}
                         </MenuDropdown>
                       </Menu>
                     </Box>
