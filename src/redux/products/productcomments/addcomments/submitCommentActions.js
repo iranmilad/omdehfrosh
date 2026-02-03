@@ -21,17 +21,17 @@ export const submitComment = createAsyncThunk(
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-      
         const error = {
           status: response.status,
           message: errorData?.message || getHttpCodeMessage(response.status),
+          alreadyCommented: !!errorData?.alreadyCommented,
+          productId, // so OrderItemComment can run onCommented only for this product
         };
-      
         return rejectWithValue(error);
       }
 
       const data = await response.json();
-      return data; // Returns the full response data (including state and errors if any)
+      return { ...data, productId }; // so OrderItemComment can run onCommented only for this product
     } catch (error) {
       console.error("Network error:", error);
       return rejectWithValue("Network error or server not responding");

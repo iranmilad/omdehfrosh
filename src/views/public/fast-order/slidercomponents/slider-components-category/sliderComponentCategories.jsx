@@ -64,14 +64,16 @@ const SliderComponentCategoriesCMFastOrder = ({
   const allCategoryIds = items?.map(item => item.idCategory) || [];
   const allSelected = allCategoryIds.length > 0 && allCategoryIds.every(id => filterCategoryStorage.includes(id));
 
+  const ROW_HEIGHT = 48;
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', minHeight: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
+      <div style={{ flex: 1, minWidth: 0, height: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
       <Swiper
         modules={[FreeMode, Navigation]}
         freeMode={true}
         slidesPerView="auto"
         spaceBetween={8}
-        className="mt-2"
+        className="!mt-0"
         style={{ width: "100%" }}
         navigation={{
           prevEl: prevRef.current,
@@ -116,6 +118,7 @@ const SliderComponentCategoriesCMFastOrder = ({
         {/* Select All Button commented out */}
       </SwiperSlide>
       </Swiper>
+      </div>
       {items && items.length > 0 && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={isBeginning} isEnd={isEnd} />}
     </div>
   );
@@ -137,19 +140,42 @@ export function SingleCategoryGroupCM({
 }) {
   if (!parentItem || !Array.isArray(parentItem.subCategories)) return null;
 
-  const onClick = () => {
-    if (isDisabled) return;
+  const onClick = (e) => {
+    console.log('🖱️ [SliderCategories] onClick FIRED', {
+      eventType: e?.type,
+      isDisabled,
+      categoryId: parentItem.idCategory,
+      categoryName: parentItem.name || parentItem.title,
+      currentFilterCategoryStorage: filterCategoryStorage,
+      timestamp: Date.now()
+    });
+    
+    if (isDisabled) {
+      console.log('🖱️ [SliderCategories] onClick BLOCKED - isDisabled=true');
+      return;
+    }
+    
+    // Set manual filter update flag to prevent URL sync from overriding during navigation
+    sessionStorage.setItem('manualFilterUpdate', 'true');
+    
     const isActive = filterCategoryStorage.includes(parentItem.idCategory);
     
     if (isActive) {
+      console.log('🖱️ [SliderCategories] DESELECTING category - calling setFilterCategoryStorage([])');
       // Deselecting - go back to base category page
       setFilterCategoryStorage([]);
       navigate('/fastorder/category');
     } else {
+      console.log('🖱️ [SliderCategories] SELECTING category - calling setFilterCategoryStorage([' + parentItem.idCategory + '])');
       // Selecting - update URL with category name
       setFilterCategoryStorage([parentItem.idCategory]);
       navigate(`/fastorder/category/${parentItem.name}`);
     }
+    
+    // Clear the flag after navigation has settled
+    setTimeout(() => {
+      sessionStorage.removeItem('manualFilterUpdate');
+    }, 300);
   };
 
   const getCategoryImageSrc = (image) => {

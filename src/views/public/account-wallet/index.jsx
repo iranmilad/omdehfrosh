@@ -2,6 +2,7 @@
 import {
   Alert,
   Badge,
+  Box,
   Button,
   Center,
   Divider,
@@ -19,27 +20,23 @@ import {
   Title
 } from '@mantine/core';
 import { useForm, yupResolver } from '@mantine/form';
+import { useMediaQuery } from '@mantine/hooks';
 import React, { useEffect, useState, useCallback } from 'react';
 import * as yup from 'yup';
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from 'react-router';
 import { notifications } from '@mantine/notifications';
 
-import { fetchUserInfo } from '../../../redux/users/userinfo/userInfo';
 import { updateUserInfo } from '../../../redux/users/updateuserinfo/updateUserInforActions';
 import { clearUserInfo } from '../../../redux/users/updateuserinfo/updateUserInfoSlice';
-import { getUserMyAccount } from '../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions';
+import { useSessionQuery, useQueryClient } from '../../../Libs/reactQuery';
 
 import ErrorMessageModal from '../../../components/errormessagemodal';
-import { getAllGateWaysData } from '../../../redux/gatewaysdata/gatewaysdata/gateWaysDataActions';
-// import { gateways } from '../../../mock/data/gateways';
 import { withdrawFromWallet } from '../../../redux/payment/wallet/walletwithdrawal/walletWithDrawalActions';
 import { transferFromWallet } from '../../../redux/payment/wallet/wallettransfer/walletTransferActions';
 import { handleKnownErrors } from '../../../Libs/errorstatushandle/httpErrorStatus';
 import { clearWithdrawState } from '../../../redux/payment/wallet/walletwithdrawal/walletWithDrawalSlice';
 import { clearTransferState } from '../../../redux/payment/wallet/wallettransfer/walletTransferSlice';
-import { get } from 'http';
-import { getAllOrdersByUserId } from '../../../redux/orders/orders/getallordersbyuserid/getAllOrdersByUserIdActions';
 import { processPayment } from '../../../utils/paymentHelper';
 
 
@@ -105,52 +102,77 @@ const transferValidationSchema = yup.object().shape({
 
 
 function Account_Wallet() {
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
 
   const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [walletModalType, setWalletModalType] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalOpenDetail, setModalOpenDetail] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [errMessage, setErrMessage] = useState()
-
-  const [errMessageTransfer, setErrMessageTransfer] = useState()
-
+  const [errMessage, setErrMessage] = useState();
+  const [errMessageTransfer, setErrMessageTransfer] = useState();
   const [selectedGatewayId, setSelectedGatewayId] = useState(null);
   const [confirmTransferModal, setConfirmTransferModal] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [modalOpenWithdrawError, setModalOpenWithdrawError] = useState(false);
+  const [modalOpenTransferError, setModalOpenTransferError] = useState(false);
+  const [confirmWithdrawModal, setConfirmWithdrawModal] = useState(false);
 
-  const { userInfo, loadingUserInfo } = useSelector((state) => state.user);
+  const { data: userInfoData, isLoading: loadingUserInfo } = useSessionQuery({
+    endpoint: "/users/getuserinfo",
+    queryKey: ["userInfo"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
+  const userInfo = userInfoData?.data ?? userInfoData;
+
+  const { data: userAccountData } = useSessionQuery({
+    endpoint: "/user-myaccounts",
+    queryKey: ["userMyAccount"],
+    enabled: !!token,
+    queryOptions: { refetchOnMount: true },
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
+  const userAccount = userAccountData?.data ?? userAccountData;
+
+  // Gateways data (POST) - cached with React Query; shared with payment-method for "online" state
+  const {
+    data: gatewaysData,
+    isLoading: gatewaysLoading,
+  } = useSessionQuery({
+    endpoint: "/gatewaysdata",
+    queryKey: ["gatewaysdata", "online"],
+    method: "post",
+    body: { state: "online" },
+    enabled: true,
+    queryOptions: { refetchOnMount: false },
+  });
+  const fetchedGateways = Array.isArray(gatewaysData) ? gatewaysData : (gatewaysData?.gateways ?? []);
+  const loading = gatewaysLoading;
+
   const { updateuser, errorUpdateUser } = useSelector((state) => state.updateUserInfo);
-    const [loginModalOpen, setLoginModalOpen] = useState(false);
-
-
   const { withdrawResult, loadingWithdraw, errorWithdraw } = useSelector((state) => state.walletWithDrawal);
   const { transferResult, loadingTransfer, errorTransfer } = useSelector((state) => state.walletTransfer);
+  const { isVerified, loading: authLoading, user } = useSelector((state) => state.auth);
 
-  const [modalOpenWithdrawError, setModalOpenWithdrawError] = useState(false);
-
-  const [modalOpenTransferError, setModalOpenTransferError] = useState(false);
-
-    const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-
-  const { userAccount } = useSelector((state) => state.userMyAccounts);
-
-  const [confirmWithdrawModal, setConfirmWithdrawModal] = useState(false);
+  const isShortViewport = useMediaQuery('(max-height: 500px)');
+  const isNarrowViewport = useMediaQuery('(max-width: 576px)');
+  const detailsModalSmall = isShortViewport || isNarrowViewport;
 
   const [depositData, setDepositData] = useState({ name: '', family: '', amount: '' });
   const [withdrawData, setWithdrawData] = useState({ amount: '' });
   const [transferData, setTransferData] = useState({ receiverPhone: '', amount: '', note: '' });
-
-
-  const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData); // Use the state from Redux
-  
- 
-
-  useEffect(() => {
-    dispatch(getAllGateWaysData({ state: "online" }));
-  }, [dispatch]);
 
 
 // Fix the navigate call in handleSubmitModal function
@@ -164,6 +186,12 @@ const handleSubmitModal = (e) => {
       setWalletModalOpen(false);
 
       const info = fetchedGateways.find(gateway => gateway._id === selectedGatewayId);
+
+      // Invalidate wallet/account cache so when user returns from payment we refetch
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+        queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      }
 
       // Use new universal payment flow for wallet recharge
       // Send amount, gateway, and payment_type - backend will get wallet_id from user token
@@ -299,19 +327,6 @@ const transferForm = useForm({
     validate: yupResolver(validationSchema),
   });
 
-  // Fetch user info and account data only if not already in Redux
-  useEffect(() => {
-    if (user && !userInfo) {
-      dispatch(fetchUserInfo());
-    }
-  }, [dispatch, user, userInfo]);
-
-  useEffect(() => {
-    if (user && !userAccount) {
-      dispatch(getUserMyAccount());
-    }
-  }, [dispatch, user, userAccount]);
-
   useEffect(() => {
     if (userInfo?.user) {
       const { name, family, mobile, email, nationalCode, birthday } = userInfo.user;
@@ -353,9 +368,12 @@ const transferForm = useForm({
   const submitForm = useCallback(async (values) => {
     const updatedValues = { ...values, phone: values.mobile };
     await dispatch(updateUserInfo(updatedValues));
-    await dispatch(fetchUserInfo());
-    
-  }, [dispatch]);
+    if (queryClient) {
+      queryClient.invalidateQueries({ queryKey: ["userInfo"] });
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+      queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+    }
+  }, [dispatch, queryClient]);
 
   const handleDeposit = () => {
 
@@ -468,22 +486,19 @@ const transferForm = useForm({
 
       }, [errorTransfer, transferResult]);
       
-useEffect(() => {
-  // This will refresh data when user returns from payment page
-  const handleVisibilityChange = () => {
-    if (!document.hidden && user && !userAccount) {
-      // Page became visible, refresh wallet data only if not in Redux
-      dispatch(getUserMyAccount());
+  useEffect(() => {
+    if (withdrawResult?.state === "ok" && queryClient) {
+      queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
     }
-  };
+  }, [withdrawResult?.state, queryClient]);
 
-  // Listen for when user returns to the tab/page
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-
-  return () => {
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-  };
-}, [user, dispatch, userAccount]);
+  useEffect(() => {
+    if (transferResult?.state === "ok" && queryClient) {
+      queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+    }
+  }, [transferResult?.state, queryClient]);
             useEffect(() => {
               if (
                   errorTransfer && 
@@ -642,6 +657,14 @@ useEffect(() => {
             ? "برداشت از کیف پول"
             : "انتقال به حساب دیگر"
         }
+        size={detailsModalSmall ? 'sm' : 'md'}
+        zIndex={1100}
+        lockScroll={false}
+        removeScrollBar={false}
+        styles={{
+          content: { maxHeight: '90dvh', display: 'flex', flexDirection: 'column' },
+          body: { overflowY: 'auto', flex: '1 1 auto', minHeight: 0 },
+        }}
       >
         <form onSubmit={handleSubmitModal}>
           <Stack gap="sm">
@@ -771,6 +794,10 @@ useEffect(() => {
         opened={confirmWithdrawModal}
         onClose={() => setConfirmWithdrawModal(false)}
         title="تأیید برداشت"
+        size={detailsModalSmall ? 'sm' : 'md'}
+        zIndex={1100}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Text>آیا از برداشت مبلغ مطمئن هستید؟</Text>
         <Group mt="md" position="right">
@@ -781,8 +808,12 @@ useEffect(() => {
               color="red"
               onClick={() => {
                 setConfirmWithdrawModal(false);
-                // Only send amount, backend will get phone from token
-                dispatch(withdrawFromWallet({ withdrawData: { amount: withdrawForm.values.amount } }));
+                dispatch(withdrawFromWallet({ withdrawData: { amount: withdrawForm.values.amount } })).then((action) => {
+                  if (action?.type?.endsWith?.("fulfilled") && queryClient) {
+                    queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+                    queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+                  }
+                });
               }}
             >
               بله، برداشت کن
@@ -795,6 +826,10 @@ useEffect(() => {
         opened={confirmTransferModal}
         onClose={() => setConfirmTransferModal(false)}
         title="تأیید انتقال"
+        size={detailsModalSmall ? 'sm' : 'md'}
+        zIndex={1100}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Text>آیا از انتقال مبلغ مطمئن هستید؟</Text>
         <Group mt="md" justify="flex-end">
@@ -804,14 +839,18 @@ useEffect(() => {
           <Button
             color="blue"
             onClick={() => {
-              // Only send receiverPhone, amount, and note. Backend will get senderPhone from token
-              dispatch(transferFromWallet({ 
-                transferData: { 
+              dispatch(transferFromWallet({
+                transferData: {
                   receiverPhone: transferForm.values.receiverPhone,
                   amount: transferForm.values.amount,
                   note: transferForm.values.note
-                } 
-              }));
+                }
+              })).then((action) => {
+                if (action?.type?.endsWith?.("fulfilled") && queryClient) {
+                  queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+                  queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+                }
+              });
               setConfirmTransferModal(false);
             }}
           >
@@ -825,7 +864,22 @@ useEffect(() => {
         opened={modalOpenDetail}
         onClose={() => setModalOpenDetail(false)}
         title="جزئیات کامل"
-        size="lg"
+        size={detailsModalSmall ? 'sm' : 'lg'}
+        zIndex={1100}
+        lockScroll={false}
+        removeScrollBar={false}
+        styles={{
+          content: {
+            maxHeight: '85dvh',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+          body: {
+            overflowY: 'auto',
+            flex: '1 1 auto',
+            minHeight: 0,
+          },
+        }}
       >
         {selectedItem && (
           <Stack gap="md">
@@ -902,83 +956,89 @@ useEffect(() => {
           </Grid>
 
           {/* Transactions */}
-          <Title order={4} mt="lg">تراکنش‌ها</Title>
-          <Table striped highlightOnHover withBorder>
-            <thead style={{ backgroundColor: '#f0f0f0' }}>
-              <tr>
-                <th>کد تراکنش</th>
-                <th>توضیح</th>
-                <th>مبلغ</th>
-                <th>تاریخ</th>
-                <th>عملیات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userAccount.wallet.paymentHistory?.map(tx => (
-                <tr key={tx._id}>
-                  <td>{tx.transactionId}</td>
-                  <td>{tx.description}</td>
-                  <td>{tx.amount.toLocaleString()} تومان</td>
-                  <td>{tx.date}</td>
-                  <td><Button size="xs" variant="light" onClick={() => { setSelectedItem(tx); setModalOpenDetail(true); }}>نمایش</Button></td>
+          <Title order={4} mt="lg" style={{ textAlign: 'right' }}>تراکنش‌ها</Title>
+          <Box style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -var(--mantine-spacing-md)' }}>
+            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 520 }}>
+              <thead style={{ backgroundColor: '#f0f0f0' }}>
+                <tr>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>کد تراکنش</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>توضیح</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>مبلغ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>تاریخ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>عملیات</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {userAccount.wallet.paymentHistory?.map(tx => (
+                  <tr key={tx._id}>
+                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{tx.transactionId}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{tx.description}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{tx.amount.toLocaleString()} تومان</td>
+                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{tx.date}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(tx); setModalOpenDetail(true); }}>نمایش</Button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Box>
 
           {/* Transfers */}
-          <Title order={4} mt="lg">انتقال‌ها</Title>
-          <Table striped highlightOnHover withBorder>
-            <thead style={{ backgroundColor: '#f0f0f0' }}>
-              <tr>
-                <th>کد انتقال</th>
-                <th>یادداشت</th>
-                <th>مبلغ</th>
-                <th>وضعیت</th>
-                <th>تاریخ</th>
-                <th>عملیات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userAccount.wallet.transfers?.map(tr => (
-                <tr key={tr._id}>
-                  <td>{tr.transferId}</td>
-                  <td>{tr.note}</td>
-                  <td>{tr.amount.toLocaleString()} تومان</td>
-                  <td>{tr.statusDescriptionFa}</td>
-                  <td>{tr.date}</td>
-                  <td><Button size="xs" variant="light" onClick={() => { setSelectedItem(tr); setModalOpenDetail(true); }}>نمایش</Button></td>
+          <Title order={4} mt="lg" style={{ textAlign: 'right' }}>انتقال‌ها</Title>
+          <Box style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -var(--mantine-spacing-md)' }}>
+            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 560 }}>
+              <thead style={{ backgroundColor: '#f0f0f0' }}>
+                <tr>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>کد انتقال</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>یادداشت</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>مبلغ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>وضعیت</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>تاریخ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>عملیات</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {userAccount.wallet.transfers?.map(tr => (
+                  <tr key={tr._id}>
+                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{tr.transferId}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{tr.note}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{tr.amount.toLocaleString()} تومان</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{tr.statusDescriptionFa}</td>
+                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{tr.date}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(tr); setModalOpenDetail(true); }}>نمایش</Button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Box>
 
           {/* Withdrawals */}
-          <Title order={4} mt="lg">درخواست‌های برداشت</Title>
-          <Table striped highlightOnHover withBorder>
-            <thead style={{ backgroundColor: '#f0f0f0' }}>
-              <tr>
-                <th>کد درخواست</th>
-                <th>مبلغ</th>
-                <th>یادداشت</th>
-                <th>وضعیت</th>
-                <th>تاریخ</th>
-                <th>عملیات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userAccount.wallet.pendingWithdrawals?.map(wd => (
-                <tr key={wd._id}>
-                  <td>{wd.requestId}</td>
-                  <td>{wd.amount.toLocaleString()} تومان</td>
-                  <td>{wd.note}</td>
-                  <td>{wd.statusDescriptionFa}</td>
-                  <td>{wd.date}</td>
-                  <td><Button size="xs" variant="light" onClick={() => { setSelectedItem(wd); setModalOpenDetail(true); }}>نمایش</Button></td>
+          <Title order={4} mt="lg" style={{ textAlign: 'right' }}>درخواست‌های برداشت</Title>
+          <Box style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -var(--mantine-spacing-md)' }}>
+            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 560 }}>
+              <thead style={{ backgroundColor: '#f0f0f0' }}>
+                <tr>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>کد درخواست</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>مبلغ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>یادداشت</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>وضعیت</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>تاریخ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>عملیات</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {userAccount.wallet.pendingWithdrawals?.map(wd => (
+                  <tr key={wd._id}>
+                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{wd.requestId}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{wd.amount.toLocaleString()} تومان</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{wd.note}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{wd.statusDescriptionFa}</td>
+                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{wd.date}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(wd); setModalOpenDetail(true); }}>نمایش</Button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Box>
         </Flex>
       )}
     </>

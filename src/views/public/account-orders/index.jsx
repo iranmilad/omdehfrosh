@@ -20,25 +20,35 @@ import {
 import { NavLink, useNavigate } from 'react-router';
 import InfoBox from "../../../components/InfoBox"
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllOrdersByUserId } from '../../../redux/orders/orders/getallordersbyuserid/getAllOrdersByUserIdActions';
+import { useSessionQuery } from '../../../Libs/reactQuery';
 
 function Account_Orders() {
     const { primaryColor } = useMantineTheme();
     const [activePage, setActivePage] = useState(1);
     const itemsPerPage = 10;
 
-    // State for login modal
     const [loginModalOpen, setLoginModalOpen] = useState(false);
-
-    // Track if data has been fetched to prevent duplicate calls
-    const [hasFetchedData, setHasFetchedData] = useState(false);
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-    const { order, loading, error } = useSelector((state) => state.orders)
-    const { ordersByUserId, loadingOrdersByUserId, errorOrdersByUserId } = useSelector((state) => state.getAllOrdersByUserId)
+    const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+    const { isVerified, loading: authLoading, user } = useSelector((state) => state.auth);
+
+    const { data: ordersData, isLoading: loadingOrdersByUserId, error: errorOrdersByUserId } = useSessionQuery({
+      endpoint: "/orders/allordersbyuserid",
+      queryKey: ["ordersByUserId"],
+      enabled: !!token,
+      queryOptions: { refetchOnMount: true }, // refetch when stale so coming from payment-listener shows updated list
+      retry: (failureCount, error) => {
+        const msg = typeof error === "string" ? error : error?.message || String(error);
+        if (msg.includes("401")) return false;
+        return failureCount < 2;
+      },
+    });
+
+    const ordersByUserId = ordersData?.data ?? ordersData ?? {};
+    const ordersList = ordersByUserId?.orders ?? [];
 
     // Format date function
     const formatDate = (dateString) => {
@@ -72,29 +82,14 @@ function Account_Orders() {
       }
     };
 
-    // Check authentication status and show modal, then redirect
     useEffect(() => {
-      // Only check after auth loading is complete
-      if (!authLoading) {
-        if (!isVerified || !user) {
-          setLoginModalOpen(true);
-          // Auto redirect to login after 3 seconds
-          const timer = setTimeout(() => {
-            navigate('/login');
-          }, 3000);
-
-          // Cleanup timer if component unmounts
-          return () => clearTimeout(timer);
-        } else {
-          setLoginModalOpen(false);
-          // User is authenticated, fetch data only once
-          if (!hasFetchedData) {
-            dispatch(getAllOrdersByUserId());
-            setHasFetchedData(true);
-          }
-        }
+      if (!authLoading && (!isVerified || !user)) {
+        setLoginModalOpen(true);
+        const timer = setTimeout(() => navigate("/login"), 3000);
+        return () => clearTimeout(timer);
       }
-    }, [dispatch, isVerified, user, authLoading, navigate, hasFetchedData]);
+      setLoginModalOpen(false);
+    }, [isVerified, user, authLoading, navigate]);
 
     // Handle immediate redirect to login page
     const handleGoToLogin = () => {
@@ -151,7 +146,7 @@ function Account_Orders() {
     }
 
     // Get orders array and sort by date (newest first)
-    const ordersArray = ordersByUserId?.orders || [];
+    const ordersArray = ordersList || [];
     const sortedOrders = [...ordersArray].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
     // Calculate pagination
@@ -165,7 +160,7 @@ function Account_Orders() {
 
     return (
       <>
-        <Title my="lg">تمام سفارشات ({totalOrders})</Title>
+        <Title my="lg" style={{ textAlign: 'right' }}>تمام سفارشات ({totalOrders})</Title>
         
         {totalOrders > 0 ? (
           <>
@@ -173,10 +168,10 @@ function Account_Orders() {
               <Table highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th miw={150} c={primaryColor}>
+                    <Table.Th miw={150} c={primaryColor} style={{ textAlign: 'right' }}>
                       شماره سفارش
                     </Table.Th>
-                    <Table.Th miw={120} c={primaryColor}>
+                    <Table.Th miw={120} c={primaryColor} style={{ textAlign: 'right' }}>
                       تاریخ ثبت
                     </Table.Th>
                     <Table.Th miw={100} c={primaryColor}>
@@ -322,12 +317,12 @@ function ItemRow(props) {
 
     return (
       <Table.Tr>
-        <Table.Td>
+        <Table.Td style={{ textAlign: 'left' }}>
           <Text size="sm" truncate style={{ maxWidth: 150 }}>
             {formatOrderId(props.orderId)}
           </Text>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ textAlign: 'left' }}>
           <Text size="sm">
             {formatDate(props.createdAt)}
           </Text>

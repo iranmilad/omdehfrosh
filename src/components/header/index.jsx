@@ -40,12 +40,10 @@ import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { setInitial, clearCart } from "../../redux/cart";
 import { logout, setAuthFromUserInitialData } from "../../redux/auth/authusers/auth";
 import Notifications from "../notifications";
-import { getNotificationNumber } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions";
-import { updateNotificationCount } from "../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberSlice";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import { ChevronDown, ChevronLeft, LucideChevronDownCircle, LucideChevronDownSquare, MessageCircle } from "lucide-react";
 import ImageIcon from "../../resources/defaultImageIcon";
-import { useStaticQuery, useSessionQuery, useQueryClient } from "../../Libs/reactQuery";
+import { useStaticQuery, useSessionQuery, useQueryClient, clearCacheOnLogout } from "../../Libs/reactQuery";
 
 
 
@@ -116,8 +114,22 @@ const Header = () => {
   const [cartData, setCartData] = useState({ cart: [], totalPrice: 0 });
   const [isLoadingCart, setIsLoadingCart] = useState(false);
 
-  const { notificationNumber, errorNotificationNumber } = useSelector((state) => state.notificationNumber);
   const { isVerified, user, loading: authLoading } = useSelector((state) => state.auth);
+  const token = typeof window !== 'undefined' ? localStorage.getItem("user") : null;
+
+  // Cached with React Query (2 min staleTime, no refetch on mount); shared with Notifications component
+  const { data: notificationNumberData, error: errorNotificationNumber } = useSessionQuery({
+    endpoint: "/user-myaccounts/notifications/number",
+    queryKey: ["notificationNumber"],
+    enabled: !!token && !!user && !!isVerified,
+    queryOptions: { staleTime: 2 * 60 * 1000, refetchOnMount: false },
+    retry: (failureCount, err) => {
+      const msg = typeof err === "string" ? err : err?.message || String(err);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
+  const notificationNumber = notificationNumberData?.data ?? notificationNumberData;
   const cartItems = useSelector((state) => state.cart.items);
 
   // Bootstrap data via React Query (static strategy with persistence)
@@ -134,7 +146,6 @@ const Header = () => {
   const queryClient = useQueryClient();
 
   // User initial data (user + cart + notifications) with session-level caching + persistence
-  const token = typeof window !== 'undefined' ? localStorage.getItem("user") : null;
   const {
     data: userInitialData,
     error: userInitialError,
@@ -155,6 +166,18 @@ const Header = () => {
     },
   });
 
+  // Fetch cart data from /cart endpoint which returns proper data for counter-basket
+  const { data: cartApiData } = useSessionQuery({
+    endpoint: '/cart',
+    queryKey: ['cart'],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const errorMessage = typeof error === 'string' ? error : error?.message || String(error);
+      if (errorMessage.includes('401')) return false;
+      return failureCount < 2;
+    },
+  });
+
   const hideMiniCart = useMemo(() => (
     ["/payment-statuscheck", "/payment-method", "/payment-info", "/payment-checkstatus"].includes(location.pathname)
   ), [location.pathname]);
@@ -163,6 +186,7 @@ const Header = () => {
   const mobileMenuDrawer = useDisclosure(false);
   const mobileSearchDrawer = useDisclosure(false);
   const [categoryMenuOpened, setCategoryMenuOpened] = useState(false);
+  const [profileMenuOpened, setProfileMenuOpened] = useState(false);
   const dropdownScrollRef = useRef(null);
 
   const navigate = useNavigate();
@@ -179,7 +203,6 @@ const Header = () => {
       if (!token) {
         setCartData({ cart: [], totalPrice: 0 });
         dispatch(setInitial([]));
-        dispatch(updateNotificationCount(0));
         // Also clear user from Redux if it's still there
         if (user) {
           dispatch(logout());
@@ -193,15 +216,32 @@ const Header = () => {
       dispatch(setAuthFromUserInitialData(userInitialData));
     }
 
+    // Prefer cart data from /cart endpoint (cartApiData) as it has proper structure
+    // Fall back to userInitialData.cart if /cart data isn't available yet
+    let cart = [];
+    let totalPrice = 0;
+    
+    if (cartApiData?.cart && Array.isArray(cartApiData.cart) && cartApiData.cart.length > 0) {
+      // Use /cart endpoint data (has proper prices and structure)
+      cart = cartApiData.cart;
+      totalPrice = cartApiData.total ?? 0;
+    } else {
+      // Fall back to userInitialData.cart
+      cart = userInitialData.cart ?? userInitialData.data?.cart ?? userInitialData.items ?? [];
+      if (!Array.isArray(cart) && cart && typeof cart === "object") {
+        cart = cart.items ?? cart.data ?? [];
+      }
+      totalPrice = userInitialData.total ?? userInitialData.data?.total ?? 0;
+    }
+    
     const newCartData = {
-      cart: userInitialData.cart || [],
-      totalPrice: userInitialData.total || 0,
+      cart: Array.isArray(cart) ? cart : [],
+      totalPrice,
     };
 
     setCartData(newCartData);
     dispatch(setInitial(newCartData.cart));
-    dispatch(updateNotificationCount(userInitialData.notificationsCount || 0));
-  }, [userInitialData, token, dispatch, user]);
+  }, [userInitialData, cartApiData, token, dispatch, user]);
 
   // Handle 401 / unauthorized: clear token, redux state, and remove cached query
   useEffect(() => {
@@ -221,10 +261,8 @@ const Header = () => {
     dispatch(logout());
     dispatch(clearCart());
     dispatch(setInitial([]));
-    dispatch(updateNotificationCount(0));
-    
-    // Remove query from cache (don't invalidate - that would trigger refetch)
     queryClient.removeQueries({ queryKey: ['userInitialData'] });
+    queryClient.removeQueries({ queryKey: ['notificationNumber'] });
     
     if (process.env.NODE_ENV === 'development') {
       console.log('[Header] 🔒 401 detected - cleared token and userInitialData cache');
@@ -318,6 +356,11 @@ const Header = () => {
     }
   }, [categoryMenuOpened]);
 
+  // Close profile dropdown when route changes (e.g. after clicking "ورود به حساب کاربری" / account link)
+  useEffect(() => {
+    setProfileMenuOpened(false);
+  }, [location.pathname]);
+
   useEffect(() => {
     // Listen to scroll on window (primary)
     window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
@@ -357,31 +400,33 @@ const Header = () => {
     const isCartRoute = currentPath.startsWith('/cart') || currentPath.startsWith('/basket');
     const wasCartRoute = prevPath.startsWith('/cart') || prevPath.startsWith('/basket');
 
-    // Refetch if we just left the payment-listener page
+    // Refetch if we just left the payment-listener page (invalidate cart + user so header refreshes)
     const leftPaymentListener = prevPath === '/payment-listener' && currentPath !== '/payment-listener';
 
-    if ((isCartRoute && !wasCartRoute) || leftPaymentListener) {
-      if (token) {
-        refetchUserInitialData();
+    if (token && (leftPaymentListener || (isCartRoute && !wasCartRoute))) {
+      queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      if (leftPaymentListener) {
+        queryClient.invalidateQueries({ queryKey: ['ordersByUserId'] });
+        queryClient.invalidateQueries({ queryKey: ['userMyAccount'] });
       }
     }
 
     prevLocationRef.current = currentPath;
-  }, [location.pathname, token, refetchUserInitialData]);
+  }, [location.pathname, token, queryClient]);
 
   const Logout = useCallback(async () => {
     // Clear token first
     localStorage.removeItem("user");
-    
+
+    // Clear all React Query cache and persisted cache so no user data remains
+    clearCacheOnLogout(queryClient);
+
     // Clear Redux state
     dispatch(logout());
     dispatch(clearCart());
     setCartData({ cart: [], totalPrice: 0 });
-    dispatch(updateNotificationCount(0));
-    
-    // Remove the userInitialData query from cache to force immediate UI update
-    queryClient.removeQueries({ queryKey: ['userInitialData'] });
-    
+
     // Navigate to home
     navigate("/");
   }, [dispatch, navigate, queryClient]);
@@ -639,6 +684,8 @@ const Header = () => {
                     <Menu
                       shadow="sm"
                       position="bottom-end"
+                      opened={profileMenuOpened}
+                      onChange={setProfileMenuOpened}
                       styles={{
                         dropdown: {
                           minWidth: 200,

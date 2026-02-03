@@ -355,6 +355,25 @@ export const resetQueryClient = () => {
   persistenceSetupDone = false;
 };
 
+/**
+ * Clear all React Query cache and persisted cache (for logout).
+ * Call this with the current queryClient (e.g. from useQueryClient()) so that
+ * no user-specific data remains in memory or localStorage.
+ * @param {QueryClient} queryClient - The active QueryClient instance
+ */
+export const clearCacheOnLogout = (queryClient) => {
+  if (queryClient) {
+    queryClient.clear();
+  }
+  if (typeof window !== 'undefined' && window?.localStorage) {
+    try {
+      window.localStorage.removeItem(PERSISTENCE_STORAGE_KEY);
+    } catch {
+      // ignore storage errors
+    }
+  }
+};
+
 // ============================================================================
 // QUERY CLIENT CONFIGURATION EXPORT
 // ============================================================================

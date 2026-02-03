@@ -62,13 +62,15 @@ const SliderComponentBrands = ({
   const allBrandIds = items?.map(item => item.idBrand) || [];
   const allSelected = allBrandIds.length > 0 && allBrandIds.every(id => filterBrandStorage.includes(id));
 
+  const ROW_HEIGHT = 48;
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', minHeight: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
+      <div style={{ flex: 1, minWidth: 0, height: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
       <Swiper
         modules={[FreeMode, Navigation]}
         slidesPerView="auto"
         spaceBetween={8}
-        className="mt-2"
+        className="!mt-0"
         style={{ width: "100%" }}
         navigation={{
           prevEl: prevRef.current,
@@ -109,6 +111,7 @@ const SliderComponentBrands = ({
       ))}
 
       </Swiper>
+      </div>
       {items && items.length > 0 && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={swiperState.isBeginning} isEnd={swiperState.isEnd} />}
     </div>
   );
@@ -132,22 +135,46 @@ export function SingleCategory1({
 }) {
   const isActive = filterBrandStorage.includes(item.idBrand);
 
-  const onClick = () => {
-    if (isDisabled) return;
+  const onClick = (e) => {
+    console.log('🖱️ [SliderBrands] onClick FIRED', {
+      eventType: e?.type,
+      isDisabled,
+      clickType,
+      isActive,
+      brandId: item.idBrand,
+      brandName: item.name,
+      currentFilterBrandStorage: filterBrandStorage,
+      timestamp: Date.now()
+    });
+    
+    if (isDisabled) {
+      console.log('🖱️ [SliderBrands] onClick BLOCKED - isDisabled=true');
+      return;
+    }
     if (clickType === "brands") {
+      // Set manual filter update flag to prevent URL sync from overriding during navigation
+      sessionStorage.setItem('manualFilterUpdate', 'true');
+      
       if (isActive) {
+        console.log('🖱️ [SliderBrands] DESELECTING brand - calling setFilterBrandStorage([])');
         // Deselecting current brand - clear all filters and go back to base
         setFilterBrandStorage([]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
         navigate('/fastorder/brand');
       } else {
+        console.log('🖱️ [SliderBrands] SELECTING brand - calling setFilterBrandStorage([' + item.idBrand + '])');
         // Selecting new brand - set only this brand, clear category filters, and update URL
         setFilterBrandStorage([item.idBrand]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
         navigate(`/fastorder/brand/${item.name}`);
       }
+      
+      // Clear the flag after navigation has settled
+      setTimeout(() => {
+        sessionStorage.removeItem('manualFilterUpdate');
+      }, 300);
     }
   };
 

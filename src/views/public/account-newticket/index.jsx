@@ -15,7 +15,6 @@ import {
 import { IconArrowRight } from "@tabler/icons-react";
 import { NavLink } from "react-router-dom";
 import { useForm } from "@mantine/form";
-import { useSend } from "../../../Libs/api";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createNewUserTicket } from "../../../redux/usermyaccounts/usermyaccounts/newuserticket/newUserTicketActions";
@@ -23,19 +22,31 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { clearTicketCreationState } from "../../../redux/usermyaccounts/usermyaccounts/newuserticket/newUserTicketSlice";
 import ErrorMessageModal from "../../../components/errormessagemodal";
 import { notifications } from "@mantine/notifications";
-import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
-import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
+import { useSessionQuery, useQueryClient } from "../../../Libs/reactQuery";
 
 function Account_Newticket() {
-
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const [status, setStatus] = useState("");
-  const [departments, setDepartments] = useState([]);
-  const [loadingDepartments, setLoadingDepartments] = useState(true);
   const [departmentError, setDepartmentError] = useState(null);
 
-  const dispatch = useDispatch();
+  const { data: departmentsData, isLoading: loadingDepartments } = useSessionQuery({
+    endpoint: "/user-myaccounts/tickets/getdepartmentsdata",
+    queryKey: ["ticketDepartments"],
+    enabled: !!token,
+    queryOptions: { staleTime: 2 * 60 * 1000 },
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const rawDepartments = departmentsData?.departments ?? departmentsData?.data ?? departmentsData;
+  const departments = Array.isArray(rawDepartments) ? rawDepartments : [];
 
   const { ticket, loadingNewUserTicket, errorNewUserTicket, successNewUserTicket } = useSelector((state) => state.newUserTicket)
 
@@ -55,95 +66,26 @@ function Account_Newticket() {
     },
   });
 
-  // Fetch departments from API
-  const fetchDepartments = async () => {
-    const token = localStorage.getItem("user");
-
-    try {
-      setLoadingDepartments(true);
-      setDepartmentError(null);
-
-      const response = await fetch(getApiUrl("/user-myaccounts/tickets/getdepartmentsdata"), {
-        method: "GET",
-        headers: new Headers({
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        
-        const error = {
-          status: response.status,
-          message: errorData?.message || getHttpCodeMessage(response.status),
-        };
-        
-        throw error;
-      }
-
-      const data = await response.json();
-      
-      let departmentsData;
-      // Transform API response to Select component format
-      if (data && Array.isArray(data.departments)) {
-        departmentsData = data.departments;
-      } else if (data && Array.isArray(data.data)) {
-        departmentsData = data.data;
-      } else if (data && Array.isArray(data)) {
-        departmentsData = data;
-      } else {
-        // Fallback to hardcoded data if API response is unexpected
-        departmentsData = [
-          { label: "پشتیبانی فنی", value: "technical_support" },
-          { label: "مالی و حسابداری", value: "finance" },
-          { label: "ارتباط با مشتریان", value: "customer_relations" },
-        ];
-      }
-      
-      setDepartments(departmentsData);
-      
-      // Set default department if form doesn't have one and departments are available
-      if (departmentsData.length > 0 && !form.values.department) {
-        form.setFieldValue("department", departmentsData[0].value);
-      }
-      
-    } catch (error) {
-      console.error("Error fetching departments:", error);
-      setDepartmentError(error.message || "خطا در بارگذاری بخش‌ها");
-      
-      // Fallback to hardcoded data on error
-      const fallbackDepartments = [
-        { label: "پشتیبانی فنی", value: "technical_support" },
-        { label: "مالی و حسابداری", value: "finance" },
-        { label: "ارتباط با مشتریان", value: "customer_relations" },
-      ];
-      
-      setDepartments(fallbackDepartments);
-      
-      // Set default department with fallback data
-      if (!form.values.department) {
-        form.setFieldValue("department", fallbackDepartments[0].value);
-      }
-    } finally {
-      setLoadingDepartments(false);
+  useEffect(() => {
+    if (departments.length > 0 && !form.values.department) {
+      form.setFieldValue("department", departments[0].value);
     }
-  };
-
-  // Fetch departments on component mount
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
+  }, [departments]);
 
   useEffect(() => {
-    if ( successNewUserTicket) {
-
+    if (successNewUserTicket) {
+      // Remove ticket list from cache so when user opens list it fetches fresh data
+      // (SESSION strategy has refetchOnMount: false, so invalidate alone wouldn't refetch)
+      if (queryClient) {
+        queryClient.removeQueries({ queryKey: ["userTickets"] });
+        queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+      }
       // Redirect after short delay
       setTimeout(() => {
-        navigate("/account"); // You can use full URL if needed
+        navigate("/account");
       }, 1500);
     }
-  }, [ticket, loadingNewUserTicket, errorNewUserTicket, successNewUserTicket, navigate]);
+  }, [successNewUserTicket, queryClient, navigate]);
 
   useEffect(() => {
     if (ticket && ticket?.state === "ok" ) {
@@ -152,6 +94,10 @@ function Account_Newticket() {
         color: "green",
         autoClose: true
       });
+      if (queryClient) {
+        queryClient.removeQueries({ queryKey: ["userTickets"] });
+        queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+      }
     }
     if (ticket && ticket?.state === "error" ) {
         notifications.show({
@@ -161,7 +107,7 @@ function Account_Newticket() {
         });
       }
 
-  }, [ticket]);
+  }, [ticket, queryClient]);
 
   const shortDescDefaults = {
     technical_support: [
@@ -182,16 +128,14 @@ function Account_Newticket() {
   };
 
   const handleSubmit = (values) => {
-    
-    // Find the department label
     const selectedDepartment = departments.find(dept => dept.value === values.department);
     const departmentLabel = selectedDepartment ? selectedDepartment.label : values.department;
-    
-    // Dispatch with department label included
-    dispatch(createNewUserTicket({ 
-      ...values, 
-      departmentLabel 
-    }));
+    dispatch(createNewUserTicket({ ...values, departmentLabel })).then((action) => {
+      if (action.type?.endsWith("fulfilled") && queryClient) {
+        queryClient.removeQueries({ queryKey: ["userTickets"] });
+        queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+      }
+    });
   };
 
   const [showAlert, setShowAlert] = useState(false);
@@ -281,7 +225,7 @@ function Account_Newticket() {
       <Flex justify="space-between">
         <Title
           display="flex"
-          style={{ alignItems: "center" }}
+          style={{ alignItems: "center", textAlign: "right" }}
           component={NavLink}
           to={`/account/tickets`}
         >

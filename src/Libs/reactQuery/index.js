@@ -64,6 +64,7 @@ export {
   createQueryClient,
   getQueryClient,
   resetQueryClient,
+  clearCacheOnLogout,
   queryClientConfig,
 } from './queryClientFactory';
 

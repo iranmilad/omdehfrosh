@@ -117,7 +117,7 @@ export const getUniversalPaymentLink = async (req, res) => {
     // Create redirect URL (always listener URL)
     const baseUrl = process.env.NODE_ENV === 'production'
       ? 'https://j2b.market'
-      : 'http://localhost:3000';
+      : 'http://localhost:3001';
 
     const redirect_url = `${baseUrl}/payment-listener`;
 
@@ -131,7 +131,7 @@ export const getUniversalPaymentLink = async (req, res) => {
       // For regular gateways: use fake gateway in dev, real gateway in production
       gatewayUrl = process.env.NODE_ENV === 'production'
         ? `https://gateway.${gatewayName}.com/payment` // Replace with actual gateway URL
-        : 'http://localhost:3000/fake-gateway';
+        : 'http://localhost:3001/fake-gateway';
     }
 
     // Create body to send to gateway (exact format as specified)

@@ -218,7 +218,7 @@ case "name":
         position: 'relative',
         cursor: hasChildren ? 'pointer' : 'default',
         textAlign: 'right',
-        paddingRight: '20px',  // ← Always add padding (not conditional)
+        paddingRight: '28px',  // space for expand icon + gap between text and icon
       }}
       onClick={hasChildren ? (e) => {
         e.stopPropagation();
@@ -237,10 +237,12 @@ case "name":
         <Text
           style={{
             fontSize: isMobile ? 11 : 12,
-            display: 'inline-block',
+            display: 'block',
             textAlign: 'right',
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
           }}
-          ellipsis={{ tooltip: record.name }}
+          title={record.name}
         >
           {record.name}
         </Text>
@@ -248,8 +250,9 @@ case "name":
       {hasChildren && !isPrinting && (
         <div style={{
           position: 'absolute',
-          bottom: -10,
+          top: '50%',
           right: 0,
+          transform: 'translateY(-50%)',
           width: 16,
           height: 16,
           borderRadius: '50%',
@@ -410,7 +413,7 @@ case "name":
           className="fast-table-category"
         />
       )}
-      <style jsx>{`
+      <style>{`
         .fast-table-category,
         .fast-table-category .ant-table,
         .fast-table-category .ant-table-container,

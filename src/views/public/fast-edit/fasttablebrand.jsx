@@ -329,7 +329,8 @@ case "name":
           <div 
             style={{ 
               position: 'relative',
-              cursor: hasChildren ? 'pointer' : 'default'
+              cursor: hasChildren ? 'pointer' : 'default',
+              paddingRight: hasChildren ? '28px' : undefined,  // space for icon + gap
             }}
             onClick={hasChildren ? (e) => {
               e.stopPropagation();
@@ -353,8 +354,9 @@ case "name":
             {hasChildren && !isPrinting && (
               <div style={{
                 position: 'absolute',
-                bottom: -10,
-                right: -10,
+                top: '50%',
+                right: 0,
+                transform: 'translateY(-50%)',
                 width: 16,
                 height: 16,
                 borderRadius: '50%',

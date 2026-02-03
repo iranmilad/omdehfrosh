@@ -34,14 +34,16 @@ const SliderComponentSubCategoriesFastEdit = ({
       return isActiveBrands && isActiveCategories && item.categories && item.categories.length > 0;
     });
 
+  const ROW_HEIGHT = 48;
   return (
-    <div style={{ width: "100%", margin: 0, padding: 0, position: 'relative' }}>
+    <div style={{ width: "100%", margin: 0, padding: 0, position: 'relative', minHeight: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
+      <div style={{ flex: 1, minWidth: 0, height: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
       <Swiper
         modules={[FreeMode, Navigation]}
         freeMode={true}
         slidesPerView="auto"
         spaceBetween={8}
-        className="mt-2 !m-0 !p-0"
+        className="!mt-0 !m-0 !p-0"
         style={{
           width: "100%",
           margin: 0,
@@ -90,6 +92,7 @@ const SliderComponentSubCategoriesFastEdit = ({
           </SwiperSlide>
         ))}
       </Swiper>
+      </div>
       {hasVisibleContent && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={swiperState.isBeginning} isEnd={swiperState.isEnd} />}
     </div>
   );
@@ -235,7 +238,7 @@ export function SingleCategoryWithSubcategories({
   return (
     <>
       {shouldShow && (
-        <div className="flex flex-col mt-2">
+        <div className="flex flex-col">
           <div className="flex flex-row flex-wrap gap-2">
             {/* Categories mapped horizontally */}
             {parentItem.categories.map((category, index) => {

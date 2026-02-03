@@ -1,7 +1,6 @@
 import { Paper, Tabs } from "@mantine/core";
 import React, { memo } from "react";
 import Comments from "../comments";
-import AddComment from "../comments/add";
 import Features from "../features";
 
 function index({data, slug}) {
@@ -78,7 +77,6 @@ function index({data, slug}) {
       </Tabs.Panel>
 
 <Tabs.Panel value="comm">
-  <AddComment active={activeTab === "comm"} />
   <Comments slug={slug} opened={activeTab === "comm"} />
 </Tabs.Panel>
 

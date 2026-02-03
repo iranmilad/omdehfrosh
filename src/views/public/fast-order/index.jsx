@@ -41,8 +41,8 @@ import { FaRotate } from "react-icons/fa6";
 import isEqual from "lodash/isEqual";
 
 import { saveFilterSettings } from "../../../redux/savefiltersettings/saveFilterSettingsActions";
-import { getFilterSettings } from "../../../redux/savefiltersettings/getFilterSettings/getFilterSettingsActions";
 import { deleteFilterSettings } from "../../../redux/savefiltersettings/deleteFilterSettings/deleteFilterSettingsActions";
+import { useApiQuery } from "../../../Libs/reactQuery";
 import { clearSaveFilterState } from "../../../redux/savefiltersettings/saveFilterSettingsSlice";
 import ErrorMessageModal from "../../../components/errormessagemodal";
 import { handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
@@ -62,20 +62,15 @@ function FastOrder() {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [loadingStates, setLoadingStates] = useState({
-    componentsLoading: false,  // For search and filters
-    tableLoading: false,       // For table only
+    componentsLoading: true,   // Show search + filters on first open (no placeholder flash)
+    tableLoading: true,       // Table area visible; rows show when nodes load via React Query
   });
 
 
   const [cookieUpdateTrigger, setCookieUpdateTrigger] = useState(0);
 
 const handleCookieUpdate = useCallback(() => {
-  // console.log('🔄 [FastOrder] Cookie update triggered - incrementing cookieUpdateTrigger');
-  setCookieUpdateTrigger(prev => {
-    const newValue = prev + 1;
-    // console.log('🔄 [FastOrder] cookieUpdateTrigger updated:', prev, '->', newValue);
-    return newValue;
-  });
+  setCookieUpdateTrigger(prev => prev + 1);
 }, []);
 
 
@@ -83,7 +78,7 @@ const handleCookieUpdate = useCallback(() => {
 
 
 
-  const { savedFilters, deleteLoadingId } = useSelector((state) => state.getFilterSettings);
+  const { deleteLoadingId } = useSelector((state) => state.getFilterSettings);
 
   const [filterName, setFilterName] = useState('');
 
@@ -105,8 +100,23 @@ const handleCookieUpdate = useCallback(() => {
   const toggleCollapse = () => setIsOpen((prev) => !prev);
 
   const [filterValues, setFilterValues] = useState({ colors: [], sellers: [] });
-  const [searchType, setSearchType] = useState("brand");
+  // Initialize from URL so /fastorder/category/mobile opens in category mode (no shift to brand)
+  const [searchType, setSearchType] = useState(() => {
+    if (typeof window === 'undefined') return 'brand';
+    const segments = window.location.pathname.split('/');
+    const mode = segments[2];
+    return mode === 'category' || mode === 'brand' ? mode : 'brand';
+  });
   const [filterModalOpened, setFilterModalOpened] = useState(false);
+
+  const slug = searchType === "brand" ? "brand-fast-order" : "category-fast-order";
+  const { data: savedFiltersFromQuery } = useApiQuery({
+    endpoint: `/save-filters/${slug}`,
+    queryKey: ["save-filters", slug],
+    strategy: "USER_DATA",
+    transformer: (r) => (Array.isArray(r?.data?.data) ? r.data.data : r?.data ?? []),
+  });
+  const savedFilters = savedFiltersFromQuery ?? [];
 
   // ✅ NEW: Saved filters modal states
   const [savedFiltersModalOpened, setSavedFiltersModalOpened] = useState(false);
@@ -203,6 +213,10 @@ const handleCookieUpdate = useCallback(() => {
     initialFilters_category_mode.filters
   );
 
+  // When a category saved filter is checked, skip restoring from cookie so slider state stays cleared
+  const [categorySavedFilterActive, setCategorySavedFilterActive] = useState(false);
+  const prevCategorySavedFilterActiveRef = useRef(categorySavedFilterActive);
+
   const [opened, setOpened] = useState(false);
 
   let priceFormatLabel = 'تومان';
@@ -256,14 +270,27 @@ const handleCookieUpdate = useCallback(() => {
     };
   }, []);
 
+  // Redirect /fastorder/bran (typo) to /fastorder/brand so URL stays correct when switching back to brand
+  useEffect(() => {
+    const pathSegments = location.pathname.split('/');
+    const mode = pathSegments[2];
+    if (mode === 'bran') {
+      const slug = pathSegments[3] ?? '';
+      navigate(slug ? `/fastorder/brand/${slug}` : '/fastorder/brand', { replace: true });
+      return;
+    }
+  }, [location.pathname, navigate]);
+
   useEffect(() => {
     const pathSegments = location.pathname.split('/');
     const urlSearchType = pathSegments[2];
-    
-    if (urlSearchType === 'category' || urlSearchType === 'brand') {
-      setSearchType(urlSearchType);
-    }
-  }, [location.pathname]);
+    if (urlSearchType !== 'category' && urlSearchType !== 'brand') return;
+    // Don't overwrite tab when URL lags: user switched to brand but URL still category (or vice versa).
+    // Let the active tab's navigate() update the URL; then pathname will change and we'll sync.
+    if (urlSearchType === 'category' && searchType === 'brand') return;
+    if (urlSearchType === 'brand' && searchType === 'category') return;
+    setSearchType(urlSearchType);
+  }, [location.pathname, searchType]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -299,11 +326,7 @@ const handleCookieUpdate = useCallback(() => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ Load saved filters on component mount
-  useEffect(() => {
-    const slug = searchType === "brand" ? "brand-fast-order" : "category-fast-order";
-    dispatch(getFilterSettings(slug));
-  }, [searchType, dispatch]);
+  // Saved filters loaded via useApiQuery (save-filters) with cache + invalidation on save/delete/update
 
   useEffect(() => {
     if (saveStatus && saveStatus?.state === "ok") {
@@ -325,26 +348,88 @@ const handleCookieUpdate = useCallback(() => {
   // ✅ This should already exist around line 200-220
 // FIND this useEffect (around line 200-220) and REPLACE it:
 useEffect(() => {
-  // console.log('🔄 [FastOrder] Cookie reload effect triggered', { cookieUpdateTrigger });
-  
   const storedFilters = Cookies.get(COOKIE_NAME_BRAND_MODE);
+  console.log('[FO Index] BRAND cookie effect (cookieUpdateTrigger): running', { cookieUpdateTrigger, hasCookie: !!storedFilters, cookieLength: storedFilters?.length });
   if (storedFilters) {
     try {
       const parsed = JSON.parse(storedFilters);
-      // console.log('📦 [FastOrder] Loaded from cookie:', parsed);
-      
-      setFilterBrandStorage(parsed.uniqueIDClickedBrands || []);
-      setFilterBrandsCategoryStorage(parsed.uniqueIDClickedBrandsCategories || []);
-      setFilterBrandsCategorySubCategoryStorage(parsed.filterBrandsCategorySubCategoryStorage || []);
+      const brands = parsed.uniqueIDClickedBrands || [];
+      const cats = parsed.uniqueIDClickedBrandsCategories || [];
+      const subcats = parsed.filterBrandsCategorySubCategoryStorage || [];
+      console.log('[FO Index] BRAND cookie effect: setting state FROM cookie', { brandsLen: brands.length, catsLen: cats.length, subcatsLen: subcats.length });
+      setFilterBrandStorage(brands);
+      setFilterBrandsCategoryStorage(cats);
+      setFilterBrandsCategorySubCategoryStorage(subcats);
       setLocalFilters_brand(parsed.filters || initialFilters_brand_mode.filters);
       setFilters_brand_mode(parsed.filters || initialFilters_brand_mode.filters);
-      
-      // console.log('✅ [FastOrder] State updated from cookie');
     } catch (error) {
-      console.error('❌ [FastOrder] Error loading cookies:', error);
+      console.error("[FastOrder] Error loading brand cookie:", error);
     }
   }
 }, [cookieUpdateTrigger, COOKIE_NAME_BRAND_MODE]); // ✅ Add cookieUpdateTrigger dependency
+
+  // CATEGORY cookie effect: when saved filter is applied (onCookieUpdate), re-sync category slider state from cookie
+  // When saved filter is unchecked (categorySavedFilterActive goes true -> false), force-empty sliders so we never load stale cookie
+  useEffect(() => {
+    const wasActive = prevCategorySavedFilterActiveRef.current;
+    prevCategorySavedFilterActiveRef.current = categorySavedFilterActive;
+
+    if (categorySavedFilterActive) return;
+
+    // Just unchecked: force empty sliders and cookie; do not read cookie (avoids loading previous slider state)
+    if (wasActive) {
+      setFilterCategoryStorage([]);
+      setFilterCategorySubCategoryStorage([]);
+      setFilterCategorySubCategoryBrandsStorage([]);
+      setLocalFilters_category(initialFilters_category_mode.filters);
+      setFilters_category_mode(initialFilters_category_mode.filters);
+      const emptyCookie = {
+        searchType: "category",
+        uniqueIDClickedCategories: [],
+        uniqueIDClickedSubCategories: [],
+        uniqueIDClickedSubCategoriesBrands: [],
+        filters: initialFilters_category_mode.filters,
+      };
+      Cookies.set(COOKIE_NAME_CATEGORY_MODE, JSON.stringify(emptyCookie), { expires: 7 });
+      return;
+    }
+
+    const stored = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored);
+      const categories = parsed.uniqueIDClickedCategories || [];
+      const subCategories = parsed.uniqueIDClickedSubCategories || [];
+      const subCategoriesBrands = parsed.uniqueIDClickedSubCategoriesBrands || [];
+      setFilterCategoryStorage(categories);
+      setFilterCategorySubCategoryStorage(subCategories);
+      setFilterCategorySubCategoryBrandsStorage(subCategoriesBrands);
+      setLocalFilters_category(parsed.filters || initialFilters_category_mode.filters);
+      setFilters_category_mode(parsed.filters || initialFilters_category_mode.filters);
+    } catch (e) {
+      console.error("[FastOrder] Error loading category cookie:", e);
+    }
+  }, [cookieUpdateTrigger, COOKIE_NAME_CATEGORY_MODE, categorySavedFilterActive]);
+
+  // When switching back to brand tab, restore brand slider state from cookie (so sliders persist like category mode)
+  useEffect(() => {
+    if (searchType !== "brand") return;
+    const stored = Cookies.get(COOKIE_NAME_BRAND_MODE);
+    console.log('[FO Index] BRAND cookie effect (searchType): running', { searchType, hasCookie: !!stored });
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored);
+      const brands = parsed.uniqueIDClickedBrands || [];
+      const cats = parsed.uniqueIDClickedBrandsCategories || [];
+      const subcats = parsed.filterBrandsCategorySubCategoryStorage || [];
+      console.log('[FO Index] BRAND cookie effect (searchType): setting state FROM cookie', { brandsLen: brands.length, catsLen: cats.length, subcatsLen: subcats.length });
+      setFilterBrandStorage(brands);
+      setFilterBrandsCategoryStorage(cats);
+      setFilterBrandsCategorySubCategoryStorage(subcats);
+      setLocalFilters_brand(parsed.filters || initialFilters_brand_mode.filters);
+      setFilters_brand_mode(parsed.filters || initialFilters_brand_mode.filters);
+    } catch (e) {}
+  }, [searchType]);
 
 
 
@@ -389,8 +474,10 @@ useEffect(() => {
     }
   }, [saveError]);
   
+  // Only run save-error modal/navigate in brand mode; category mode handles errors in SearchComponentCategory
   useEffect(() => {
-    if (saveError?.status === 401) {
+    if (searchType !== "brand" || !saveError) return;
+    if (saveError.status === 401) {
       setModalOpen(true);
       setTimeout(() => {
         setModalOpen(false);
@@ -399,20 +486,19 @@ useEffect(() => {
       }, 4000);
     }
 
-    if (saveError?.status === 403) {
+    if (saveError.status === 403) {
       setModalOpen(true);
       setTimeout(() => {
         dispatch(clearSaveFilterState());
         setModalOpen(false);
       }, 4000);
     }
-  }, [saveError, dispatch, navigate]);
+  }, [searchType, saveError, dispatch, navigate]);
 
   useEffect(() => {
-    if (saveError?.status) {
-      handleKnownErrors(saveError.status, setModalOpen, navigate);
-    }
-  }, [saveError, saveStatus]);
+    if (searchType !== "brand" || !saveError?.status) return;
+    handleKnownErrors(saveError.status, setModalOpen, navigate);
+  }, [searchType, saveError, saveStatus]);
 
   const form = useForm({
     initialValues: {
@@ -762,6 +848,7 @@ useEffect(() => {
                             setLocalFilters={setLocalFilters_category}
                             localFilters={localFilters_category}
                             onCookieUpdate={handleCookieUpdate}
+                            onCategorySavedFilterActiveChange={setCategorySavedFilterActive}
                           />
                         </div>
                       </Group>

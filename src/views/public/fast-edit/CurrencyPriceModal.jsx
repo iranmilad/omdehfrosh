@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Stack, NumberInput, Text, Group, Button, Select, Loader, Center } from '@mantine/core';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { notifications } from '@mantine/notifications';
-import { 
-  updateCurrencyPrice, 
-  getCurrencyPrice 
-} from '../../../redux/currencyPrice/currencyPriceActions';
+import { updateCurrencyPrice } from '../../../redux/currencyPrice/currencyPriceActions';
 import { clearCurrencyPriceState } from '../../../redux/currencyPrice/currencyPriceSlice'
 
-const CurrencyPriceModal = ({ opened, onClose }) => {
+const CURRENCY_PRICE_QUERY_KEY = ["currency-price", "get"];
+
+const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyPriceLoading }) => {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [priceInput, setPriceInput] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
-  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const { 
     currencyPrice, 
@@ -21,6 +21,11 @@ const CurrencyPriceModal = ({ opened, onClose }) => {
     error, 
     successMessage 
   } = useSelector((state) => state.currencyPrice);
+
+  // useApiQuery transformer returns the inner object { price, currency, ... }, not { data: { price, currency } }
+  const displayPrice = currencyPriceFromCache?.price ?? currencyPrice;
+  const displayCurrency = currencyPriceFromCache?.currency ?? currency ?? 'USD';
+  const isLoadingData = currencyPriceLoading;
 
   // Currency options
   const currencyOptions = [
@@ -31,38 +36,19 @@ const CurrencyPriceModal = ({ opened, onClose }) => {
     { value: 'AED', label: 'درهم امارات (AED)' },
   ];
 
-  // Load current price when modal opens
+  // Set input values when modal opens or when cache/Redux data is available
   useEffect(() => {
     if (opened) {
-      setIsLoadingData(true);
-      // Reset first
-      setPriceInput('');
-      setSelectedCurrency('USD');
-      
-      dispatch(getCurrencyPrice()).finally(() => {
-        setIsLoadingData(false);
-      });
-    }
-  }, [opened, dispatch]);
-
-  // Set input values when price is loaded from backend
-  useEffect(() => {
-    if (opened && !isLoadingData) {
-      if (currencyPrice !== null && currencyPrice !== undefined) {
-        setPriceInput(currencyPrice.toString());
+      if (displayPrice !== null && displayPrice !== undefined) {
+        setPriceInput(displayPrice.toString());
       } else {
-        setPriceInput(''); // Clear if no price exists
+        setPriceInput('');
       }
-      
-      if (currency) {
-        setSelectedCurrency(currency);
-      } else {
-        setSelectedCurrency('USD'); // Default fallback
-      }
+      setSelectedCurrency(displayCurrency || 'USD');
     }
-  }, [currencyPrice, currency, opened, isLoadingData]);
+  }, [opened, displayPrice, displayCurrency]);
 
-  // Handle success message
+  // Handle success message - invalidate cache so parent refetches
   useEffect(() => {
     if (successMessage) {
       notifications.show({
@@ -70,10 +56,11 @@ const CurrencyPriceModal = ({ opened, onClose }) => {
         message: successMessage,
         color: 'green',
       });
+      queryClient.invalidateQueries({ queryKey: CURRENCY_PRICE_QUERY_KEY });
       onClose();
       dispatch(clearCurrencyPriceState());
     }
-  }, [successMessage, onClose, dispatch]);
+  }, [successMessage, onClose, dispatch, queryClient]);
 
   // Handle error message
   useEffect(() => {
@@ -120,35 +107,77 @@ const CurrencyPriceModal = ({ opened, onClose }) => {
       opened={opened}
       onClose={handleClose}
       zIndex={1006}
-      title={
-        <Text size="lg" fw={600} c="#1f2937">
-          ثبت قیمت ارز
-        </Text>
-      }
-      centered
+      title="ثبت قیمت ارز"
       size="md"
+      centered
       overlayProps={{
         opacity: 0.55,
         blur: 3,
       }}
-      styles={{
-        content: {
-          borderRadius: '12px',
-        },
-        header: {
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e5e7eb',
-          padding: '16px 24px',
-        },
-        body: {
-          padding: '24px',
-        },
-      }}
-      // Fix for screen margin issue when modal opens
       lockScroll={false}
       removeScrollBar={false}
       trapFocus={false}
       withCloseButton={true}
+      styles={{
+        root: {
+          marginTop: '0 !important',
+          paddingTop: '0 !important',
+          paddingRight: '0 !important',
+        },
+        inner: {
+          marginTop: '0 !important',
+          paddingTop: '0 !important',
+          paddingBottom: 0,
+          top: '0 !important',
+          alignItems: 'flex-start',
+        },
+        content: {
+          marginTop: '0 !important',
+          paddingTop: '0 !important',
+          top: '0 !important',
+          maxHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: '12px',
+        },
+        title: {
+          fontSize: 18,
+          fontWeight: 600,
+          marginTop: '0 !important',
+          marginBottom: '0 !important',
+          paddingTop: '0 !important',
+          paddingBottom: '0 !important',
+          margin: '0 !important',
+          padding: '0 !important',
+        },
+        header: {
+          position: 'sticky',
+          top: 0,
+          marginTop: '0 !important',
+          marginBottom: 0,
+          paddingTop: '0 !important',
+          paddingBottom: '1rem',
+          paddingLeft: 'var(--mantine-spacing-md)',
+          paddingRight: 'var(--mantine-spacing-md)',
+          margin: '0 !important',
+          zIndex: 101,
+          backgroundColor: 'white',
+          borderBottom: '1px solid #dee2e6',
+        },
+        body: {
+          marginTop: 0,
+          paddingTop: 0,
+          paddingLeft: 'var(--mantine-spacing-md)',
+          paddingRight: 'var(--mantine-spacing-md)',
+          paddingBottom: 'var(--mantine-spacing-lg)',
+          overflowY: 'auto',
+          flex: 1,
+        },
+        close: {
+          marginTop: 0,
+          paddingTop: 0,
+        },
+      }}
     >
       {isLoadingData ? (
         <Center py="xl">
@@ -241,16 +270,16 @@ const CurrencyPriceModal = ({ opened, onClose }) => {
           
           <Text 
             size="sm" 
-            c={currencyPrice ? '#059669' : '#6b7280'}
+            c={displayPrice ? '#059669' : '#6b7280'}
             style={{
-              backgroundColor: currencyPrice ? '#d1fae5' : '#f3f4f6',
+              backgroundColor: displayPrice ? '#d1fae5' : '#f3f4f6',
               padding: '12px 16px',
               borderRadius: '8px',
-              border: `1px solid ${currencyPrice ? '#a7f3d0' : '#e5e7eb'}`,
+              border: `1px solid ${displayPrice ? '#a7f3d0' : '#e5e7eb'}`,
               lineHeight: 1.6,
             }}
           >
-            {currencyPrice 
+            {displayPrice 
               ? '✓ قیمت فعلی نمایش داده شده است. می‌توانید آن را به‌روزرسانی کنید.'
               : 'ℹ این قیمت برای محاسبات ارزی در سیستم استفاده خواهد شد'}
           </Text>

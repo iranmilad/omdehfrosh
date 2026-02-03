@@ -14,152 +14,75 @@ import {
 } from "@mantine/core";
 
 import ProductBox from "../account-favorite/productBox/index"
-import { verifyToken } from '../../../redux/auth/authusers/auth';
-
 import { useDispatch, useSelector } from "react-redux";
-import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { useSessionQuery, useQueryClient } from "../../../Libs/reactQuery";
 
 function Account_Favorite() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [authCheckComplete, setAuthCheckComplete] = useState(false);
   const [redirectTimer, setRedirectTimer] = useState(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const { isVerified, loading: authLoading, error: authError, user: userVerified } = useSelector((state) => state.auth);
-  
-  const dispatch = useDispatch();
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const { isVerified, loading: authLoading, user: userVerified } = useSelector((state) => state.auth);
 
-  const { userAccount, loading, error } = useSelector((state) => state.userMyAccounts);
+  const { data: userAccountData, isLoading: loading } = useSessionQuery({
+    endpoint: "/user-myaccounts",
+    queryKey: ["userMyAccount"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
 
-  const { 
-    user
-  } = useSelector(state => ({
-    user: state.auth?.user
-  }));
+  const userAccount = userAccountData?.data ?? userAccountData;
 
-  // Initial auth check - only verify token
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        await dispatch(verifyToken()).unwrap();
-      } catch (error) {
-      } finally {
-        setAuthCheckComplete(true);
-      }
-    };
-
-    if (!authCheckComplete) {
-      checkAuth();
-    }
-  }, [dispatch, authCheckComplete]);
-
-  // Handle auth state changes after initial check
-  useEffect(() => {
-    // Only proceed after auth check is complete
-    if (!authCheckComplete) return;
-
-    const isAuthenticated = isVerified && userVerified;
-
-    if (!isAuthenticated) {
-      // Clear any existing timer
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-      }
-
-      // Show modal first
+    if (!authLoading && (!isVerified || !userVerified)) {
       setLoginModalOpen(true);
-      
-      // Set up redirect timer
-      const timer = setTimeout(() => {
-        navigate('/login');
-      }, 3000);
-      
+      const timer = setTimeout(() => navigate("/login"), 3000);
       setRedirectTimer(timer);
-    } else {
-      // User is authenticated
-      setLoginModalOpen(false);
-      
-      // Clear redirect timer if it exists
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-        setRedirectTimer(null);
-      }
-      
-      // Add 1-2 second delay before dispatching user account data
-      const loadDataWithDelay = async () => {
-        try {
-          // Add 1.5 second delay
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          // Load user account data (which includes favorites)
-          if (user?.id) {
-            await dispatch(getUserMyAccount({userId: user.id}));
-          } else {
-            await dispatch(getUserMyAccount());
-          }
-          
-        } catch (error) {
-          console.error('Error loading user favorites:', error);
-        }
-      };
-
-      loadDataWithDelay();
-    }
-
-    // Cleanup function
-    return () => {
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-      }
-    };
-  }, [dispatch, isVerified, userVerified, authCheckComplete, navigate, user?.id]);
-
-  // Handle immediate redirect to login page
-  const handleGoToLogin = () => {
-    if (redirectTimer) {
-      clearTimeout(redirectTimer);
-      setRedirectTimer(null);
-    }
-    navigate('/login');
-  };
-
-  // Handle modal close (if needed)
-  const handleModalClose = () => {
-    if (redirectTimer) {
-      clearTimeout(redirectTimer);
-      setRedirectTimer(null);
+      return () => clearTimeout(timer);
     }
     setLoginModalOpen(false);
-    // Optionally redirect immediately or allow user to stay
-    navigate('/login');
-  };
-
-  // Create a refetch function
-  const refetch = () => {
-    if (user?.id) {
-      dispatch(getUserMyAccount({userId: user.id}));
-    } else {
-      dispatch(getUserMyAccount());
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+      setRedirectTimer(null);
     }
+  }, [isVerified, userVerified, authLoading, navigate]);
+
+  const handleGoToLogin = () => {
+    if (redirectTimer) clearTimeout(redirectTimer);
+    navigate("/login");
   };
 
-  // Show loading while checking auth
-  if (!authCheckComplete || authLoading) {
+  const handleModalClose = () => {
+    if (redirectTimer) clearTimeout(redirectTimer);
+    setLoginModalOpen(false);
+    navigate("/login");
+  };
+
+  const refetch = () => {
+    queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+  };
+
+  if (authLoading) {
     return (
       <Container size="md" py="xl">
         <Center>
           <Stack align="center" spacing="md">
             <Loader size="lg" />
-            <Title order={3}>در حال بررسی وضعیت ورود...</Title>
+            <Title order={3} style={{ textAlign: 'right' }}>در حال بررسی وضعیت ورود...</Title>
           </Stack>
         </Center>
       </Container>
     );
   }
 
-  // Show modal and placeholder if not authenticated
   if (!isVerified || !userVerified) {
     return (
       <>
@@ -206,7 +129,7 @@ function Account_Favorite() {
   return (
     <>
       <Flex justify="space-between" align="center" mb="xl">
-        <Title>محصولات علاقه مندی</Title>
+        <Title style={{ textAlign: 'right' }}>محصولات علاقه مندی</Title>
         <Button onClick={refetch} variant="light" size="sm">
           بروزرسانی
         </Button>

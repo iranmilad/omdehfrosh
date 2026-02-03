@@ -59,8 +59,8 @@ const addressValidationSchema = Yup.object().shape({
     .required('کد پستی الزامی است'),
 });
 
-const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
-  const [addresses, setAddresses] = useState([]);
+const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddresses }) => {
+  const [addresses, setAddresses] = useState(Array.isArray(initialAddresses) ? initialAddresses : []);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddressListOpen, setIsAddressListOpen] = useState(false);
@@ -118,8 +118,17 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit }) => {
   });
 
   useEffect(() => {
+    if (initialAddresses !== undefined && Array.isArray(initialAddresses)) {
+      setAddresses(initialAddresses);
+      const defaultAddr = initialAddresses.find((addr) => addr.isDefault);
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.addressId);
+        onAddressSelect?.(defaultAddr);
+      }
+      return;
+    }
     fetchAddresses();
-  }, []);
+  }, [initialAddresses]);
 
   // Prevent body padding shift when modals open
   useEffect(() => {

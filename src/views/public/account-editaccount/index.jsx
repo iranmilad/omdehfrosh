@@ -4,9 +4,8 @@ import React, { useEffect, useState } from 'react'
 import DatePicker from '../../../components/datePicker';
 import * as yup from 'yup';
 import { IMaskInput } from 'react-imask';
-import {useSend,useData} from "../../../Libs/api"
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserInfo } from '../../../redux/users/userinfo/userInfo';
+import { useSessionQuery, useQueryClient } from "../../../Libs/reactQuery";
 import { updateUserInfo } from '../../../redux/users/updateuserinfo/updateUserInforActions';
 import moment from "moment-jalaali";
 import { notifications } from '@mantine/notifications';
@@ -40,9 +39,22 @@ function Account_EditAccount() {
 
     const [showAlert, setShowAlert] = useState(false);
 
-    const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-    
-    const { userInfo, errorUserInfo, loadingUserInfo } = useSelector((state) => state.user)
+    const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+    const { isVerified, loading: authLoading, user } = useSelector((state) => state.auth);
+    const queryClient = useQueryClient();
+
+    const { data: userInfoData, isLoading: loadingUserInfo, error: errorUserInfo } = useSessionQuery({
+      endpoint: "/users/getuserinfo",
+      queryKey: ["userInfo"],
+      enabled: !!token,
+      retry: (failureCount, error) => {
+        const msg = typeof error === "string" ? error : error?.message || String(error);
+        if (msg.includes("401")) return false;
+        return failureCount < 2;
+      },
+    });
+
+    const userInfo = userInfoData?.data ?? userInfoData;
 
     const navigate = useNavigate();
 
@@ -141,12 +153,6 @@ function Account_EditAccount() {
     }, [errorUpdateUser, dispatch, navigate]);
     
 
-    // Fetch user info only if not already in Redux
-    useEffect(() => {
-      if (user && !userInfo) {
-        dispatch(fetchUserInfo());
-      }
-    }, [dispatch, user, userInfo]);
 
 
     // Helper function to convert Persian/Jalali date to Gregorian YYYY-MM-DD format for API
@@ -234,16 +240,17 @@ function Account_EditAccount() {
     
 
 const submitForm = async (values) => {
-  
   const updatedValues = {
     ...values,
     mobile: values.mobile,
-    birthday: convertPersianToGregorian(values.birthday), // Convert only for API submission
+    birthday: convertPersianToGregorian(values.birthday),
   };
-
-  
   await dispatch(updateUserInfo(updatedValues));
-  await dispatch(fetchUserInfo());
+  if (queryClient) {
+    queryClient.invalidateQueries({ queryKey: ["userInfo"] });
+    queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+    queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+  }
 };
 
 

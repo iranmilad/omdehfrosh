@@ -6,7 +6,7 @@ import { userMessagesModalComponentGet } from '../../../redux/usermyaccounts/use
 import { Box, Table, Text } from '@mantine/core';
 import DynamicModal from './DynamicModals';
 import { setNotificationSeen } from '../../../redux/usermyaccounts/usermyaccounts/notifications/setnotificationseen/setNotificationSeenActions';
-import { getNotificationNumber } from '../../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions';
+import { useQueryClient } from '../../../Libs/reactQuery';
 
 const DynamicTables = () => {
   const [Component, setComponent] = useState(null);
@@ -81,16 +81,10 @@ const DynamicTables = () => {
 
   // Called by rows in dynamic component
   const handleRowClick = (tableIndex, rowId) => {
-
     dispatch(setNotificationSeen({ tableIndex, rowId, isRead: true }));
-
-    dispatch(getNotificationNumber())
-
+    queryClient.invalidateQueries({ queryKey: ["notificationNumber"] });
     setShouldOpenModal(true);
     dispatch(userMessagesModalComponentGet({ tableIndex, rowId }));
-    
-    dispatch(getNotificationNumber())
-
   };
 
   if (loadingUserMessagesComponent) return <div>Loading component...</div>;

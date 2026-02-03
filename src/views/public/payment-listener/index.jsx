@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { getApiUrl } from '../../../Libs/utils/apiutils/apiutils';
+import { useQueryClient } from '../../../Libs/reactQuery';
+import { clearCommentsState } from '../../../redux/products/productcomments/getproductcomments/getProductCommentsSlice';
 
 const PaymentListener = () => {
   const [loading, setLoading] = useState(true);
@@ -9,6 +12,16 @@ const PaymentListener = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
+
+  // When leaving this page (navigate to orders or any route), invalidate and refetch orders so the list is fresh
+  useEffect(() => {
+    return () => {
+      queryClient.invalidateQueries({ queryKey: ['ordersByUserId'] });
+      queryClient.refetchQueries({ queryKey: ['ordersByUserId'] });
+    };
+  }, [queryClient]);
 
   useEffect(() => {
     console.log('🎬 PaymentListener mounted, calling verifyPayment');
@@ -142,6 +155,19 @@ const PaymentListener = () => {
         setLoading(false);
         console.log('✅ Loading set to false, result set');
 
+        // Invalidate and refetch so orders list is updated when user navigates to account/orders (SESSION strategy has refetchOnMount: false)
+        queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
+        queryClient.invalidateQueries({ queryKey: ['cart'] });
+        queryClient.invalidateQueries({ queryKey: ['ordersByUserId'] });
+        queryClient.invalidateQueries({ queryKey: ['userMyAccount'] });
+        queryClient.refetchQueries({ queryKey: ['ordersByUserId'] });
+
+        // Invalidate all order details so order-item "add comment" and items list are fresh (user may have new orders/items)
+        queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'orderById' });
+
+        // Clear product comments cache (Redux) so "bought / can comment" and comments list refetch on product page
+        dispatch(clearCommentsState());
+
         // Redirect after 3 seconds to the link provided by backend
         console.log('⏰ Setting redirect timer (3 seconds)...');
         setTimeout(() => {
@@ -183,7 +209,7 @@ const PaymentListener = () => {
   if (loading) {
     console.log('⏳ Showing loading state');
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-white" style={{ marginTop: 0 }}>
         <div className="bg-white rounded-2xl shadow-2xl p-12 max-w-md w-full text-center">
           <div className="mb-8">
             <div className="w-24 h-24 bg-blue-600 rounded-full mx-auto flex items-center justify-center mb-6 animate-pulse">
@@ -224,7 +250,7 @@ const PaymentListener = () => {
   if (error) {
     console.log('❌ Showing error state:', error);
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
+      <div className="min-h-screen flex items-center justify-center bg-white" style={{ marginTop: 0 }}>
         <div className="bg-white rounded-2xl shadow-2xl p-12 max-w-md w-full text-center">
           <div className="mb-8">
             <div className="w-24 h-24 bg-red-600 rounded-full mx-auto flex items-center justify-center mb-6">
@@ -270,7 +296,7 @@ const PaymentListener = () => {
   console.log('✅ Showing result state:', { isSuccess, result });
 
   return (
-    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${isSuccess ? 'from-green-50 to-green-100' : 'from-yellow-50 to-yellow-100'}`}>
+    <div className="min-h-screen flex items-center justify-center bg-white" style={{ marginTop: 0 }}>
       <div className="bg-white rounded-2xl shadow-2xl p-12 max-w-md w-full text-center">
         <div className="mb-8">
           <div className={`w-24 h-24 ${isSuccess ? 'bg-green-600' : 'bg-yellow-600'} rounded-full mx-auto flex items-center justify-center mb-6`}>

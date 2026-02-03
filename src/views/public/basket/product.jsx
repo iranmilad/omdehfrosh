@@ -21,6 +21,7 @@ import Counter from "../../../components/counter";
 import CompareButton from "../../../components/compareBtn";
 import { setInitial } from "../../../redux/cart";
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import CounterBasket from "../../../components/counter-basket";
 import { useState, useEffect } from "react";
 import { DEFAULT_COLOR_MAP } from '../../../Libs/attribute_colors/colors';
@@ -30,6 +31,7 @@ const Product = (props) => {
   const cartItems = useSelector((state) => state.cart.items || []);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const queryClient = useQueryClient();
 
   // Convert productId to string for comparison and passing to components
   const productIdStr = String(props.productId);
@@ -110,72 +112,30 @@ const handleCartRemovalComplete = async () => {
     }
   };
 
-  // Fetch fresh cart data from server
-  const fetchCartData = async () => {
-    const token = localStorage.getItem("user");
-    
-    if (!token) return;
-    
-    try {
-      const response = await fetch(getApiUrl("/cart"), {
-        method: "GET",
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch cart data");
-      }
-      
-      const serverData = await response.json();
-      
-      if (serverData.message === "ok" && Array.isArray(serverData.cart)) {
-        return serverData.cart;
-      }
-      
-      return [];
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      return null;
-    }
-  };
-
-  // Full remove function (with API call) - ONLY for direct IconTrash clicks
+  // Full remove function (with API call) - ONLY for direct IconTrash clicks; refresh from userInitialData cache
   const removeItem = async () => {
     if (isRemoving || !isInCart) return; // Prevent double clicks and invalid removes
     
     setIsRemoving(true);
     
-    // Notify parent component
     if (props.onRemoveStart) {
       props.onRemoveStart();
     }
     
     try {
-      // Make API call to remove item
       const removeResponse = await removeFromCartAPI(
         props.productId,
         props.seller,
         props.combinationsID
       );
       
-      
-      // Check if the API returned updated cart data
       if (removeResponse?.message === "ok") {
         if (Array.isArray(removeResponse.cart)) {
-          // Use the cart data from remove response
           dispatch(setInitial(removeResponse.cart));
         } else {
-          // Fallback: fetch fresh cart data if remove response doesn't include cart
-          const freshCartData = await fetchCartData();
-          if (freshCartData !== null) {
-            dispatch(setInitial(freshCartData));
-          }
+          queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         }
         
-        // Hide the component immediately after successful removal
         setIsVisible(false);
       } else {
         throw new Error("Remove operation failed");
@@ -183,16 +143,7 @@ const handleCartRemovalComplete = async () => {
       
     } catch (error) {
       console.error('Failed to remove item from cart:', error);
-      
-      // Fallback: try to fetch fresh cart data to sync state
-      try {
-        const freshCartData = await fetchCartData();
-        if (freshCartData !== null) {
-          dispatch(setInitial(freshCartData));
-        }
-      } catch (fetchError) {
-        console.error('Failed to fetch cart data after remove error:', fetchError);
-      }
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
     } finally {
       setIsRemoving(false);
     }

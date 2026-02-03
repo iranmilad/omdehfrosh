@@ -1,7 +1,9 @@
 import { Button, Center, Loader, LoadingOverlay, Portal } from "@mantine/core";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { updateFastEditBrandMode } from "../../../../redux/fastedit/fasteditbrandmode/fastEditBrandModeUpdateActions";
+import { clearFastEditBrandModeState } from "../../../../redux/fastedit/fasteditbrandmode/fastEditBrandModeUpdateSlice";
 import Cookies from "js-cookie";
 
 const EditItemsFastOrder = (props) => {
@@ -14,16 +16,21 @@ const EditItemsFastOrder = (props) => {
 
   const { brandModeUpdate } = useSelector((state) => state.fastEditBrandMode);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [showLoader, setShowLoader] = useState(false);
   const [previousData, setPreviousData] = useState(null);
 
-  // ⭐ Handle update success/error - UPDATE LOCAL STATE ONLY, NO REFETCH
+  // ⭐ Handle update success/error – only the row that clicked (showLoader) invalidates once; clear Redux to avoid repeat refetches
   useEffect(() => {
     if (brandModeUpdate && brandModeUpdate.state === "ok") {
-      // ✅ Success: Keep the updated data (already in formData/local state)
-      console.log(`✅ Update successful for psid: ${item.psid}`);
+      // ✅ Success: invalidate only from the row that initiated the update (showLoader was true) so we get a single refetch
+      if (showLoader) {
+        queryClient.invalidateQueries({ queryKey: ["fast-edit-brand-mode"] });
+        queryClient.invalidateQueries({ queryKey: ["fast-edit-category-mode"] });
+      }
       setShowLoader(false);
-      setPreviousData(null); // Clear backup
+      setPreviousData(null);
+      dispatch(clearFastEditBrandModeState()); // clear so effect doesn’t re-run after refetch and cause extra API calls
     } else if (brandModeUpdate && brandModeUpdate.state === "error") {
       // ❌ Error: Revert to previous data
       console.log(`❌ Update failed for psid: ${item.psid}, reverting...`);
@@ -46,7 +53,7 @@ const EditItemsFastOrder = (props) => {
       setShowLoader(false);
       setPreviousData(null); // Clear backup
     }
-  }, [brandModeUpdate, item.psid, previousData, setNodes]);
+  }, [brandModeUpdate, item.psid, previousData, setNodes, queryClient, dispatch, showLoader]);
 
   const handleEdit = () => {
     const matchingDataKey = Object.keys(formData).find(key => key === item.psid);

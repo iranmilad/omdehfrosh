@@ -120,8 +120,12 @@ const Public = (props) => {
           width: '100%',
           backgroundColor: '#F0F1F2',
           minHeight: '100vh',
-          // 68px header height + spacing below it
-          paddingTop: 'calc(68px + 1.5rem)',
+          // Grey gap below header: 0 for fast-order/fast-edit; 25px for payment-listener; else 68px + 1.5rem
+          paddingTop: (curr.pathname.startsWith('/fastorder') || curr.pathname.startsWith('/fastedit'))
+            ? 0
+            : curr.pathname.startsWith('/payment-listener')
+              ? 'calc(68px + 25px)'
+              : 'calc(68px + 1.5rem)',
           paddingBottom: '1rem'
         }}
       >
@@ -134,6 +138,14 @@ const Public = (props) => {
         >
           {curr.pathname === "/" ? (
             <Outlet />
+          ) : (curr.pathname.startsWith('/fastorder') || curr.pathname.startsWith('/fastedit')) ? (
+            <Box className="px-3 md:px-5" style={{ marginBottom: '1rem' }}>
+              <Outlet />
+            </Box>
+          ) : curr.pathname.startsWith('/payment-listener') ? (
+            <Box className="px-3 md:px-5" style={{ marginTop: 0, paddingTop: 0 }}>
+              <Outlet />
+            </Box>
           ) : (
             <Container className="px-3 md:px-5 my-3 lg:my-10">
               <Outlet />

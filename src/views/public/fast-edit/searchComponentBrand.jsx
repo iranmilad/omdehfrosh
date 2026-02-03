@@ -23,10 +23,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { verifyToken } from "../../../redux/auth/authusers/auth";
 import { useMediaQuery } from "@mantine/hooks";
 import { IconFilter } from '@tabler/icons-react';
-import { getFilterSettings } from "../../../redux/savefiltersettings/getFilterSettings/getFilterSettingsActions";
 import isEqual from "lodash/isEqual";
 import { useBrandRowSelection } from "./BrandRowSelectionContext";
 import SavedFiltersModalBrandMode from "./savedfilters/brandmode/SavedFiltersModalBrand";
+import { useApiQuery } from "../../../Libs/reactQuery";
+import { clearSaveFilterState } from "../../../redux/savefiltersettings/saveFilterSettingsSlice";
+import ErrorMessageModal from "../../../components/errormessagemodal";
 
 const SearchComponentBrandFastEdit = ({
   searchType,
@@ -38,13 +40,26 @@ const SearchComponentBrandFastEdit = ({
   setNodesSubCategories,
   filterSettingsModalOpened,
   setFilterSettingsModalOpened,
-  onEditModeChange
+  onEditModeChange,
+  cookieUpdateTrigger,
+  onCookieUpdate,
+  filterBrandStorage,
+  setFilterBrandStorage,
+  filterBrandsCategoryStorage,
+  setFilterBrandsCategoryStorage,
+  filterBrandsCategorySubCategoryStorage,
+  setFilterBrandsCategorySubCategoryStorage,
+  savedFilters: savedFiltersProp,
 }) => {
   
   const dispatch = useDispatch();
 
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-  const { savedFilters } = useSelector((state) => state.getFilterSettings || {});
+  const { saveError } = useSelector((state) => state.saveFilterSettings || {});
+  const savedFilters = savedFiltersProp ?? [];
+
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState("");
 
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width: 480px)");
@@ -59,10 +74,10 @@ const SearchComponentBrandFastEdit = ({
   
   const [category, setCategory] = useState({ parent: [], clickedCategories: [], subCategory: [], brands: [] });
   
-  const { tableData, loading } = useSelector(
+  const { tableData: tableDataFromRedux, loading: loadingFromRedux } = useSelector(
     (state) => state.fastEditBrandModeData || {}
   );
-  
+
   const COOKIE_NAME = "search_filters_brand_fast_edit";
 
   const getInitialFilters = useCallback(() => {
@@ -95,9 +110,7 @@ const SearchComponentBrandFastEdit = ({
 
   const initialFilters = useMemo(() => getInitialFilters(), [getInitialFilters]);
 
-  const [filterBrandStorage, setFilterBrandStorage] = useState(initialFilters.uniqueIDClickedBrands);
-  const [filterBrandsCategoryStorage, setFilterBrandsCategoryStorage] = useState(initialFilters.uniqueIDClickedBrandsCategories);
-  const [filterBrandsCategorySubCategoryStorage, setFilterBrandsCategorySubCategoryStorage] = useState(initialFilters.filterBrandsCategorySubCategoryStorage);
+  // filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage come from parent (fast-edit index) for cookie reload / restore-on-tab
 
   // Keep local filters state for UI - not sent to backend
   const [localFilters, setLocalFilters] = useState(initialFilters.filters);
@@ -113,7 +126,6 @@ const SearchComponentBrandFastEdit = ({
 
   // Refs for preventing duplicate API calls
   const lastFetchParams = useRef(null);
-  const hasLoadedInitialFilters = useRef(false);
 
   // Helper functions to build filter arrays (without filters property)
   const buildCurrentFilterArray = useCallback(() => {
@@ -125,6 +137,21 @@ const SearchComponentBrandFastEdit = ({
       // filters property removed
     }];
   }, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage]);
+
+  const filterArray = useMemo(() => buildCurrentFilterArray(), [buildCurrentFilterArray]);
+  const TABLE_STALE_MS = 5 * 60 * 1000; // 5 min - avoid refetch when switching tabs back
+  const { data: tableDataFromQuery, isLoading: loadingFromQuery } = useApiQuery({
+    endpoint: "/fast-edit-brand-mode",
+    queryKey: ["fast-edit-brand-mode", JSON.stringify(filterArray)],
+    method: "post",
+    body: filterArray,
+    strategy: "CACHED",
+    enabled: checkedRows.size === 0 && filterArray?.length > 0,
+    staleTime: TABLE_STALE_MS,
+    queryOptions: { refetchOnMount: false, refetchOnWindowFocus: false },
+  });
+  const tableData = checkedRows.size === 0 ? (tableDataFromQuery ?? null) : tableDataFromRedux ?? null;
+  const loading = checkedRows.size === 0 ? loadingFromQuery : loadingFromRedux;
 
   const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
     return Array.from(checkedRowIds)
@@ -183,69 +210,21 @@ const SearchComponentBrandFastEdit = ({
     COOKIE_NAME
   ]);
 
-  // Modified useEffect for checked rows - now uses array format (without filters)
+  // When checkboxes are selected, fetch table data via Redux (combined saved-filters view). When none selected, table data comes from useApiQuery (cached).
   useEffect(() => {
-    if (checkedRows.size > 0) {
-      const checkedFiltersArray = buildCheckedFiltersArray();
-      if (checkedFiltersArray.length > 0) {
-        dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
-      }
-    }
-  }, [checkedRows, dispatch, buildCheckedFiltersArray]);
-
-  // OPTIMIZED: Combined data fetching effect with duplicate prevention - Modified to use array format (without filters)
-  useEffect(() => {
+    if (checkedRows.size === 0) return;
     const currentParams = {
-      searchType,
-      filterBrandStorage,
-      filterBrandsCategoryStorage,
-      filterBrandsCategorySubCategoryStorage,
-      checkedRowsSize: checkedRows.size,
       checkedRowIds: Array.from(checkedRows).sort().join(','),
-      hasCheckedRows: checkedRows.size > 0,
-      // filters removed
     };
-
-    // Skip if parameters haven't changed
-    if (isEqual(lastFetchParams.current, currentParams)) {
-      return;
-    }
-
+    if (isEqual(lastFetchParams.current, currentParams)) return;
     lastFetchParams.current = currentParams;
-
-    // Always make an API request when there are changes
-    if (checkedRows.size > 0) {
-      // When checkboxes are selected, fetch data based on checked rows (without filters)
-      const checkedFiltersArray = buildCheckedFiltersArray();
-      if (checkedFiltersArray.length > 0) {
-        dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
-      }
-    } else {
-      // When no checkboxes are selected, fetch normal filtered data as array (without filters)
-      const currentFiltersArray = buildCurrentFilterArray();
-      dispatch(fetchFastEditBrandModeTableData(currentFiltersArray));
+    const checkedFiltersArray = buildCheckedFiltersArray();
+    if (checkedFiltersArray.length > 0) {
+      dispatch(fetchFastEditBrandModeTableData(checkedFiltersArray));
     }
-  }, [
-    dispatch, 
-    searchType,
-    filterBrandStorage,
-    filterBrandsCategoryStorage,
-    filterBrandsCategorySubCategoryStorage,
-    checkedRows,
-    checkedRows.size,
-    // filters removed
-    buildCheckedFiltersArray,
-    buildCurrentFilterArray
-  ]);
+  }, [checkedRows, checkedRows.size, dispatch, buildCheckedFiltersArray]);
 
-  // OPTIMIZED: Load saved filters only once when user is available
-  useEffect(() => {
-    if (user && !hasLoadedInitialFilters.current) {
-      const slug = "brand-fast-edit";
-      dispatch(getFilterSettings(slug));
-      hasLoadedInitialFilters.current = true;
-    }
-  }, [dispatch, user]);
+  // Saved filters come from parent (index) via useApiQuery - no dispatch here to avoid API calls on tab switch
 
   // Save to cookies whenever relevant state changes (includes filters for UI state)
   useEffect(() => {
@@ -267,43 +246,7 @@ const SearchComponentBrandFastEdit = ({
     COOKIE_NAME
   ]);
 
-  // Load filters from cookies on component mount - Modified to use array format (without filters)
-  useEffect(() => {
-    const storedFilters = Cookies.get(COOKIE_NAME);
-
-    if (storedFilters) {
-      try {
-        const parsedFilters = JSON.parse(storedFilters);
-
-        setFilterBrandStorage(parsedFilters.uniqueIDClickedBrands || []);
-        setFilterBrandsCategoryStorage(parsedFilters.uniqueIDClickedBrandsCategories || []);
-        setFilterBrandsCategorySubCategoryStorage(parsedFilters.filterBrandsCategorySubCategoryStorage || []);
-        setLocalFilters(parsedFilters.filters || initialFilters.filters); // Restore local filters
-        
-        // Sync filters with parent component
-        if (setFilters) {
-          setFilters(parsedFilters.filters || initialFilters.filters);
-        }
-        
-        if (setSearchType && parsedFilters.searchType) {
-          setSearchType(parsedFilters.searchType);
-        }
-
-        setTimeout(() => {
-          const filterArray = [{
-            searchType: parsedFilters.searchType || 'brand',
-            uniqueIDClickedBrands: parsedFilters.uniqueIDClickedBrands || [],
-            uniqueIDClickedBrandsCategories: parsedFilters.uniqueIDClickedBrandsCategories || [],
-            filterBrandsCategorySubCategoryStorage: parsedFilters.filterBrandsCategorySubCategoryStorage || [],
-            // filters removed
-          }];
-          dispatch(fetchFastEditBrandModeTableData(filterArray));
-        }, 0);
-      } catch (error) {
-        console.error('Error parsing stored filters:', error);
-      }
-    }
-  }, [COOKIE_NAME, setFilters, setSearchType, dispatch]);
+  // Parent (fast-edit index) owns filter storage state and initializes from cookie; restore-on-tab and cookie reload run there. No mount-only cookie read here.
 
   // Sync localFilters with parent filters
   useEffect(() => {
@@ -345,11 +288,34 @@ const SearchComponentBrandFastEdit = ({
 
  const storedFilters = Cookies.get(COOKIE_NAME);
 
+  // Monitor save status for error handling – show backend message in modal (like fast-order)
+  useEffect(() => {
+    if (!saveError) return;
+    if (saveError?.state === "error" && saveError?.error && typeof saveError.error === "object") return;
+    const message =
+      saveError?.message ||
+      saveError?.data?.message ||
+      saveError?.response?.data?.message ||
+      (typeof saveError === "string" ? saveError : null) ||
+      "خطای ناشناخته رخ داده است";
+    setErrorModalMessage(message);
+    setShowErrorModal(true);
+    dispatch(clearSaveFilterState());
+  }, [saveError, dispatch]);
+
   console.log("render SearchComponentBrand Fast Edit", storedFilters);
 
   return (
     <>
-
+      <ErrorMessageModal
+        opened={showErrorModal}
+        onClose={() => {
+          setShowErrorModal(false);
+          setErrorModalMessage("");
+          dispatch(clearSaveFilterState());
+        }}
+        message={errorModalMessage}
+      />
 
       <Paper 
         mt={{ base: "xs", md: "xs" }} 
@@ -433,7 +399,7 @@ const SearchComponentBrandFastEdit = ({
       style={{ 
         flex: '1 1 0', 
         minWidth: 0,
-        border: searchType === 'brand' ? '1px solid #093572' : '1px solid #e0e0e0',
+        border: '1px solid #093572',
         borderRadius: '6px',
         backgroundColor: searchType === 'brand' ? '#093572' : 'white',
         color: searchType === 'brand' ? 'white' : '#333',
@@ -442,13 +408,13 @@ const SearchComponentBrandFastEdit = ({
       {isMobile ? "برند" : "برند"}
     </Tabs.Tab>
     
-    {/* ✅ Category Tab - Inline styles based on active state */}
+    {/* Category Tab - same border color/px as fast-order */}
     <Tabs.Tab 
       value="category" 
       style={{ 
         flex: '1 1 0', 
         minWidth: 0,
-        border: searchType === 'category' ? '1px solid #093572' : '1px solid #e0e0e0',
+        border: '1px solid #093572',
         borderRadius: '6px',
         backgroundColor: searchType === 'category' ? '#093572' : 'white',
         color: searchType === 'category' ? 'white' : '#333',
@@ -517,6 +483,7 @@ const SearchComponentBrandFastEdit = ({
         filters={filters}
         localFilters={localFilters}
         onEditModeChange={onEditModeChange}
+        savedFilters={savedFilters}
       />
     </>
   );

@@ -26,8 +26,10 @@ const SliderComponentCategoriesFastEdit = ({
       item.categories.length > 0
     );
 
+  const ROW_HEIGHT = 48;
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', minHeight: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
+      <div style={{ flex: 1, minWidth: 0, height: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
       <Swiper
         modules={[FreeMode, Navigation]}
         freeMode={true}
@@ -84,6 +86,7 @@ const SliderComponentCategoriesFastEdit = ({
         </SwiperSlide>
       ))}
       </Swiper>
+      </div>
       {hasVisibleContent && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={swiperState.isBeginning} isEnd={swiperState.isEnd} />}
     </div>
   );
@@ -197,8 +200,8 @@ export function SingleCategoryGroup({
   return (
     <>
       {isActive && (
-        <div className="flex flex-col mt-2">
-          {/* Categories Row */}
+        <div className="flex flex-col">
+          {/* Categories Row - no mt-2 so slider row is 48px and arrows align */}
           <div className="flex flex-row flex-wrap gap-2">
             {parentItem.categories.map((category, index) => {
               const isActiveBorder = filterBrandsCategoryStorage.some(

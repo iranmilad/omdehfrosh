@@ -493,9 +493,12 @@ function FiltersBrandModeFastOrder({
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  if (!filterValues || !Array.isArray(filterValues.colors)) {
-    return <LoadingOverlay />
+  // Show filters as soon as we have filterValues; default colors/sellers to [] so form displays on first open before API returns
+  if (!filterValues) {
+    return <LoadingOverlay />;
   }
+  const colors = Array.isArray(filterValues.colors) ? filterValues.colors : [];
+  const sellersSafe = Array.isArray(filterValues.sellers) ? filterValues.sellers : [];
 
   // Unified slide styles - all elements have same height and spacing
   const baseSlideStyle = {
@@ -523,9 +526,7 @@ function FiltersBrandModeFastOrder({
   };
 
   // helper to normalize seller list (strings or objects)
-  const sellersData = Array.isArray(filterValues.sellers)
-    ? filterValues.sellers.map((s) => (typeof s === "string" ? { label: s, value: s } : s))
-    : [];
+  const sellersData = sellersSafe.map((s) => (typeof s === "string" ? { label: s, value: s } : s));
 
   return (
     <>

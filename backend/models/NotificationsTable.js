@@ -14,9 +14,17 @@ const notificationSchema = new mongoose.Schema({
   },
   description: { 
     type: String, 
-    required: true,
+    required: false,
     trim: true,
-    maxlength: 1000
+    maxlength: 1000,
+    default: ''
+  },
+  // Extended description shown in the modal (optional; falls back to description if empty)
+  fullDescription: {
+    type: String,
+    trim: true,
+    maxlength: 5000,
+    default: null
   },
   imagePath: { 
     type: mongoose.Schema.Types.Mixed, // Can be string or array

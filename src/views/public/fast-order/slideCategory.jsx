@@ -66,6 +66,20 @@ function SlideCategory({
   // isSlideSelectionActive should be false during edit mode so all sliders remain visible
   const isSlideSelectionActive = !isEditMode && checkedRows.size > 0;
 
+  console.log('📊 [SlideCategory] RENDER', {
+    searchType,
+    checkedRowsSize: checkedRows.size,
+    isEditMode,
+    isSlideSelectionActive,
+    filterCategoryStorage,
+    filterCategorySubCategoryStorage,
+    filterCategorySubCategoryBrandsStorage,
+    filterBrandStorage,
+    filterBrandsCategoryStorage,
+    filterBrandsCategorySubCategoryStorage,
+    timestamp: Date.now()
+  });
+
 // Debug logging
   // console.log('🎚️ [SlideCategory] Render state:', {
   //   searchType,
@@ -103,42 +117,42 @@ function SlideCategory({
             />
           </div>
 
-          {/* sub categories slider - Only show when no filters active OR in edit mode */}
+          {/* 2nd & 3rd rows: hide when saved filter is active */}
           {!isSlideSelectionActive && (
-            <div>
-              <SliderComponentSubCategoriesCM
-                key={`subcategories-${JSON.stringify(filterCategorySubCategoryStorage)}`}
-                items={items} 
-                clickType="categorySubCategories"
-                searchType={searchType}
-                tab={tab}
-                filterCategoryStorage={filterCategoryStorage}
-                setFilterCategoryStorage={setFilterCategoryStorage}
-                filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-              />
-            </div>
-          )}
-
-          {/* brands slider - Only show when no filters active OR in edit mode */}
-          {!isSlideSelectionActive && (
-            <div>
-              <SliderComponentBrandsCM 
-                key={`brands-${JSON.stringify(filterCategorySubCategoryBrandsStorage)}`}
-                items={items} 
-                clickType="categoryBrands"
-                searchType={searchType}
-                tab={tab}
-                filterCategoryStorage={filterCategoryStorage}
-                setFilterCategoryStorage={setFilterCategoryStorage}
-                filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-              />
-            </div>
+            <>
+              <div>
+                <SliderComponentSubCategoriesCM
+                  key={`subcategories-${JSON.stringify(filterCategorySubCategoryStorage)}`}
+                  items={items} 
+                  clickType="categorySubCategories"
+                  searchType={searchType}
+                  tab={tab}
+                  filterCategoryStorage={filterCategoryStorage}
+                  setFilterCategoryStorage={setFilterCategoryStorage}
+                  filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                  setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                  filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                  setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                  isDisabled={isSlideSelectionActive}
+                />
+              </div>
+              <div>
+                <SliderComponentBrandsCM 
+                  key={`brands-${JSON.stringify(filterCategorySubCategoryBrandsStorage)}`}
+                  items={items} 
+                  clickType="categoryBrands"
+                  searchType={searchType}
+                  tab={tab}
+                  filterCategoryStorage={filterCategoryStorage}
+                  setFilterCategoryStorage={setFilterCategoryStorage}
+                  filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                  setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                  filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                  setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                  isDisabled={isSlideSelectionActive}
+                />
+              </div>
+            </>
           )}
         </>
       );
@@ -163,41 +177,42 @@ function SlideCategory({
             />
           </div>
 
-          {/* categories slider - Only show when no filters active OR in edit mode */}
+          {/* 2nd & 3rd rows: hide when saved filter is active */}
           {!isSlideSelectionActive && (
-            <div>
-              <SliderComponentCategories 
-                key={`categories-${JSON.stringify(filterBrandsCategoryStorage)}`}
-                items={items} 
-                clickType="brandCategories"
-                searchType={searchType}
-                tab={tab}
-                filterBrandStorage={filterBrandStorage}
-                setFilterBrandStorage={setFilterBrandStorage}
-                filterBrandsCategoryStorage={filterBrandsCategoryStorage}
-                setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                isDisabled={false} // ✅ Not disabled in edit mode
-              />
-            </div>
-          )}
-
-          {/* sub categories slider - Only show when no filters active OR in edit mode */}
-          {!isSlideSelectionActive && (
-            <div>
-              <SliderComponentSubCategories
-                key={`subcategories-${JSON.stringify(filterBrandsCategorySubCategoryStorage)}`}
-                items={items} 
-                clickType="brandSubCategories"
-                searchType={searchType}
-                tab={tab}
-                filterBrandStorage={filterBrandStorage}
-                setFilterBrandStorage={setFilterBrandStorage}
-                filterBrandsCategoryStorage={filterBrandsCategoryStorage}
-                setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
-                setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-              />
-            </div>
+            <>
+              <div>
+                <SliderComponentCategories 
+                  key={`categories-${JSON.stringify(filterBrandsCategoryStorage)}`}
+                  items={items} 
+                  clickType="brandCategories"
+                  searchType={searchType}
+                  tab={tab}
+                  filterBrandStorage={filterBrandStorage}
+                  setFilterBrandStorage={setFilterBrandStorage}
+                  filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+                  setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+                  filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+                  setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+                  isDisabled={isSlideSelectionActive}
+                />
+              </div>
+              <div>
+                <SliderComponentSubCategories
+                  key={`subcategories-${JSON.stringify(filterBrandsCategorySubCategoryStorage)}`}
+                  items={items} 
+                  clickType="brandSubCategories"
+                  searchType={searchType}
+                  tab={tab}
+                  filterBrandStorage={filterBrandStorage}
+                  setFilterBrandStorage={setFilterBrandStorage}
+                  filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+                  setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+                  filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+                  setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+                  isDisabled={isSlideSelectionActive}
+                />
+              </div>
+            </>
           )}
         </>
       );

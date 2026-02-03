@@ -1,18 +1,9 @@
-import { Modal, Text, Badge, Box, Group } from "@mantine/core";
+import { Modal, Text, Box, Group } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 
-const statusColors = {
-  400: "orange",
-  401: "red",
-  403: "red",
-  404: "gray",
-  422: "yellow",
-  500: "dark",
-};
+const MODAL_Z = 10010;
 
-const ErrorMessageModal = ({ opened, onClose, status, message }) => {
-
-
+const ErrorMessageModal = ({ opened, onClose, message }) => {
   return (
     <Modal
       opened={opened}
@@ -31,17 +22,16 @@ const ErrorMessageModal = ({ opened, onClose, status, message }) => {
       withCloseButton={false}
       lockScroll={false}
       removeScrollBar={false}
+      zIndex={MODAL_Z}
+      styles={{
+        root: { zIndex: MODAL_Z },
+        inner: { zIndex: MODAL_Z },
+        overlay: { zIndex: MODAL_Z - 1 },
+        content: { maxHeight: '85vh', display: 'flex', flexDirection: 'column' },
+        body: { overflowY: 'auto', flex: '1 1 auto', minHeight: 0 },
+      }}
     >
       <Box>
-        <Badge
-          color={statusColors[status] || "gray"}
-          variant="filled"
-          size="lg"
-          mb="sm"
-        >
-          {status}
-        </Badge>
-
         <Text size="md" c="dimmed">
           {message || "خطای نامشخصی رخ داده است."}
         </Text>

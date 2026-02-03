@@ -20,140 +20,61 @@ import {
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
-import { getUserTickets } from "../../../redux/usermyaccounts/usermyaccounts/getusertickets/getUserTicketsActions";
-import { verifyToken } from '../../../redux/auth/authusers/auth';
-import { getUserMyAccount } from '../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions';
-
 import { useDispatch, useSelector } from "react-redux";
+import { useSessionQuery } from "../../../Libs/reactQuery";
 
 function Account_Messages() {
   const { primaryColor } = useMantineTheme();
   const [sort, setSort] = useState("all");
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [authCheckComplete, setAuthCheckComplete] = useState(false);
   const [redirectTimer, setRedirectTimer] = useState(null);
   const navigate = useNavigate();
 
-  const { isVerified, loading: authLoading, error: authError, user: userVerified } = useSelector((state) => state.auth);
-  
-  const dispatch = useDispatch();
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const { isVerified, loading: authLoading, user: userVerified } = useSelector((state) => state.auth);
 
-  const { 
-    userTickets, 
-    loadingUserTickets, 
-    errorUserTickets
-  } = useSelector((state) => state.userTickets);
+  const { data: ticketsData, isLoading: loadingUserTickets } = useSessionQuery({
+    endpoint: "/user-myaccounts/user-tickets",
+    queryKey: ["userTickets"],
+    enabled: !!token,
+    queryOptions: { refetchOnMount: true },
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
 
-  const { 
-    user
-  } = useSelector(state => ({
-    user: state.auth?.user
-  }));
+  const userTickets = ticketsData?.data ?? ticketsData ?? {};
 
-  // Initial auth check - only verify token
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        await dispatch(verifyToken()).unwrap();
-      } catch (error) {
-        // console.log('Auth verification failed:', error);
-      } finally {
-        setAuthCheckComplete(true);
-      }
-    };
-
-    if (!authCheckComplete) {
-      checkAuth();
-    }
-  }, [dispatch, authCheckComplete]);
-
-  // Handle auth state changes after initial check
-  useEffect(() => {
-    // Only proceed after auth check is complete
-    if (!authCheckComplete) return;
-
-    const isAuthenticated = isVerified && userVerified;
-
-    if (!isAuthenticated) {
-      // Clear any existing timer
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-      }
-
-      // Show modal first
+    if (!authLoading && (!isVerified || !userVerified)) {
       setLoginModalOpen(true);
-      
-      // Set up redirect timer
-      const timer = setTimeout(() => {
-        navigate('/login');
-      }, 3000);
-      
+      const timer = setTimeout(() => navigate("/login"), 3000);
       setRedirectTimer(timer);
-    } else {
-      // User is authenticated
-      setLoginModalOpen(false);
-      
-      // Clear redirect timer if it exists
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-        setRedirectTimer(null);
-      }
-      
-      // Add 1-2 second delay before dispatching other actions
-      const loadDataWithDelay = async () => {
-        try {
-          // First get user account data
-          if (user?.id) {
-            await dispatch(getUserMyAccount({userId: user.id}));
-          }
-          
-          // Add 1.5 second delay
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          // Then get user tickets
-          await dispatch(getUserTickets());
-          
-        } catch (error) {
-          console.error('Error loading user data:', error);
-        }
-      };
-
-      loadDataWithDelay();
-    }
-
-    // Cleanup function
-    return () => {
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-      }
-    };
-  }, [dispatch, isVerified, userVerified, authCheckComplete, navigate, user?.id]);
-
-  // Handle immediate redirect to login page
-  const handleGoToLogin = () => {
-    if (redirectTimer) {
-      clearTimeout(redirectTimer);
-      setRedirectTimer(null);
-    }
-    navigate('/login');
-  };
-
-  // Handle modal close (if needed)
-  const handleModalClose = () => {
-    if (redirectTimer) {
-      clearTimeout(redirectTimer);
-      setRedirectTimer(null);
+      return () => clearTimeout(timer);
     }
     setLoginModalOpen(false);
-    // Optionally redirect immediately or allow user to stay
-    navigate('/login');
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+      setRedirectTimer(null);
+    }
+  }, [isVerified, userVerified?.id, authLoading, navigate]);
+
+  const handleGoToLogin = () => {
+    if (redirectTimer) clearTimeout(redirectTimer);
+    navigate("/login");
   };
 
-  // Combined loading state
+  const handleModalClose = () => {
+    if (redirectTimer) clearTimeout(redirectTimer);
+    setLoginModalOpen(false);
+    navigate("/login");
+  };
+
   const isLoadingData = loadingUserTickets;
 
-  // Show loading while checking auth
-  if (!authCheckComplete || authLoading) {
+  if (authLoading) {
     return (
       <Container size="md" py="xl">
         <Center>
@@ -210,8 +131,8 @@ function Account_Messages() {
     );
   }
 
-  // Filter tickets based on sort value
-  const filteredTickets = userTickets?.userTickets?.tickets?.filter(ticket => {
+  const ticketsList = userTickets?.userTickets?.tickets ?? userTickets?.tickets ?? [];
+  const filteredTickets = ticketsList.filter(ticket => {
     if (sort === "all") return true;
     if (sort === "closed") return ticket.ticketStatus === "closed";
     if (sort === "open") return ticket.ticketStatus !== "closed";
@@ -281,22 +202,22 @@ function Account_Messages() {
         <Table highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th miw={100} c={primaryColor}>
-                #
+              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right' }}>
+                کد تیکت
               </Table.Th>
-              <Table.Th miw={100} c={primaryColor}>
+              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right' }}>
                 موضوع
               </Table.Th>
-              <Table.Th miw={100} c={primaryColor}>
+              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right' }}>
                 بخش
               </Table.Th>
-              <Table.Th miw={100} c={primaryColor}>
+              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right' }}>
                 وضعیت
               </Table.Th>
-              <Table.Th miw={130} c={primaryColor}>
+              <Table.Th miw={130} c={primaryColor} style={{ textAlign: 'right' }}>
                 آخرین به روز رسانی
               </Table.Th>
-              <Table.Th c={primaryColor}>عملیات</Table.Th>
+              <Table.Th c={primaryColor} style={{ textAlign: 'right' }}>عملیات</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -326,24 +247,24 @@ function Account_Messages() {
 function ItemRow(props) {
   return (
     <Table.Tr>
-      <Table.Td>
-        <Text size="sm" c="blue" ta="right" component={NavLink} to={`/account/tickets/single/${props.ticketId}`}>
+      <Table.Td style={{ textAlign: 'left' }}>
+        <Text size="sm" c="blue" component={NavLink} to={`/account/tickets/single/${props.ticketId}`}>
           {props.ticketId}
         </Text>
       </Table.Td>
-      <Table.Td>
+      <Table.Td style={{ textAlign: 'right' }}>
         <Text size="sm" lineClamp={2}>{props.ticketTitle}</Text>
       </Table.Td>
-      <Table.Td>
+      <Table.Td style={{ textAlign: 'right' }}>
         <Badge color="gray" size="sm" component={NavLink} to={`/account/tickets/single/${props.ticketId}`}>
           {props.teamName}
         </Badge>
       </Table.Td>
-      <Table.Td>
+      <Table.Td style={{ textAlign: 'right' }}>
         {props.ticketStatus === "closed" ? "بسته شده" : "پاسخ داده نشده"}
       </Table.Td>
-      <Table.Td>{props.updatedAt}</Table.Td>
-      <Table.Td>
+      <Table.Td style={{ textAlign: 'left' }}>{props.updatedAt}</Table.Td>
+      <Table.Td style={{ textAlign: 'right' }}>
         <Button size="xs" component={NavLink} to={`/account/tickets/single/${props.ticketId}`} radius={999}>
           مشاهده
         </Button>

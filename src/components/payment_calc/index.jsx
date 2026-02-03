@@ -15,32 +15,41 @@ import { useSelector } from "react-redux";
 import PriceText from "../priceText";
 import { Alert } from "antd";
 
-const PaymentCalc = ({ children, submit, prev }) => {
-  const cartItems = useSelector((state) => state.cart.items || []);
+const PaymentCalc = ({ children, submit, prev, cartItems: cartItemsProp }) => {
+  const cartItemsFromRedux = useSelector((state) => state.cart.items || []);
+  const items = Array.isArray(cartItemsProp) && cartItemsProp.length > 0
+    ? cartItemsProp
+    : (Array.isArray(cartItemsFromRedux) ? cartItemsFromRedux : []);
 
-  if (!Array.isArray(cartItems)) {
-    cartItems = [];
-  }
+  // Support both normalized (count, price.regularPrice) and raw (quantity, price number) shapes
+  const getCount = (item) => Number(item?.count ?? item?.quantity ?? item?.qty ?? 0) || 0;
+  const getRegularPrice = (item) => {
+    const p = item?.price;
+    if (p == null) return 0;
+    if (typeof p === "number") return p;
+    return Number(p?.regularPrice ?? p?.regular ?? p) || 0;
+  };
+  const getDiscountedPrice = (item) => {
+    const p = item?.price;
+    if (p == null) return getRegularPrice(item);
+    if (typeof p === "number") return p;
+    return Number(p?.discountedPrice ?? p?.discounted ?? p?.regularPrice ?? p) || 0;
+  };
 
-  // Count total items
-  const totalItems = cartItems.reduce((sum, item) => sum + item.count, 0);
-
-  // Calculate total price and discount
-  const totalCartPrice = cartItems.reduce(
-    (sum, item) => sum + item.price.regularPrice * item.count,
+  const totalItems = items.reduce((sum, item) => sum + getCount(item), 0);
+  const totalCartPrice = items.reduce(
+    (sum, item) => sum + getRegularPrice(item) * getCount(item),
     0
   );
-
-  console.log(cartItems)
-
-const totalDiscount = cartItems.reduce(
-  (sum, item) => {
-    const discount = item.price.regularPrice - item.price.discountedPrice;
-    // Only count positive discounts
-    return sum + (discount > 0 ? discount * item.count : 0);
-  },
-  0
-);
+  const totalDiscount = items.reduce(
+    (sum, item) => {
+      const reg = getRegularPrice(item);
+      const disc = getDiscountedPrice(item);
+      const discount = reg - disc;
+      return sum + (discount > 0 ? discount * getCount(item) : 0);
+    },
+    0
+  );
 
   const finalTotal = totalCartPrice - totalDiscount;
 
@@ -166,7 +175,7 @@ const totalDiscount = cartItems.reduce(
             </Button>
           </GridCol>
         )}
-        {cartItems.length !== 0 && (
+        {items.length !== 0 && (
           <GridCol span={{ base: 12, lg: prev ? 6 : 12 }}>
             <Button 
               fullWidth 

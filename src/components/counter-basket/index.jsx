@@ -2,55 +2,33 @@ import { ActionIcon, Button, Flex, Input, Loader, LoadingOverlay } from "@mantin
 import { IconPlus, IconMinus, IconTrash, IconBasket } from "@tabler/icons-react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { setInitial } from "../../redux/cart";
 import { useProduct } from "../../views/public/product";
 import { useEffect, useState, useRef } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 
-// Direct API functions
+// Direct API functions (no separate /cart fetch; use userInitialData cache)
 const cartAPI = {
   updateCart: async (body) => {
     const token = localStorage.getItem("user");
-    
-    try {
-      const response = await fetch(getApiUrl("/cart/update"), {
-        method: "POST",
-        headers: {
-          'Authorization': `Bearer ${token}`, 
-          "Content-Type": "application/json"      
-        },
-        body: JSON.stringify(body),
-      });
-    
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update cart");
-      }
-
-      // Get fresh cart data
-      const cartResponse = await fetch(getApiUrl("/cart"), {
-        headers: {
-          'Authorization': `Bearer ${token}`, 
-          "Content-Type": "application/json"      
-        },
-      });
-      
-      if (!cartResponse.ok) {
-        throw new Error("Failed to fetch cart data");
-      }
-      
-      const serverD = await cartResponse.json();
-
-      return {
-        message: "ok",
-        cart: serverD.cart || [],
-        total: serverD.total || 0,
-      };
-    } catch (error) {
-      console.error("Update cart error:", error);
-      throw error;
+    const response = await fetch(getApiUrl("/cart/update"), {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to update cart");
     }
+    return {
+      message: data.message || "ok",
+      cart: data.cart,
+      total: data.total,
+    };
   },
 
   removeFromCart: async (body) => {
@@ -135,6 +113,7 @@ const CounterBasket = (props) => {
   const productIdStr = typeof productId === 'string' ? productId : String(productId || '');
   const [cookies] = useCookies(["user"]);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [isPageLoading, setIsPageLoading] = useState(false);
   const isRemoving = useRef(false);
   const items = useSelector((state) => state.cart?.items || []);
@@ -207,18 +186,19 @@ const CounterBasket = (props) => {
 
   const handleChange = async ({value}) => {
     setIsPageLoading(true);
-    
     try {
       const response = await cartAPI.updateCart({
         "productId": productId,
-        "seller": seller, 
+        "seller": seller,
         "count": Number(value),
         "combinationsID": combinationsID,
       });
-      
-      if (response?.cart) {
+      if (Array.isArray(response?.cart)) {
         dispatch(setInitial([...response.cart]));
       }
+      // Always invalidate both queries to ensure cache stays fresh
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
     } catch (error) {
       console.error("Update failed:", error);
       const currentCount = getProductCount(items, productId, seller, combinationsID);
@@ -241,22 +221,19 @@ const CounterBasket = (props) => {
         combinationsID,
       });
       
-      if (response?.cart !== undefined) {
-        // Update Redux store
+      if (Array.isArray(response?.cart)) {
         dispatch(setInitial([...response.cart]));
-        
-        // Set local count to 0
-        setLocalCount(0);
-        
-        // Call UI-only remove function
-        if (removeFun && typeof removeFun === 'function') {
-          removeFun();
-        }
-        
-        // NEW: Notify parent component that removal is complete
-        if (onRemoveComplete && typeof onRemoveComplete === 'function') {
-          onRemoveComplete();
-        }
+      }
+      // Always invalidate both queries to ensure cache stays fresh
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      
+      setLocalCount(0);
+      if (removeFun && typeof removeFun === 'function') {
+        removeFun();
+      }
+      if (onRemoveComplete && typeof onRemoveComplete === 'function') {
+        onRemoveComplete();
       }
       
     } catch (error) {

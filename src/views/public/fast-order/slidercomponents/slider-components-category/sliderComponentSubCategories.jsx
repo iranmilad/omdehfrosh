@@ -42,14 +42,16 @@ const SliderComponentSubCategoriesCMFastOrder = ({
       item.subCategories.length > 0
     );
 
+  const ROW_HEIGHT = 48;
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', minHeight: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
+      <div style={{ flex: 1, minWidth: 0, height: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
       <Swiper
         modules={[FreeMode, Navigation]}
         freeMode={true}
         slidesPerView="auto"
         spaceBetween={8}
-        className="mt-2 !m-0 !p-0"
+        className="!mt-0 !m-0 !p-0"
         style={{ width: "100%" }}
         navigation={{
           prevEl: prevRef.current,
@@ -90,6 +92,7 @@ const SliderComponentSubCategoriesCMFastOrder = ({
         </SwiperSlide>
       ))}
       </Swiper>
+      </div>
       {hasVisibleContent && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={isBeginning} isEnd={isEnd} />}
     </div>
   );
@@ -191,7 +194,7 @@ export function SingleCategoryWithSubcategories({
   return (
     <>
       {parentItem?.subCategories?.length > 0 && isActive && (
-        <div className="flex flex-col mt-2">
+        <div className="flex flex-col">
           <div className="flex flex-row flex-wrap gap-2">
             {parentItem.subCategories.map((subcategory, subIndex) => {
               // Check if this specific subcategory is selected for this category

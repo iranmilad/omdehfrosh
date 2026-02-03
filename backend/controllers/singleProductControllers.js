@@ -119,8 +119,35 @@ function removeUnwantedFields(obj) {
 
 export const createSingleProductComments = async (req, res) => {
   try {
-    const { commentText, rating, name, date, supplierId, supplierName, supplierPsid } = req.body;
+    const { commentText, rating, name, date, supplierId, supplierName, supplierPsid, orderId } = req.body;
     const { productId } = req.params;
+
+    // When submitting from order details: enforce one comment per (order, product) per user
+    const tokenData = getUserFromToken(req);
+    const user_id = tokenData?.user_id ?? null;
+
+    if (orderId) {
+      if (user_id == null) {
+        return res.status(401).json({
+          state: "error",
+          message: "برای ثبت دیدگاه از صفحه سفارش باید وارد حساب باشید",
+          error: { auth: "Unauthorized" }
+        });
+      }
+      const existing = await ProductComments.findOne({
+        productId,
+        'comments.orderId': orderId,
+        'comments.userId': user_id
+      });
+      if (existing) {
+        return res.status(400).json({
+          state: "error",
+          message: "شما قبلاً برای این محصول در این سفارش دیدگاه ثبت کرده‌اید",
+          error: { orderId: "یک دیدگاه به ازای هر محصول در هر سفارش" },
+          alreadyCommented: true
+        });
+      }
+    }
 
     // Validation
     if (!productId) {
@@ -171,7 +198,7 @@ export const createSingleProductComments = async (req, res) => {
       });
     }
 
-    // Create new comment object
+    // Create new comment object (orderId/userId for one-comment-per-order enforcement)
     const newComment = {
       commentId: uuidv4(),
       name: name.trim(),
@@ -180,7 +207,9 @@ export const createSingleProductComments = async (req, res) => {
       status: 'pending',
       commentText: commentText.trim(),
       supplierId: parseInt(supplierId),
-      supplierName: supplierName || ''
+      supplierName: supplierName || '',
+      ...(orderId != null && { orderId: String(orderId) }),
+      ...(user_id != null && { userId: user_id })
     };
 
     // Find existing product comments or create new document

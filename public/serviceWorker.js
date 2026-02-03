@@ -8,11 +8,8 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Allow all fetch requests to go through without caching
-self.addEventListener("fetch", (event) => {
-  // No caching or interception
-  return;
-});
+// No fetch handler - letting the browser handle all requests avoids no-op overhead during navigation.
+// If you need to intercept fetches later, add a real handler here.
 
 // ✅ Handle notification click and route user
 self.addEventListener("notificationclick", function (event) {

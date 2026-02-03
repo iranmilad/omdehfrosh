@@ -23,13 +23,11 @@ import {
   IconSwitch3,
   IconUser,
 } from "@tabler/icons-react";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, Outlet, NavLink, useNavigate } from "react-router";
 import NavItem from "./navitem";
-import { useData } from "../../Libs/api";
-import { useCookies } from "react-cookie";
-import { useDispatch, useSelector } from "react-redux";
-import { getUserMyAccount } from "../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
+import { useSelector } from "react-redux";
+import { useSessionQuery } from "../../Libs/reactQuery";
 import { CiWallet } from "react-icons/ci";
 
 
@@ -93,22 +91,26 @@ const navigations = [
 const Account = () => {
   const [route, setRoute] = useState("/");
   const location = useLocation();
-  // const [cookies, setCookie] = useCookies(["user"]);
   const navigate = useNavigate();
-  const [pageActive,setPageActive] = useState(false);
 
-
-  const dispatch = useDispatch();
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
 
-  const { userAccount, loading, error } = useSelector((state) => state.userMyAccounts);
+  // Use React Query cache for user-myaccounts (shared with account-index, wallet, etc.)
+  // Invalidated when account is edited or wallet changes
+  const { data: userAccountData } = useSessionQuery({
+    endpoint: "/user-myaccounts",
+    queryKey: ["userMyAccount"],
+    enabled: !!token && !!user,
+    queryOptions: { refetchOnMount: false },
+    retry: (failureCount, err) => {
+      const msg = typeof err === "string" ? err : err?.message || String(err);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
 
-  // Fetch user account data only if not already in Redux and user is authenticated
-  useEffect(() => {
-    if (user && !userAccount && !loading) {
-      dispatch(getUserMyAccount());
-    }
-  }, [dispatch, user, userAccount, loading]);
+  const userAccount = userAccountData?.data ?? userAccountData;
 
   useEffect(() => {
     // حذف /account از مسیر

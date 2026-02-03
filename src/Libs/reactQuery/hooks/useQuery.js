@@ -365,12 +365,17 @@ export function useApiQuery({
             fetchHeaders['Authorization'] = `Bearer ${token}`;
           }
           
-          // Remove any undefined values
+          // Remove any undefined values and non-string headers (axios can store nested objects)
           Object.keys(fetchHeaders).forEach(key => {
             if (fetchHeaders[key] === undefined || typeof fetchHeaders[key] === 'object') {
               delete fetchHeaders[key];
             }
           });
+
+          // Ensure JSON Content-Type for POST/PUT/PATCH with body (prevents 400 from backend)
+          if (body && (methodLower === 'post' || methodLower === 'put' || methodLower === 'patch')) {
+            fetchHeaders['Content-Type'] = 'application/json';
+          }
 
           // Use fetch instead of axios to work around MirageJS issue
           const fetchResponse = await fetch(urlWithParams, {
@@ -380,6 +385,15 @@ export function useApiQuery({
             signal,
             credentials: 'omit',
           });
+
+          // 304 Not Modified: body is empty; use cached data so the query settles instead of throwing
+          if (fetchResponse.status === 304) {
+            const cached = queryClient.getQueryData(qKey);
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[useApiQuery] 304 Not Modified – using cached data', { queryKey: qKey, hasCached: cached != null });
+            }
+            return cached;
+          }
 
           if (!fetchResponse.ok) {
             throw new Error(`HTTP error! status: ${fetchResponse.status}`);

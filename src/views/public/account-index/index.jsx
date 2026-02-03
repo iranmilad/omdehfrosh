@@ -32,56 +32,60 @@ import "swiper/css/thumbs";
 import { FreeMode, Navigation, Thumbs } from "swiper/modules";
 import ProductBox from "../../../components/productBox";
 import { useDispatch, useSelector } from "react-redux";
-import { getUserMyAccount } from "../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions";
 import MyAccountProductBox from "../../../components/myaccountproductbox";
 import { clearTicketCreationState } from "../../../redux/usermyaccounts/usermyaccounts/newuserticket/newUserTicketSlice";
-import {getAllOrdersByUserId} from '../../../redux/orders/orders/getallordersbyuserid/getAllOrdersByUserIdActions'
-
+import { useSessionQuery } from "../../../Libs/reactQuery";
 
 function Account_Index() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  // State for login modal
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+
   const [loginModalOpen, setLoginModalOpen] = useState(false);
 
-  const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-  const { userAccount, loading, error } = useSelector((state) => state.userMyAccounts);
-  const { ordersByUserId, loadingOrdersByUserId, errorOrdersByUserId } = useSelector((state) => state.getAllOrdersByUserId);
+  const { isVerified, loading: authLoading, user } = useSelector((state) => state.auth);
 
   const { primaryColor } = useMantineTheme();
 
-  // Track if data has been fetched to prevent duplicate calls
-  const [hasFetchedData, setHasFetchedData] = useState(false);
+  const { data: userAccountData, isLoading: loadingUserAccount } = useSessionQuery({
+    endpoint: "/user-myaccounts",
+    queryKey: ["userMyAccount"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const { data: ordersData, isLoading: loadingOrdersByUserId } = useSessionQuery({
+    endpoint: "/orders/allordersbyuserid",
+    queryKey: ["ordersByUserId"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const userAccount = userAccountData?.data ?? userAccountData;
+  const ordersByUserId = ordersData?.data ?? ordersData ?? {};
+  const ordersList = ordersByUserId?.orders ?? [];
 
   useEffect(() => {
-    dispatch(clearTicketCreationState())
+    dispatch(clearTicketCreationState());
   }, [dispatch]);
 
-  // Check authentication status and show modal, then redirect
   useEffect(() => {
-    // Only check after auth loading is complete
-    if (!authLoading) {
-      if (!isVerified || !user) {
-        setLoginModalOpen(true);
-        // Auto redirect to login after 3 seconds
-        const timer = setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-
-        // Cleanup timer if component unmounts
-        return () => clearTimeout(timer);
-      } else {
-        setLoginModalOpen(false);
-        // User is authenticated, fetch data only once
-        if (!hasFetchedData) {
-          dispatch(getUserMyAccount());
-          dispatch(getAllOrdersByUserId());
-          setHasFetchedData(true);
-        }
-      }
+    if (!authLoading && (!isVerified || !user)) {
+      setLoginModalOpen(true);
+      const timer = setTimeout(() => navigate("/login"), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [dispatch, isVerified, user, authLoading, navigate, hasFetchedData]);
+    setLoginModalOpen(false);
+  }, [isVerified, user, authLoading, navigate]);
 
   // Format date function
   const formatDate = (dateString) => {
@@ -170,8 +174,7 @@ function Account_Index() {
     );
   }
 
-  // Show loading if data is being fetched (only after authentication is confirmed)
-  if (loading || loadingOrdersByUserId) {
+  if (loadingUserAccount || loadingOrdersByUserId) {
     return (
       <Center>
         <Loader />
@@ -215,7 +218,7 @@ function Account_Index() {
                 </div>
                 <div className="text-zinc-100 space-y-1">
                   <div>سفارشات کل</div>
-                  <div>{ordersByUserId?.orders?.length || userAccount.all_orders || 0}</div>
+                  <div>{ordersList?.length || userAccount?.all_orders || 0}</div>
                 </div>
               </div>
             </GridCol>
@@ -239,15 +242,15 @@ function Account_Index() {
       )}
       
       {/* Orders section using ordersByUserId data */}
-      <Title my="lg">آخرین سفارشات</Title>
+      <Title my="lg" style={{ textAlign: 'right' }}>آخرین سفارشات</Title>
       <ScrollArea type="auto">
         <Table highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th miw={150} c={primaryColor}>
+              <Table.Th miw={150} c={primaryColor} style={{ textAlign: 'right' }}>
                 شماره سفارش
               </Table.Th>
-              <Table.Th miw={120} c={primaryColor}>
+              <Table.Th miw={120} c={primaryColor} style={{ textAlign: 'right' }}>
                 تاریخ
               </Table.Th>
               <Table.Th miw={100} c={primaryColor}>
@@ -268,18 +271,18 @@ function Account_Index() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {ordersByUserId?.orders?.length > 0 ? (
-              [...ordersByUserId.orders] // Create a copy to avoid mutating the original array
+            {ordersList?.length > 0 ? (
+              [...ordersList] // Create a copy to avoid mutating the original array
                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by newest first
                 .slice(0, 10) // Show only latest 10 orders
                 .map((order) => (
                   <Table.Tr key={order.orderId}>
-                    <Table.Td>
+                    <Table.Td style={{ textAlign: 'left' }}>
                       <Text size="sm" truncate style={{ maxWidth: 150 }}>
                         {String(order.orderId).replace('order_', '')}
                       </Text>
                     </Table.Td>
-                    <Table.Td>
+                    <Table.Td style={{ textAlign: 'left' }}>
                       <Text size="sm">
                         {formatDate(order.createdAt)}
                       </Text>
@@ -346,14 +349,14 @@ function Account_Index() {
       </ScrollArea>
       
       {/* Show "View All Orders" button if there are more than 10 orders */}
-      {ordersByUserId?.orders?.length > 10 && (
+      {ordersList?.length > 10 && (
         <Center mt="md">
           <Button
             component={NavLink}
             to="/account/orders"
             variant="outline"
           >
-            مشاهده همه سفارشات ({ordersByUserId.orders.length})
+            مشاهده همه سفارشات ({ordersList.length})
           </Button>
         </Center>
       )}
@@ -361,7 +364,7 @@ function Account_Index() {
       {/* Only show favorites section if userAccount exists */}
       {userAccount && (
         <>
-          <Title my="lg">محصولات علاقه مندی شما</Title>
+          <Title my="lg" style={{ textAlign: 'right' }}>محصولات علاقه مندی شما</Title>
           <Swiper
             spaceBetween={10}
             navigation={false}

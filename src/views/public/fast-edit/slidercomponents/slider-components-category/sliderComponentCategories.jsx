@@ -72,13 +72,15 @@ const SliderComponentCategoriesCMFastEdit = ({
   const allCategoryIds = items?.map(item => item.idCategory) || [];
   const allSelected = allCategoryIds.length > 0 && allCategoryIds.every(id => filterCategoryStorage.includes(id));
 
+  const ROW_HEIGHT = 48;
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', minHeight: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
+      <div style={{ flex: 1, minWidth: 0, height: ROW_HEIGHT, display: 'flex', alignItems: 'center' }}>
       <Swiper
         modules={[FreeMode, Navigation]}
         slidesPerView="auto"
         spaceBetween={8}
-        className="mt-2"
+        className="!mt-0"
         style={{ width: "100%" }}
         navigation={{
           prevEl: prevRef.current,
@@ -126,6 +128,7 @@ const SliderComponentCategoriesCMFastEdit = ({
       })}
 
       </Swiper>
+      </div>
       {items && items.length > 0 && <SliderArrows prevRef={prevRef} nextRef={nextRef} isBeginning={swiperState.isBeginning} isEnd={swiperState.isEnd} />}
     </div>
   );

@@ -5,6 +5,7 @@ import Order from "../models/Order.js"; // Import Order model
 import jwt from "jsonwebtoken";
 import OrderJ2B from "../models/Orders_J2B.js";
 import OrderItemJ2B from "../models/OrderItemJ2B.js";
+import ProductComments from "../models/ProductComments.js";
 
 // ordersController.js
 
@@ -140,12 +141,27 @@ export const getOrder = async (req, res) => {
     // Find all items for this order
     const items = await OrderItemJ2B.find({ order_id: order.id }).lean();
 
-    // Return combined order + items
+    // Which product IDs in this order already have a comment from this user (one comment per item)
+    const productIdsInOrder = [...new Set(items.flatMap((i) => (i.product_id || []).map((p) => p && p.id).filter(Boolean)).map(String))];
+    let commentedProductIds = [];
+    if (productIdsInOrder.length > 0) {
+      const docs = await ProductComments.find({ productId: { $in: productIdsInOrder } }).lean();
+      const orderIdStr = String(order.id);
+      for (const doc of docs) {
+        const hasCommentForThisOrder = (doc.comments || []).some(
+          (c) => c && String(c.orderId) === orderIdStr && Number(c.userId) === Number(user_id)
+        );
+        if (hasCommentForThisOrder) commentedProductIds.push(String(doc.productId));
+      }
+    }
+
+    // Return combined order + items + commentedProductIds so frontend can hide "ثبت دیدگاه" for those
     return res.status(200).json({
       success: true,
       order: {
         ...order,
         items,
+        commentedProductIds,
       },
     });
   } catch (error) {

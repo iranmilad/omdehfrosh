@@ -1,61 +1,48 @@
 import { useNavigate } from 'react-router-dom';
 import {
-  ActionIcon,
   Indicator,
 } from "@mantine/core";
 import { IoIosNotificationsOutline } from "react-icons/io";
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useEffect, useRef } from 'react';
-import { getNotificationNumber, clearNotificationCache } from '../../redux/usermyaccounts/usermyaccounts/notifications/getnotificationnumber/getNotificationNumberActions';
+import { useSessionQuery, useQueryClient } from '../../Libs/reactQuery';
 
 const Notifications = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const previousCountRef = useRef(0);
-  const fetchAttemptedRef = useRef(false);
 
-  // Get auth state
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const { user, isVerified } = useSelector((state) => state.auth);
-  
-  const {
-    notificationNumber,
-    loadingNotificationNumber,
-    errorNotificationNumber
-  } = useSelector((state) => state.notificationNumber);
 
-  // Listen for notification refresh events
+  // Cached with React Query (2 min staleTime, no refetch on mount); invalidated when marking as read
+  const {
+    data: notificationNumberData,
+    isLoading: loadingNotificationNumber,
+    error: errorNotificationNumber,
+  } = useSessionQuery({
+    endpoint: "/user-myaccounts/notifications/number",
+    queryKey: ["notificationNumber"],
+    enabled: !!token && !!user && !!isVerified,
+    queryOptions: { staleTime: 2 * 60 * 1000, refetchOnMount: false },
+    retry: (failureCount, err) => {
+      const msg = typeof err === "string" ? err : err?.message || String(err);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const notificationNumber = notificationNumberData?.data ?? notificationNumberData;
+
+  // Listen for notification refresh events (e.g. after mark as read)
   useEffect(() => {
     const handleNotificationRefresh = () => {
-      dispatch(getNotificationNumber({ forceRefresh: true }));
+      queryClient.invalidateQueries({ queryKey: ["notificationNumber"] });
     };
 
-    // Listen for custom event
     window.addEventListener('refreshNotificationCount', handleNotificationRefresh);
-    
-    return () => {
-      window.removeEventListener('refreshNotificationCount', handleNotificationRefresh);
-    };
-  }, [dispatch]);
-
-  // Fetch notifications when component mounts and user is authenticated
-  useEffect(() => {
-    if (!user || !isVerified) {
-      return;
-    }
-
-    // Fetch notifications every time the component mounts
-    if (!loadingNotificationNumber) {
-      dispatch(getNotificationNumber());
-    }
-  }, [dispatch, user, isVerified]);
-  
-  // Clear cache on logout (when user becomes null)
-  useEffect(() => {
-    if (!user && fetchAttemptedRef.current) {
-      clearNotificationCache();
-      fetchAttemptedRef.current = false;
-    }
-  }, [user]);
+    return () => window.removeEventListener('refreshNotificationCount', handleNotificationRefresh);
+  }, [queryClient]);
 
   // Handle push notifications - only show for NEW notifications
   useEffect(() => {

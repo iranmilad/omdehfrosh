@@ -21,7 +21,7 @@ const PaymentSummary = ({ orderfinalreceipt }) => {
         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         width: '100%'
       }}
-      bodyStyle={{ padding: '16px' }}
+      styles={{ body: { padding: '16px' } }}
     >
       <Title level={5} style={{ marginBottom: '16px', fontWeight: 'bold', fontSize: '20px' }}>
         خلاصه فاکتور

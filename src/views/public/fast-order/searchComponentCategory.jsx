@@ -29,11 +29,12 @@ import { useParams, useNavigate } from "react-router";
 import { useFastOrder } from ".";
 import ShareModal from "./shareModal";
 import XTitle from "../../../components/title";
-import { fetchFastOrderCategoryModeTableData } from '../../../redux/fastorder/fastordertabledata/fastordertablecategorymode/fastOrderTableCategoryModeDataActions'
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
+import { useApiQuery } from "../../../Libs/reactQuery";
+import { fetchFastOrderCategoryModeTableData } from '../../../redux/fastorder/fastordertabledata/fastordertablecategorymode/fastOrderTableCategoryModeDataActions';
 import { IconSettings, IconPlus, IconTrash, IconFilter, IconEdit, IconDeviceFloppy } from '@tabler/icons-react';
 import { saveFilterSettings } from "../../../redux/savefiltersettings/saveFilterSettingsActions";
-import { getFilterSettings } from "../../../redux/savefiltersettings/getFilterSettings/getFilterSettingsActions";
 import { deleteFilterSettings } from "../../../redux/savefiltersettings/deleteFilterSettings/deleteFilterSettingsActions";
 import { fetchCheckedRowsTableData } from "../../../redux/fastorder/fastordertabledata/fastordertabledatacategorymodesavedfilters/fastOrderTableDataCategoryModeSavedFiltersActions";
 import { notifications } from "@mantine/notifications";
@@ -42,6 +43,15 @@ import { useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import { useMediaQuery } from "@mantine/hooks";
 import { updateFilterSettings } from "../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import isEqual from "lodash/isEqual";
+
+// Stable empty objects for useSelector fallbacks (avoids "selector returned different result" warning)
+const EMPTY_AUTH = {};
+const EMPTY_GET_FILTER = {};
+const EMPTY_SAVE_FILTER = {};
+const EMPTY_UPDATE_FILTER = {};
+const EMPTY_DELETE_FILTER = {};
+const EMPTY_SAVED_FILTERS_TABLE = {};
+const EMPTY_CATEGORY_MODE_DATA = {};
 import { logout } from "../../../redux/auth/authusers/auth";
 import { clearCart } from "../../../redux/cart";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
@@ -76,23 +86,32 @@ const SearchComponentCategory = ({
   // });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
-  const { savedFilters, deleteLoadingId } = useSelector((state) => state.getFilterSettings || {});
-  const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings || {});
-  const { updateStatus, updateLoading, updateError } = useSelector((state) => state.updateFilterSettings || {});
-  const { deleteStatus, deleteLoading, deleteError } = useSelector((state) => state.deleteFilterSettings || {});
+  const queryClient = useQueryClient();
+  const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth ?? EMPTY_AUTH);
+  const { deleteLoadingId } = useSelector((state) => state.getFilterSettings ?? EMPTY_GET_FILTER);
+  const { data: savedFiltersFromQuery } = useApiQuery({
+    endpoint: "/save-filters/category-fast-order",
+    queryKey: ["save-filters", "category-fast-order"],
+    strategy: "USER_DATA",
+    transformer: (r) => (Array.isArray(r?.data?.data) ? r.data.data : r?.data ?? []),
+  });
+  const savedFilters = savedFiltersFromQuery ?? [];
+  const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings ?? EMPTY_SAVE_FILTER);
+  const { updateStatus, updateLoading, updateError } = useSelector((state) => state.updateFilterSettings ?? EMPTY_UPDATE_FILTER);
+  const { deleteStatus, deleteLoading, deleteError } = useSelector((state) => state.deleteFilterSettings ?? EMPTY_DELETE_FILTER);
 
-  // Redux selectors
-  const { tableData, loading } = useSelector((state) => state.fastOrderCategoryModeData || {});
+  // Redux selectors (saved-filters table data only; main table data + loading from React Query)
+  const { tableDataFromSavedFilters, loadingTableDataFromSavedFilters } = useSelector(
+    (state) => state.fastOrderTableDataCategoryModeSavedFilters ?? EMPTY_SAVED_FILTERS_TABLE
+  );
+  // When a saved filter is applied (checkedRows.size > 0), use Redux table data so sliders stay visible
+  const { tableData: reduxTableData, loading: reduxTableLoading } = useSelector(
+    (state) => state.fastOrderCategoryModeData ?? EMPTY_CATEGORY_MODE_DATA
+  );
 
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width: 480px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
-
-  // Add selector for saved filters table data
-  const { tableDataFromSavedFilters, loadingTableDataFromSavedFilters } = useSelector(
-    (state) => state.fastOrderTableDataCategoryModeSavedFilters || {}
-  );
 
   // Category-specific context
   const { 
@@ -253,7 +272,10 @@ const { setFilterValues } = useFastOrder();
   // Refs for preventing duplicate API calls
   const lastFetchParams = useRef(null);
   const hasLoadedInitialFilters = useRef(false);
-  const isManualFilterUpdate = useRef(false); // ✅ ADD THIS LINE
+  const isManualFilterUpdate = useRef(false);
+  const lastCheckedRowsSizeRef = useRef(checkedRows.size);
+  const justClearedCookieRef = useRef(false);
+  const skipUrlSyncAfterUncheckRef = useRef(false); // skip URL sync once after unchecking saved filter so 1st row stays clear
   const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_order";
 
 // useEffect(() => {
@@ -298,6 +320,20 @@ const { setFilterValues } = useFastOrder();
       filters: filters || localFilters
     }];
   }, [searchType, filterCategoryStorage, filterCategorySubCategoryStorage, filterCategorySubCategoryBrandsStorage, filters, localFilters]);
+
+  const filterArray = useMemo(() => buildCurrentFilterArray(), [buildCurrentFilterArray]);
+  const { data: tableDataFromQuery, isLoading: loadingFromQuery } = useApiQuery({
+    endpoint: "/fast-order-category-mode",
+    queryKey: ["fast-order-category-mode", JSON.stringify(filterArray)],
+    method: "post",
+    body: filterArray,
+    strategy: "CACHED",
+    enabled: checkedRows.size === 0 && filterArray?.length > 0,
+  });
+  // When no filter applied: use React Query data. When filter applied: use Redux data so sliders stay visible (first disabled, second/third cleared)
+  const tableDataWhenChecked = reduxTableData && typeof reduxTableData === 'object' && !Array.isArray(reduxTableData) ? reduxTableData : null;
+  const tableData = checkedRows.size === 0 ? (tableDataFromQuery ?? null) : tableDataWhenChecked;
+  const loading = checkedRows.size === 0 ? loadingFromQuery : (reduxTableLoading ?? false);
 
   const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
     return Array.from(checkedRowIds)
@@ -366,8 +402,9 @@ const { setFilterValues } = useFastOrder();
     }
   }, [checkedRows, dispatch, buildCheckedFiltersArray]);
 
-  // OPTIMIZED: Combined data fetching effect to use array format
+  // When checkboxes are selected, fetch data via Redux; when none selected, table data from useApiQuery (fast-order-category-mode)
   useEffect(() => {
+    if (checkedRows.size === 0) return;
     const currentParams = {
       searchType,
       filterCategoryStorage,
@@ -375,31 +412,16 @@ const { setFilterValues } = useFastOrder();
       filterCategorySubCategoryBrandsStorage,
       checkedRowsSize: checkedRows.size,
       checkedRowIds: Array.from(checkedRows).sort().join(','),
-      hasCheckedRows: checkedRows.size > 0,
       filters: JSON.stringify(filters || localFilters)
     };
-
-    // Skip if parameters haven't changed
-    if (isEqual(lastFetchParams.current, currentParams)) {
-      return;
-    }
-
+    if (isEqual(lastFetchParams.current, currentParams)) return;
     lastFetchParams.current = currentParams;
-
-    // Always make an API request when there are changes
-    if (checkedRows.size > 0) {
-      // When checkboxes are selected, fetch data based on checked rows with filters
-      const checkedFiltersArray = buildCheckedFiltersArray();
-      if (checkedFiltersArray.length > 0) {
-        dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
-      }
-    } else {
-      // When no checkboxes are selected, fetch normal filtered data as array with filters
-      const currentFiltersArray = buildCurrentFilterArray();
-      dispatch(fetchFastOrderCategoryModeTableData(currentFiltersArray));
+    const checkedFiltersArray = buildCheckedFiltersArray();
+    if (checkedFiltersArray.length > 0) {
+      dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
     }
   }, [
-    dispatch, 
+    dispatch,
     searchType,
     filterCategoryStorage,
     filterCategorySubCategoryStorage,
@@ -408,33 +430,23 @@ const { setFilterValues } = useFastOrder();
     checkedRows.size,
     filters,
     localFilters,
-    buildCheckedFiltersArray,
-    buildCurrentFilterArray
+    buildCheckedFiltersArray
   ]);
 
-  // OPTIMIZED: Load saved filters only once when user is available
+  // Invalidate save-filters cache after successful save so list refreshes
   useEffect(() => {
-    if (saveStatus?.state === "ok") {
-      // Refresh the filter list after successful save
-      const slug = "category-fast-order";
-      setTimeout(() => {
-        dispatch(getFilterSettings(slug));
-      }, 500);
+    if (saveStatus?.state === "ok" && queryClient) {
+      queryClient.invalidateQueries({ queryKey: ["save-filters", "category-fast-order"] });
     }
-  }, [saveStatus, dispatch]);
+  }, [saveStatus?.state, queryClient]);
 
+  // Save to cookies whenever relevant state changes (skip when saved filter active or we just cleared on uncheck)
   useEffect(() => {
-    if (saveStatus?.state === "error") {
-      // Refresh the filter list after error
-      const slug = "category-fast-order";
-      setTimeout(() => {
-        dispatch(getFilterSettings(slug));
-      }, 500);
+    if (checkedRows.size > 0) return;
+    if (justClearedCookieRef.current) {
+      justClearedCookieRef.current = false;
+      return;
     }
-  }, [saveStatus, dispatch]);
-
-  // Save to cookies whenever relevant state changes
-  useEffect(() => {
     const dataToSave = {
       searchType: searchType,
       uniqueIDClickedCategories: filterCategoryStorage,
@@ -450,55 +462,82 @@ const { setFilterValues } = useFastOrder();
     filterCategorySubCategoryStorage, 
     filterCategorySubCategoryBrandsStorage, 
     localFilters,
-    COOKIE_NAME
+    COOKIE_NAME,
+    checkedRows.size,
   ]);
-  
+
+  // Explicit empty state when no saved filter – same shape as SavedFiltersModalCategory (avoids stale initialFilters from previous render overwriting modal’s empty cookie)
+  const EMPTY_CATEGORY_COOKIE = useMemo(() => ({
+    searchType: "category",
+    uniqueIDClickedCategories: [],
+    uniqueIDClickedSubCategories: [],
+    uniqueIDClickedSubCategoriesBrands: [],
+    filters: {
+      color: "all",
+      province: "all",
+      stockStatus: "all",
+      minStock: "",
+      deliveryTime: "",
+      paymentType: "",
+      supplier: "",
+      sort: "bestPrice",
+      priceFormat: "hezar",
+    },
+  }), []);
+
+  // When user unchecks saved filter: clear sliders and cookie with explicit empty (like fast-edit modal); do not use initialFilters so we never write stale data back
+  useEffect(() => {
+    const prev = lastCheckedRowsSizeRef.current;
+    lastCheckedRowsSizeRef.current = checkedRows.size;
+    if (prev > 0 && checkedRows.size === 0) {
+      setFilterCategoryStorage([]);
+      setFilterCategorySubCategoryStorage([]);
+      setFilterCategorySubCategoryBrandsStorage([]);
+      setLocalFilters(EMPTY_CATEGORY_COOKIE.filters);
+      if (setFilters) setFilters(EMPTY_CATEGORY_COOKIE.filters);
+      if (setSearchType) setSearchType("category");
+      Cookies.set(COOKIE_NAME, JSON.stringify(EMPTY_CATEGORY_COOKIE), { expires: 7 });
+      justClearedCookieRef.current = true;
+      skipUrlSyncAfterUncheckRef.current = true; // so URL sync does not repopulate 1st row from path
+      setTimeout(() => {
+        skipUrlSyncAfterUncheckRef.current = false;
+      }, 150);
+    }
+  }, [checkedRows.size, EMPTY_CATEGORY_COOKIE, setFilters, setSearchType, COOKIE_NAME, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, setLocalFilters]);
+
 useEffect(() => {
-  // console.log('🔄 [SearchComponent Category] Cookie reload triggered', { 
-  //   cookieUpdateTrigger,
-  //   isManualUpdate: isManualFilterUpdate.current,
-  //   sessionFlag: sessionStorage.getItem('manualFilterUpdate')
-  // });
-  
-  // Mark as manual update to prevent URL effect from running
+  if (checkedRows.size > 0) return;
+  // After uncheck we cleared state and cookie; do not overwrite with a cookie read (avoids stale data)
+  if (justClearedCookieRef.current) {
+    justClearedCookieRef.current = false;
+    return;
+  }
+
   isManualFilterUpdate.current = true;
-  
   const storedFilters = Cookies.get(COOKIE_NAME);
 
   if (storedFilters) {
     try {
       const parsedFilters = JSON.parse(storedFilters);
-      
-      // console.log('📦 [SearchComponent Category] Loaded from cookie:', parsedFilters);
-      // console.log('📦 [SearchComponent Category] uniqueIDClickedCategories:', parsedFilters.uniqueIDClickedCategories);
+      const cats = parsedFilters.uniqueIDClickedCategories || [];
+      const subcats = parsedFilters.uniqueIDClickedSubCategories || [];
+      const brands = parsedFilters.uniqueIDClickedSubCategoriesBrands || [];
 
-      setFilterCategoryStorage(parsedFilters.uniqueIDClickedCategories || []);
-      setFilterCategorySubCategoryStorage(parsedFilters.uniqueIDClickedSubCategories || []);
-      setFilterCategorySubCategoryBrandsStorage(parsedFilters.uniqueIDClickedSubCategoriesBrands || []);
+      setFilterCategoryStorage(cats);
+      setFilterCategorySubCategoryStorage(subcats);
+      setFilterCategorySubCategoryBrandsStorage(brands);
       setLocalFilters(parsedFilters.filters || {});
       
       if (setFilters) {
         setFilters(parsedFilters.filters || {});
       }
       
-      if (setSearchType && parsedFilters.searchType) {
-        setSearchType(parsedFilters.searchType);
+      // Only ever set category mode from category cookie; never set brand (avoids accidental switch when error modal shows)
+      if (setSearchType && parsedFilters.searchType === "category") {
+        setSearchType("category");
       }
 
-      // console.log('✅ [SearchComponent Category] State updated, dispatching API call');
-      
-      // Dispatch after state updates
-      const filterArray = [{
-        searchType: parsedFilters.searchType || 'category',
-        uniqueIDClickedCategories: parsedFilters.uniqueIDClickedCategories || [],
-        uniqueIDClickedSubCategories: parsedFilters.uniqueIDClickedSubCategories || [],
-        uniqueIDClickedSubCategoriesBrands: parsedFilters.uniqueIDClickedSubCategoriesBrands || [],
-        filters: parsedFilters.filters || {}
-      }];
-      
-      dispatch(fetchFastOrderCategoryModeTableData(filterArray));
-
-      // Clear the manual update flag after dispatch completes
+      // Table data will refetch via useApiQuery when filter state updates
       setTimeout(() => {
         isManualFilterUpdate.current = false;
         sessionStorage.removeItem('manualFilterUpdate');
@@ -509,33 +548,36 @@ useEffect(() => {
       sessionStorage.removeItem('manualFilterUpdate');
     }
   }
-}, [cookieUpdateTrigger]);
+}, [cookieUpdateTrigger, checkedRows.size]);
 
 
 useEffect(() => {
-  // Skip if this is a manual filter update
+  const pathSegments = location.pathname.split('/');
+  const urlCategoryName = pathSegments[3];
+
+  if (skipUrlSyncAfterUncheckRef.current) return;
   if (isManualFilterUpdate.current || sessionStorage.getItem('manualFilterUpdate') === 'true') {
-    // console.log('⏭️ [SearchComponent Category] Skipping URL update - manual filter change in progress');
     return;
   }
 
-  const pathSegments = location.pathname.split('/');
-  const urlCategoryName = pathSegments[3];
-  
   if (urlCategoryName && searchType === 'category' && tableData?.category) {
+    const normalized = (s) => (s && String(s).toLowerCase().trim()) || '';
     const matchingCategory = tableData.category.find(
-      cat => cat.name === urlCategoryName
+      (cat) =>
+        cat.name === urlCategoryName ||
+        normalized(cat.name) === normalized(urlCategoryName) ||
+        (cat.slug && (cat.slug === urlCategoryName || normalized(cat.slug) === normalized(urlCategoryName)))
     );
-    
+
     if (matchingCategory && matchingCategory.idCategory) {
       const currentCategoryId = filterCategoryStorage[0];
       const urlCategoryId = matchingCategory.idCategory;
-      
+
       if (currentCategoryId !== urlCategoryId) {
         setFilterCategoryStorage([urlCategoryId]);
         setFilterCategorySubCategoryStorage([]);
         setFilterCategorySubCategoryBrandsStorage([]);
-        
+
         const cookieValue = {
           searchType: 'category',
           uniqueIDClickedCategories: [urlCategoryId],
@@ -543,20 +585,17 @@ useEffect(() => {
           uniqueIDClickedSubCategoriesBrands: [],
           filters: localFilters,
         };
-        
+
         Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-        
-        dispatch(fetchFastOrderCategoryModeTableData([{
-          searchType: 'category',
-          uniqueIDClickedCategories: [urlCategoryId],
-          uniqueIDClickedSubCategories: [],
-          uniqueIDClickedSubCategoriesBrands: [],
-          filters: localFilters,
-        }]));
       }
+    } else if (filterCategoryStorage?.length > 0) {
+      // URL slug not in current list (e.g. tableData was for another category from cookie) – clear to refetch root categories
+      setFilterCategoryStorage([]);
+      setFilterCategorySubCategoryStorage([]);
+      setFilterCategorySubCategoryBrandsStorage([]);
     }
   }
-}, [location.pathname, searchType, tableData?.category, COOKIE_NAME, filterCategoryStorage, localFilters, dispatch, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, cookieUpdateTrigger]);
+}, [location.pathname, searchType, tableData?.category, COOKIE_NAME, filterCategoryStorage, localFilters, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, cookieUpdateTrigger]);
   // Sync localFilters with parent filters when parent changes
   useEffect(() => {
     if (filters && JSON.stringify(filters) !== JSON.stringify(localFilters)) {
@@ -564,15 +603,15 @@ useEffect(() => {
     }
   }, [filters, localFilters]);
 
-  // Handle table data updates
+  // Handle table data updates (main query; skip when in saved-filters/checked-rows mode)
   useEffect(() => {
-    if (tableData) {
+    if (checkedRows.size === 0 && tableData) {
       setNodes(tableData?.products || []);
       setNodesSubCategories(tableData?.products || []);
       setFilterValues(tableData?.filters || {});
       setAvailableLocations(tableData?.supplierLocations || []);
     }
-  }, [tableData, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
+  }, [checkedRows.size, tableData, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
 
   // Handle saved filters table data
   useEffect(() => {
@@ -584,25 +623,25 @@ useEffect(() => {
     }
   }, [tableDataFromSavedFilters, setNodes, setNodesSubCategories, setFilterValues, setAvailableLocations]);
 
-  // Clear filters when checkboxes are active
+  // Clear filters when checkboxes are active (saved filter applied): use explicit empty sliders (same as fast-edit) so cookie is never overwritten with stale data
   useEffect(() => {
     if (checkedRows.size > 0) {
       setFilterCategoryStorage([]);
       setFilterCategorySubCategoryStorage([]);
       setFilterCategorySubCategoryBrandsStorage([]);
-      setLocalFilters({ ...initialFilters.filters });
+      setLocalFilters(EMPTY_CATEGORY_COOKIE.filters);
 
       if (setFilters) {
-        setFilters({ ...initialFilters.filters });
+        setFilters(EMPTY_CATEGORY_COOKIE.filters);
       }
 
       if (setSearchType) {
         setSearchType("category");
       }
 
-      Cookies.set(COOKIE_NAME, JSON.stringify(initialFilters), { expires: 7 });
+      Cookies.set(COOKIE_NAME, JSON.stringify(EMPTY_CATEGORY_COOKIE), { expires: 7 });
     }
-  }, [checkedRows.size, initialFilters, setFilters, setSearchType, COOKIE_NAME]);
+  }, [checkedRows.size, EMPTY_CATEGORY_COOKIE, setFilters, setSearchType, COOKIE_NAME, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, setLocalFilters]);
 
   // Monitor save status for error handling
   useEffect(() => {
@@ -728,60 +767,71 @@ useEffect(() => {
     };
   }, [dispatch]);
 
-  // ✅ UPDATE: Extract category name from URL path and sync with state
-// ✅ UPDATE: Extract category name from URL path and sync with state
+  // Sync state from URL when landing on /fastorder/category/:name – prefer URL over cookie so sliders set correctly
   useEffect(() => {
-    // Skip if this is a manual filter update
-    if (isManualFilterUpdate.current || sessionStorage.getItem('manualFilterUpdate') === 'true') {
-      // console.log('⏭️ [SearchComponent Category] Skipping URL category extraction - manual filter change in progress');
-      return;
-    }
-
+    if (skipUrlSyncAfterUncheckRef.current) return;
     const pathSegments = location.pathname.split('/');
     const urlCategoryName = pathSegments[3];
-    
+    if (isManualFilterUpdate.current || sessionStorage.getItem('manualFilterUpdate') === 'true') {
+      if (!urlCategoryName) return;
+    }
+
     if (urlCategoryName && searchType === 'category' && tableData?.category) {
+      const normalized = (s) => (s && String(s).toLowerCase().trim()) || '';
       const matchingCategory = tableData.category.find(
-        cat => cat.name === urlCategoryName
+        (cat) =>
+          cat.name === urlCategoryName ||
+          normalized(cat.name) === normalized(urlCategoryName) ||
+          (cat.slug && (cat.slug === urlCategoryName || normalized(cat.slug) === normalized(urlCategoryName)))
       );
-      
-      if (matchingCategory && matchingCategory.idCategory) {
-        if (!filterCategoryStorage.includes(matchingCategory.idCategory)) {
-          setFilterCategoryStorage([matchingCategory.idCategory]);
-          
-          const cookieValue = {
-            searchType: 'category',
-            uniqueIDClickedCategories: [matchingCategory.idCategory],
-            uniqueIDClickedSubCategories: [],
-            uniqueIDClickedSubCategoriesBrands: [],
-            filters: localFilters,
-          };
-          
-          Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-        }
+
+      if (matchingCategory && matchingCategory.idCategory && !filterCategoryStorage.includes(matchingCategory.idCategory)) {
+        setFilterCategoryStorage([matchingCategory.idCategory]);
+        setFilterCategorySubCategoryStorage([]);
+        setFilterCategorySubCategoryBrandsStorage([]);
+
+        const cookieValue = {
+          searchType: 'category',
+          uniqueIDClickedCategories: [matchingCategory.idCategory],
+          uniqueIDClickedSubCategories: [],
+          uniqueIDClickedSubCategoriesBrands: [],
+          filters: localFilters,
+        };
+
+        Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
+      } else if (!matchingCategory && filterCategoryStorage?.length > 0) {
+        setFilterCategoryStorage([]);
+        setFilterCategorySubCategoryStorage([]);
+        setFilterCategorySubCategoryBrandsStorage([]);
       }
     }
-  }, [location.pathname, searchType, tableData?.category, COOKIE_NAME]);
+  }, [location.pathname, searchType, tableData?.category, COOKIE_NAME, filterCategoryStorage, localFilters, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage]);
 
-// ✅ NEW: Reset URL when switching TO category mode
+// Reset URL when switching TO category mode – don't skip when URL still shows brand (so link updates)
   useEffect(() => {
-    // Skip if this is a manual filter update
+    const pathSegments = location.pathname.split('/');
+    const currentMode = pathSegments[2];
+    const urlCategorySlug = pathSegments[3];
+    // When switching from brand to category, URL must update – only skip manual-update guard if already on category URL
     if (isManualFilterUpdate.current || sessionStorage.getItem('manualFilterUpdate') === 'true') {
-      // console.log('⏭️ [SearchComponent Category] Skipping URL reset - manual filter change in progress');
-      return;
+      if (currentMode !== 'brand') return;
     }
 
     if (searchType === 'category') {
-      // Check if current URL is not a category URL
-      const pathSegments = location.pathname.split('/');
-      const currentMode = pathSegments[2]; // 'category' or 'brand'
-      
-      // If we're in category mode but URL shows brand, reset to base category URL
       if (currentMode === 'brand') {
-        navigate('/fastorder/category', { replace: true });
+        // Switching from brand: use only actual category from state/cookie – pathSegments[3] is the brand slug (e.g. "apple"), not category
+        const matchingCategory = tableData?.category?.find(
+          (cat) => cat.idCategory && filterCategoryStorage?.includes(cat.idCategory)
+        );
+        const slug = matchingCategory?.name ?? null;
+        navigate(slug ? `/fastorder/category/${slug}` : '/fastorder/category', { replace: true });
+      } else if (currentMode === 'category' && !urlCategorySlug && filterCategoryStorage?.length > 0 && tableData?.category?.length) {
+        // Sync URL to selected category slug once tableData loads (e.g. /fastorder/category → /fastorder/category/mobile)
+        const match = tableData.category.find((cat) => cat.idCategory && filterCategoryStorage.includes(cat.idCategory));
+        if (match?.name) navigate(`/fastorder/category/${match.name}`, { replace: true });
       }
     }
-  }, [searchType, navigate, location.pathname]);
+  }, [searchType, navigate, location.pathname, tableData?.category, filterCategoryStorage]);
   return (
     <>
       {/* Authentication Modal */}

@@ -16,17 +16,22 @@ import {
   Badge,
 } from "@mantine/core";
 import { IconPlus, IconTrash, IconEdit, IconDeviceFloppy } from '@tabler/icons-react';
+import { useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { notifications } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import { saveFilterSettings } from "../../../../../redux/savefiltersettings/saveFilterSettingsActions";
-import { getFilterSettings } from "../../../../../redux/savefiltersettings/getFilterSettings/getFilterSettingsActions";
 import { deleteFilterSettings } from "../../../../../redux/savefiltersettings/deleteFilterSettings/deleteFilterSettingsActions";
 import { updateFilterSettings } from "../../../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import { fetchFastOrderCategoryModeTableData } from "../../../../../redux/fastorder/fastordertabledata/fastordertablecategorymode/fastOrderTableCategoryModeDataActions";
+import { useApiQuery } from "../../../../../Libs/reactQuery";
 import { useCategoryRowSelection } from "../../CategoryRowSelectionContext";
 
-
+// Stable empty objects for useSelector fallbacks (avoids "selector returned different result" warning)
+const EMPTY_GET_FILTER = {};
+const EMPTY_SAVE_FILTER = {};
+const EMPTY_UPDATE_FILTER = {};
+const EMPTY_DELETE_FILTER = {};
 
 const SavedFiltersModalCategoryMode = ({
   opened,
@@ -44,14 +49,33 @@ const SavedFiltersModalCategoryMode = ({
   filters,
   localFilters,
   onCookieUpdate,
-  onEditModeChange
+  onEditModeChange,
+  onCategorySavedFilterActiveChange,
 }) => {
   const dispatch = useDispatch();
-  
-  const { savedFilters, deleteLoadingId } = useSelector((state) => state.getFilterSettings || {});
-  const { saveStatus, saveLoading } = useSelector((state) => state.saveFilterSettings || {});
-  const { updateLoading } = useSelector((state) => state.updateFilterSettings || {});
-  const { deleteLoading } = useSelector((state) => state.deleteFilterSettings || {});
+  const queryClient = useQueryClient();
+  const SAVE_FILTERS_SLUG = "category-fast-order";
+  const { data: savedFiltersFromQuery, refetch: refetchSavedFilters } = useApiQuery({
+    endpoint: `/save-filters/${SAVE_FILTERS_SLUG}`,
+    queryKey: ["save-filters", SAVE_FILTERS_SLUG],
+    strategy: "USER_DATA",
+    transformer: (r) => (Array.isArray(r?.data?.data) ? r.data.data : r?.data ?? []),
+  });
+  const savedFilters = savedFiltersFromQuery ?? [];
+  if (process.env.NODE_ENV === "development" && opened) {
+    console.log("[SavedFiltersCategory] savedFilters from query", { length: savedFilters?.length, isArray: Array.isArray(savedFilters) });
+  }
+
+  // When modal opens and list is empty (e.g. after returning from brand mode), refetch so list appears
+  useEffect(() => {
+    if (opened && Array.isArray(savedFilters) && savedFilters.length === 0 && refetchSavedFilters) {
+      refetchSavedFilters();
+    }
+  }, [opened]);
+  const { deleteLoadingId } = useSelector((state) => state.getFilterSettings ?? EMPTY_GET_FILTER);
+  const { saveStatus, saveLoading } = useSelector((state) => state.saveFilterSettings ?? EMPTY_SAVE_FILTER);
+  const { updateLoading } = useSelector((state) => state.updateFilterSettings ?? EMPTY_UPDATE_FILTER);
+  const { deleteLoading } = useSelector((state) => state.deleteFilterSettings ?? EMPTY_DELETE_FILTER);
 
   const { 
     checkedRows, 
@@ -213,7 +237,7 @@ const saveEditedFilter = useCallback(async () => {
           return;
         }
         
-        dispatch(getFilterSettings(slug));
+        queryClient.invalidateQueries({ queryKey: ["save-filters", slug] });
         setIsEditMode(false);
         setEditingFilterId(null);
         setEditingFilterName('');
@@ -231,7 +255,7 @@ const saveEditedFilter = useCallback(async () => {
     } catch (error) {
       console.error("Update filter error:", error);
     }
-  }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch]);
+  }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch, queryClient]);
 
   // Cancel edit mode
   const cancelEditMode = useCallback(() => {
@@ -266,30 +290,42 @@ const saveEditedFilter = useCallback(async () => {
 
   // Handle checkbox change
   const handleFilterCheckboxChange = useCallback((filterId, checked) => {
+    // Set manual filter update flag to prevent URL sync from overriding our changes
+    sessionStorage.setItem('manualFilterUpdate', 'true');
+    if (isManualFilterUpdateRef) {
+      isManualFilterUpdateRef.current = true;
+    }
+    
     if (checked) {
+      if (typeof onCategorySavedFilterActiveChange === "function") {
+        onCategorySavedFilterActiveChange(true);
+      }
       if (!isChecked(filterId)) {
         toggleCheck(filterId);
       }
-      
+
       const selectedFilter = savedFilters?.find(f => f.id === filterId);
       if (selectedFilter) {
+        // Clear all 1st/2nd/3rd row states; 1st row disabled, 2nd/3rd hidden when filter active
         const cookieValue = {
           searchType: 'category',
           filters: selectedFilter.filters || {},
-          uniqueIDClickedCategories: selectedFilter.uniqueIDClickedCategories || [],
-          uniqueIDClickedSubCategories: selectedFilter.uniqueIDClickedSubCategories || [],
-          uniqueIDClickedSubCategoriesBrands: selectedFilter.uniqueIDClickedSubCategoriesBrands || [],
+          uniqueIDClickedCategories: [],
+          uniqueIDClickedSubCategories: [],
+          uniqueIDClickedSubCategoriesBrands: [],
         };
-
         Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
 
-        setFilterCategoryStorage(selectedFilter.uniqueIDClickedCategories || []);
-        setFilterCategorySubCategoryStorage(selectedFilter.uniqueIDClickedSubCategories || []);
-        setFilterCategorySubCategoryBrandsStorage(selectedFilter.uniqueIDClickedSubCategoriesBrands || []);
+        setFilterCategoryStorage([]);
+        setFilterCategorySubCategoryStorage([]);
+        setFilterCategorySubCategoryBrandsStorage([]);
         setLocalFilters(selectedFilter.filters || {});
 
         if (setFilters) setFilters(selectedFilter.filters || {});
         if (setSearchType) setSearchType('category');
+
+        // Force cookie sync so SearchComponent's "Cookie reload" effect runs and all 3 slider rows clear
+        if (onCookieUpdate) onCookieUpdate();
 
         setTimeout(() => {
           const newCheckedRows = new Set(checkedRows);
@@ -297,61 +333,128 @@ const saveEditedFilter = useCallback(async () => {
           
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
           dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
-          
           onClose();
+          
+          // Clear manual filter update flag after state has settled
+          setTimeout(() => {
+            sessionStorage.removeItem('manualFilterUpdate');
+            if (isManualFilterUpdateRef) {
+              isManualFilterUpdateRef.current = false;
+            }
+          }, 500);
         }, 0);
       }
     } else {
+      const newCheckedRows = new Set(checkedRows);
+      newCheckedRows.delete(filterId);
+
+      // Clear sliders and write cookie SYNCHRONOUSLY before toggleCheck, so when
+      // SearchComponentCategory's cookie reload runs (after checkedRows becomes 0)
+      // it reads the empty cookie instead of the old one.
+      const freshFilters = {
+        color: "all",
+        province: "all",
+        stockStatus: "all",
+        minStock: "",
+        deliveryTime: "",
+        paymentType: "",
+        supplier: "",
+        sort: "bestPrice",
+        priceFormat: "hezar",
+      };
+
+      setFilterCategoryStorage([]);
+      setFilterCategorySubCategoryStorage([]);
+      setFilterCategorySubCategoryBrandsStorage([]);
+      setLocalFilters(freshFilters);
+      if (setFilters) setFilters(freshFilters);
+      if (setSearchType) setSearchType('category');
+
+      const freshCookieData = {
+        searchType: 'category',
+        uniqueIDClickedCategories: [],
+        uniqueIDClickedSubCategories: [],
+        uniqueIDClickedSubCategoriesBrands: [],
+        filters: freshFilters,
+      };
+      Cookies.set(COOKIE_NAME, JSON.stringify(freshCookieData), { expires: 7 });
+      if (onCookieUpdate) onCookieUpdate();
+
       if (isChecked(filterId)) {
         toggleCheck(filterId);
       }
-      
+
       setTimeout(() => {
-        const newCheckedRows = new Set(checkedRows);
-        newCheckedRows.delete(filterId);
-        
         if (newCheckedRows.size > 0) {
           const checkedFiltersArray = buildCheckedFiltersArray(newCheckedRows);
           dispatch(fetchFastOrderCategoryModeTableData(checkedFiltersArray));
         } else {
-          const initialData = getInitialFilters();
-          setFilterCategoryStorage(initialData.uniqueIDClickedCategories);
-          setFilterCategorySubCategoryStorage(initialData.uniqueIDClickedSubCategories);
-          setFilterCategorySubCategoryBrandsStorage(initialData.uniqueIDClickedSubCategoriesBrands);
-          setLocalFilters(initialData.filters);
-
-          if (setFilters) setFilters(initialData.filters);
-          if (setSearchType) setSearchType('category');
-
-          Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
-
-          const filterArray = buildInitialFilterArray();
+          const filterArray = [{
+            searchType: 'category',
+            uniqueIDClickedCategories: [],
+            uniqueIDClickedSubCategories: [],
+            uniqueIDClickedSubCategoriesBrands: [],
+            filters: freshFilters
+          }];
           dispatch(fetchFastOrderCategoryModeTableData(filterArray));
         }
-        
         onClose();
+        setTimeout(() => {
+          sessionStorage.removeItem('manualFilterUpdate');
+          if (isManualFilterUpdateRef) {
+            isManualFilterUpdateRef.current = false;
+          }
+        }, 500);
       }, 0);
     }
-  }, [savedFilters, COOKIE_NAME, setFilters, setSearchType, getInitialFilters, dispatch, isChecked, toggleCheck, checkedRows, buildCheckedFiltersArray, buildInitialFilterArray, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, setLocalFilters, onClose]);
+  }, [savedFilters, COOKIE_NAME, setFilters, setSearchType, getInitialFilters, dispatch, isChecked, toggleCheck, checkedRows, buildCheckedFiltersArray, buildInitialFilterArray, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, setLocalFilters, onClose, onCookieUpdate, isManualFilterUpdateRef, onCategorySavedFilterActiveChange]);
 
   // Clear selected filters
   const clearSelectedFilters = useCallback(() => {
     clearAll();
     
-    const initialData = getInitialFilters();
-    setFilterCategoryStorage(initialData.uniqueIDClickedCategories);
-    setFilterCategorySubCategoryStorage(initialData.uniqueIDClickedSubCategories);
-    setFilterCategorySubCategoryBrandsStorage(initialData.uniqueIDClickedSubCategoriesBrands);
-    setLocalFilters(initialData.filters);
+    // Reset to fresh empty state
+    const freshFilters = {
+      color: "all",
+      province: "all",
+      stockStatus: "all",
+      minStock: "",
+      deliveryTime: "",
+      paymentType: "",
+      supplier: "",
+      sort: "bestPrice",
+      priceFormat: "hezar",
+    };
+    
+    setFilterCategoryStorage([]);
+    setFilterCategorySubCategoryStorage([]);
+    setFilterCategorySubCategoryBrandsStorage([]);
+    setLocalFilters(freshFilters);
 
-    if (setFilters) setFilters(initialData.filters);
+    if (setFilters) setFilters(freshFilters);
     if (setSearchType) setSearchType('category');
 
-    Cookies.set(COOKIE_NAME, JSON.stringify(initialData), { expires: 7 });
+    const freshCookieData = {
+      searchType: 'category',
+      uniqueIDClickedCategories: [],
+      uniqueIDClickedSubCategories: [],
+      uniqueIDClickedSubCategoriesBrands: [],
+      filters: freshFilters,
+    };
+    Cookies.set(COOKIE_NAME, JSON.stringify(freshCookieData), { expires: 7 });
 
-    const filterArray = buildInitialFilterArray();
+    // Trigger cookie sync
+    if (onCookieUpdate) onCookieUpdate();
+
+    const filterArray = [{
+      searchType: 'category',
+      uniqueIDClickedCategories: [],
+      uniqueIDClickedSubCategories: [],
+      uniqueIDClickedSubCategoriesBrands: [],
+      filters: freshFilters
+    }];
     dispatch(fetchFastOrderCategoryModeTableData(filterArray));
-  }, [clearAll, getInitialFilters, setFilters, setSearchType, COOKIE_NAME, dispatch, buildInitialFilterArray, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, setLocalFilters]);
+  }, [clearAll, setFilters, setSearchType, COOKIE_NAME, dispatch, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, setLocalFilters, onCookieUpdate]);
 
   // Save filter settings
   const saveFiltersSettings = useCallback(async () => {
@@ -367,6 +470,15 @@ const saveEditedFilter = useCallback(async () => {
       fullCookieData = {};
     }
 
+    if (process.env.NODE_ENV === "development") {
+      console.log("[SavedFiltersCategory] saveFiltersSettings: start", {
+        filterName: filterName.trim(),
+        slug,
+        hasCookieData: !!Object.keys(fullCookieData || {}).length,
+        uniqueIDClickedSubCategoriesBrands: fullCookieData?.uniqueIDClickedSubCategoriesBrands?.length,
+      });
+    }
+
     try {
       const result = await dispatch(
         saveFilterSettings({
@@ -376,66 +488,159 @@ const saveEditedFilter = useCallback(async () => {
         })
       );
 
-      if (result?.type === 'category/saveFilterSettings/fulfilled') {
-        if (result?.payload?.state === "error") {
-          // console.log("Server validation error:", result.payload);
-          return;
-        }
-        
-        // console.log("Save successful, closing modal");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[SavedFiltersCategory] saveFiltersSettings: result", {
+          type: result?.type,
+          payloadState: result?.payload?.state,
+          hasData: !!result?.payload?.data,
+          searchesLength: result?.payload?.data?.searches?.length,
+        });
+      }
+
+      if (result?.type === "category/saveFilterSettings/rejected") {
+        const msg = result?.payload?.message || result?.error?.message || "";
+        const isMaxFive = msg.includes("5") || msg.toLowerCase().includes("filter settings");
         setOpenedAddModal(false);
         setFilterName("");
-        
-        setTimeout(() => {
-          dispatch(getFilterSettings(slug));
-        }, 500);
-        
+        if (isMaxFive) {
+          onClose();
+          notifications.show({
+            title: "حداکثر ۵ فیلتر",
+            message: msg || "حداکثر ۵ فیلتر می‌توانید ذخیره کنید.",
+            color: "orange",
+            autoClose: 5000,
+            zIndex: 1100,
+          });
+        } else {
+          notifications.show({
+            title: "خطا",
+            message: msg || "خطا در ذخیره فیلتر",
+            color: "red",
+            zIndex: 1100,
+          });
+        }
+        return;
+      }
+
+      if (result?.type === "category/saveFilterSettings/fulfilled") {
+        if (result?.payload?.state === "error") {
+          if (process.env.NODE_ENV === "development") {
+            console.warn("[SavedFiltersCategory] saveFiltersSettings: API state=error", result?.payload);
+          }
+          return;
+        }
+
+        setOpenedAddModal(false);
+        setFilterName("");
+        const payloadData = result?.payload?.data;
+        const newList = Array.isArray(payloadData?.searches)
+          ? payloadData.searches
+          : Array.isArray(payloadData)
+            ? payloadData
+            : [];
+        if (newList.length > 0) {
+          queryClient.setQueryData(["save-filters", slug], newList);
+          if (process.env.NODE_ENV === "development") {
+            console.log("[SavedFiltersCategory] saveFiltersSettings: cache updated with create response", { listLength: newList.length });
+          }
+        } else {
+          await queryClient.refetchQueries({ queryKey: ["save-filters", slug] });
+          if (process.env.NODE_ENV === "development") {
+            console.log("[SavedFiltersCategory] saveFiltersSettings: refetched (no list in response)");
+          }
+        }
         notifications.show({
-          title: 'ذخیره شد',
+          title: "ذخیره شد",
           message: `فیلتر "${filterName.trim()}" با موفقیت ذخیره شد.`,
-          color: 'green',
+          color: "green",
           autoClose: 3000,
-          zIndex: 1100
+          zIndex: 1100,
         });
       } else if (result?.payload?.status === "error") {
         return;
       }
-      
     } catch (error) {
-      console.error("Save filter error:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("[SavedFiltersCategory] saveFiltersSettings: catch", error);
+      }
+      const msg = error?.message || "خطا در ذخیره فیلتر";
+      const isMaxFive = msg.includes("5") || msg.toLowerCase().includes("filter settings");
+      setOpenedAddModal(false);
+      setFilterName("");
+      if (isMaxFive) {
+        onClose();
+        notifications.show({
+          title: "حداکثر ۵ فیلتر",
+          message: msg,
+          color: "orange",
+          autoClose: 5000,
+          zIndex: 1100,
+        });
+      } else {
+        notifications.show({
+          title: "خطا",
+          message: msg,
+          color: "red",
+          zIndex: 1100,
+        });
+      }
     }
-  }, [filterName, COOKIE_NAME, dispatch]);
+  }, [filterName, COOKIE_NAME, dispatch, queryClient, onClose]);
 
-  // Delete filter handler
+  // Delete filter handler: update cache by removing deleted id so list doesn't go to 0 during refetch
   const handleDeleteSavedFilter = useCallback(async (id) => {
     const slug = "category-fast-order";
-    
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("[SavedFiltersCategory] handleDeleteSavedFilter: start", { id, slug });
+    }
+
     try {
       const result = await dispatch(deleteFilterSettings({ slug, id }));
 
-      if (result?.type === 'category/deleteFilterSettings/fulfilled' || result?.payload?.id) {
-        dispatch(getFilterSettings(slug));
+      if (process.env.NODE_ENV === "development") {
+        console.log("[SavedFiltersCategory] handleDeleteSavedFilter: result", {
+          type: result?.type,
+          payloadId: result?.payload?.id,
+          isFulfilled: result?.type === "category/deleteFilterSettings/fulfilled" || !!result?.payload?.id,
+        });
+      }
+
+      if (result?.type === "category/deleteFilterSettings/fulfilled" || result?.payload?.id) {
+        const currentList = queryClient.getQueryData(["save-filters", slug]);
+        const nextList = Array.isArray(currentList) ? currentList.filter((f) => String(f?.id) !== String(id)) : [];
+        queryClient.setQueryData(["save-filters", slug], nextList);
+        if (process.env.NODE_ENV === "development") {
+          console.log("[SavedFiltersCategory] handleDeleteSavedFilter: cache updated (remove id)", {
+            previousLength: currentList?.length,
+            nextLength: nextList.length,
+          });
+        }
         if (isChecked(id)) {
           toggleCheck(id);
         }
         if (editingFilterId === id) {
           cancelEditMode();
         }
-        
         notifications.show({
-          title: 'حذف شد',
-          message: 'فیلتر با موفقیت حذف شد',
-          color: 'green',
+          title: "حذف شد",
+          message: "فیلتر با موفقیت حذف شد",
+          color: "green",
           autoClose: 3000,
-          zIndex: 1100
+          zIndex: 1100,
         });
       } else if (result?.payload?.status === "error") {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("[SavedFiltersCategory] handleDeleteSavedFilter: API error", result?.payload);
+        }
         return;
       }
     } catch (error) {
-      console.error("Delete filter error:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("[SavedFiltersCategory] handleDeleteSavedFilter: error", error);
+      }
     }
-  }, [dispatch, isChecked, toggleCheck, editingFilterId, cancelEditMode]);
+  }, [dispatch, queryClient, isChecked, toggleCheck, editingFilterId, cancelEditMode]);
 
 const handleFilterClick = useCallback((filter) => {
   if (isEditMode && editingFilterId !== filter.id) {
@@ -548,10 +753,68 @@ const handleFilterClick = useCallback((filter) => {
         title="فیلترهای ذخیره شده - دسته‌بندی"
         centered
         size={isMobile ? "sm" : "md"}
-        padding={isMobile ? "sm" : "md"}
         zIndex={1006}
         lockScroll={false}
         removeScrollBar={false}
+        styles={{
+          root: {
+            marginTop: '0 !important',
+            paddingTop: '0 !important',
+            paddingRight: '0 !important',
+          },
+          inner: {
+            marginTop: '0 !important',
+            paddingTop: '0 !important',
+            paddingBottom: 0,
+            top: '0 !important',
+            alignItems: 'flex-start',
+          },
+          content: {
+            marginTop: '0 !important',
+            paddingTop: '0 !important',
+            top: '0 !important',
+            maxHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+          title: {
+            fontSize: 18,
+            fontWeight: 600,
+            marginTop: '0 !important',
+            marginBottom: '0 !important',
+            paddingTop: '0 !important',
+            paddingBottom: '0 !important',
+            margin: '0 !important',
+            padding: '0 !important',
+          },
+          header: {
+            position: 'sticky',
+            top: 0,
+            marginTop: '0 !important',
+            marginBottom: 0,
+            paddingTop: '0 !important',
+            paddingBottom: '1rem',
+            paddingLeft: 'var(--mantine-spacing-md)',
+            paddingRight: 'var(--mantine-spacing-md)',
+            margin: '0 !important',
+            zIndex: 101,
+            backgroundColor: 'white',
+            borderBottom: '1px solid #dee2e6',
+          },
+          body: {
+            marginTop: 0,
+            paddingTop: 0,
+            paddingLeft: 'var(--mantine-spacing-md)',
+            paddingRight: 'var(--mantine-spacing-md)',
+            paddingBottom: 'var(--mantine-spacing-lg)',
+            overflowY: 'auto',
+            flex: 1,
+          },
+          close: {
+            marginTop: 0,
+            paddingTop: 0,
+          },
+        }}
       >
         <Stack spacing="md">
           {/* Edit Mode Badge and Actions */}

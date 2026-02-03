@@ -25,7 +25,7 @@ import {
   import { useDisclosure, useMediaQuery } from "@mantine/hooks";
   import { useDispatch, useSelector } from "react-redux";
   import { useEffect, useState } from "react";
-  import { getUserTicketById } from "../../../redux/usermyaccounts/usermyaccounts/getusertickets/getUserTicketById/getUserTicketByIdActions";
+  import { useSessionQuery, useQueryClient } from "../../../Libs/reactQuery";
   import { sendTicketMessage } from "../../../redux/usermyaccounts/usermyaccounts/newmessagetickets/newMessageTicketsActions";
   import { notifications } from "@mantine/notifications";
 import ErrorMessageModal from "../../../components/errormessagemodal";
@@ -37,6 +37,9 @@ import { IconSend } from "@tabler/icons-react";
 function Account_Message() {
     const { id } = useParams();
     const dispatch = useDispatch();
+    const queryClient = useQueryClient();
+    const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+
     const [messageText, setMessageText] = useState("");
     const [file, setFile] = useState(null);
     const [errors, setErrors] = useState({});
@@ -47,10 +50,19 @@ function Account_Message() {
     const isLargeScreen = useMediaQuery('(min-width: 1024px)');
 
     const [modalOpen, setModalOpen] = useState(false);
-  
-    const { userTicketById, loadingUserTicketById } = useSelector(
-      (state) => state.userTicketsById
-    );
+
+    const { data: ticketDataById, isLoading: loadingUserTicketById } = useSessionQuery({
+      endpoint: `/user-myaccounts/user-tickets/${id}`,
+      queryKey: ["userTicketById", id],
+      enabled: !!token && !!id,
+      retry: (failureCount, error) => {
+        const msg = typeof error === "string" ? error : error?.message || String(error);
+        if (msg.includes("401")) return false;
+        return failureCount < 2;
+      },
+    });
+
+    const userTicketById = ticketDataById?.data ?? ticketDataById;
   
     const { ticketData, sending, success, error } = useSelector(
       (state) => state.ticketSendMessage
@@ -63,6 +75,10 @@ function Account_Message() {
             color: "green",
             autoClose: true,
           });
+          if (queryClient) {
+            queryClient.invalidateQueries({ queryKey: ["userTicketById", id] });
+            queryClient.invalidateQueries({ queryKey: ["userTickets"] });
+          }
           setTimeout(() => {
             dispatch(clearSendMessageStatus());
           }, 2000); 
@@ -75,7 +91,7 @@ function Account_Message() {
             autoClose: true,
           });
         }
-      }, [ticketData]);
+      }, [ticketData, queryClient, id, dispatch]);
 
       useEffect(() => {
         if (!error?.status) return;
@@ -107,9 +123,6 @@ function Account_Message() {
         }, 100);
       }, [error]);
 
-    useEffect(() => {
-      if (id) dispatch(getUserTicketById({ id }));
-    }, [dispatch, id]);
   
     const [opened, { open, close }] = useDisclosure(false);
   
@@ -148,7 +161,10 @@ function Account_Message() {
           setMessageText("");
           setFile(null);
           setErrors({});
-          dispatch(getUserTicketById({ id }));
+          if (queryClient) {
+            queryClient.invalidateQueries({ queryKey: ["userTicketById", id] });
+            queryClient.invalidateQueries({ queryKey: ["userTickets"] });
+          }
         }
       });
     };

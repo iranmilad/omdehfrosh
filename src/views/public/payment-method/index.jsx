@@ -24,13 +24,12 @@ import { useForm } from "@mantine/form";
 import { IconArrowRight, IconBuildingCommunity, IconCreditCard, IconChevronLeft } from "@tabler/icons-react";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient, useSessionQuery, useStaticQuery } from "../../../Libs/reactQuery";
 import { toggleLoading } from "../../../redux/global";
 import { notifications } from '@mantine/notifications';
 import { useCookies } from "react-cookie";
-import { verifyToken } from "../../../redux/auth/authusers/auth";
 import PaymentCalcReceipt from "../../../components/payment_calc_receipt";
 import { updateFinalReceiptWithDiscount } from "../../../redux/cartfinalreceipt/cartfinalreceiptupdate/cartFinalReceiptUpdateDiscountActions";
-import { fetchFinalReceipt } from "../../../redux/cartfinalreceipt/cartfinalreceipt";
 import { getAllGateWaysData } from "../../../redux/gatewaysdata/gatewaysdata/gateWaysDataActions";
 import { clearCartFinalReceiptUpdate } from "../../../redux/cartfinalreceipt/cartfinalreceiptupdate/cartFinalReceiptUpdateDiscountSlice";
 import ErrorMessageModal from '../../../components/errormessagemodal';
@@ -166,19 +165,117 @@ const SafeIcon = ({ src, alt, size = 30, style = {}, onError }) => {
 
 const PaymentMethod = () => {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
-  const { gateways: fetchedGateways, loading, error } = useSelector((state) => state.gateWaysData);
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
 
-  console.log("", fetchedGateways);
+  // React Query cache (same pattern as basket): prefer query data, Redux as fallback
+  const {
+    data: userInitialData,
+    isLoading: userInitialLoading,
+    isFetching: userInitialFetching,
+  } = useSessionQuery({
+    endpoint: "/auth/user-initial-data",
+    queryKey: ["userInitialData"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg?.includes?.("401")) return false;
+      return failureCount < 2;
+    },
+  });
 
-  const [paymentURL, setPaymentURL] = useState("");
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [loadingWallet, setLoadingWallet] = useState(false);
+  const {
+    data: cartData,
+    isFetching: cartFetching,
+  } = useSessionQuery({
+    endpoint: "/cart",
+    queryKey: ["cart"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg?.includes?.("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  // Gateways data (POST) - cached with React Query
+  const {
+    data: gatewaysData,
+    isLoading: gatewaysLoading,
+    isFetching: gatewaysFetching,
+    error: gatewaysError,
+  } = useStaticQuery({
+    endpoint: "/gatewaysdata",
+    queryKey: ["gatewaysdata", "all"],
+    method: "post",
+    body: { state: "all" },
+    enabled: true,
+  });
+
+  // Final receipt (GET) - cached with React Query; display prefers cache, Redux fallback
+  const {
+    data: finalReceiptData,
+    isLoading: finalReceiptLoading,
+    isFetching: finalReceiptFetching,
+  } = useSessionQuery({
+    endpoint: "/cart/getfinalreceipt",
+    queryKey: ["finalReceipt"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg?.includes?.("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  // Verify user (GET) - cached with React Query
+  const {
+    data: verifyUserData,
+    isLoading: authLoading,
+    error: authError,
+  } = useSessionQuery({
+    endpoint: "/auth/verify-user",
+    queryKey: ["verifyUser"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg?.includes?.("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  // Wallet balance (GET) - cached with React Query
+  const {
+    data: walletData,
+    isLoading: loadingWallet,
+  } = useSessionQuery({
+    endpoint: "/payment/wallet/balance",
+    queryKey: ["walletBalance"],
+    enabled: !!token,
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg?.includes?.("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const walletBalance = walletData?.balance != null ? walletData.balance : 0;
+
+  // Display: prefer React Query cache, fallback to Redux (same as basket)
+  const gatewaysFromRedux = useSelector((state) => state.gateWaysData.gateways);
+  const fetchedGateways = (gatewaysData != null
+    ? (Array.isArray(gatewaysData) ? gatewaysData : (gatewaysData?.gateways ?? []))
+    : null) ?? gatewaysFromRedux ?? [];
+  const loading = gatewaysLoading;
 
   const [cookies, setCookie] = useCookies(["user"]);
   const [pageActive, setPageActive] = useState(false);
-  const { isVerified, loading: authLoading, error: authError } = useSelector((state) => state.auth);
-  const { orderfinalreceipt } = useSelector((state) => state.cartfinalreceipt); 
+  const { isVerified: isVerifiedRedux } = useSelector((state) => state.auth);
+  const { orderfinalreceipt: orderfinalreceiptRedux } = useSelector((state) => state.cartfinalreceipt);
+  // Display: prefer React Query cache (finalReceiptData), fallback to Redux (same as basket)
+  const orderfinalreceipt = finalReceiptData ?? orderfinalreceiptRedux;
+  const isVerified = !authError && (verifyUserData != null ? !!verifyUserData?.user : isVerifiedRedux);
   const [isDiscountApplied, setIsDiscountApplied] = useState(false);
 
   const screensAnt = useBreakpoint();
@@ -198,46 +295,30 @@ const PaymentMethod = () => {
     },
   });
 
+  // Sync gateways from React Query to Redux (slice expects gateways array)
   useEffect(() => {
-    dispatch(getAllGateWaysData({ state: "all" }));
-    dispatch(fetchFinalReceipt());
-  }, [dispatch]);
+    if (gatewaysData == null) return;
+    const payload = Array.isArray(gatewaysData) ? gatewaysData : (gatewaysData?.gateways ?? []);
+    dispatch({ type: "gateWaysData/getAll/fulfilled", payload });
+  }, [gatewaysData, dispatch]);
 
-  // Fetch wallet balance when component mounts
+  // Sync final receipt from React Query to Redux
   useEffect(() => {
-    const fetchWalletBalance = async () => {
-      try {
-        setLoadingWallet(true);
+    if (finalReceiptData == null) return;
+    dispatch({ type: "order/fetchFinalReceipt/fulfilled", payload: finalReceiptData });
+  }, [finalReceiptData, dispatch]);
 
-    const token = localStorage.getItem("user");
+  // Sync verify user from React Query to Redux
+  useEffect(() => {
+    if (verifyUserData == null) return;
+    dispatch({ type: "auth/verifyToken/fulfilled", payload: verifyUserData });
+  }, [verifyUserData, dispatch]);
 
-            const response = await fetch(getApiUrl("/payment/wallet/balance"), {
-                method: "GET",
-                  headers: new Headers({
-                    'Authorization': `Bearer ${token}`, 
-                    "Content-Type": "application/json"      
-                  }),   
-              });
-              const data = await response.json();
-
-              console.log("res", data)
-        
-        if (data.balance && typeof data.balance !== 'undefined') {
-          setWalletBalance(data.balance);
-        }
-      } catch (error) {
-        console.error('Error fetching wallet balance:', error);
-        // Set default balance if error
-        setWalletBalance(0);
-      } finally {
-        setLoadingWallet(false);
-      }
-    };
-
-    if (isVerified) {
-      fetchWalletBalance();
+  useEffect(() => {
+    if (authError) {
+      dispatch({ type: "auth/verifyToken/rejected", payload: authError });
     }
-  }, [isVerified, cookies.user]);
+  }, [authError, dispatch]);
 
   // Updated cards mapping with improved icon handling
   const cards = fetchedGateways?.map((item) => (
@@ -284,10 +365,6 @@ const PaymentMethod = () => {
       </Group>
     </Radio.Card>
   ));
-
-  useEffect(() => {
-    dispatch(verifyToken());
-  }, [dispatch]);
 
   useEffect(() => {
     if (authLoading) {
@@ -436,6 +513,7 @@ const PaymentMethod = () => {
               isDiscountApplied={isDiscountApplied}
               setIsDiscountApplied={setIsDiscountApplied}
               gateway={form.getValues().gateway}
+              queryClient={queryClient}
             />
           </div>
 
@@ -445,6 +523,7 @@ const PaymentMethod = () => {
               <PaymentCalcReceipt
                 prev={{ to: "/basket-info", component: NavLink }}
                 gateway={form.getValues().gateway}
+                queryClient={queryClient}
               >
                 پرداخت
               </PaymentCalcReceipt>
@@ -460,7 +539,7 @@ const PaymentMethod = () => {
   );
 };
 
-const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
+const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryClient }) => {
   const dispatch = useDispatch();
   const { orderfinalreceipt } = useSelector((state) => state.cartfinalreceipt);
   const navigate = useNavigate();
@@ -587,7 +666,9 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
         });
       }
 
-      dispatch(fetchFinalReceipt());
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["finalReceipt"] });
+      }
     } catch (error) {
       notifications.show({
         title: "خطا",
@@ -617,7 +698,9 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway }) => {
         });
       }
 
-      dispatch(fetchFinalReceipt());
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["finalReceipt"] });
+      }
     } catch (error) {
       notifications.show({
         title: "خطا",

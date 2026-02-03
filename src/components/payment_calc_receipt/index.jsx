@@ -46,7 +46,7 @@ const getValidImageSource = (src) => {
   return src;
 };
 
-const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
+const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryClient }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -135,6 +135,12 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
           color: "red",
         });
       }
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
+        queryClient.invalidateQueries({ queryKey: ["finalReceipt"] });
+        queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      }
     } catch (error) {
       console.error('Error in applySettings:', error);
       notifications.show({
@@ -142,6 +148,12 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
         message: error.message || "خطا در پردازش پرداخت",
         color: "red",
       });
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
+        queryClient.invalidateQueries({ queryKey: ["finalReceipt"] });
+        queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      }
     }
   };
 
@@ -182,6 +194,12 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
           color: "red",
         });
       }
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
+        queryClient.invalidateQueries({ queryKey: ["finalReceipt"] });
+        queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      }
     } catch (error) {
       console.error('Error in wallet payment from order:', error);
       notifications.show({
@@ -189,6 +207,12 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway }) => {
         message: error.message || "خطا در پردازش پرداخت از کیف پول",
         color: "red",
       });
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
+        queryClient.invalidateQueries({ queryKey: ["finalReceipt"] });
+        queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      }
     }
   };
 

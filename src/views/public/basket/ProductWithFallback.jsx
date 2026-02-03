@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { setInitial } from "../../../redux/cart";
 import CounterBasket from "../../../components/counter-basket";
 import { DEFAULT_COLOR_MAP } from '../../../Libs/attribute_colors/colors';
@@ -32,6 +33,7 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   // Helper functions to extract data from props
   const getImageSource = (item) => {
@@ -94,9 +96,10 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
   };
 
   const getPrice = (item) => {
-    if (item.price) return item.price;
-    if (item.product?.price) return item.product.price;
-    return 0;
+    const p = item?.price ?? item?.product?.price;
+    if (p == null) return 0;
+    if (typeof p === "number") return p;
+    return Number(p?.regularPrice ?? p?.discountedPrice ?? p?.regular ?? p?.discounted ?? 0) || 0;
   };
 
   const getCount = (item) => {
@@ -203,39 +206,7 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
     }
   };
 
-  // Fetch fresh cart data from server
-  const fetchCartData = async () => {
-    const token = localStorage.getItem("user");
-    
-    if (!token) return;
-    
-    try {
-      const response = await fetch(getApiUrl("/cart"), {
-        method: "GET",
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch cart data");
-      }
-      
-      const serverData = await response.json();
-      
-      if (serverData.message === "ok" && Array.isArray(serverData.cart)) {
-        return serverData.cart;
-      }
-      
-      return [];
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      return null;
-    }
-  };
-
-  // Full remove function (with API call)
+  // Full remove function (with API call); refresh cart from userInitialData cache
   const removeItem = async () => {
     if (isRemoving || !isInCart) return;
     
@@ -256,10 +227,7 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
         if (Array.isArray(removeResponse.cart)) {
           dispatch(setInitial(removeResponse.cart));
         } else {
-          const freshCartData = await fetchCartData();
-          if (freshCartData !== null) {
-            dispatch(setInitial(freshCartData));
-          }
+          queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         }
         
         setIsVisible(false);
@@ -269,15 +237,7 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
       
     } catch (error) {
       console.error('Failed to remove item from cart:', error);
-      
-      try {
-        const freshCartData = await fetchCartData();
-        if (freshCartData !== null) {
-          dispatch(setInitial(freshCartData));
-        }
-      } catch (fetchError) {
-        console.error('Failed to fetch cart data after remove error:', fetchError);
-      }
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
     } finally {
       setIsRemoving(false);
     }
@@ -343,38 +303,38 @@ const ProductWithFallback = ({ onRemoveStart, ...props }) => {
               )}
             </div>
           </div>
+        </div>
 
-          <div 
-            className="flex items-center justify-center
+        <div 
+          className="flex items-center justify-center
                         border-white border-2 border-solid
                         rounded-lg bg-gray-600
                         text-xs text-white
                         absolute right-2 top-14"
-            style={{ minWidth: '20px', height: '18px' }}
-          >
-            {count}
-          </div>
+          style={{ minWidth: '20px', height: '18px' }}
+        >
+          {count}
+        </div>
 
-          {/* Counter Basket Component */}
-          <div className="flex-1">
-            <CounterBasket
-              fullWidth
-              withButton
-              productId={productIdStr}
-              seller={seller}
-              stock={stock}
-              combinationsID={combinationsID}
-              removeFun={removeItemUIOnly}
-              onRemoveComplete={handleCartRemovalComplete}
-              count={count}
-              productImage={safeSrc}
-              attributes={attributes}
-              poductName={productName}
-              price={price}
-              max={props.max}
-              min={props.min}
-            />
-          </div>
+        {/* Counter Basket Component */}
+        <div className="flex-1">
+          <CounterBasket
+            fullWidth
+            withButton
+            productId={productIdStr}
+            seller={seller}
+            stock={stock}
+            combinationsID={combinationsID}
+            removeFun={removeItemUIOnly}
+            onRemoveComplete={handleCartRemovalComplete}
+            count={count}
+            productImage={safeSrc}
+            attributes={attributes}
+            poductName={productName}
+            price={price}
+            max={props.max}
+            min={props.min}
+          />
         </div>
       </div>
 

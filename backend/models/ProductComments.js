@@ -37,7 +37,10 @@ const commentSchema = new mongoose.Schema({
     type: Number,
     required: false, // Changed to false  
     default: 0       // Added default value
-  }
+  },
+  // One comment per (order, product) – when set, user cannot add another for same order+product
+  orderId: { type: String, required: false, default: null },
+  userId: { type: Number, required: false, default: null }
 }, {
   timestamps: true
 });

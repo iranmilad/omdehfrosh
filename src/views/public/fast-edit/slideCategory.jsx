@@ -14,6 +14,8 @@ import SliderComponentCategoriesCM from './slidercomponents/slider-components-ca
 import SliderComponentSubCategoriesCM from './slidercomponents/slider-components-category/sliderComponentSubCategories'
 import SliderComponentBrandsCM from './slidercomponents/slider-components-category/sliderComponentBrands'
 
+import { useBrandRowSelection } from './BrandRowSelectionContext';
+import { useCategoryRowSelection } from './CategoryRowSelectionContext';
 
 function SlideCategory({ 
   items, 
@@ -48,110 +50,117 @@ function SlideCategory({
   setSubCategoryUniqueID, 
   subCategoryUniqueID 
 }) {
-  
+  const brandContext = searchType === 'brand' ? useBrandRowSelection() : null;
+  const categoryContext = searchType === 'category' ? useCategoryRowSelection() : null;
+  const checkedRows = brandContext?.checkedRows || categoryContext?.checkedRows || new Set();
+  const isSlideSelectionActive = checkedRows.size > 0;
 
-        // switch case method to return in different modes
-        switch(searchType) {
-          case "category":
-            return (
-              <>
-                {/* categories slider */}
-                 <div>
-                  <SliderComponentCategoriesCM
-                    items={items} 
-                    clickType="categories"
-                    searchType={searchType}
-                    tab={tab}
-                    filterCategoryStorage={filterCategoryStorage}
-                    setFilterCategoryStorage={setFilterCategoryStorage}
-                    filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                    setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                    filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                    setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                  />
-                </div>
+  switch (searchType) {
+    case "category":
+      return (
+        <>
+          {/* 1st row: categories - always show, disabled when saved filter active */}
+          <div>
+            <SliderComponentCategoriesCM
+              items={items} 
+              clickType="categories"
+              searchType={searchType}
+              tab={tab}
+              filterCategoryStorage={filterCategoryStorage}
+              setFilterCategoryStorage={setFilterCategoryStorage}
+              filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+              setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+              filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+              setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+            />
+          </div>
 
-                {/* sub categories slider */}
-                <div>
-                  <SliderComponentSubCategoriesCM
-                    items={items} 
-                    clickType="categorySubCategories"
-                    searchType={searchType}
-                    tab={tab}
-                    filterCategoryStorage={filterCategoryStorage}
-                    setFilterCategoryStorage={setFilterCategoryStorage}
-                    filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                    setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                    filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                    setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                  />
-                 </div>
-
-                {/* brands slider */}
-                <div>
-                  <SliderComponentBrandsCM 
-                    items={items} 
-                    clickType="categoryBrands"
-                    searchType={searchType}
-                    tab={tab}
-                    filterCategoryStorage={filterCategoryStorage}
-                    setFilterCategoryStorage={setFilterCategoryStorage}
-                    filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                    setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                    filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                    setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                    />
-                </div>
-              </>
-          );
-          case "brand":
-            return (
+          {/* 2nd & 3rd rows: hide when saved filter is active */}
+          {!isSlideSelectionActive && (
+            <>
               <div>
-              {/* brands slider */}
-              <div>
-                <SliderComponentBrands 
+                <SliderComponentSubCategoriesCM
                   items={items} 
-                  clickType="brands"
+                  clickType="categorySubCategories"
+                  searchType={searchType}
+                  tab={tab}
+                  filterCategoryStorage={filterCategoryStorage}
+                  setFilterCategoryStorage={setFilterCategoryStorage}
+                  filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                  setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                  filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                  setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                />
+              </div>
+              <div>
+                <SliderComponentBrandsCM 
+                  items={items} 
+                  clickType="categoryBrands"
+                  searchType={searchType}
+                  tab={tab}
+                  filterCategoryStorage={filterCategoryStorage}
+                  setFilterCategoryStorage={setFilterCategoryStorage}
+                  filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                  setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                  filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                  setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                />
+              </div>
+            </>
+          )}
+        </>
+      );
+    case "brand":
+      return (
+        <div>
+          {/* 1st row: brands - always show, disabled when saved filter active */}
+          <div>
+            <SliderComponentBrands 
+              items={items} 
+              clickType="brands"
+              searchType={searchType}
+              tab={tab}
+              filterBrandStorage={filterBrandStorage}
+              setFilterBrandStorage={setFilterBrandStorage}
+            />
+          </div>
+
+          {/* 2nd & 3rd rows: hide when saved filter is active */}
+          {!isSlideSelectionActive && (
+            <>
+              <div>
+                <SliderComponentCategories 
+                  items={items} 
+                  clickType="brandCategories"
                   searchType={searchType}
                   tab={tab}
                   filterBrandStorage={filterBrandStorage}
                   setFilterBrandStorage={setFilterBrandStorage}
-                  />
+                  filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+                  setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+                />
               </div>
-    
-                {/* categories slider */}
-                <div>
-                  <SliderComponentCategories 
-                    items={items} 
-                    clickType="brandCategories"
-                    searchType={searchType}
-                    tab={tab}
-                    filterBrandStorage={filterBrandStorage}
-                    setFilterBrandStorage={setFilterBrandStorage}
-                    filterBrandsCategoryStorage={filterBrandsCategoryStorage}
-                    setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                  />
-                </div>
-    
-                {/* sub categories slider */}
-                <div>
-                  <SliderComponentSubCategories
-                    items={items} 
-                    clickType="brandSubCategories"
-                    searchType={searchType}
-                    tab={tab}
-                    filterBrandStorage={filterBrandStorage}
-                    setFilterBrandStorage={setFilterBrandStorage}
-                    filterBrandsCategoryStorage={filterBrandsCategoryStorage}
-                    setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                    filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
-                    setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-                  />
-                </div>
+              <div>
+                <SliderComponentSubCategories
+                  items={items} 
+                  clickType="brandSubCategories"
+                  searchType={searchType}
+                  tab={tab}
+                  filterBrandStorage={filterBrandStorage}
+                  setFilterBrandStorage={setFilterBrandStorage}
+                  filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+                  setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+                  filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+                  setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+                />
               </div>
-          );
-          default: return null;
-        }
+            </>
+          )}
+        </div>
+      );
+    default:
+      return null;
+  }
 
 
       // if (searchType === "category") {

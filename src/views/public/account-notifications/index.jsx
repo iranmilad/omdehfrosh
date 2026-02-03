@@ -11,13 +11,14 @@ import {
   Button,
   Modal,
   Text,
-  Flex
+  Flex,
+  ActionIcon,
 } from '@mantine/core';
+import { IconRefresh } from '@tabler/icons-react';
 import { IconInfoCircle } from '@tabler/icons-react';
-import { verifyToken } from '../../../redux/auth/authusers/auth';
-import { markNotificationAsRead, userMessagesGetComponent } from '../../../redux/usermyaccounts/usermyaccounts/usermessagesgetcomponent/userMessagesGetComponentActions';
+import { markNotificationAsRead } from '../../../redux/usermyaccounts/usermyaccounts/usermessagesgetcomponent/userMessagesGetComponentActions';
 import { useNavigate } from 'react-router';
-import { getUserMyAccount } from '../../../redux/usermyaccounts/usermyaccounts/getusermyaccounts/userMyAccountsGetActions';
+import { useSessionQuery, useQueryClient } from '../../../Libs/reactQuery';
 
 // Default SVG image as a data URL
 const DEFAULT_IMAGE_SVG = `data:image/svg+xml;base64,${btoa(`
@@ -159,160 +160,83 @@ const triggerNotificationRefresh = () => {
 // Main Account Notifications Component
 function Account_Notifications() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [authCheckComplete, setAuthCheckComplete] = useState(false);
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
   const [redirectTimer, setRedirectTimer] = useState(null);
   const navigate = useNavigate();
-
-  const { isVerified, loading: authLoading, error: authError, user: userVerified } = useSelector((state) => state.auth);
-  
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(true);
-  const [notificationData, setNotificationData] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const queryClient = useQueryClient();
 
-  // Redux selectors (adjust based on your actual state structure)
-  const {
-    user,
-    userMessagesComponent,
-    isLoadingComponent,
-    reduxComponentError,
-    userAccount
-  } = useSelector(state => ({
-    user: state.auth?.user,
-    userMessagesComponent: state.userMessages?.component,
-    isLoadingComponent: state.userMessages?.isLoading,
-    reduxComponentError: state.userMessages?.error,
-    userAccount: state.userMyAccounts?.userAccount
-  }));
+  const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const { isVerified, loading: authLoading, user: userVerified } = useSelector((state) => state.auth);
 
-  // Initial auth check - only verify token
+  const { data: notificationResult, isLoading: isLoading, error: queryComponentError, refetch } = useSessionQuery({
+    endpoint: '/user-myaccounts/user-messages/notification-component',
+    queryKey: ['userNotificationsComponent'],
+    enabled: !!token,
+    queryOptions: { staleTime: 2 * 60 * 1000 },
+    retry: (failureCount, error) => {
+      const msg = typeof error === "string" ? error : error?.message || String(error);
+      if (msg.includes("401")) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const reduxComponentError = queryComponentError ? (typeof queryComponentError === "string" ? queryComponentError : queryComponentError?.message || String(queryComponentError)) : null;
+
+  const notificationData = useMemo(() => {
+    const base = notificationResult ?? {};
+    const component =
+      base?.component != null ? preprocessJSXForImages(base.component) : base?.component;
+    const modalComponent =
+      base?.modalComponent != null ? preprocessJSXForImages(base.modalComponent) : base?.modalComponent;
+    return { ...base, component, modalComponent, notifications: base?.notifications ?? [] };
+  }, [notificationResult]);
+
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        await dispatch(verifyToken()).unwrap();
-      } catch (error) {
-        // console.log('Auth verification failed:', error);
-      } finally {
-        setAuthCheckComplete(true);
-      }
-    };
-
-    if (!authCheckComplete) {
-      checkAuth();
-    }
-  }, [dispatch, authCheckComplete]);
-
-  // Handle auth state changes after initial check
-  useEffect(() => {
-    // Only proceed after auth check is complete
-    if (!authCheckComplete) return;
-
-    const isAuthenticated = isVerified && userVerified;
-
-    if (!isAuthenticated) {
-      // Clear any existing timer
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-      }
-
-      // Show modal first
+    if (!authLoading && (!isVerified || !userVerified)) {
       setLoginModalOpen(true);
-      
-      // Set up redirect timer
-      const timer = setTimeout(() => {
-        navigate('/login');
-      }, 3000);
-      
+      const timer = setTimeout(() => navigate("/login"), 3000);
       setRedirectTimer(timer);
-    } else {
-      // User is authenticated
-      setLoginModalOpen(false);
-      
-      // Clear redirect timer if it exists
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-        setRedirectTimer(null);
-      }
-      
-      // Fetch user account data only if not in Redux
-      if (user?.id && !userAccount) {
-        dispatch(getUserMyAccount({userId: user.id}));
-      }
+      return () => clearTimeout(timer);
     }
+    setLoginModalOpen(false);
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+      setRedirectTimer(null);
+    }
+  }, [isVerified, userVerified, authLoading, navigate]);
 
-    // Cleanup function
-    return () => {
-      if (redirectTimer) {
-        clearTimeout(redirectTimer);
-      }
-    };
-  }, [dispatch, isVerified, userVerified, authCheckComplete, navigate, user?.id]);
+  const invalidateNotifications = () => {
+    if (queryClient) {
+      queryClient.invalidateQueries({ queryKey: ['userNotificationsComponent'] });
+      queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationNumber'] });
+    }
+    triggerNotificationRefresh();
+  };
 
-  // Load notifications only when authenticated
-  useEffect(() => {
-    const loadNotifications = async () => {
-      // Only load if authenticated
-      if (!authCheckComplete || !isVerified || !userVerified) {
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        // Trigger notification count refresh when this component opens
-        triggerNotificationRefresh();
-        
-        // Fetch the dynamic component
-        const result = await dispatch(userMessagesGetComponent()).unwrap();
-        
-        // Preprocess component string to handle images
-        if (result?.component) {
-          result.component = preprocessJSXForImages(result.component);
-        }
-        
-        setNotificationData(result);
-      } catch (error) {
-        console.error('Failed to load notifications:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadNotifications();
-  }, [dispatch, refreshKey, authCheckComplete, isVerified, userVerified]);
-
-  // Handle notification click
   const handleNotificationClick = async (notificationId, index) => {
-    try {
-      // Mark as read
-      await dispatch(markNotificationAsRead({ notificationId, index })).unwrap();
-      
-      // Trigger notification count refresh
-      triggerNotificationRefresh();
-      
-      // Refresh the notifications to update read status
-      setRefreshKey(prev => prev + 1);
-      
-    } catch (error) {
-      console.error('Failed to handle notification click:', error);
+    const list = Array.isArray(notificationResult?.notifications) ? notificationResult.notifications : [];
+    const notif = list[index - 1] ?? list.find((n) => String(n._id) === String(notificationId));
+    setSelectedNotification(notif ?? null);
+    setMessageModalOpen(true);
+    // Mark as read in DB (NotificationTable) when user opens the modal
+    const idToSend = notif?._id ?? notificationId;
+    if (idToSend) {
+      try {
+        await dispatch(markNotificationAsRead({ notificationId: String(idToSend), index })).unwrap();
+        invalidateNotifications();
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+      }
     }
   };
 
-  // Handle mark as read/unread
   const handleMarkAsRead = async (notificationId, index, isRead) => {
     try {
-      // Call the API to mark as read/unread
-      await dispatch(markNotificationAsRead({ 
-        notificationId, 
-        index, 
-        isRead // Pass the read status (true for read, false for unread)
-      })).unwrap();
-      
-      // Trigger notification count refresh
-      triggerNotificationRefresh();
-      
-      // Refresh the notifications to update read status
-      setRefreshKey(prev => prev + 1);
-      
+      await dispatch(markNotificationAsRead({ notificationId, index, isRead })).unwrap();
+      invalidateNotifications();
     } catch (error) {
       console.error('Failed to mark as read:', error);
     }
@@ -351,21 +275,66 @@ function Account_Notifications() {
     defaultImage: DEFAULT_IMAGE_SVG
   }), [notificationData]);
 
-  // Use the dynamic component hook
+  // Use the dynamic component hook for the list
   const { component: DynamicComponent, error: dynamicError } = useDynamicComponent(
     notificationData?.component,
     dynamicComponentProps
   );
 
-  // Refresh handler
+  // Props for the backend modal body component (notification, onClose, image utils)
+  const modalCloseHandler = () => {
+    setMessageModalOpen(false);
+    setSelectedNotification(null);
+  };
+  const modalBodyProps = useMemo(() => ({
+    notification: selectedNotification,
+    onClose: modalCloseHandler,
+    SafeImage,
+    getSafeImageUrl,
+    validateImagePath,
+    DEFAULT_IMAGE_SVG
+  }), [selectedNotification]);
+
+  // Backend-provided modal body component (renders inside Modal when opened)
+  const { component: ModalBodyComponent, error: modalBodyError } = useDynamicComponent(
+    notificationData?.modalComponent,
+    modalBodyProps
+  );
+
   const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
-    // Also trigger notification count refresh
+    if (queryClient) {
+      queryClient.invalidateQueries({ queryKey: ['userNotificationsComponent'] });
+      queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationNumber'] });
+    }
     triggerNotificationRefresh();
   };
 
-  // Show loading while checking auth
-  if (!authCheckComplete || authLoading) {
+  // List and modal come entirely from backend; no frontend-built list/modal content
+  const hasWorkingBackendComponent = notificationResult?.component && !dynamicError && DynamicComponent;
+  // All UI strings from backend (fallbacks for when backend does not send labels)
+  const labels = useMemo(() => ({
+    pageTitle: 'پیام‌های من',
+    refreshTitle: 'بروزرسانی',
+    emptyTitle: 'هیچ پیامی یافت نشد',
+    emptySubtitle: 'پیام‌های جدید در اینجا نمایش داده می‌شوند.',
+    modalDefaultTitle: 'پیام',
+    sentAtLabel: 'تاریخ ارسال',
+    lastUpdatedLabel: 'آخرین بروزرسانی',
+    descriptionLabel: 'توضیحات',
+    viewLinkLabel: 'مشاهده لینک',
+    closeButtonLabel: 'بستن',
+    noContentPlaceholder: 'محتوایی ثبت نشده است.',
+    modalLoadError: 'محتوای پیام از سرور بارگذاری نشد.',
+    readStatusRead: 'خوانده شده',
+    readStatusUnread: 'خوانده نشده',
+    newMessageDefaultTitle: 'پیام جدید',
+    typeLabels: { system: 'سیستم', personal: 'شخصی', promotion: 'تخفیف', security: 'امنیت', order: 'سفارش', support: 'پشتیبانی', achievement: 'دستاورد' },
+    priorityLabels: { urgent: 'فوری', high: 'مهم', normal: 'عادی', low: 'کم' },
+    ...(notificationResult?.labels || {})
+  }), [notificationResult?.labels]);
+
+  if (authLoading) {
     return (
       <Container size="md" py="xl">
         <Center>
@@ -390,6 +359,7 @@ function Account_Notifications() {
           withCloseButton={true}
           title="ورود به حساب کاربری"
           centered
+          zIndex={1100}
           overlayProps={{
             backgroundOpacity: 0.6,
             blur: 3,
@@ -423,7 +393,7 @@ function Account_Notifications() {
   }
 
   // Loading state for notifications
-  if (isLoading || isLoadingComponent) {
+  if (isLoading) {
     return (
       <Container size="md" py="xl">
         <Center>
@@ -436,22 +406,18 @@ function Account_Notifications() {
     );
   }
 
-  // Error state
   if (reduxComponentError || dynamicError || !DynamicComponent) {
     return (
       <Container size="md" py="xl">
         <Stack spacing="md">
-          <Title order={2} ta="center">پیام‌های من</Title>
-          
           <Alert
             icon={<IconInfoCircle size="1rem" />}
             title="خطا در بارگذاری"
             color="red"
             variant="light"
           >
-            {reduxComponentError || dynamicError || 'خطا در بارگذاری کامپوننت پیام‌ها'}
+            {reduxComponentError || dynamicError || 'خطا در بارگذاری پیام‌ها'}
           </Alert>
-
           <Center>
             <Button onClick={handleRefresh} variant="light">
               تلاش مجدد
@@ -464,34 +430,45 @@ function Account_Notifications() {
 
   // Main authenticated view
   return (
-    <Container size="md" py="xl">
-      <Stack spacing="md">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title order={2} ta="center" style={{ flex: 1 }}>
-            پیام‌های من
-          </Title>
-          <Button onClick={handleRefresh} variant="light" size="sm">
-            بروزرسانی
-          </Button>
-        </div>
-
-        {/* Render the dynamic component */}
-        <Box>
-          {DynamicComponent && <DynamicComponent {...dynamicComponentProps} />}
-        </Box>
-
-        {/* Debug info (remove in production) */}
-        <Alert
-          icon={<IconInfoCircle size="1rem" />}
-          color="blue"
-          variant="light"
-          style={{ marginTop: '2rem' }}
+    <Container size="md" py="md" px="xs" style={{ maxWidth: '100%' }}>
+      <Flex justify="space-between" align="center" mb="md" wrap="wrap" gap="xs">
+        <Title order={2} style={{ textAlign: 'right' }}>
+          {labels.pageTitle}
+        </Title>
+        <ActionIcon
+          variant="subtle"
+          size="lg"
+          onClick={handleRefresh}
+          title={labels.refreshTitle}
+          aria-label={labels.refreshTitle}
         >
-          تعداد پیام‌ها: {notificationData?.count || 0}
-          <br />
-          آخرین بروزرسانی: {new Date().toLocaleString('fa-IR')}
-        </Alert>
-      </Stack>
+          <IconRefresh size={20} />
+        </ActionIcon>
+      </Flex>
+
+      {/* List: 100% from backend – no frontend-built list */}
+      <Box style={{ width: '100%', minWidth: 0 }}>
+        {DynamicComponent && <DynamicComponent {...dynamicComponentProps} />}
+      </Box>
+
+      {/* Modal: 100% content from backend – above bottom nav (z-index 1000) */}
+      <Modal
+        opened={messageModalOpen}
+        onClose={modalCloseHandler}
+        title={selectedNotification?.title || labels.modalDefaultTitle}
+        size="md"
+        centered
+        lockScroll={false}
+        removeScrollBar={false}
+        zIndex={1100}
+        styles={{ title: { textAlign: 'right', fontWeight: 600 } }}
+      >
+        {selectedNotification && (
+          notificationData?.modalComponent && ModalBodyComponent && !modalBodyError
+            ? <ModalBodyComponent {...modalBodyProps} />
+            : <Text size="sm" c="dimmed" style={{ textAlign: 'right' }}>{labels.modalLoadError}</Text>
+        )}
+      </Modal>
     </Container>
   );
 }

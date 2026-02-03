@@ -260,11 +260,12 @@ export const getAllUserMessageComponentByUserId = async (req, res) => {
       ]
     };
     
-    // Query for user-specific notifications or global ones
+    // Read notification data from DB (NotificationTable): title, description, fullDescription, imagePath, isRead, type, priority, actionUrl, etc.
     const notifications = await NotificationTable.find(fullQuery)
       .limit(limit)
       .skip(skip)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     // Get total count for pagination info - use same query structure
     const totalCount = await NotificationTable.countDocuments(fullQuery);
@@ -373,39 +374,102 @@ export const getAllUserMessageComponentByUserId = async (req, res) => {
       ])
     ` : '';
 
+    // List component: shows 3 messages initially, "نمایش بیشتر" to show all
     const componentString = `
       function Component(props) {
         const [showAll, setShowAll] = React.useState(false);
-        const displayNotifications = showAll ? ${JSON.stringify(notifications.length)} : Math.min(5, ${JSON.stringify(notifications.length)});
+        const displayCount = ${JSON.stringify(notifications.length)};
+        const initialCount = Math.min(3, displayCount);
+        const displayNotifications = showAll ? displayCount : initialCount;
         
-        return React.createElement('div', { className: 'max-w-2xl mx-auto p-4' }, [
-          React.createElement('div', { className: 'flex justify-between items-center mb-6' }, [
-            React.createElement('h2', {
-              className: 'text-xl font-bold text-gray-800'
-            }, 'پیام‌های اخیر'),
-            ${notifications.length > 0 ? `React.createElement('span', {
-              className: 'text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full'
-            }, '${notifications.length} پیام')` : 'null'}
-          ]),
+        return React.createElement('div', { style: { marginLeft: 'auto', marginRight: 0, paddingLeft: '0.5rem', paddingRight: 0, width: '100%', maxWidth: '42rem', boxSizing: 'border-box' } }, [
           ${notifications.length > 0 ? `
           React.createElement('div', { className: 'space-y-3 mb-4' }, [
             ${notificationComponents}
           ].slice(0, displayNotifications)),
-          ${notifications.length > 5 ? `
+          ${notifications.length > 3 ? `
           React.createElement('div', { className: 'text-center mt-6' }, [
             React.createElement('button', {
-              className: 'px-6 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200',
+              className: 'px-6 py-2 text-sm font-medium text-blue-60 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200',
               onClick: () => setShowAll(!showAll)
-            }, showAll ? 'نمایش کمتر' : \`نمایش \${${notifications.length} - 5} پیام دیگر\`)
+            }, showAll ? 'نمایش کمتر' : 'نمایش بیشتر')
           ])` : 'null'}
           ` : emptyState}
         ]);
       }
     `;
 
+    // Modal component: receives props.notification and props.onClose, renders modal body from backend
+    const modalComponentString = `
+      function Component(props) {
+        const n = props.notification || {};
+        const onClose = typeof props.onClose === 'function' ? props.onClose : function() {};
+        const SafeImage = props.SafeImage;
+        const getSafeImageUrl = props.getSafeImageUrl || function(src) { return src || ''; };
+        const imgSrc = getSafeImageUrl(n.imagePath);
+        return React.createElement('div', { style: { direction: 'rtl', textAlign: 'right', padding: '0.5rem 0' } }, [
+          React.createElement('div', { key: 'row', style: { display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' } }, [
+            SafeImage ? React.createElement(SafeImage, { key: 'img', src: imgSrc, alt: '', style: { width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 } }) : React.createElement('img', { key: 'img', src: imgSrc, alt: '', style: { width: 56, height: 56, borderRadius: 8, objectFit: 'cover' } }),
+            React.createElement('div', { key: 'meta', style: { flex: 1, minWidth: 0 } }, [
+              React.createElement('div', { key: 'title', style: { fontWeight: 600, fontSize: '0.875rem' } }, n.title || 'پیام'),
+              React.createElement('div', { key: 'date', style: { fontSize: '0.75rem', color: '#868e96', marginTop: 4 } }, n.createdAt ? new Date(n.createdAt).toLocaleDateString('fa-IR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''),
+              React.createElement('div', { key: 'desc', style: { marginTop: 12, fontSize: '0.875rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 280, overflowY: 'auto' } }, (n.fullDescription && String(n.fullDescription).trim()) ? n.fullDescription : (n.description || 'محتوایی ثبت نشده است.')),
+              n.actionUrl ? React.createElement('a', { key: 'link', href: n.actionUrl, target: '_blank', rel: 'noopener noreferrer', style: { display: 'inline-block', marginTop: 12 } }, 'مشاهده لینک') : null
+            ])
+          ]),
+          React.createElement('button', { key: 'btn', type: 'button', onClick: onClose, style: { marginTop: 16, padding: '8px 16px', cursor: 'pointer' } }, 'بستن')
+        ]);
+      }
+    `;
+
+    // Serialize notifications for frontend (dates to ISO, _id to string)
+    // Ensure description/fullDescription are always strings for modal display
+    const fallbackDesc = 'محتوای این پیام ثبت نشده است.';
+    const notificationsList = notifications.map(n => {
+      const desc = (n.description && String(n.description).trim()) || '';
+      const full = (n.fullDescription && String(n.fullDescription).trim()) || '';
+      return {
+        _id: n._id?.toString(),
+        title: n.title,
+        description: desc || full || fallbackDesc,
+        fullDescription: full || desc || null,
+        imagePath: n.imagePath,
+        isRead: n.isRead,
+        type: n.type,
+        priority: n.priority,
+        actionUrl: n.actionUrl,
+        createdAt: n.createdAt ? new Date(n.createdAt).toISOString() : null,
+        updatedAt: n.updatedAt ? new Date(n.updatedAt).toISOString() : null
+      };
+    });
+
+    // All UI strings for notifications page and modal (everything from backend)
+    const labels = {
+      pageTitle: 'پیام‌های من',
+      refreshTitle: 'بروزرسانی',
+      emptyTitle: 'هیچ پیامی یافت نشد',
+      emptySubtitle: 'پیام‌های جدید در اینجا نمایش داده می‌شوند.',
+      modalDefaultTitle: 'پیام',
+      modalLoadError: 'محتوای پیام از سرور بارگذاری نشد.',
+      sentAtLabel: 'تاریخ ارسال',
+      lastUpdatedLabel: 'آخرین بروزرسانی',
+      descriptionLabel: 'توضیحات',
+      viewLinkLabel: 'مشاهده لینک',
+      closeButtonLabel: 'بستن',
+      noContentPlaceholder: 'محتوایی ثبت نشده است.',
+      readStatusRead: 'خوانده شده',
+      readStatusUnread: 'خوانده نشده',
+      newMessageDefaultTitle: 'پیام جدید',
+      typeLabels: { system: 'سیستم', personal: 'شخصی', promotion: 'تخفیف', security: 'امنیت', order: 'سفارش', support: 'پشتیبانی', achievement: 'دستاورد' },
+      priorityLabels: { urgent: 'فوری', high: 'مهم', normal: 'عادی', low: 'کم' }
+    };
+
     res.status(200).json({ 
       message: "OK", 
       component: componentString,
+      modalComponent: modalComponentString,
+      notifications: notificationsList,
+      labels,
       notificationIds: notifications.map(n => n._id),
       count: notifications.length,
       totalCount: totalCount,
@@ -722,23 +786,36 @@ export const setNotificationSeen = async (req, res) => {
       return res.status(400).json({ message: "Missing or invalid parameters" });
     }
 
-    // Update the notification directly by _id
-    const updateResult = await NotificationTable.updateOne(
-      { _id: notificationId },
-      { 
-        $set: { 
-          isRead: isRead,
-          updatedAt: new Date()
-        } 
+    let objectId;
+    try {
+      objectId = new mongoose.Types.ObjectId(notificationId);
+    } catch {
+      return res.status(400).json({ message: "Invalid notification id" });
+    }
+
+    // Only update notifications that belong to this user or are global (read from NotificationTable DB)
+    const filter = {
+      _id: objectId,
+      $or: [
+        { userId: user_id },
+        { userId: null },
+        { userId: { $exists: false } }
+      ]
+    };
+
+    const updateResult = await NotificationTable.updateOne(filter, {
+      $set: {
+        isRead: isRead,
+        updatedAt: new Date()
       }
-    );
+    });
 
     if (updateResult.matchedCount === 0) {
       return res.status(404).json({ message: "Notification not found" });
     }
 
     if (updateResult.modifiedCount === 0) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         message: "Notification was already in the requested state",
         alreadyUpdated: true
       });

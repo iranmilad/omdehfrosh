@@ -49,7 +49,6 @@ import ColumnVisibilityManager from "./ColumnVisibilityManager";
 import { useMediaQuery } from "@mantine/hooks";
 import CurrencyPriceModal from './CurrencyPriceModal'
 import BulkPriceUpdateModal from "./bulkpriceupdate/BulkPriceUpdateModal";
-import { getCurrencyPrice } from "../../../redux/currencyPrice/currencyPriceActions";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
 import "swiper/css";
@@ -57,6 +56,8 @@ import "swiper/css/free-mode";
 
 import { fetchFastEditBrandModeTableData } from "../../../redux/fastedit/fastedittabledata/fastedittablebrandmode/fastEditTableBrandModeDataActions";
 import { fetchFastEditCategoryModeTableData } from "../../../redux/fastedit/fastedittabledata/fastedittablecategorymode/fastEditTableCategoryModeDataActions";
+import { useApiQuery } from "../../../Libs/reactQuery";
+import { useQueryClient } from "@tanstack/react-query";
 
 
 
@@ -87,7 +88,16 @@ function FastEditBrandContent({
   isMobile,
   isEditMode,
   onEditModeChange,
-  loadingStates
+  loadingStates,
+  cookieUpdateTrigger,
+  onCookieUpdate,
+  filterBrandStorage,
+  setFilterBrandStorage,
+  filterBrandsCategoryStorage,
+  setFilterBrandsCategoryStorage,
+  filterBrandsCategorySubCategoryStorage,
+  setFilterBrandsCategorySubCategoryStorage,
+  savedFilters,
 }) {
   const { checkedRows } = useBrandRowSelection();
   const { currencyPrice } = useSelector((state) => state.currencyPrice);
@@ -130,6 +140,15 @@ function FastEditBrandContent({
               filterSettingsModalOpened={filterSettingsModalOpened}
               setFilterSettingsModalOpened={setFilterSettingsModalOpened}
               onEditModeChange={onEditModeChange}
+              cookieUpdateTrigger={cookieUpdateTrigger}
+              onCookieUpdate={onCookieUpdate}
+              filterBrandStorage={filterBrandStorage}
+              setFilterBrandStorage={setFilterBrandStorage}
+              filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+              setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+              filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+              setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+              savedFilters={savedFilters}
             />
           </div>
 
@@ -286,7 +305,16 @@ function FastEditCategoryContent({
   isMobile,
   isEditMode,
   onEditModeChange,
-  loadingStates
+  loadingStates,
+  cookieUpdateTrigger,
+  onCookieUpdate,
+  filterCategoryStorage,
+  setFilterCategoryStorage,
+  filterCategorySubCategoryStorage,
+  setFilterCategorySubCategoryStorage,
+  filterCategorySubCategoryBrandsStorage,
+  setFilterCategorySubCategoryBrandsStorage,
+  savedFilters,
 }) {
   const { checkedRows } = useCategoryRowSelection();
   const { currencyPrice } = useSelector((state) => state.currencyPrice);
@@ -329,6 +357,15 @@ function FastEditCategoryContent({
               filterSettingsModalOpened={filterSettingsModalOpened}
               setFilterSettingsModalOpened={setFilterSettingsModalOpened}
               onEditModeChange={onEditModeChange}
+              cookieUpdateTrigger={cookieUpdateTrigger}
+              onCookieUpdate={onCookieUpdate}
+              filterCategoryStorage={filterCategoryStorage}
+              setFilterCategoryStorage={setFilterCategoryStorage}
+              filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+              setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+              filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+              setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+              savedFilters={savedFilters}
             />
           </div>
 
@@ -488,6 +525,12 @@ function FastEdit() {
   const [filterValues, setFilterValues] = useState({colors:[], sellers:[]});
 
   const [searchType, setSearchType] = useState("brand");
+
+  // Cookie update trigger for re-reading brand/category cookies (same flow as fast-order)
+  const [cookieUpdateTrigger, setCookieUpdateTrigger] = useState(0);
+  const handleCookieUpdate = useCallback(() => {
+    setCookieUpdateTrigger((prev) => prev + 1);
+  }, []);
   
   // ✅ NEW: Filter settings modal state
   const [filterSettingsModalOpened, setFilterSettingsModalOpened] = useState(false);
@@ -554,6 +597,17 @@ function FastEdit() {
   const initialFilters_brand_mode = getInitialFilters_brand_mode();
   const [filters_brand_mode, setFilters_brand_mode] = useState(initialFilters_brand_mode.filters);
 
+  // Brand mode slider storage (lifted from SearchComponentBrand for cookie reload / restore-on-tab)
+  const [filterBrandStorage, setFilterBrandStorage] = useState(
+    initialFilters_brand_mode.uniqueIDClickedBrands || []
+  );
+  const [filterBrandsCategoryStorage, setFilterBrandsCategoryStorage] = useState(
+    initialFilters_brand_mode.uniqueIDClickedBrandsCategories || []
+  );
+  const [filterBrandsCategorySubCategoryStorage, setFilterBrandsCategorySubCategoryStorage] = useState(
+    initialFilters_brand_mode.filterBrandsCategorySubCategoryStorage || []
+  );
+
   // cookie category mode
   const COOKIE_NAME_CATEGORY_MODE = "search_filters_category_fast_edit";
 
@@ -586,6 +640,51 @@ function FastEdit() {
 
   const initialFilters_category_mode = getInitialFilters_category_mode();
   const [filters_category_mode, setFilters_category_mode] = useState(initialFilters_category_mode.filters);
+
+  // Category mode slider storage (lifted from SearchComponentCategory for cookie reload / restore-on-tab)
+  const [filterCategoryStorage, setFilterCategoryStorage] = useState(
+    initialFilters_category_mode.uniqueIDClickedCategories || []
+  );
+  const [filterCategorySubCategoryStorage, setFilterCategorySubCategoryStorage] = useState(
+    initialFilters_category_mode.uniqueIDClickedSubCategories || []
+  );
+  const [filterCategorySubCategoryBrandsStorage, setFilterCategorySubCategoryBrandsStorage] = useState(
+    initialFilters_category_mode.uniqueIDClickedSubCategoriesBrands || []
+  );
+
+  // Both save-filters queries in parent so cache persists when switching tabs (no refetch on tab switch)
+  const SAVE_FILTERS_STALE_MS = 15 * 60 * 1000; // 15 min - avoid refetch when switching tabs
+  const { data: savedFiltersBrandFromQuery } = useApiQuery({
+    endpoint: "/save-filters/brand-fast-edit",
+    queryKey: ["save-filters", "brand-fast-edit"],
+    strategy: "USER_DATA",
+    transformer: (r) => (Array.isArray(r?.data?.data) ? r.data.data : r?.data ?? []),
+    enabled: !!user && user?.role === "supplier",
+    staleTime: SAVE_FILTERS_STALE_MS,
+    queryOptions: { refetchOnMount: false, refetchOnWindowFocus: false, refetchOnReconnect: false },
+  });
+  const { data: savedFiltersCategoryFromQuery } = useApiQuery({
+    endpoint: "/save-filters/category-fast-edit",
+    queryKey: ["save-filters", "category-fast-edit"],
+    strategy: "USER_DATA",
+    transformer: (r) => (Array.isArray(r?.data?.data) ? r.data.data : r?.data ?? []),
+    enabled: !!user && user?.role === "supplier",
+    staleTime: SAVE_FILTERS_STALE_MS,
+    queryOptions: { refetchOnMount: false, refetchOnWindowFocus: false, refetchOnReconnect: false },
+  });
+  const savedFiltersBrand = savedFiltersBrandFromQuery ?? [];
+  const savedFiltersCategory = savedFiltersCategoryFromQuery ?? [];
+
+  // Currency price: cached so no refetch when switching tabs or opening modal again
+  const CURRENCY_PRICE_STALE_MS = 15 * 60 * 1000; // 15 min
+  const { data: currencyPriceFromQuery, isLoading: currencyPriceLoading } = useApiQuery({
+    endpoint: "/currency-price/get",
+    queryKey: ["currency-price", "get"],
+    strategy: "CACHED",
+    enabled: !!user && user?.role === "supplier",
+    staleTime: CURRENCY_PRICE_STALE_MS,
+    queryOptions: { refetchOnMount: false, refetchOnWindowFocus: false, refetchOnReconnect: false },
+  });
 
   let priceFormatLabel = 'تومان';
   if(filters_brand_mode?.priceFormat === "tooman") priceFormatLabel = "تومان";
@@ -631,6 +730,66 @@ function FastEdit() {
       clearTimeout(timer);
     };
   }, []);
+
+  // Re-read brand cookie when cookieUpdateTrigger changes (e.g. after applying saved filter)
+  useEffect(() => {
+    const stored = Cookies.get(COOKIE_NAME_BRAND_MODE);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setFilterBrandStorage(parsed.uniqueIDClickedBrands || []);
+        setFilterBrandsCategoryStorage(parsed.uniqueIDClickedBrandsCategories || []);
+        setFilterBrandsCategorySubCategoryStorage(parsed.filterBrandsCategorySubCategoryStorage || []);
+        setFilters_brand_mode(parsed.filters || initialFilters_brand_mode.filters);
+      } catch (e) {
+        console.error("[FastEdit] Error loading brand cookie:", e);
+      }
+    }
+  }, [cookieUpdateTrigger, COOKIE_NAME_BRAND_MODE]);
+
+  // Re-read category cookie when cookieUpdateTrigger changes
+  useEffect(() => {
+    const stored = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setFilterCategoryStorage(parsed.uniqueIDClickedCategories || []);
+        setFilterCategorySubCategoryStorage(parsed.uniqueIDClickedSubCategories || []);
+        setFilterCategorySubCategoryBrandsStorage(parsed.uniqueIDClickedSubCategoriesBrands || []);
+        setFilters_category_mode(parsed.filters || initialFilters_category_mode.filters);
+      } catch (e) {
+        console.error("[FastEdit] Error loading category cookie:", e);
+      }
+    }
+  }, [cookieUpdateTrigger, COOKIE_NAME_CATEGORY_MODE]);
+
+  // When switching back to brand tab, restore brand slider state from cookie
+  useEffect(() => {
+    if (searchType !== "brand") return;
+    const stored = Cookies.get(COOKIE_NAME_BRAND_MODE);
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored);
+      setFilterBrandStorage(parsed.uniqueIDClickedBrands || []);
+      setFilterBrandsCategoryStorage(parsed.uniqueIDClickedBrandsCategories || []);
+      setFilterBrandsCategorySubCategoryStorage(parsed.filterBrandsCategorySubCategoryStorage || []);
+      setFilters_brand_mode(parsed.filters || initialFilters_brand_mode.filters);
+    } catch (e) {}
+  }, [searchType]);
+
+  // When switching back to category tab, restore category slider state from cookie
+  useEffect(() => {
+    if (searchType !== "category") return;
+    const stored = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored);
+      setFilterCategoryStorage(parsed.uniqueIDClickedCategories || []);
+      setFilterCategorySubCategoryStorage(parsed.uniqueIDClickedSubCategories || []);
+      setFilterCategorySubCategoryBrandsStorage(parsed.uniqueIDClickedSubCategoriesBrands || []);
+      setFilters_category_mode(parsed.filters || initialFilters_category_mode.filters);
+    } catch (e) {}
+  }, [searchType]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -811,15 +970,16 @@ function FastEdit() {
     }
   }, [authError]);
 
-  // ✅ NEW: Load currency price on component mount
-  useEffect(() => {
-    if (user && user.role === "supplier") {
-      dispatch(getCurrencyPrice());
-    }
-  }, [dispatch, user]);
+  // Currency price is loaded via useApiQuery above (cached); no dispatch on mount
+
+  const queryClient = useQueryClient();
 
   const handleBulkPriceUpdateSuccess = useCallback(() => {
-    // Refetch data based on current search type
+    // Invalidate React Query table cache so useApiQuery in search components refetches (tables show cached data when no checkboxes selected)
+    queryClient.invalidateQueries({ queryKey: ["fast-edit-brand-mode"] });
+    queryClient.invalidateQueries({ queryKey: ["fast-edit-category-mode"] });
+
+    // Also refetch via Redux so tables that use Redux (e.g. when saved-filter checkboxes selected) get fresh data
     if (searchType === "brand") {
       const storedFilters = Cookies.get(COOKIE_NAME_BRAND_MODE);
       if (storedFilters) {
@@ -853,7 +1013,7 @@ function FastEdit() {
         }
       }
     }
-  }, [searchType, dispatch, COOKIE_NAME_BRAND_MODE, COOKIE_NAME_CATEGORY_MODE]);
+  }, [searchType, dispatch, queryClient, COOKIE_NAME_BRAND_MODE, COOKIE_NAME_CATEGORY_MODE]);
 
   // Calculate product counts for bulk price modal
   const brandProductCount = useMemo(() => {
@@ -903,8 +1063,7 @@ function FastEdit() {
 
   return (
     <>
-      {/* ✅ FIXED: RotateModal at root level - ALWAYS renders when isPortrait is true */}
-      {/* <RotateModal isPortrait={isPortrait} /> */}
+      <RotateModal isPortrait={isPortrait} />
 
       {
         !loadingBrandModeUpdate &&
@@ -919,6 +1078,8 @@ function FastEdit() {
       <CurrencyPriceModal
         opened={currencyModalOpened}
         onClose={() => setCurrencyModalOpened(false)}
+        currencyPriceFromCache={currencyPriceFromQuery}
+        currencyPriceLoading={currencyPriceLoading}
       />
 
       {/* ✅ NEW: Bulk Price Update Modal */}
@@ -974,6 +1135,15 @@ function FastEdit() {
                     isEditMode={isEditModeBrand}
                     onEditModeChange={handleEditModeChangeBrand}
                     loadingStates={loadingStates}
+                    cookieUpdateTrigger={cookieUpdateTrigger}
+                    onCookieUpdate={handleCookieUpdate}
+                    filterBrandStorage={filterBrandStorage}
+                    setFilterBrandStorage={setFilterBrandStorage}
+                    filterBrandsCategoryStorage={filterBrandsCategoryStorage}
+                    setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
+                    filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
+                    setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
+                    savedFilters={savedFiltersBrand}
                   />
                 </BrandRowSelectionProvider>
                 :
@@ -1003,6 +1173,15 @@ function FastEdit() {
                     isEditMode={isEditModeCategory}
                     onEditModeChange={handleEditModeChangeCategory}
                     loadingStates={loadingStates}
+                    cookieUpdateTrigger={cookieUpdateTrigger}
+                    onCookieUpdate={handleCookieUpdate}
+                    filterCategoryStorage={filterCategoryStorage}
+                    setFilterCategoryStorage={setFilterCategoryStorage}
+                    filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
+                    setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
+                    filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
+                    setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
+                    savedFilters={savedFiltersCategory}
                   />
                 </CategoryRowSelectionProvider>
               }

@@ -16,11 +16,11 @@ import {
   Badge,
 } from "@mantine/core";
 import { IconPlus, IconTrash, IconEdit, IconDeviceFloppy } from '@tabler/icons-react';
+import { useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { notifications } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import { saveFilterSettings } from "../../../../../redux/savefiltersettings/saveFilterSettingsActions";
-import { getFilterSettings } from "../../../../../redux/savefiltersettings/getFilterSettings/getFilterSettingsActions";
 import { deleteFilterSettings } from "../../../../../redux/savefiltersettings/deleteFilterSettings/deleteFilterSettingsActions";
 import { updateFilterSettings } from "../../../../../redux/savefiltersettings/updatefiltersettings/updateFilterSettingsActions";
 import { fetchFastEditCategoryModeTableData } from "../../../../../redux/fastedit/fastedittabledata/fastedittablecategorymode/fastEditTableCategoryModeDataActions";
@@ -40,11 +40,15 @@ const SavedFiltersModalCategory = ({
   setSearchType,
   filters,
   localFilters,
-  onEditModeChange
+  onEditModeChange,
+  savedFilters: savedFiltersProp,
 }) => {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
+  const SAVE_FILTERS_SLUG = "category-fast-edit";
+  const savedFilters = savedFiltersProp ?? [];
   
-  const { savedFilters, deleteLoadingId } = useSelector((state) => state.getFilterSettings || {});
+  const { deleteLoadingId } = useSelector((state) => state.getFilterSettings || {});
   const { saveStatus } = useSelector((state) => state.saveFilterSettings || {});
 
   const { 
@@ -163,7 +167,6 @@ const SavedFiltersModalCategory = ({
   const saveEditedFilter = useCallback(() => {
     if (!editingFilterId || !editingFilterName.trim()) return;
 
-    const slug = "category-fast-edit";
     const cookieRaw = Cookies.get(COOKIE_NAME);
     let fullCookieData;
 
@@ -175,13 +178,13 @@ const SavedFiltersModalCategory = ({
 
     dispatch(
       updateFilterSettings({
-        slug,
+        slug: SAVE_FILTERS_SLUG,
         id: editingFilterId,
         filterName: editingFilterName.trim(),
         ...fullCookieData,
       })
     ).then(() => {
-      dispatch(getFilterSettings(slug));
+      queryClient.invalidateQueries({ queryKey: ["save-filters", SAVE_FILTERS_SLUG] });
       setIsEditMode(false);
       setEditingFilterId(null);
       setEditingFilterName('');
@@ -193,7 +196,7 @@ const SavedFiltersModalCategory = ({
         autoClose: 3000,
       });
     });
-  }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch]);
+  }, [editingFilterId, editingFilterName, COOKIE_NAME, dispatch, queryClient]);
 
   // Cancel edit mode
   const cancelEditMode = useCallback(() => {
@@ -234,19 +237,20 @@ const SavedFiltersModalCategory = ({
       
       const selectedFilter = savedFilters?.find(f => f.id === filterId);
       if (selectedFilter) {
+        // Clear all 1st/2nd/3rd row states; 1st row disabled, 2nd/3rd hidden when filter active
         const cookieValue = {
           searchType: 'category',
           filters: selectedFilter.filters || {},
-          uniqueIDClickedCategories: selectedFilter.uniqueIDClickedCategories || [],
-          uniqueIDClickedSubCategories: selectedFilter.uniqueIDClickedSubCategories || [],
-          uniqueIDClickedSubCategoriesBrands: selectedFilter.uniqueIDClickedSubCategoriesBrands || [],
+          uniqueIDClickedCategories: [],
+          uniqueIDClickedSubCategories: [],
+          uniqueIDClickedSubCategoriesBrands: [],
         };
 
         Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
 
-        setFilterCategoryStorage(selectedFilter.uniqueIDClickedCategories || []);
-        setFilterCategorySubCategoryStorage(selectedFilter.uniqueIDClickedSubCategories || []);
-        setFilterCategorySubCategoryBrandsStorage(selectedFilter.uniqueIDClickedSubCategoriesBrands || []);
+        setFilterCategoryStorage([]);
+        setFilterCategorySubCategoryStorage([]);
+        setFilterCategorySubCategoryBrandsStorage([]);
         setLocalFilters(selectedFilter.filters || {});
 
         if (setFilters) setFilters(selectedFilter.filters || {});
@@ -320,7 +324,6 @@ const SavedFiltersModalCategory = ({
   const saveFiltersSettings = useCallback(() => {
     if (!filterName.trim()) return;
 
-    const slug = "category-fast-edit";
     const cookieRaw = Cookies.get(COOKIE_NAME);
     let fullCookieData;
 
@@ -332,32 +335,50 @@ const SavedFiltersModalCategory = ({
 
     dispatch(
       saveFilterSettings({
-        slug,
+        slug: SAVE_FILTERS_SLUG,
         filters: fullCookieData,
         filterName: filterName.trim(),
       })
     ).then((result) => {
-      dispatch(getFilterSettings(slug));
-      // Close modal on successful save
-      if (result?.payload?.state === "ok" || result?.type?.includes('fulfilled')) {
+      // Rejected – Redux saveError is set; search component shows ErrorMessageModal with backend message
+      if (result?.type === "category/saveFilterSettings/rejected") {
+        const msg =
+          result?.payload?.message ||
+          (typeof result?.payload === "string" ? result.payload : null) ||
+          result?.error?.message ||
+          "";
+        const isMaxFive = msg.includes("5") || msg.toLowerCase().includes("filter settings");
+        setOpenedAddModal(false);
+        setFilterName("");
+        if (isMaxFive) {
+          onClose();
+        }
+        return;
+      }
+      // Success
+      queryClient.invalidateQueries({ queryKey: ["save-filters", SAVE_FILTERS_SLUG] });
+      if (result?.payload?.state === "ok" || result?.type?.includes("fulfilled")) {
         setOpenedAddModal(false);
         setFilterName("");
         notifications.show({
-          title: 'ذخیره شد',
+          title: "ذخیره شد",
           message: `فیلتر "${filterName.trim()}" با موفقیت ذخیره شد.`,
-          color: 'green',
+          color: "green",
           autoClose: 3000,
         });
       }
+    }).catch(() => {
+      // Unexpected rejection – close add modal only; Redux may have saveError for modal
+      setOpenedAddModal(false);
+      setFilterName("");
     });
-  }, [filterName, COOKIE_NAME, dispatch]);
+  }, [filterName, COOKIE_NAME, dispatch, queryClient, onClose]);
 
   // Delete filter handler
   const handleDeleteSavedFilter = useCallback((id) => {
-    const slug = "category-fast-edit";
-    dispatch(deleteFilterSettings({ slug, id }))
+    dispatch(deleteFilterSettings({ slug: SAVE_FILTERS_SLUG, id }))
       .then(() => {
-        dispatch(getFilterSettings(slug));
+        queryClient.invalidateQueries({ queryKey: ["save-filters", SAVE_FILTERS_SLUG] });
         if (isChecked(id)) {
           toggleCheck(id);
         }
@@ -365,7 +386,7 @@ const SavedFiltersModalCategory = ({
           cancelEditMode();
         }
       });
-  }, [dispatch, isChecked, toggleCheck, editingFilterId, cancelEditMode]);
+  }, [dispatch, queryClient, isChecked, toggleCheck, editingFilterId, cancelEditMode]);
 
   // Handle filter click (load without editing)
   const handleFilterClick = useCallback((filter) => {

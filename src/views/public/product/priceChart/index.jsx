@@ -33,7 +33,20 @@ function PriceChart({ opened, close, title, priceHistory }) {
   })) || [];
 
   return (
-    <Modal opened={opened} size="80%" title={`نمودار قیمت ${title}`} onClose={close}>
+    <Modal
+      opened={opened}
+      size="80%"
+      title={`نمودار قیمت ${title}`}
+      onClose={close}
+      zIndex={1100}
+      styles={{
+        root: { zIndex: 1100 },
+        inner: { zIndex: 1100, paddingTop: 0 },
+        overlay: { zIndex: 1099 },
+        header: { paddingTop: 0 },
+        content: { paddingTop: 0 },
+      }}
+    >
       {!priceHistory || priceHistory.length === 0 ? (
         <Center h={300}>
           <Flex direction="column" align="center" gap="md">

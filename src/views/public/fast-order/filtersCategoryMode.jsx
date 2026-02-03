@@ -31,6 +31,7 @@ import { shallowEqual, useMediaQuery } from "@mantine/hooks";
 import { useFastOrder } from ".";
 import { useFilterContext } from "./filterscontext";
 import { useLocation, useParams } from "react-router";
+import { useCategoryRowSelection } from "./CategoryRowSelectionContext";
 import SavedFiltersModalCategoryMode from "./savedfilters/categorymode/SavedFiltersModalCategoryModeFastOrder";
 import 'swiper/css';
 import 'swiper/css/free-mode';
@@ -427,7 +428,8 @@ function FiltersCategoryMode({
   setFilterCategorySubCategoryStorage,
   setFilterCategorySubCategoryBrandsStorage,
   setLocalFilters,
-  localFilters
+  localFilters,
+  onCategorySavedFilterActiveChange,
 }) {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -439,6 +441,14 @@ function FiltersCategoryMode({
   const { filterValues, setOpened } = useFastOrder();
 
   const { filtersContext, setFiltersContext, brandsContext = { parent: [] } } = useFilterContext();
+
+  const { checkedRows } = useCategoryRowSelection();
+
+  useEffect(() => {
+    if (typeof onCategorySavedFilterActiveChange === "function") {
+      onCategorySavedFilterActiveChange(checkedRows.size > 0);
+    }
+  }, [checkedRows.size, onCategorySavedFilterActiveChange]);
 
   // State for saved filters modal
   const [savedFiltersModalOpened, setSavedFiltersModalOpened] = useState(false);
@@ -859,6 +869,7 @@ function FiltersCategoryMode({
           localFilters={localFilters}
           onCookieUpdate={onCookieUpdate}
           onEditModeChange={handleEditModeChange}
+          onCategorySavedFilterActiveChange={onCategorySavedFilterActiveChange}
         />
       )}
       </Paper>

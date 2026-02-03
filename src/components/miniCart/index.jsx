@@ -23,6 +23,7 @@ import { notifications } from "@mantine/notifications";
 import { IconTrash, IconUser, IconX, IconCheck, IconMinus, IconPlus } from "@tabler/icons-react";
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { NavLink, useNavigate } from "react-router";
 import { setInitial } from "../../redux/cart";
 import InfoBox from "../InfoBox";
@@ -80,6 +81,7 @@ const NewBasketIcon = ({ size = 24, color = "currentColor", ...props }) => (
 const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isRemoving, setIsRemoving] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -213,34 +215,23 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         throw new Error(updateData.error || "Server returned an error");
       }
 
-      // Fetch updated cart
-      const cartResponse = await fetch(getApiUrl("/cart"), {
-        method: "GET",
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+      // Update Redux with response cart if available
+      if (updateData?.cart && Array.isArray(updateData.cart)) {
+        dispatch(setInitial([...updateData.cart]));
+      }
+
+      // Invalidate queries to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+
+      notifications.show({
+        title: 'موفق',
+        message: 'تعداد محصول به‌روزرسانی شد',
+        color: 'green',
+        icon: <IconCheck size={16} />,
+        autoClose: 2000,
+        position: 'top-right'
       });
-
-      if (cartResponse.status === 401) {
-        handleTokenExpiration({ status: 401, message: 'Unauthorized' });
-        return;
-      }
-
-      if (cartResponse.ok) {
-        const cartData = await cartResponse.json();
-        if (cartData?.message === "ok" && cartData?.cart) {
-          dispatch(setInitial([...cartData.cart]));
-          notifications.show({
-            title: 'موفق',
-            message: 'تعداد محصول به‌روزرسانی شد',
-            color: 'green',
-            icon: <IconCheck size={16} />,
-            autoClose: 2000,
-            position: 'top-right'
-          });
-        }
-      }
 
     } catch (error) {
       console.error("Update failed:", error);
@@ -332,6 +323,10 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         const newCartItems = removeData.cart || [];
         dispatch(setInitial(newCartItems));
         
+        // Invalidate queries to refetch fresh data
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
+        
         notifications.show({
           title: 'موفق',
           message: newCartItems.length === 0 ? 'سبد خرید خالی شد' : 'محصول از سبد خرید حذف شد',
@@ -345,34 +340,9 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
         return;
       }
 
-      const cartResponse = await fetch(getApiUrl("/cart"), {
-        method: "GET",
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-      });
-
-      if (cartResponse.status === 401) {
-        handleTokenExpiration({ status: 401, message: 'Unauthorized' });
-        setIsRemoving(false);
-        return;
-      }
-
-      if (cartResponse.ok) {
-        const cartData = await cartResponse.json();
-        if (cartData?.message === "ok" && cartData?.cart) {
-          dispatch(setInitial([...cartData.cart]));
-          notifications.show({
-            title: 'موفق',
-            message: 'محصول از سبد خرید حذف شد',
-            color: 'green',
-            icon: <IconCheck size={16} />,
-            autoClose: 3000,
-            position: 'top-right'
-          });
-        }
-      }
+      // Invalidate queries even if message wasn't "ok" to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
 
       setIsRemoving(false);
 
@@ -640,6 +610,7 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
   const [internalOpened, internalHandlers] = useDisclosure(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isSmallMobile = useMediaQuery('(max-width: 480px)');
 
@@ -663,36 +634,17 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
   const shouldShowCart = user && isVerified;
   const cartCount = shouldShowCart ? items.length : 0;
 
-  // Fetch fresh cart data when minicart is opened
+  // Invalidate and refetch cart data when minicart is opened
   useEffect(() => {
-    const fetchCartData = async () => {
-      if (!opened || !user || !isVerified) return;
+    if (!opened || !user || !isVerified) return;
 
-      const token = localStorage.getItem("user");
-      if (!token) return;
+    const token = localStorage.getItem("user");
+    if (!token) return;
 
-      try {
-        const response = await fetch(getApiUrl("/cart"), {
-          method: "GET",
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            "Content-Type": "application/json"
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data?.cart) {
-            dispatch(setInitial(data.cart));
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch cart data:", error);
-      }
-    };
-
-    fetchCartData();
-  }, [opened, user, isVerified, dispatch]);
+    // Invalidate queries to trigger refetch with fresh data
+    queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+    queryClient.invalidateQueries({ queryKey: ["cart"] });
+  }, [opened, user, isVerified, queryClient]);
 
   const handleNavigateToBasket = () => {
     close();
@@ -764,7 +716,6 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
         closeOnClickOutside={true}
         closeOnEscape={true}
         lockScroll={false}
-        removeScrollBar={false}
         transitionProps={{ transition: 'slide-right', duration: 200 }}
         styles={{
           root: { zIndex: 1005 },
