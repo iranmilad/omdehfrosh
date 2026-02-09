@@ -75,6 +75,7 @@ const SupplierSchema = new mongoose.Schema({
     special_offer: { type: Date, default: null }
 });
 
+// ----- MODIFIED 2026-02-07: optional label for option (e.g. Persian color name for tooltip) -----
 const CombinationSchema = new mongoose.Schema({
     id: { type: Number, required: true },
     selected: { type: Boolean, default: false },
@@ -84,7 +85,8 @@ const CombinationSchema = new mongoose.Schema({
             value: { type: String, required: true },
             attribute_name: { type: String, required: true },
             type: {type: String, required: true},
-            attribute_id: { type: Number, required: true }
+            attribute_id: { type: Number, required: true },
+            label: { type: String, required: false }
         }
     ],
     suppliers: [SupplierSchema]

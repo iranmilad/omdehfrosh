@@ -9,14 +9,16 @@ import ProductComments from "../models/ProductComments.js";
 
 // ordersController.js
 
+
+
 // NEW: Update address for all basket orders
 export const updateBasketOrdersAddress = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-    
-    if (!user_id) {
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
       return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const { user_id } = tokenData;
 
     const address = req.body;
 
@@ -55,12 +57,11 @@ export const updateBasketOrdersAddress = async (req, res) => {
 // Keep the existing single order update function
 export const updateOrderAddress = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
-    
-    if (!user_id) {
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
       return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const { user_id } = tokenData;
 
     const { orderId } = req.params;
 
@@ -125,10 +126,11 @@ export const createOrder = async (req, res) => {
 
 export const getOrder = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-    if (!user_id) {
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
       return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const { user_id } = tokenData;
 
     const orderId = req.params.id;
 
@@ -172,16 +174,11 @@ export const getOrder = async (req, res) => {
   
   export const getOrderByReceiptID = async (req, res) => {
     try {
-
-
-
-      const { user_id } = getUserFromToken(req, res);  // This will handle token extraction and verification
-
-      const userId = user_id;
-  
-      if (!userId) {
-        return res.status(400).json({ message: "User Not Found" });
+      const tokenData = getUserFromToken(req, res);
+      if (!tokenData) {
+        return res.status(401).json({ message: "Unauthorized: user not found" });
       }
+      const { user_id: userId } = tokenData;
   
       // Extract Order ID
       const { receipt_id } = req.params; 
@@ -208,12 +205,11 @@ export const getOrder = async (req, res) => {
 // Get all orders
 export const getAllOrdersByUserId = async (req, res) => {
   try {
-    // Extract user_id from token
-    const { user_id } = getUserFromToken(req, res);
-
-    if (!user_id) {
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
       return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const { user_id } = tokenData;
 
     // Fetch all orders for this user
     const orders = await OrderJ2B.find({ user_id: user_id })
@@ -253,7 +249,11 @@ export const updateOrderStatus = async (req, res) => {
 
   console.log(deliveredStatus, orderId)
 
-  const { user_id } = getUserFromToken(req, res); // optional: verify user
+  const tokenData = getUserFromToken(req, res);
+  if (!tokenData) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const { user_id } = tokenData;
 
   try {
     if (!orderId || deliveredStatus === undefined) {

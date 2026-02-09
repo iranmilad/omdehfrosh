@@ -1,5 +1,5 @@
 // src\views\public\fast-order\savedfilters\brandmode\SavedFiltersModalBrandModeFastOrder.jsx
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import {
   Modal,
@@ -53,18 +53,24 @@ const SavedFiltersModalBrandModeFastOrder = ({
   localFilters,
   onCookieUpdate,
   tableData,
-  onEditModeChange
+  onEditModeChange,
+  savedFiltersFromParent,
 }) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const SAVE_FILTERS_SLUG = "brand-fast-order";
-  const { data: savedFiltersFromQuery } = useApiQuery({
+  const { isVerified, user } = useSelector((state) => state.auth ?? EMPTY_AUTH);
+  const { data: savedFiltersFromQuery, refetch: refetchSavedFilters } = useApiQuery({
     endpoint: `/save-filters/${SAVE_FILTERS_SLUG}`,
     queryKey: ["save-filters", SAVE_FILTERS_SLUG],
     strategy: "USER_DATA",
     transformer: (r) => (Array.isArray(r?.data?.data) ? r.data.data : r?.data ?? []),
+    enabled: !!(user || (typeof window !== 'undefined' && window.localStorage?.getItem?.('user'))),
   });
-  const savedFilters = savedFiltersFromQuery ?? [];
+  // Prefer modal's own query when it has data (avoids showing empty when index got [] e.g. before token)
+  const fromQuery = Array.isArray(savedFiltersFromQuery) ? savedFiltersFromQuery : [];
+  const fromParent = Array.isArray(savedFiltersFromParent) ? savedFiltersFromParent : [];
+  const savedFilters = fromQuery.length > 0 ? fromQuery : fromParent;
   if (process.env.NODE_ENV === "development" && opened) {
     console.log("[SavedFiltersBrand] savedFilters from query", { length: savedFilters?.length, isArray: Array.isArray(savedFilters) });
   }
@@ -72,9 +78,6 @@ const SavedFiltersModalBrandModeFastOrder = ({
   const { saveStatus, saveLoading } = useSelector((state) => state.saveFilterSettings ?? EMPTY_SAVE_FILTER);
   const { updateLoading } = useSelector((state) => state.updateFilterSettings ?? EMPTY_UPDATE_FILTER);
   const { deleteLoading } = useSelector((state) => state.deleteFilterSettings ?? EMPTY_DELETE_FILTER);
-  
-  // ✅ Get auth state
-  const { isVerified, user } = useSelector((state) => state.auth ?? EMPTY_AUTH);
 
   const { 
     checkedRows, 
@@ -111,10 +114,13 @@ const SavedFiltersModalBrandModeFastOrder = ({
   });
   const navigate = useNavigate();
 
-  // ✅ Check authentication when modal opens (only when user clicks the icon)
+  const prevOpenedRef = useRef(false);
+  // ✅ Check authentication when modal opens; refetch list only once when modal just opened
   useEffect(() => {
+    const justOpened = opened && !prevOpenedRef.current;
+    prevOpenedRef.current = opened;
+
     if (opened) {
-      // Check if user is authenticated from Redux state
       if (!user || !isVerified) {
         notifications.show({
           title: 'لطفا ابتدا وارد حساب کاربری خود شوید',
@@ -123,9 +129,11 @@ const SavedFiltersModalBrandModeFastOrder = ({
           autoClose: 4000,
         });
         onClose();
+      } else if (justOpened && refetchSavedFilters) {
+        refetchSavedFilters();
       }
     }
-  }, [opened, user, isVerified, onClose]);
+  }, [opened, user, isVerified, onClose, refetchSavedFilters]);
 
   // Helper functions to build filter arrays
   const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {

@@ -342,8 +342,10 @@ function Category({ enabled, onSelectProduct }) {
     filterDisclosure[1].close();
   }, [fetchCategoryData, filterDisclosure]);
 
-  // Handle API error case with retry functionality
-  if (errorCategoryData && !loadingCategoryData) {
+  // Handle API error case with retry functionality (skip for 401 – only show relogin modal)
+  const errStr = typeof errorCategoryData === 'string' ? errorCategoryData : (errorCategoryData?.message || '');
+  const isAuthError = errStr && (String(errStr).includes('401') || String(errStr).toLowerCase().includes('unauthorized'));
+  if (errorCategoryData && !loadingCategoryData && !isAuthError) {
     const handleRetry = () => {
       fetchCategoryData();
     };
@@ -360,7 +362,7 @@ function Category({ enabled, onSelectProduct }) {
       >
         <Stack>
           <Text>خطایی در بارگذاری اطلاعات رخ داده است. لطفاً دوباره تلاش کنید.</Text>
-          <Text size="sm" c="gray.6">خطا: {errorCategoryData}</Text>
+          <Text size="sm" c="gray.6">خطا: {typeof errorCategoryData === 'string' ? errorCategoryData : errorCategoryData?.message}</Text>
           <Button
             onClick={handleRetry}
             variant="filled"
@@ -486,7 +488,7 @@ function Category({ enabled, onSelectProduct }) {
         centered
         withCloseButton={false}
         closeOnClickOutside={false}
-        zIndex={50}
+        zIndex={2000}
       >
         <Stack>
           <Text>برای مشاهده این صفحه ابتدا وارد وبسایت شوید.</Text>

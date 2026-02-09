@@ -7,11 +7,16 @@ import {
   IconChevronLeft,
   IconPackage
 } from "@tabler/icons-react";
+import { useMediaQuery } from "@mantine/hooks";
 
 function ProductHighlightCard({ items = [] }) {
   
   // Track which images have failed to load
   const [failedImages, setFailedImages] = useState(new Set());
+  
+  // Media queries for responsive sizing
+  const isMobile = useMediaQuery('(max-width: 576px)');
+  const isSmall = useMediaQuery('(min-width: 577px) and (max-width: 768px)');
 
   // Check if items is the category structure from your JSON
   const isCategories = items.length > 0 && items[0].title && items[0].children;
@@ -31,6 +36,10 @@ function ProductHighlightCard({ items = [] }) {
     const key = `${categoryIndex}-${itemIndex}`;
     setFailedImages(prev => new Set([...prev, key]));
   };
+
+  // Responsive dimensions
+  const CARD_WIDTH = isMobile ? 280 : isSmall ? 250 : 220;
+  const IMAGE_HEIGHT = isMobile ? 280 : isSmall ? 250 : 220;
 
   const createProductPlaceholder = (title) => {
     // Array of green-based gradient backgrounds matching ProductBox
@@ -55,16 +64,20 @@ function ProductHighlightCard({ items = [] }) {
     
     return (
       <Box
-        w="100%"
-        h="150px"
         style={{
+          width: `${CARD_WIDTH}px`,
+          height: `${IMAGE_HEIGHT}px`,
+          minWidth: `${CARD_WIDTH}px`,
+          minHeight: `${IMAGE_HEIGHT}px`,
+          maxWidth: `${CARD_WIDTH}px`,
+          maxHeight: `${IMAGE_HEIGHT}px`,
           background: selectedGradient,
           borderRadius: "8px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "column",
-          gap: "8px",
+          gap: "4px",
           position: "relative",
           overflow: "hidden",
           cursor: "pointer",
@@ -86,7 +99,7 @@ function ProductHighlightCard({ items = [] }) {
         
         {/* Product icon */}
         <IconPackage 
-          size={48} 
+          size={isMobile ? 56 : 48} 
           color="rgba(255, 255, 255, 0.8)" 
           style={{ zIndex: 2 }} 
         />
@@ -112,16 +125,16 @@ function ProductHighlightCard({ items = [] }) {
     return (
       <Image
         className="hover:scale-105 transition-transform duration-300"
-        w="100%"
-        h="150px"
-        fit="contain"
         src={item.image}
         alt={displayTitle}
         onError={() => handleImageError(categoryIndex, itemIndex)}
-        fallbackSrc="" // This will trigger onError if image fails
+        fallbackSrc=""
+        fit="contain"
         style={{
-          borderRadius: "8px",
-          backgroundColor: "#f8f9fa", // Light background for transparent images
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          objectPosition: "center",
         }}
       />
     );
@@ -133,22 +146,35 @@ function ProductHighlightCard({ items = [] }) {
     return (
       <Paper
         shadow="sm"
-        px="25"
-        pb="lg"
-        pt="40"
+        px="md"
+        pb="md"
+        pt="md"
         pos="relative"
-        display="flex"
         style={{ 
-          flexDirection: "column",
           border: "1px solid rgba(1, 1, 1, 0.5)",
+          width: "100%",
+          maxWidth: `${CARD_WIDTH}px`,
+          margin: '0 auto',
         }}
-        h="100%"
       >
-        <Box component={item.url ? NavLink : 'div'} to={item.url ? `/product/${item.url}` : undefined}>
+        <Box
+          component={item.url ? NavLink : 'div'}
+          to={item.url ? `/product/${item.url}` : undefined}
+          style={{
+            width: "100%",
+            height: `${IMAGE_HEIGHT}px`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: 'hidden',
+            borderRadius: '8px',
+            backgroundColor: "#f8f9fa",
+          }}
+        >
           {renderProductImage(item, categoryIndex, itemIndex)}
         </Box>
         
-        <Box my="lg" w="100%" minh="42px">
+        <Box my="sm" w="100%" style={{ minHeight: 42 }}>
           <Text
             fw="500"
             size="14px"
@@ -217,15 +243,16 @@ function ProductHighlightCard({ items = [] }) {
                 )}
               </Group>
               
-              <Flex justify="center" w="100%">
-                <Grid gutter="md" style={{ maxWidth: '100%' }}>
-                  {category.children.map((item, itemIndex) => (
-                    <GridCol key={item.url || `${categoryIndex}-${itemIndex}`} span={{ base: 6, xs: 6, sm: 4, md: 3, lg: 3 }}>
-                      {renderProductCard(item, categoryIndex, itemIndex)}
-                    </GridCol>
-                  ))}
-                </Grid>
-              </Flex>
+              <Grid gutter="sm">
+                {category.children.map((item, itemIndex) => (
+                  <GridCol 
+                    key={item.url || `${categoryIndex}-${itemIndex}`} 
+                    span={{ base: 12, xs: 6, sm: 4, md: 3 }}
+                  >
+                    {renderProductCard(item, categoryIndex, itemIndex)}
+                  </GridCol>
+                ))}
+              </Grid>
             </Box>
           ))}
         </Box>
@@ -238,15 +265,16 @@ function ProductHighlightCard({ items = [] }) {
     <EditorContainer>
       {items.map((row, rowIndex) => (
         <Box key={rowIndex} mb="lg">
-          <Flex justify="center" w="100%">
-            <Grid gutter="md" style={{ maxWidth: '100%' }}>
-              {row.map((item, itemIndex) => (
-                <GridCol key={item.url || `${rowIndex}-${itemIndex}`} span={{ base: 6, xs: 6, sm: 4, md: 3, lg: 3 }}>
-                  {renderProductCard(item, rowIndex, itemIndex)}
-                </GridCol>
-              ))}
-            </Grid>
-          </Flex>
+          <Grid gutter="sm">
+            {row.map((item, itemIndex) => (
+              <GridCol 
+                key={item.url || `${rowIndex}-${itemIndex}`} 
+                span={{ base: 12, xs: 6, sm: 4, md: 3 }}
+              >
+                {renderProductCard(item, rowIndex, itemIndex)}
+              </GridCol>
+            ))}
+          </Grid>
         </Box>
       ))}
     </EditorContainer>

@@ -1,5 +1,5 @@
 // src\views\public\fast-edit\fasttablebrand.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Table, Image, Typography, Space, Tag, Avatar } from "antd";
 import { DownOutlined, RightOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
 import { NavLink } from "react-router";
@@ -46,7 +46,12 @@ const FastTableBrandFastEdit = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const hasAppliedResponsiveColumnsRef = useRef(false);
   useEffect(() => {
+    if (!hasAppliedResponsiveColumnsRef.current) {
+      hasAppliedResponsiveColumnsRef.current = true;
+      return;
+    }
     let newVisibleColumns = [];
 
     if (isMobile) {

@@ -37,6 +37,7 @@ function Account_Favorite() {
       if (msg.includes("401")) return false;
       return failureCount < 2;
     },
+    queryOptions: { refetchOnMount: true },
   });
 
   const userAccount = userAccountData?.data ?? userAccountData;

@@ -14,18 +14,20 @@ import {
   Text,
   useMantineTheme,
   Loader,
-  Modal,
   Box,
   Input
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { IconTrash, IconUser, IconX, IconCheck, IconMinus, IconPlus } from "@tabler/icons-react";
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
 import { NavLink, useNavigate } from "react-router";
-import { setInitial } from "../../redux/cart";
+import { setInitial, clearCart } from "../../redux/cart";
+import { logout } from "../../redux/auth/authusers/auth";
+import { logout as logoutMaster } from "../../redux/auth/authmaster/authMasterSlice";
+import { clearCacheOnLogout } from "../../Libs/reactQuery";
 import InfoBox from "../InfoBox";
 import { getsubscriptionPlansGet } from "../../redux/usermyaccounts/usermyaccounts/getsubscriptionplans/getSubscriptionPlansActions";
 import { DEFAULT_COLOR_MAP } from '../../Libs/attribute_colors/colors';
@@ -80,31 +82,35 @@ const NewBasketIcon = ({ size = 24, color = "currentColor", ...props }) => (
 
 const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min }) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isRemoving, setIsRemoving] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { primaryColor } = useMantineTheme();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Helper function to handle token expiration
-  const handleTokenExpiration = (error) => {
-    if (error.message.includes('توکن نامعتبر است') || 
-        error.message.includes('Unauthorized') || 
-        error.status === 401) {
-      localStorage.removeItem("user");
-      dispatch(setInitial([]));
-      setShowAuthModal(true);
+  // 401: use global auth flow (same as counter-basket, payment-method)
+  const clearAuthAndShowReloginModal = useCallback(() => {
+    localStorage.removeItem("user");
+    if (queryClient) clearCacheOnLogout(queryClient);
+    dispatch(logout());
+    dispatch(logoutMaster());
+    dispatch(clearCart());
+    dispatch(setInitial([]));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("auth:401"));
+    }
+  }, [queryClient, dispatch]);
+
+  const handleTokenExpiration = useCallback((error) => {
+    const is401 =
+      error?.status === 401 ||
+      (typeof error?.message === "string" && (error.message.includes("توکن نامعتبر است") || error.message.includes("Unauthorized") || error.message.includes("401")));
+    if (is401) {
+      clearAuthAndShowReloginModal();
       return true;
     }
     return false;
-  };
-
-  const handleLoginRedirect = () => {
-    setShowAuthModal(false);
-    navigate('/login');
-  };
+  }, [clearAuthAndShowReloginModal]);
 
   useEffect(() => {
     return () => {
@@ -168,12 +174,17 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     return DEFAULT_COLOR_MAP[lowerColorValue] || DEFAULT_COLOR_MAP[colorValue] || colorValue;
   };
 
-  const discountPercentage = useMemo(() => {
-    if (price?.regularPrice && price?.discountedPrice && price.regularPrice > price.discountedPrice) {
-      return Math.round(((price.regularPrice - price.discountedPrice) / price.regularPrice) * 100);
-    }
-    return null;
-  }, [price]);
+// In MiniBox component, update the discount percentage calculation:
+const discountPercentage = useMemo(() => {
+  if (price?.regularPrice && price?.discountedPrice && 
+      price.regularPrice > price.discountedPrice && 
+      price.discountedPrice > 0) {  // Add this condition
+    return Math.round(((price.regularPrice - price.discountedPrice) / price.regularPrice) * 100);
+  }
+  return null;
+}, [price]);
+
+
 
   const updateItem = async (newCount) => {
     try {
@@ -395,30 +406,6 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
 
   return (
     <>
-      <Modal
-        opened={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        title="ورود به حساب کاربری"
-        centered
-        closeOnClickOutside={false}
-        closeOnEscape={false}
-      >
-        <Text mb="md">لطفا وارد حساب کاربری شوید</Text>
-        <Flex gap="sm" justify="flex-end">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowAuthModal(false)}
-          >
-            انصراف
-          </Button>
-          <Button 
-            onClick={handleLoginRedirect}
-          >
-            ورود به حساب کاربری
-          </Button>
-        </Flex>
-      </Modal>
-
       {/* Main container matching the design */}
       <Box
         style={{
@@ -560,44 +547,51 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
     isLoading={isRemoving}
   />
 
-  {/* Price section */}
-  <Flex direction="column" align="flex-end" gap={4}>
-    {/* Discounted price or regular price */}
-    <Flex align="center" gap={4}>
-      <Text size="lg" fw={700} c="#23254e">
-        <NumberFormatter thousandSeparator value={price?.discountedPrice || price?.regularPrice} />
+{/* Price section */}
+<Flex direction="column" align="flex-end" gap={4}>
+  {/* Discounted price or regular price */}
+  <Flex align="center" gap={4}>
+    <Text size="lg" fw={700} c="#23254e">
+      <NumberFormatter 
+        thousandSeparator 
+        value={
+          price?.discountedPrice && 
+          price.discountedPrice > 0 && 
+          price.discountedPrice < price.regularPrice 
+            ? price.discountedPrice 
+            : price.regularPrice
+        } 
+      />
+    </Text>
+    <PriceText fontSize="10px">تومان</PriceText>
+  </Flex>
+
+  {/* Show regular price with strikethrough ONLY if there's a real discount */}
+  {discountPercentage && price?.discountedPrice < price?.regularPrice && (
+    <Flex align="center" gap={4} style={{ textDecoration: 'line-through', textDecorationColor: 'grey' }}>
+      <Badge 
+        size="sm" 
+        radius="md"
+        style={{
+          backgroundColor: '#ef4056',
+          color: '#fff',
+          border: 'none',
+          height: '20px',
+          padding: '4px 8px',
+          fontSize: '10px',
+          fontWeight: 600
+        }}
+      >
+        % {discountPercentage}
+      </Badge>
+      
+      <Text size="sm" c="#a1a3a8">
+        <NumberFormatter thousandSeparator value={price.regularPrice} />
       </Text>
       <PriceText fontSize="10px">تومان</PriceText>
     </Flex>
-
-    {/* Show regular price if there's a discount */}
-    {(
-      <Flex align="center" gap={4} style={{ textDecoration: 'line-through', textDecorationColor: 'grey', }}>
-      {discountPercentage && (
-        <Badge 
-          size="sm" 
-          radius="md"
-          style={{
-            backgroundColor: '#ef4056',
-            color: '#fff',
-            border: 'none',
-            height: '20px',
-            padding: '4px 8px',
-            fontSize: '10px',
-            fontWeight: 600
-          }}
-        >
-           % {discountPercentage}
-        </Badge>
-      )}
-      
-        <Text size="sm" c="#a1a3a8">
-          <NumberFormatter thousandSeparator value={price.regularPrice} />
-        </Text>
-        <PriceText fontSize="10px">تومان</PriceText>
-      </Flex>
-    )}
-  </Flex>
+  )}
+</Flex>
 </Flex>
 
 
@@ -620,6 +614,13 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
   const close = externalClose || internalHandlers.close;
 
   const cartState = useSelector((state) => state.cart);
+
+
+  console.log("Cart state in MiniCart:", cartState);
+
+
+
+
   const items = cartState?.items || [];
 
   const { user, isVerified } = useSelector((state) => state.auth);
@@ -808,7 +809,7 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
                 <Center style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', width: '100%' }}>
                   <InfoBox back={false} shadow="0" style={{ width: '100%', textAlign: 'center' }}>
                     <Stack align="center" gap="md">
-<NewBasketIcon size={24} color="#4d5053" />
+                      <NewBasketIcon size={24} color="#4d5053" />
                       <Text size={isMobile ? "sm" : "md"} c="dimmed">لطفا وارد حساب کاربری شوید</Text>
                       <Button 
                         component={NavLink} 

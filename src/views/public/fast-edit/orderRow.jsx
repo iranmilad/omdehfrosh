@@ -49,6 +49,30 @@ function OrderRow({ id = 0, attributes, inventory = 2,seller, onReplace }) {
   );
 }
 
+// Map hex color to Persian label (front-end only; no backend change)
+const HEX_TO_PERSIAN_COLOR = {
+  "#000000": "مشکی",
+  "#000080": "آبی تیره",
+  "#0000ff": "آبی",
+  "#008000": "سبز تیره",
+  "#00ff00": "سبز",
+  "#00ffff": "فیروزه‌ای",
+  "#808080": "خاکستری",
+  "#800000": "قهوه‌ای تیره",
+  "#800080": "بنفش",
+  "#a52a2a": "قهوه‌ای",
+  "#ff0000": "قرمز",
+  "#ff00ff": "ارغوانی",
+  "#ffa500": "نارنجی",
+  "#ffff00": "زرد",
+  "#ffffff": "سفید",
+};
+function getColorLabel(hex) {
+  if (!hex || typeof hex !== "string") return hex;
+  const normalized = hex.trim().toLowerCase().startsWith("#") ? hex.trim().toLowerCase() : "#" + hex.trim().toLowerCase();
+  return HEX_TO_PERSIAN_COLOR[normalized] ?? hex;
+}
+
 // Minimized SVG component with reduced size and no text
 const DefaultAttributesSVG = () => (
   <svg 
@@ -104,8 +128,10 @@ export function Attributes({items}){
 
 
 function Attribute (props){
-  let {type, attribute_name, value} = props;
+  let { type, attribute_name, value, label } = props;
   const [opened, setOpened] = useState(false);
+
+  console.log('Attribute Props:', props);
 
   const getIconForType = () => {
     switch (type?.toLowerCase()) {
@@ -113,7 +139,7 @@ function Attribute (props){
       case 'رنگ':
         return (
           <Tooltip 
-            label={attribute_name} 
+            label={`رنگ: ${props.label || getColorLabel(value)}`} 
             position="top" 
             withArrow
             opened={opened}

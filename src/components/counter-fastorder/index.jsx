@@ -5,7 +5,7 @@ import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { setInitial, clearCart } from "../../redux/cart";
 import { logout } from "../../redux/auth/authusers/auth";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
 import { useNavigate } from "react-router-dom";
 
@@ -288,6 +288,23 @@ const CounterFastOrder = (props) => {
     navigate('/login');
   };
 
+  // Prevent body shift when auth modal is open
+  useLayoutEffect(() => {
+    if (!showAuthModal) return;
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+    const prevPaddingLeft = body.style.paddingLeft;
+    body.style.overflow = '';
+    body.style.paddingRight = '';
+    body.style.paddingLeft = '';
+    return () => {
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
+      body.style.paddingLeft = prevPaddingLeft;
+    };
+  }, [showAuthModal]);
+
   // Check if component is still loading essential data
   const isComponentLoading = !item;
 
@@ -300,7 +317,7 @@ const CounterFastOrder = (props) => {
 
   return (
     <>
-      {/* Authentication Modal */}
+      {/* ورود به حساب کاربری / زمان حضور شما منقضی شده است – high z-index, no scroll lock to prevent shift */}
       <Modal
         opened={showAuthModal}
         onClose={() => setShowAuthModal(false)}
@@ -308,10 +325,18 @@ const CounterFastOrder = (props) => {
         centered
         closeOnClickOutside={false}
         closeOnEscape={false}
-        overlayProps={{
-          backgroundOpacity: 0,
-          blur: 0,
+        zIndex={2147483647}
+        transitionProps={{ duration: 0 }}
+        removeScrollProps={{ removeScrollBar: false }}
+        portalProps={typeof document !== 'undefined' && document.getElementById('auth-modal-portal') ? { target: document.getElementById('auth-modal-portal') } : {}}
+        styles={{
+          root: { zIndex: 2147483647, position: 'fixed', inset: 0 },
+          inner: { zIndex: 2147483647, padding: 0 },
+          content: { zIndex: 2147483647 },
         }}
+        overlayProps={{ style: { zIndex: 2147483647 }, backgroundOpacity: 0, blur: 0 }}
+        lockScroll={false}
+        removeScrollBar={false}
       >
         <Text mb="md">
           زمان حضور شما منقضی شده است

@@ -292,14 +292,14 @@ export const verifyUserMinimal = async (req, res) => {
 };
 
 export const verifyTokenMaster = (req, res) => {
-  const {decoded, user_id} = getUserFromToken(req, res);
-
-  if (!user_id) {
+  const tokenData = getUserFromToken(req, res);
+  if (!tokenData || !tokenData.user_id) {
     return res.status(401).json({
       valid: false,
       message: "No token provided"
     });
   }
+  const { decoded, user_id } = tokenData;
 
   try {
     return res.json({

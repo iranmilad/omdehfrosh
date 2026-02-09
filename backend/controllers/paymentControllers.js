@@ -140,11 +140,11 @@ const generateRequestId = () => {
 
 export const walletWithdraw = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
-    if (!user_id) {
-      return res.status(403).json({ message: "Unauthorized" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const user_id = tokenData.user_id;
 
     const { withdrawData } = req.body;
     const { amount } = withdrawData;
@@ -202,11 +202,11 @@ export const walletWithdraw = async (req, res) => {
 
 export const walletTransfer = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
-    if (!user_id) {
-      return res.status(403).json({ message: "Unauthorized" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const user_id = tokenData.user_id;
 
     const { transferData } = req.body;
     const { receiverPhone, amount, note } = transferData;
@@ -304,11 +304,11 @@ export const confirmCODPayment = async (req, res) => {
     res.setHeader("Access-Control-Allow-Credentials", "true");
 
     // Get user from token
-    const { user_id } = getUserFromToken(req, res);
-
-    if (!user_id) {
-      return res.status(403).json({ message: "Unauthorized" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const user_id = tokenData.user_id;
 
     // Validate required fields
     if (!orderId || !amount || payment_method !== 'cod') {
@@ -1244,8 +1244,11 @@ export const getWalletBalance = async (req, res) => {
 export const getPaymentLink = async (req, res) => {
   try {
     const { orderId } = req.body;
-    const { user_id } = getUserFromToken(req, res);
-
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     if (!orderId) {
       return res.status(400).json({ message: "orderId is required" });
     }
@@ -1297,8 +1300,11 @@ export const getPaymentLinkWallet = async (req, res) => {
 
 
 
-    const { user_id } = getUserFromToken(req, res);
-
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     // ✅ Validate
     if (!amount || !gateway) {
       return res.status(400).json({ message: "amount and gatewayId are required" });

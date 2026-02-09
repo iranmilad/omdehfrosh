@@ -194,11 +194,11 @@ const handleSubmitModal = (e) => {
       }
 
       // Use new universal payment flow for wallet recharge
-      // Send amount, gateway, and payment_type - backend will get wallet_id from user token
+      // Send amount, gateway - backend will get wallet_id from user token
+      // MODIFIED 2026-02-09 - Removed payment_type field
       processPayment({
         amount: depositForm.values.amount,
-        gateway: info?.info?.name || 'fake',
-        payment_type: 'wallet'
+        gateway: info?.info?.name || 'fake'
       });
     }
     return;
@@ -958,24 +958,24 @@ const transferForm = useForm({
           {/* Transactions */}
           <Title order={4} mt="lg" style={{ textAlign: 'right' }}>تراکنش‌ها</Title>
           <Box style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -var(--mantine-spacing-md)' }}>
-            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 520 }}>
+            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 520, direction: 'rtl' }}>
               <thead style={{ backgroundColor: '#f0f0f0' }}>
                 <tr>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>کد تراکنش</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>توضیح</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>مبلغ</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>تاریخ</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>عملیات</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>کد تراکنش</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', direction: 'rtl' }}>توضیح</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>مبلغ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>تاریخ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>عملیات</th>
                 </tr>
               </thead>
               <tbody>
                 {userAccount.wallet.paymentHistory?.map(tx => (
                   <tr key={tx._id}>
-                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{tx.transactionId}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{tx.description}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{tx.amount.toLocaleString()} تومان</td>
-                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{tx.date}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(tx); setModalOpenDetail(true); }}>نمایش</Button></td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>{tx.transactionId}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', direction: 'rtl' }}>{tx.description}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', direction: 'rtl' }}>{tx.amount.toLocaleString()} تومان</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>{tx.date}</td>
+                    <td style={{ textAlign: 'center', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(tx); setModalOpenDetail(true); }}>نمایش</Button></td>
                   </tr>
                 ))}
               </tbody>
@@ -985,26 +985,26 @@ const transferForm = useForm({
           {/* Transfers */}
           <Title order={4} mt="lg" style={{ textAlign: 'right' }}>انتقال‌ها</Title>
           <Box style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -var(--mantine-spacing-md)' }}>
-            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 560 }}>
+            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 560, direction: 'rtl' }}>
               <thead style={{ backgroundColor: '#f0f0f0' }}>
                 <tr>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>کد انتقال</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>یادداشت</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>مبلغ</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>وضعیت</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>تاریخ</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>عملیات</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>کد انتقال</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', direction: 'rtl' }}>یادداشت</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>مبلغ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>وضعیت</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>تاریخ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>عملیات</th>
                 </tr>
               </thead>
               <tbody>
                 {userAccount.wallet.transfers?.map(tr => (
                   <tr key={tr._id}>
-                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{tr.transferId}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{tr.note}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{tr.amount.toLocaleString()} تومان</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{tr.statusDescriptionFa}</td>
-                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{tr.date}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(tr); setModalOpenDetail(true); }}>نمایش</Button></td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>{tr.transferId}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', direction: 'rtl' }}>{tr.note}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', direction: 'rtl' }}>{tr.amount.toLocaleString()} تومان</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', direction: 'rtl' }}>{tr.statusDescriptionFa}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>{tr.date}</td>
+                    <td style={{ textAlign: 'center', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(tr); setModalOpenDetail(true); }}>نمایش</Button></td>
                   </tr>
                 ))}
               </tbody>
@@ -1014,26 +1014,26 @@ const transferForm = useForm({
           {/* Withdrawals */}
           <Title order={4} mt="lg" style={{ textAlign: 'right' }}>درخواست‌های برداشت</Title>
           <Box style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -var(--mantine-spacing-md)' }}>
-            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 560 }}>
+            <Table striped highlightOnHover withBorder style={{ tableLayout: 'auto', width: '100%', minWidth: 560, direction: 'rtl' }}>
               <thead style={{ backgroundColor: '#f0f0f0' }}>
                 <tr>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>کد درخواست</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>مبلغ</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>یادداشت</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>وضعیت</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>تاریخ</th>
-                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>عملیات</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>کد درخواست</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>مبلغ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', direction: 'rtl' }}>یادداشت</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>وضعیت</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>تاریخ</th>
+                  <th style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>عملیات</th>
                 </tr>
               </thead>
               <tbody>
                 {userAccount.wallet.pendingWithdrawals?.map(wd => (
                   <tr key={wd._id}>
-                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{wd.requestId}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{wd.amount.toLocaleString()} تومان</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{wd.note}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)' }}>{wd.statusDescriptionFa}</td>
-                    <td style={{ textAlign: 'left', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}>{wd.date}</td>
-                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(wd); setModalOpenDetail(true); }}>نمایش</Button></td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>{wd.requestId}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', direction: 'rtl' }}>{wd.amount.toLocaleString()} تومان</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', direction: 'rtl' }}>{wd.note}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', direction: 'rtl' }}>{wd.statusDescriptionFa}</td>
+                    <td style={{ textAlign: 'right', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}>{wd.date}</td>
+                    <td style={{ textAlign: 'center', padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)', whiteSpace: 'nowrap', direction: 'rtl' }}><Button size="xs" variant="light" onClick={() => { setSelectedItem(wd); setModalOpenDetail(true); }}>نمایش</Button></td>
                   </tr>
                 ))}
               </tbody>

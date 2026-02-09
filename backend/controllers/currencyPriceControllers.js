@@ -7,7 +7,11 @@ import getUserFromToken from "../libs/verifyToken.js";
  */
 export const updateCurrencyPrice = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const { price, currency = "USD" } = req.body;
 
     console.log(JSON.stringify(req.body));
@@ -69,8 +73,11 @@ export const updateCurrencyPrice = async (req, res) => {
  */
 export const getCurrencyPrice = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const currencyPrice = await CurrencyPrice.findOne({ 
       user_id: user_id,
       isActive: true 
@@ -117,8 +124,11 @@ export const getCurrencyPrice = async (req, res) => {
  */
 export const deleteCurrencyPrice = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const result = await CurrencyPrice.findOneAndUpdate(
       { user_id: user_id, isActive: true },
       { isActive: false, updatedAt: new Date() },

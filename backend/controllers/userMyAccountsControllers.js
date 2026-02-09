@@ -30,15 +30,12 @@ export const getAllUserMyAccounts = async (req, res) => {
 export const getUserMyAccountById = async (req, res) => {
 
 
-    const { user_id, decoded, role } = getUserFromToken(req, res);  
-
-
-
-    if (!user_id) {
-      return res.status(400).json({ message: "User Not Found" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
-
-    const userId = user_id
+    const { user_id, decoded, role } = tokenData;
+    const userId = user_id;
 
   // Validate ObjectId
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -207,9 +204,11 @@ export const getAllUserMessages = async (req, res) => {
   try {
 
     
-    const {user_id} = getUserFromToken(req, res);  // This will handle token extraction and verification
-
-
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     // Fetch user's cart from the database
     const userMessages = await UserMessage.findOne({ userId: user_id });
     if (!userMessages) {
@@ -230,8 +229,11 @@ export const getAllUserMessages = async (req, res) => {
 // Fixed API function with correct MongoDB query structure
 export const getAllUserMessageComponentByUserId = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-    
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     // Get pagination parameters from query
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
@@ -543,8 +545,11 @@ export const createSafeImagePath = (imagePath, defaultSvg = null) => {
 
 export const getUserMessagesModalDataByTableIndexAndRowId = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res); // Authenticated user
-
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const tableIndex = Number(req.query.tableIndex);
     const rowId = Number(req.query.rowId);
     
@@ -624,8 +629,11 @@ export const getAllUserTickets = async (req, res) => {
   try {
 
     
-    const {user_id} = getUserFromToken(req, res);  // This will handle token extraction and verification
-    
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const userTickets = await Ticket.findOne({ userId: user_id });
 
     
@@ -650,9 +658,11 @@ export const getUserTicketsById = async (req, res) => {
   const { id } = req.params; // Extract the ticket ID from the request parameters
   
   
-  const {user_id} = getUserFromToken(req, res);  // This will handle token extraction and verification
-  
-
+  const tokenData = getUserFromToken(req, res);
+  if (!tokenData || !tokenData.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const user_id = tokenData.user_id;
   try {
     // Fetch the ticket details by ID
     const userTickets = await Ticket.findOne({ userId: user_id });
@@ -681,11 +691,14 @@ export const getUserTicketsById = async (req, res) => {
 };
 
 // Fixed version of getNotificationsNumber function
-
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const getNotificationsNumber = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-    const userId = user_id;
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const userId = tokenData.user_id;
 
     // Validate userId
     if (!userId) {
@@ -779,7 +792,11 @@ export const getNotificationsNumberWithProcessing = async (userId) => {
 
 export const setNotificationSeen = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const { notificationId, isRead } = req.body;
 
     if (!notificationId || typeof isRead !== "boolean") {
@@ -829,11 +846,13 @@ export const setNotificationSeen = async (req, res) => {
 };
 
 export const submitNewMessageToTicket = async (req, res) => {
-
-
   const { ticketId } = req.params;
-  const { user_id, name } = getUserFromToken(req, res);
-
+  const tokenData = getUserFromToken(req, res);
+  if (!tokenData || !tokenData.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const user_id = tokenData.user_id;
+  const name = tokenData.decoded?.name;
   try {
     const messageText = req.body.message;
     const fileName = req.file ? req.file.originalname : "";
@@ -1071,8 +1090,11 @@ export const getAllSubscriptionPlans = async (req, res) => {
 
 export const purchaseSubscriptionByModelId = async (req, res) => {
   const { modelId } = req.params;
-  const { user_id } = getUserFromToken(req, res);
-
+  const tokenData = getUserFromToken(req, res);
+  if (!tokenData || !tokenData.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const user_id = tokenData.user_id;
   const { transactionId } = req.body; // Get transactionId from request body
 
   console.log(JSON.stringify({transactionId: transactionId, modelId: modelId}))
@@ -1163,10 +1185,11 @@ export const purchaseSubscriptionByModelId = async (req, res) => {
 
 export const getSubscriptionInfoByModelId = async (req, res) => {
   const { modelId } = req.params;
-
-  // 🔑 extract user from token inside the controller
-  const { user_id } = getUserFromToken(req, res);
-
+  const tokenData = getUserFromToken(req, res);
+  if (!tokenData || !tokenData.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const user_id = tokenData.user_id;
   try {
     // 1. Find the subscription plan definition
     const subscription = await Subscription.findOne({ modelId });
@@ -1226,12 +1249,11 @@ export const getSubscriptionInfoByModelId = async (req, res) => {
 
 export const getSubscriptionPlansByUserId = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-    const userId = user_id;
-
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: User ID not provided" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const userId = tokenData.user_id;
 
     const subscriptionPlans = await Subscription.find();
     if (!subscriptionPlans || subscriptionPlans.length === 0) {
@@ -1279,13 +1301,11 @@ export const getSubscriptionPlansByUserId = async (req, res) => {
 
 export const getWalletBalance = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
-    console.log(user_id)
-
-    if (!user_id) {
-      return res.status(403).json({ message: "Unauthorized" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const user_id = tokenData.user_id;
 
     const userAccount = await UserMyAccount.findOne({ userId: user_id }).lean();
 
@@ -1314,11 +1334,11 @@ export const getWalletBalance = async (req, res) => {
 
 export const deductFromWallet = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
-    if (!user_id) {
-      return res.status(403).json({ message: "Unauthorized" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const user_id = tokenData.user_id;
 
     const { amount, description } = req.body;
 
@@ -1380,11 +1400,11 @@ export const deductFromWallet = async (req, res) => {
 
 export const refundToWallet = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
-    if (!user_id) {
-      return res.status(403).json({ message: "Unauthorized" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const user_id = tokenData.user_id;
 
     const { amount, description } = req.body;
 

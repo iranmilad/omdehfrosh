@@ -431,32 +431,22 @@ const PaymentInfoOnline = ({ paymentData, gateway, orderTracking, paymentStatus,
           if (prev === 1) {
             clearInterval(timer);
             
-            // Check if it's a fake gateway (for development)
+            // Check if it's a fake gateway (for development) – no payment data in URL
             if (paymentLink.link_url.includes('fake-gateway') || gateway === 'fake') {
-              // For fake gateway, use React Router navigation
-              const paymentParams = new URLSearchParams();
-              
               try {
-                // Parse the body data from your API response
                 const bodyData = JSON.parse(paymentLink.body || '{}');
-                
-                // Add the parsed data as URL parameters
-                Object.keys(bodyData).forEach(key => {
-                  paymentParams.append(key, bodyData[key]);
-                });
+                sessionStorage.setItem('paymentData', JSON.stringify(bodyData));
               } catch (e) {
-                paymentParams.append('order_id', orderId || '');
-                paymentParams.append('order_item_id', orderItemId || '');
-                paymentParams.append('amount_to_pay', totalAmount || 0);
-                paymentParams.append('user_id', locationState.user_id || '');
-                paymentParams.append('sellerId', sellerId || '');
+                sessionStorage.setItem('paymentData', JSON.stringify({
+                  order_id: orderId,
+                  order_item_id: orderItemId,
+                  amount_to_pay: totalAmount,
+                  user_id: locationState.user_id,
+                  sellerId: sellerId
+                }));
               }
-              
-              // Navigate to fake gateway with payment data
-              navigate(`/fake-gateway?${paymentParams.toString()}`, {
+              navigate('/fake-gateway', {
                 state: {
-                  // Include both parsed body data and seller data
-                  ...(paymentLink.body ? JSON.parse(paymentLink.body) : {}),
                   ...sellerDataForDispatch,
                   order_id: orderId,
                   order_item_id: orderItemId,

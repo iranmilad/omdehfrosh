@@ -112,9 +112,13 @@ export const getCartSimplified = async (req, res) => {
   }
 };
 
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const updateCartSubscription = async (req, res) => {
-
-  const { user_id } = getUserFromToken(req, res);
+  const tokenResult = getUserFromToken(req);
+  if (!tokenResult || !tokenResult.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const { user_id } = tokenResult;
 
   const {
     productId,
@@ -359,12 +363,13 @@ export const cleanupCartDuplicates = async () => {
 };
 
 
+// MODIFIED 2026-02-07 - return 401 when token invalid so basket page reflects immediately
 export const getCart = async (req, res) => {
   try {
     const user = getUserFromToken(req);
 
     if (!user || !user.user_id) {
-      return res.json({ message: "Cart is empty", cart: [], total: 0 });
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
 
     const { user_id } = user;
@@ -473,11 +478,15 @@ export const getCart = async (req, res) => {
   }
 };
 
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const removeFromCart = async (req, res) => {
   try {
     console.log('removeFromCart called with body:', JSON.stringify(req.body));
-    
-    const { user_id } = getUserFromToken(req, res);
+    const tokenResult = getUserFromToken(req);
+    if (!tokenResult || !tokenResult.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const { user_id } = tokenResult;
     const { productId, combinationsID, seller } = req.body;
 
     console.log('Extracted user_id:', user_id);
@@ -745,7 +754,7 @@ export const removeFromCart = async (req, res) => {
 export const updateCart = async (req, res) => {
   try {
     // Handle token validation properly
-    const tokenResult = getUserFromToken(req, res);
+    const tokenResult = getUserFromToken(req);
     
     if (!tokenResult || !tokenResult.user_id) {
       return res.status(401).json({
@@ -999,8 +1008,13 @@ export const updateCart = async (req, res) => {
 
 
 
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const getFinalReceipt = async (req, res) => {
-  const { user_id } = getUserFromToken(req, res);
+  const tokenResult = getUserFromToken(req);
+  if (!tokenResult || !tokenResult.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const { user_id } = tokenResult;
 
   try {
     // Find ALL basket orders for this user
@@ -1404,9 +1418,14 @@ export const getFinalReceiptFromBody = async (req, res) => {
 // };
 
 
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const updateFinalReceipt = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    const tokenResult = getUserFromToken(req);
+    if (!tokenResult || !tokenResult.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const { user_id } = tokenResult;
     const { discountCode, paymentMethod } = req.body;
 
     // Validate required fields
@@ -1509,9 +1528,14 @@ export const updateFinalReceipt = async (req, res) => {
   }
 };
 
+// MODIFIED 2026-02-07 - return 401 when token invalid (was 500/404)
 export const removeDiscountFinalReceipt = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    const tokenResult = getUserFromToken(req);
+    if (!tokenResult || !tokenResult.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const { user_id } = tokenResult;
     const { discountCode, paymentMethod } = req.body;
 
     
@@ -1594,9 +1618,14 @@ export const removeDiscountFinalReceipt = async (req, res) => {
   }
 };
 
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const updateFinalReceiptGateway = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res); // This will handle token extraction and verification
+    const tokenResult = getUserFromToken(req);
+    if (!tokenResult || !tokenResult.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const { user_id } = tokenResult;
 
     const { paymentMethod } = req.body; // Expect only a paymentMethod string
 
@@ -1846,8 +1875,13 @@ export const updateFinalReceiptGateway = async (req, res) => {
 //     });
 //   }
 // };
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const vatRequestFinalReceipt = async (req, res) => {
-  const { user_id } = getUserFromToken(req, res);
+  const tokenResult = getUserFromToken(req);
+  if (!tokenResult || !tokenResult.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const { user_id } = tokenResult;
   const { vatRequested, orderId } = req.body;
 
 
@@ -1925,11 +1959,11 @@ const requestFinalReceiptWithAggregation = async (req, res) => {
     const { vatRequested } = req.body;
     const VAT_AMOUNT = 10000;
 
-
-
-    const { user_id } = getUserFromToken(req, res);
-
-    const userId = user_id;
+    const tokenResult = getUserFromToken(req);
+    if (!tokenResult || !tokenResult.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const userId = tokenResult.user_id;
 
     // Start a MongoDB session for transaction
     const session = await mongoose.startSession();

@@ -512,6 +512,7 @@ function FastEdit() {
 
   const [modalOpen, setModalOpen] = useState(false);
 
+  const FAST_EDIT_VISIBLE_COLUMNS_STORAGE_KEY = "fastEditVisibleColumns";
   // ✅ KEEP: visibleColumns state (managed by ColumnVisibilityManager)
   const [visibleColumns, setVisibleColumns] = useState([]);
   const [nodes, setNodes ] = useState(null);
@@ -618,6 +619,7 @@ function FastEdit() {
     { key: "image", label: "تصویر", width: "160px" },
     { key: "shortName", label: "نام اختصاری کالا", width: "160px" },
     { key: "name", label: "نام کالا", width: "160px" },
+    { key: "attributes", label: "ویژگی ها", width: "160px" },
     { key: "viewPrice", label: "قیمت قبلی", width: "160px" },
     { key: "price", label: "قیمت", width: "160px" },
     { key: "foreignCurrencyPrice", label: "قیمت ارزی", width: "160px" },
@@ -625,7 +627,6 @@ function FastEdit() {
     { key: "percentagePrice1", label: "قیمت درصدی 1" },
     { key: "percentagePrice2", label: "قیمت درصدی 2" },
     { key: "percentagePrice3", label: "قیمت درصدی 3" },
-    { key: "attributes", label: "ویژگی ها", width: "160px" },
     { key: "stock", label: "موجودی", width: "160px" },
     { key: "minOrder", label: "حداقل سفارش", width: "120px" },
     { key: "maxOrder", label: "حداکثر سفارش", width: "120px" },
@@ -637,6 +638,26 @@ function FastEdit() {
   ];
 
   const updatedColumns = COLUMNS;
+
+  // Restore persisted column visibility on mount (validated against current COLUMNS)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(FAST_EDIT_VISIBLE_COLUMNS_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!Array.isArray(saved)) return;
+      const validKeys = COLUMNS.map((c) => c.key);
+      const filtered = saved.filter((k) => validKeys.includes(k));
+      if (filtered.length >= 0) setVisibleColumns(filtered);
+    } catch (_) {}
+  }, []);
+
+  // Persist column visibility when it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(FAST_EDIT_VISIBLE_COLUMNS_STORAGE_KEY, JSON.stringify(visibleColumns));
+    } catch (_) {}
+  }, [visibleColumns]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -870,11 +891,26 @@ const handleBulkPriceUpdateSuccess = useCallback(() => {
     return nodesSubCategoriesData.reduce((total, group) => total + (group.items?.length || 0), 0);
   }, [nodesSubCategoriesData]);
 
-  if (authLoading) {
-    return <DelayedFullScreenLoader />;
-  }
+  const token = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+  const isLoggedIn = !!token;
+  const hasSupplierRole = user && user.role === 'supplier';
 
-  if (!user || user.role !== "supplier") {
+  // Max z-index so auth modal always sits above filters and any other UI
+  const authModalZIndex = 2147483647;
+  const authModalStyles = {
+    root: { zIndex: authModalZIndex, position: 'fixed', inset: 0 },
+    inner: { zIndex: authModalZIndex },
+    content: { zIndex: authModalZIndex },
+  };
+  const authModalOverlayProps = { style: { zIndex: authModalZIndex } };
+  const authModalPortalTarget =
+    typeof document !== 'undefined' ? document.getElementById('auth-modal-portal') : null;
+  const authModalPortalProps = authModalPortalTarget ? { target: authModalPortalTarget } : {};
+  // Same as "نمایش دادن ستون‌ها" modal in fast-order/index.jsx – only these two prevent screen shift
+  const authModalScrollProps = { lockScroll: false, removeScrollBar: false };
+
+  // Not logged in: show modal immediately (no "منتظر بمانید")
+  if (!isLoggedIn) {
     return (
       <Modal
         opened={true}
@@ -883,12 +919,50 @@ const handleBulkPriceUpdateSuccess = useCallback(() => {
         centered
         withCloseButton={false}
         closeOnClickOutside={false}
-        zIndex={50}
-        lockScroll={false}
-        removeScrollBar={false}
+        zIndex={authModalZIndex}
+        styles={authModalStyles}
+        overlayProps={authModalOverlayProps}
+        portalProps={authModalPortalProps}
+        lockScroll={authModalScrollProps.lockScroll}
+        removeScrollBar={authModalScrollProps.removeScrollBar}
       >
         <Stack>
-          <Text>برای مشاهده این صفحه نیاز به دسترسی تامین کننده دارید.</Text>
+          <Text>نیاز به نقش تامین کننده دارید برای استفاده از این صفحه</Text>
+          <Button
+            onClick={() => navigate("/login")}
+            variant="filled"
+            color="blue"
+            fullWidth
+          >
+            ورود به حساب کاربری
+          </Button>
+        </Stack>
+      </Modal>
+    );
+  }
+
+  if (authLoading) {
+    return <DelayedFullScreenLoader />;
+  }
+
+  if (!hasSupplierRole) {
+    return (
+      <Modal
+        opened={true}
+        onClose={() => {}}
+        title="ورود به حساب کاربری"
+        centered
+        withCloseButton={false}
+        closeOnClickOutside={false}
+        zIndex={authModalZIndex}
+        styles={authModalStyles}
+        overlayProps={authModalOverlayProps}
+        portalProps={authModalPortalProps}
+        lockScroll={authModalScrollProps.lockScroll}
+        removeScrollBar={authModalScrollProps.removeScrollBar}
+      >
+        <Stack>
+          <Text>نیاز به نقش تامین کننده دارید برای استفاده از این صفحه</Text>
           <Button
             onClick={() => navigate("/login")}
             variant="filled"

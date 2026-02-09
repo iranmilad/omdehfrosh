@@ -439,6 +439,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
         zIndex={2000} 
         size="md"
         centered={false}
+        marginBottom={30}
         lockScroll={false}
         removeScrollBar={false}
         styles={{
@@ -446,6 +447,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
             marginTop: '0 !important',
             paddingTop: '0 !important',
             paddingRight: '0 !important',
+            marginBottom: '30px',
           },
           inner: {
             marginTop: '0 !important',
@@ -458,6 +460,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
             marginTop: '0 !important',
             paddingTop: '0 !important',
             top: '0 !important',
+            marginBottom: 30,
             maxHeight: '100vh',
             display: 'flex',
             flexDirection: 'column',

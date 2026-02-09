@@ -606,6 +606,7 @@ const CounterSellers = (props) => {
         opened={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         title="ورود به حساب کاربری"
+        zIndex={2000}
         centered
       >
         <Text>لطفا وارد حساب کاربری شوید</Text>

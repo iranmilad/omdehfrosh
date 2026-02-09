@@ -23,13 +23,14 @@ export const updateFinalReceiptDeleteDiscountCode = createAsyncThunk(
       });
 
       if (!response.ok) {
+        if (response.status === 401 && typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth:401"));
+        }
         const errorData = await response.json().catch(() => ({}));
-      
         const error = {
           status: response.status,
           message: errorData?.message || getHttpCodeMessage(response.status),
         };
-      
         return rejectWithValue(error);
       }
 

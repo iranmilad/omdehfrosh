@@ -165,31 +165,31 @@ function Account_Orders() {
         {totalOrders > 0 ? (
           <>
             <ScrollArea type="auto">
-              <Table highlightOnHover>
+              <Table highlightOnHover style={{ direction: 'rtl' }}>
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th miw={150} c={primaryColor} style={{ textAlign: 'right' }}>
+                    <Table.Th miw={150} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl' }}>
                       شماره سفارش
                     </Table.Th>
-                    <Table.Th miw={120} c={primaryColor} style={{ textAlign: 'right' }}>
+                    <Table.Th miw={120} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl' }}>
                       تاریخ ثبت
                     </Table.Th>
-                    <Table.Th miw={100} c={primaryColor}>
+                    <Table.Th miw={100} c={primaryColor} style={{ direction: 'rtl', whiteSpace: 'nowrap' }}>
                       وضعیت پرداخت
                     </Table.Th>
-                    <Table.Th miw={100} c={primaryColor}>
+                    <Table.Th miw={100} c={primaryColor} style={{ direction: 'rtl', whiteSpace: 'nowrap' }}>
                       وضعیت سفارش
                     </Table.Th>
-                    <Table.Th miw={130} c={primaryColor}>
+                    <Table.Th miw={130} c={primaryColor} style={{ direction: 'rtl' }}>
                       مبلغ کل
                     </Table.Th>
-                    <Table.Th miw={100} c={primaryColor}>
+                    <Table.Th miw={100} c={primaryColor} style={{ direction: 'rtl' }}>
                       تخفیف
                     </Table.Th>
-                    <Table.Th miw={120} c={primaryColor}>
+                    <Table.Th miw={120} c={primaryColor} style={{ direction: 'rtl' }}>
                       روش پرداخت
                     </Table.Th>
-                    <Table.Th miw={100} c={primaryColor} ta="end">
+                    <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl' }}>
                       عملیات
                     </Table.Th>
                   </Table.Tr>
@@ -317,27 +317,27 @@ function ItemRow(props) {
 
     return (
       <Table.Tr>
-        <Table.Td style={{ textAlign: 'left' }}>
+        <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
           <Text size="sm" truncate style={{ maxWidth: 150 }}>
             {formatOrderId(props.orderId)}
           </Text>
         </Table.Td>
-        <Table.Td style={{ textAlign: 'left' }}>
+        <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
           <Text size="sm">
             {formatDate(props.createdAt)}
           </Text>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ direction: 'rtl' }}>
           <Badge color={paymentStatus.color} variant="light" size="sm">
             {paymentStatus.text}
           </Badge>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ direction: 'rtl' }}>
           <Badge color={orderStatus.color} variant="light" size="sm">
             {orderStatus.text}
           </Badge>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ direction: 'rtl' }}>
           <Text size="sm" fw={500}>
             <NumberFormatter
               value={props.totalPrice || 0}
@@ -346,7 +346,7 @@ function ItemRow(props) {
             تومان
           </Text>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ direction: 'rtl' }}>
           <Text size="sm" c={props.totalDiscount > 0 ? "red" : "dimmed"}>
             {props.totalDiscount > 0 ? (
               <>
@@ -361,12 +361,12 @@ function ItemRow(props) {
             )}
           </Text>
         </Table.Td>
-        <Table.Td>
+        <Table.Td style={{ direction: 'rtl' }}>
           <Badge variant="outline" size="sm">
             {getPaymentMethodText(props.paymentType || props.paymentMethod)}
           </Badge>
         </Table.Td>
-        <Table.Td ta="end">
+        <Table.Td style={{ textAlign: 'center', direction: 'rtl' }}>
           <Button
             radius="md"
             component={NavLink}

@@ -83,6 +83,7 @@ import homeRoutes from './routes/homePageRoutes.js'
 import brandsRoutes from './routes/brandsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
 import currencyPriceRoutes from './routes/currencyPriceRoutes.js';
+import fakeGatewayRoutes from './routes/fakeGatewayRoutes.js';
 
 dotenv.config();
 
@@ -191,6 +192,12 @@ app.use('/api/fast-order-category-mode', fastOrderCategoryModeRoutes);
 
 // payment routes
 app.use('/api/gatewaysdata', gateWaysDataRoutes);
+
+// fake gateway route (no /api prefix - this simulates external gateway)
+app.use('/fake-gateway', fakeGatewayRoutes);
+
+// fake gateway API routes (with /api prefix for data retrieval)
+app.use('/api/fake-gateway', fakeGatewayRoutes);
 
 app.use('/api/fastedit', fastEditRoutes);
 

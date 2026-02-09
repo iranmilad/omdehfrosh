@@ -22,9 +22,9 @@ import { data, NavLink, useNavigate } from "react-router";
 import PaymentCalc from "../../../components/payment_calc";
 import { useForm } from "@mantine/form";
 import { IconArrowRight, IconBuildingCommunity, IconCreditCard, IconChevronLeft } from "@tabler/icons-react";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useQueryClient, useSessionQuery, useStaticQuery } from "../../../Libs/reactQuery";
+import { useQueryClient, useSessionQuery, useStaticQuery, clearCacheOnLogout } from "../../../Libs/reactQuery";
 import { toggleLoading } from "../../../redux/global";
 import { notifications } from '@mantine/notifications';
 import { useCookies } from "react-cookie";
@@ -33,6 +33,9 @@ import { updateFinalReceiptWithDiscount } from "../../../redux/cartfinalreceipt/
 import { getAllGateWaysData } from "../../../redux/gatewaysdata/gatewaysdata/gateWaysDataActions";
 import { clearCartFinalReceiptUpdate } from "../../../redux/cartfinalreceipt/cartfinalreceiptupdate/cartFinalReceiptUpdateDiscountSlice";
 import ErrorMessageModal from '../../../components/errormessagemodal';
+import { logout } from "../../../redux/auth/authusers/auth";
+import { logout as logoutMaster } from "../../../redux/auth/authmaster/authMasterSlice";
+import { clearCart } from "../../../redux/cart";
 import { handleForbiddenError, handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { updateFinalReceiptDeleteDiscountCode } from "../../../redux/cartfinalreceipt/cartfinalreceiptdeletediscount/cartFinalReceiptDeleteDiscountActions";
 import { Steps } from "antd";
@@ -52,6 +55,7 @@ import {
 import { Grid as GridAnt } from 'antd';
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import PaymentSummary from '../../../components/payment_calc_receipt/PaymentSummary';
+import ReloginRequiredModal from '../../../components/ReloginRequiredModal';
 
 
 const { useBreakpoint } = GridAnt;
@@ -178,6 +182,7 @@ const PaymentMethod = () => {
     endpoint: "/auth/user-initial-data",
     queryKey: ["userInitialData"],
     enabled: !!token,
+    meta: { showErrorNotification: false },
     retry: (failureCount, error) => {
       const msg = typeof error === "string" ? error : error?.message || String(error);
       if (msg?.includes?.("401")) return false;
@@ -192,6 +197,7 @@ const PaymentMethod = () => {
     endpoint: "/cart",
     queryKey: ["cart"],
     enabled: !!token,
+    meta: { showErrorNotification: false },
     retry: (failureCount, error) => {
       const msg = typeof error === "string" ? error : error?.message || String(error);
       if (msg?.includes?.("401")) return false;
@@ -211,6 +217,7 @@ const PaymentMethod = () => {
     method: "post",
     body: { state: "all" },
     enabled: true,
+    meta: { showErrorNotification: false },
   });
 
   // Final receipt (GET) - cached with React Query; display prefers cache, Redux fallback
@@ -222,6 +229,7 @@ const PaymentMethod = () => {
     endpoint: "/cart/getfinalreceipt",
     queryKey: ["finalReceipt"],
     enabled: !!token,
+    meta: { showErrorNotification: false },
     retry: (failureCount, error) => {
       const msg = typeof error === "string" ? error : error?.message || String(error);
       if (msg?.includes?.("401")) return false;
@@ -238,6 +246,7 @@ const PaymentMethod = () => {
     endpoint: "/auth/verify-user",
     queryKey: ["verifyUser"],
     enabled: !!token,
+    meta: { showErrorNotification: false },
     retry: (failureCount, error) => {
       const msg = typeof error === "string" ? error : error?.message || String(error);
       if (msg?.includes?.("401")) return false;
@@ -253,6 +262,7 @@ const PaymentMethod = () => {
     endpoint: "/payment/wallet/balance",
     queryKey: ["walletBalance"],
     enabled: !!token,
+    meta: { showErrorNotification: false },
     retry: (failureCount, error) => {
       const msg = typeof error === "string" ? error : error?.message || String(error);
       if (msg?.includes?.("401")) return false;
@@ -261,6 +271,17 @@ const PaymentMethod = () => {
   });
 
   const walletBalance = walletData?.balance != null ? walletData.balance : 0;
+
+  const [showReloginModal, setShowReloginModal] = useState(false);
+  const clearAuthAndShowReloginModal = useCallback(() => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_master");
+    if (queryClient) clearCacheOnLogout(queryClient);
+    dispatch(logout());
+    dispatch(logoutMaster());
+    dispatch(clearCart());
+    setShowReloginModal(true);
+  }, [queryClient, dispatch]);
 
   // Display: prefer React Query cache, fallback to Redux (same as basket)
   const gatewaysFromRedux = useSelector((state) => state.gateWaysData.gateways);
@@ -317,8 +338,10 @@ const PaymentMethod = () => {
   useEffect(() => {
     if (authError) {
       dispatch({ type: "auth/verifyToken/rejected", payload: authError });
+      const msg = authError?.message ?? (typeof authError === "string" ? authError : "");
+      if (String(msg).includes("401")) clearAuthAndShowReloginModal();
     }
-  }, [authError, dispatch]);
+  }, [authError, dispatch, clearAuthAndShowReloginModal]);
 
   // Updated cards mapping with improved icon handling
   const cards = fetchedGateways?.map((item) => (
@@ -370,13 +393,12 @@ const PaymentMethod = () => {
     if (authLoading) {
       return;
     }
-  
     if (isVerified === false) {
-      navigate("/login", { replace: true });
+      setShowReloginModal(true);
     } else if (isVerified === true) {
       setPageActive(true);
     }
-  }, [isVerified, authLoading, navigate]);
+  }, [isVerified, authLoading]);
 
   useEffect(() => {
     if (fetchedGateways?.[0]?.info) {
@@ -384,7 +406,16 @@ const PaymentMethod = () => {
     }
   }, [fetchedGateways]);
 
-  if(!pageActive) return <></>;
+  if (!pageActive) {
+    if (isVerified === false && !authLoading) {
+      return (
+        <>
+          <ReloginRequiredModal opened={true} onClose={() => navigate("/login", { replace: true })} />
+        </>
+      );
+    }
+    return <></>;
+  }
 
   if (!fetchedGateways || loading) {
     return (
@@ -514,6 +545,7 @@ const PaymentMethod = () => {
               setIsDiscountApplied={setIsDiscountApplied}
               gateway={form.getValues().gateway}
               queryClient={queryClient}
+              clearAuthAndShowReloginModal={clearAuthAndShowReloginModal}
             />
           </div>
 
@@ -539,7 +571,7 @@ const PaymentMethod = () => {
   );
 };
 
-const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryClient }) => {
+const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryClient, clearAuthAndShowReloginModal }) => {
   const dispatch = useDispatch();
   const { orderfinalreceipt } = useSelector((state) => state.cartfinalreceipt);
   const navigate = useNavigate();
@@ -582,31 +614,22 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
   }, [cartfinalreceiptDiscount]);
 
   useEffect(() => {
-    const nonNotifyStatuses = [
-      400, 401, 403, 404, 405, 406, 408, 409,
-      410, 411, 412, 413, 414, 415, 416, 417,
-      422, 429
-    ];
-  
-    const isEmpty = (obj) => obj && Object.keys(obj).length === 0;
-    const hasValidStatus = errorUpdateDiscount && typeof errorUpdateDiscount.status !== "undefined" && !isNaN(Number(errorUpdateDiscount.status));
-  
-    if (!isEmpty(errorUpdateDiscount) && hasValidStatus && !nonNotifyStatuses.includes(Number(errorUpdateDiscount.status))) {
-      setErrors({});
-      form.setErrors({});
-      notifications.show({
-        title: errorUpdateDiscount?.message || "خطایی رخ داده است",
-        color: "red",
-        autoClose: true,
-      });
-    }
+    // No error notifications on this page (401/500 etc) – only relogin modal for 401
   }, [cartfinalreceiptDiscount, errorUpdateDiscount]);
 
   useEffect(() => {
     if (errorUpdateDiscount?.status) {
-      handleKnownErrors(errorUpdateDiscount.status, setModalOpen, navigate);
+      if (errorUpdateDiscount.status === 401) clearAuthAndShowReloginModal();
+      else handleKnownErrors(errorUpdateDiscount.status, setModalOpen, navigate);
     }
-  }, [errorUpdateDiscount]);
+  }, [errorUpdateDiscount, clearAuthAndShowReloginModal]);
+
+  useEffect(() => {
+    if (errorUpdateDiscountDelete?.status) {
+      if (errorUpdateDiscountDelete.status === 401) clearAuthAndShowReloginModal();
+      else handleKnownErrors(errorUpdateDiscountDelete.status, setModalOpen, navigate);
+    }
+  }, [errorUpdateDiscountDelete, clearAuthAndShowReloginModal]);
 
   useEffect(() => {
     if (cartfinalreceiptDiscountDelete && cartfinalreceiptDiscountDelete.state) {
@@ -619,30 +642,8 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
   }, [cartfinalreceiptDiscountDelete]);
 
   useEffect(() => {
-    const nonNotifyStatuses = [
-      400, 401, 403, 404, 405, 406, 408, 409,
-      410, 411, 412, 413, 414, 415, 416, 417,
-      422, 429
-    ];
-  
-    const isEmpty = (obj) => obj && Object.keys(obj).length === 0;
-    const hasValidStatus = errorUpdateDiscountDelete && typeof errorUpdateDiscountDelete.status !== "undefined" && !isNaN(Number(errorUpdateDiscountDelete.status));
-  
-    if (!isEmpty(errorUpdateDiscountDelete) && hasValidStatus && !nonNotifyStatuses.includes(Number(errorUpdateDiscountDelete.status))) {
-      form.setErrors({});
-      notifications.show({
-        title: errorUpdateDiscountDelete?.message || "خطایی رخ داده است",
-        color: "red",
-        autoClose: true,
-      });
-    }
+    // No error notifications on this page (401/500 etc) – only relogin modal for 401
   }, [cartfinalreceiptDiscountDelete, errorUpdateDiscountDelete]);
-
-  useEffect(() => {
-    if (errorUpdateDiscountDelete?.status) {
-      handleKnownErrors(errorUpdateDiscountDelete.status, setModalOpen, navigate);
-    }
-  }, [errorUpdateDiscountDelete]);
 
   const applyDiscount = async (values) => {
     try {
@@ -658,23 +659,17 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
           message: "کد تخفیف و روش پرداخت اعمال شد!",
           color: "green",
         });
-      } else {
-        notifications.show({
-          title: "خطا",
-          message: "مشکلی در اعمال کد تخفیف پیش آمد!",
-          color: "red",
-        });
+        // Single refetch instead of invalidate to avoid repeated API request loop
+        if (queryClient) {
+          queryClient.refetchQueries({ queryKey: ["finalReceipt"] });
+        }
       }
-
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ["finalReceipt"] });
-      }
+      // No error toast on this page for apply discount (401 → relogin modal only)
     } catch (error) {
-      notifications.show({
-        title: "خطا",
-        message: "مشکلی در اتصال به سرور پیش آمد!",
-        color: "red",
-      });
+      if (error?.status === 401 || error?.response?.status === 401) {
+        clearAuthAndShowReloginModal();
+      }
+      // No error toast on this page
     }
   };
 
@@ -690,23 +685,17 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
           message: "کد تخفیف حذف شد!",
           color: "green",
         });
-      } else {
-        notifications.show({
-          title: "خطا",
-          message: "مشکلی در حذف کد تخفیف پیش آمد!",
-          color: "red",
-        });
+        // Single refetch instead of invalidate to avoid repeated API request loop
+        if (queryClient) {
+          queryClient.refetchQueries({ queryKey: ["finalReceipt"] });
+        }
       }
-
-      if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ["finalReceipt"] });
-      }
+      // No error toast on this page for remove discount (401 → relogin modal only)
     } catch (error) {
-      notifications.show({
-        title: "خطا",
-        message: "مشکلی در اتصال به سرور پیش آمد!",
-        color: "red",
-      });
+      if (error?.status === 401 || error?.response?.status === 401) {
+        clearAuthAndShowReloginModal();
+      }
+      // No error toast on this page
     }
   };
 

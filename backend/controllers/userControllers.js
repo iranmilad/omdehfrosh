@@ -12,16 +12,11 @@ import js from "@eslint/js";
 
 export const getUserInfo = async (req, res) => {
   try {
-
-
-        const {user_id} = getUserFromToken(req, res);  // This will handle token extraction and verification
-    
-
-    const userId = user_id
-
-    if (!userId) {
-      return res.status(400).json({ message: "User Not Found" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    const userId = tokenData.user_id;
 
 
     // Find user by mobile number
@@ -102,12 +97,11 @@ export const updateUser = async (req, res) => {
     console.log(req.body)
     let userId;
 
-    try {
-      const { user_id } = getUserFromToken(req, res);
-      userId = user_id;
-    } catch (authError) {
-      return res.status(401).send();
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
+    userId = tokenData.user_id;
 
     const { mobile, socialNumber, birthday } = req.body;
     const cleanedPhoneSocial = socialNumber ? socialNumber.replace(/\s+/g, "") : null;
@@ -172,8 +166,11 @@ export const updateUser = async (req, res) => {
 // Get all addresses for a user
 export const getUserAddresses = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-    
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const user = await UserAccounts.findOne({ userId: user_id });
     if (!user) {
       return res.status(404).json({ message: "کاربر یافت نشد" });
@@ -195,7 +192,11 @@ export const getUserAddresses = async (req, res) => {
 // Add a new address
 export const addUserAddress = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const { 
       title, 
       name,
@@ -284,9 +285,14 @@ export const addUserAddress = async (req, res) => {
 };
 
 // Update an address
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const updateUserAddress = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const { user_id } = tokenData;
     const { addressId } = req.params;
     const { 
       title,
@@ -379,9 +385,14 @@ export const updateUserAddress = async (req, res) => {
 };
 
 // Delete an address
+// MODIFIED 2026-02-07 - return 401 when token invalid
 export const deleteUserAddress = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const { user_id } = tokenData;
     const { addressId } = req.params;
 
     const user = await UserAccounts.findOne({ userId: user_id });
@@ -426,7 +437,11 @@ export const deleteUserAddress = async (req, res) => {
 // Set an address as default
 export const setDefaultAddress = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
     const { addressId } = req.params;
 
     const user = await UserAccounts.findOne({ userId: user_id });
@@ -471,7 +486,11 @@ export const setDefaultAddress = async (req, res) => {
   
   export const userStockAlertInfoGet = async (req, res) => {
   try {
-    const {user_id} = getUserFromToken(req, res);  // This will handle token extraction and verification
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const userId = tokenData.user_id;
     const product_id = req.params.product_id; // Extract product_id from URL parameters
 
     // Validate that product_id is provided
@@ -481,8 +500,6 @@ export const setDefaultAddress = async (req, res) => {
         status: "error" 
       });
     }
-
-    const userId = user_id
 
     // Fetch the stock alert info for the authenticated user and specific product
     let userStockAlert = await UserStockAlert.findOne({ userId, product_id });
@@ -523,7 +540,11 @@ export const userStockAlertInfoSet = async (req, res) => {
   try {
     const { alertType, price, inventory, supplierSelection, selectedSuppliers, sms, email, product_id } = req.body;
 
-    const {user_id} = getUserFromToken(req, res);  // This will handle token extraction and verification
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const user_id = tokenData.user_id;
 
     // Validate that product_id is provided
     if (!product_id) {
@@ -594,8 +615,12 @@ export const userStockAlertInfoSet = async (req, res) => {
 };
 
 export const userStockAlertInfoRemove = async (req, res) => {
-  try {  
-    const {user_id} = getUserFromToken(req, res);  // This will handle token extraction and verification
+  try {
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    const userId = tokenData.user_id;
     const {product_id} = req.params; // Extract product_id from URL parameters
 
     if (!product_id) {
@@ -604,8 +629,6 @@ export const userStockAlertInfoRemove = async (req, res) => {
         status: "error" 
       });
     }
-
-    const userId = user_id
 
     // Find and delete the stock alert for the specific user and product
     const deletedAlert = await UserStockAlert.findOneAndDelete({ userId, product_id });
@@ -645,12 +668,11 @@ export const userStockAlertInfoRemove = async (req, res) => {
   
 export const getUserFavoritesList = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res);
-
-    if (!user_id) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
-
+    const user_id = tokenData.user_id;
     const user = await UserMyAccount.findOne({ userId: user_id });
 
 
@@ -679,7 +701,11 @@ export const getUserFavoritesList = async (req, res) => {
   
   export const addedToFavorites = async (req, res) => {
     try {
-      const { user_id } = getUserFromToken(req, res);
+      const tokenData = getUserFromToken(req, res);
+      if (!tokenData || !tokenData.user_id) {
+        return res.status(401).json({ message: "Unauthorized: user not found" });
+      }
+      const user_id = tokenData.user_id;
       const productId = req.params.productId;
 
   
@@ -714,7 +740,11 @@ export const getUserFavoritesList = async (req, res) => {
 
   export const addToFavorites = async (req, res) => {
     try {
-      const { user_id } = getUserFromToken(req, res);
+      const tokenData = getUserFromToken(req, res);
+      if (!tokenData || !tokenData.user_id) {
+        return res.status(401).json({ message: "Unauthorized: user not found" });
+      }
+      const user_id = tokenData.user_id;
       const productId = req.params.productId;
 
 
@@ -790,7 +820,11 @@ export const getUserFavoritesList = async (req, res) => {
 
   export const removeFromFavorites = async (req, res) => {
     try {
-      const { user_id } = getUserFromToken(req, res);
+      const tokenData = getUserFromToken(req, res);
+      if (!tokenData || !tokenData.user_id) {
+        return res.status(401).json({ message: "Unauthorized: user not found" });
+      }
+      const user_id = tokenData.user_id;
       const productId = req.params.productId;
   
       if (!productId) {

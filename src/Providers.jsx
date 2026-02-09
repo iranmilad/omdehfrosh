@@ -14,8 +14,7 @@ import { getQueryClient } from "./Libs/reactQuery";
 import Theme from "./Libs/theme";
 import store from "./redux";
 import routes from "./routes";
-
-
+import Auth401Modal from "./components/Auth401Modal";
 
 const theme = createTheme(Theme);
 const queryClient = getQueryClient();
@@ -33,6 +32,7 @@ function Providers({ children }) {
             <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
           )}
           <RouterProvider router={browserRoutes} />
+          <Auth401Modal />
           {children}
         </QueryClientProvider>
       </Provider>

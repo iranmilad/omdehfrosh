@@ -8,8 +8,9 @@ import { v4 as uuidv4 } from 'uuid'
 // ✅ CREATE
 export const createFilterSettingBrandFastEdit = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res)
-    if (!user_id) return res.status(401).json({ message: 'Unauthorized' })
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) return res.status(401).json({ message: 'Unauthorized' });
+    const user_id = tokenData.user_id;
 
     const { filterName, ...filterData } = req.body
 
@@ -50,8 +51,9 @@ export const createFilterSettingBrandFastEdit = async (req, res) => {
 
 export const createFilterSettingCategoryFastEdit = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res)
-    if (!user_id) return res.status(401).json({ message: 'Unauthorized' })
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) return res.status(401).json({ message: 'Unauthorized' });
+    const user_id = tokenData.user_id;
 
     const { filterName, ...filterData } = req.body
 
@@ -93,8 +95,9 @@ export const createFilterSettingCategoryFastEdit = async (req, res) => {
 // ✅ UPDATE
 export const updateFilterSettingBrandFastEdit = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res)
-    if (!user_id) return res.status(401).json({ message: 'Unauthorized' })
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) return res.status(401).json({ message: 'Unauthorized' });
+    const user_id = tokenData.user_id;
 
     const { id, filterName, ...filterData } = req.body
 
@@ -133,8 +136,9 @@ export const updateFilterSettingBrandFastEdit = async (req, res) => {
 
 export const updateFilterSettingCategoryFastEdit = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res)
-    if (!user_id) return res.status(401).json({ message: 'Unauthorized' })
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) return res.status(401).json({ message: 'Unauthorized' });
+    const user_id = tokenData.user_id;
 
     const { id, filterName, ...filterData } = req.body
 
@@ -174,8 +178,9 @@ export const updateFilterSettingCategoryFastEdit = async (req, res) => {
 // ✅ GET ALL
 export const getAllBrandFilterSettingsFastEdit = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res)
-    if (!user_id) return res.status(401).json({ message: 'Unauthorized' })
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) return res.status(401).json({ message: 'Unauthorized' });
+    const user_id = tokenData.user_id;
 
     const userFilters = await FiltersSettingsBrandFastEdit.findOne({ user_id })
 
@@ -188,8 +193,9 @@ export const getAllBrandFilterSettingsFastEdit = async (req, res) => {
 
 export const getAllCategoryFilterSettingsFastEdit = async (req, res) => {
   try {
-    const { user_id } = getUserFromToken(req, res)
-    if (!user_id) return res.status(401).json({ message: 'Unauthorized' })
+    const tokenData = getUserFromToken(req, res);
+    if (!tokenData || !tokenData.user_id) return res.status(401).json({ message: 'Unauthorized' });
+    const user_id = tokenData.user_id;
 
     const userFilters = await FiltersSettingsCategoryFastEdit.findOne({
       user_id,

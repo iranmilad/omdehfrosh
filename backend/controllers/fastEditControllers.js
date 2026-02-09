@@ -11,8 +11,11 @@ export const updateProduct = async (req, res) => {
   const psid = itemId;
 
   console.log("herererere",JSON.stringify(req.body))
-  const { user_id, decoded, role } = getUserFromToken(req, res);
-
+  const tokenData = getUserFromToken(req, res);
+  if (!tokenData || !tokenData.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const { user_id, decoded, role } = tokenData;
   if (role === 'supplier') {
     try {
       // Method 1: Using array filters (recommended for complex updates)

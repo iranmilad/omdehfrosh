@@ -1,0 +1,1376 @@
+{
+    "products": [
+        {
+            "idCategory": "category1",
+            "label": "کالای دیجیتال",
+            "items": [
+                {
+                    "action": 3,
+                    "deliveryTime": {
+                        "label": "کمتر از یک هفته",
+                        "value": "in1week"
+                    },
+                    "images": [],
+                    "psid": "brand0-category1-subCategory2-item0i0002-c19-s1",
+                    "shortName": "appleseries8k4z8v",
+                    "payment_type": "Cash",
+                    "delivery": [
+                        {
+                            "locationName": "Shiraz",
+                            "locationId": 0,
+                            "locationLabel": "شیراز"
+                        },
+                        {
+                            "locationName": "Esfahan",
+                            "locationId": 1,
+                            "locationLabel": "اصفهان"
+                        }
+                    ],
+                    "buy_type": "Retail",
+                    "price": {
+                        "regularPrice": 8777,
+                        "discountedPrice": 950000,
+                        "discountPercent": null,
+                        "foreignCurrencyPrice": 0,
+                        "secondaryCost": 0,
+                        "percentagePrice1": 0,
+                        "percentagePrice2": 0,
+                        "percentagePrice3": 0
+                    },
+                    "sku": "SKU-001",
+                    "stock": 77787,
+                    "minOrder": 10,
+                    "maxOrder": 94,
+                    "rating": "4.50",
+                    "reviews_count": 0,
+                    "reviews": [],
+                    "selected": true,
+                    "special_offer": {},
+                    "seller": {
+                        "id": 1,
+                        "label": "دیجی کالا"
+                    },
+                    "productId": "brand0-category1-subCategory2-item0i0002",
+                    "id": "brand0-category1-subCategory2-item0i0002",
+                    "combinationsID": 19,
+                    "attributes": [
+                        {
+                            "id": 16,
+                            "value": "#ff00ff",
+                            "attribute_name": "رنگ",
+                            "type": "color",
+                            "attribute_id": 1,
+                            "label": "ارغوانی"
+                        },
+                        {
+                            "id": 18,
+                            "value": "فلزی",
+                            "attribute_name": "جنس",
+                            "type": "material",
+                            "attribute_id": 81
+                        }
+                    ],
+                    "name": "ساعت هوشمند اپل سری 8 مدل GPS",
+                    "nodes": [
+                        {
+                            "id": "brand0-category1-subCategory2-item0i0002",
+                            "name": "ساعت هوشمند اپل سری 8 مدل GPS",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand0-category1-subCategory2-item0i0002-c19-s2",
+                            "shortName": "appleseries8k4z8b",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 110,
+                                "discountedPrice": 130,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-002",
+                            "stock": 15,
+                            "minOrder": 2,
+                            "maxOrder": 150,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 19,
+                            "attributes": [
+                                {
+                                    "id": 16,
+                                    "value": "#ff00ff",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "ارغوانی"
+                                },
+                                {
+                                    "id": 18,
+                                    "value": "فلزی",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 2,
+                                "label": "تک اسیا"
+                            },
+                            "productId": "brand0-category1-subCategory2-item0i0002"
+                        },
+                        {
+                            "id": "brand0-category1-subCategory2-item0i0002",
+                            "name": "ساعت هوشمند اپل سری 8 مدل GPS",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand0-category1-subCategory2-item0i0002-c20-s4",
+                            "shortName": "appleseries8k4z8h",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 110,
+                                "discountedPrice": 130,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-002",
+                            "stock": 15,
+                            "minOrder": 2,
+                            "maxOrder": 150,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 20,
+                            "attributes": [
+                                {
+                                    "id": 16,
+                                    "value": "#ff00ff",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "ارغوانی"
+                                },
+                                {
+                                    "id": 19,
+                                    "value": "پلاستیک",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 4,
+                                "label": "ترب"
+                            },
+                            "productId": "brand0-category1-subCategory2-item0i0002"
+                        },
+                        {
+                            "id": "brand0-category1-subCategory2-item0i0002",
+                            "name": "ساعت هوشمند اپل سری 8 مدل GPS",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand0-category1-subCategory2-item0i0002-c21-s1",
+                            "shortName": "appleseries8k4z4v",
+                            "payment_type": "Cash",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Retail",
+                            "price": {
+                                "regularPrice": 100,
+                                "discountedPrice": 120,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-001",
+                            "stock": 10,
+                            "minOrder": 1,
+                            "maxOrder": 46,
+                            "rating": "4.50",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 21,
+                            "attributes": [
+                                {
+                                    "id": 17,
+                                    "value": "#ff0000",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "قرمز"
+                                },
+                                {
+                                    "id": 18,
+                                    "value": "فلزی",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 1,
+                                "label": "دیجی کالا"
+                            },
+                            "productId": "brand0-category1-subCategory2-item0i0002"
+                        }
+                    ]
+                },
+                {
+                    "action": 3,
+                    "deliveryTime": {
+                        "label": "کمتر از یک هفته",
+                        "value": "in1week"
+                    },
+                    "images": [],
+                    "psid": "brand5-category1-subCategory1-item0b0004-c19-s1",
+                    "shortName": "beatsskylinek4z8v",
+                    "payment_type": "Cash",
+                    "delivery": [
+                        {
+                            "locationName": "Shiraz",
+                            "locationId": 0,
+                            "locationLabel": "شیراز"
+                        },
+                        {
+                            "locationName": "Esfahan",
+                            "locationId": 1,
+                            "locationLabel": "اصفهان"
+                        }
+                    ],
+                    "buy_type": "Retail",
+                    "price": {
+                        "regularPrice": 1000000,
+                        "discountedPrice": 950000,
+                        "discountPercent": null,
+                        "foreignCurrencyPrice": 0,
+                        "secondaryCost": 0,
+                        "percentagePrice1": 0,
+                        "percentagePrice2": 0,
+                        "percentagePrice3": 0
+                    },
+                    "sku": "SKU-001",
+                    "stock": 10,
+                    "minOrder": 10,
+                    "maxOrder": 94,
+                    "rating": "4.50",
+                    "reviews_count": 0,
+                    "reviews": [],
+                    "selected": true,
+                    "special_offer": {},
+                    "seller": {
+                        "id": 1,
+                        "label": "دیجی کالا"
+                    },
+                    "productId": "brand5-category1-subCategory1-item0b0004",
+                    "id": "brand5-category1-subCategory1-item0b0004",
+                    "combinationsID": 19,
+                    "attributes": [
+                        {
+                            "id": 16,
+                            "value": "#ff00ff",
+                            "attribute_name": "رنگ",
+                            "type": "color",
+                            "attribute_id": 1,
+                            "label": "ارغوانی"
+                        },
+                        {
+                            "id": 18,
+                            "value": "فلزی",
+                            "attribute_name": "جنس",
+                            "type": "material",
+                            "attribute_id": 81
+                        }
+                    ],
+                    "name": "هدفون بی سیم بیتس مدل Skyeline",
+                    "nodes": [
+                        {
+                            "id": "brand5-category1-subCategory1-item0b0004",
+                            "name": "هدفون بی سیم بیتس مدل Skyeline",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand5-category1-subCategory1-item0b0004-c19-s2",
+                            "shortName": "beatsskylinek4z4v",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 110,
+                                "discountedPrice": 130,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-002",
+                            "stock": 15,
+                            "minOrder": 2,
+                            "maxOrder": 150,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 19,
+                            "attributes": [
+                                {
+                                    "id": 16,
+                                    "value": "#ff00ff",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "ارغوانی"
+                                },
+                                {
+                                    "id": 18,
+                                    "value": "فلزی",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 2,
+                                "label": "تک اسیا"
+                            },
+                            "productId": "brand5-category1-subCategory1-item0b0004"
+                        },
+                        {
+                            "id": "brand5-category1-subCategory1-item0b0004",
+                            "name": "هدفون بی سیم بیتس مدل Skyeline",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand5-category1-subCategory1-item0b0004-c20-s4",
+                            "shortName": "beatsskyline14z8v",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 110,
+                                "discountedPrice": 130,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-002",
+                            "stock": 15,
+                            "minOrder": 2,
+                            "maxOrder": 150,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 20,
+                            "attributes": [
+                                {
+                                    "id": 16,
+                                    "value": "#ff00ff",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "ارغوانی"
+                                },
+                                {
+                                    "id": 19,
+                                    "value": "پلاستیک",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 4,
+                                "label": "ترب"
+                            },
+                            "productId": "brand5-category1-subCategory1-item0b0004"
+                        },
+                        {
+                            "id": "brand5-category1-subCategory1-item0b0004",
+                            "name": "هدفون بی سیم بیتس مدل Skyeline",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand5-category1-subCategory1-item0b0004-c21-s1",
+                            "shortName": "beatsskylinek4z8e",
+                            "payment_type": "Cash",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Retail",
+                            "price": {
+                                "regularPrice": 100,
+                                "discountedPrice": 120,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-001",
+                            "stock": 10,
+                            "minOrder": 1,
+                            "maxOrder": 46,
+                            "rating": "4.50",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 21,
+                            "attributes": [
+                                {
+                                    "id": 17,
+                                    "value": "#ff0000",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "قرمز"
+                                },
+                                {
+                                    "id": 18,
+                                    "value": "فلزی",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 1,
+                                "label": "دیجی کالا"
+                            },
+                            "productId": "brand5-category1-subCategory1-item0b0004"
+                        }
+                    ]
+                },
+                {
+                    "action": 3,
+                    "deliveryTime": {
+                        "label": "کمتر از یک هفته",
+                        "value": "in1week"
+                    },
+                    "images": [],
+                    "psid": "brand4-category1-subCategory0-item0as0005-c19-s1",
+                    "shortName": "tuff15k4z8v",
+                    "payment_type": "Cash",
+                    "delivery": [
+                        {
+                            "locationName": "Shiraz",
+                            "locationId": 0,
+                            "locationLabel": "شیراز"
+                        },
+                        {
+                            "locationName": "Esfahan",
+                            "locationId": 1,
+                            "locationLabel": "اصفهان"
+                        }
+                    ],
+                    "buy_type": "Retail",
+                    "price": {
+                        "regularPrice": 1000000,
+                        "discountedPrice": 950000,
+                        "discountPercent": null,
+                        "foreignCurrencyPrice": 0,
+                        "secondaryCost": 0,
+                        "percentagePrice1": 0,
+                        "percentagePrice2": 0,
+                        "percentagePrice3": 0
+                    },
+                    "sku": "SKU-001",
+                    "stock": 10,
+                    "minOrder": 10,
+                    "maxOrder": 94,
+                    "rating": "4.50",
+                    "reviews_count": 0,
+                    "reviews": [],
+                    "selected": true,
+                    "special_offer": {},
+                    "seller": {
+                        "id": 1,
+                        "label": "دیجی کالا"
+                    },
+                    "productId": "brand4-category1-subCategory0-item0as0005",
+                    "id": "brand4-category1-subCategory0-item0as0005",
+                    "combinationsID": 19,
+                    "attributes": [
+                        {
+                            "id": 16,
+                            "value": "#ff00ff",
+                            "attribute_name": "رنگ",
+                            "type": "color",
+                            "attribute_id": 1,
+                            "label": "ارغوانی"
+                        },
+                        {
+                            "id": 18,
+                            "value": "فلزی",
+                            "attribute_name": "جنس",
+                            "type": "material",
+                            "attribute_id": 81
+                        }
+                    ],
+                    "name": "لپ تاپ گیمینگ TUF F15",
+                    "nodes": [
+                        {
+                            "id": "brand4-category1-subCategory0-item0as0005",
+                            "name": "لپ تاپ گیمینگ TUF F15",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand4-category1-subCategory0-item0as0005-c19-s2",
+                            "shortName": "tuff15k4r8v",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 110,
+                                "discountedPrice": 130,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-002",
+                            "stock": 15,
+                            "minOrder": 2,
+                            "maxOrder": 150,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 19,
+                            "attributes": [
+                                {
+                                    "id": 16,
+                                    "value": "#ff00ff",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "ارغوانی"
+                                },
+                                {
+                                    "id": 18,
+                                    "value": "فلزی",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 2,
+                                "label": "تک اسیا"
+                            },
+                            "productId": "brand4-category1-subCategory0-item0as0005"
+                        },
+                        {
+                            "id": "brand4-category1-subCategory0-item0as0005",
+                            "name": "لپ تاپ گیمینگ TUF F15",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand4-category1-subCategory0-item0as0005-c20-s4",
+                            "shortName": "tuff15k4v8v",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 110,
+                                "discountedPrice": 130,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-002",
+                            "stock": 15,
+                            "minOrder": 2,
+                            "maxOrder": 150,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 20,
+                            "attributes": [
+                                {
+                                    "id": 16,
+                                    "value": "#ff00ff",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "ارغوانی"
+                                },
+                                {
+                                    "id": 19,
+                                    "value": "پلاستیک",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 4,
+                                "label": "ترب"
+                            },
+                            "productId": "brand4-category1-subCategory0-item0as0005"
+                        },
+                        {
+                            "id": "brand4-category1-subCategory0-item0as0005",
+                            "name": "لپ تاپ گیمینگ TUF F15",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand4-category1-subCategory0-item0as0005-c21-s1",
+                            "shortName": "tuff15k4m8v",
+                            "payment_type": "Cash",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Retail",
+                            "price": {
+                                "regularPrice": 100,
+                                "discountedPrice": 120,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-001",
+                            "stock": 10,
+                            "minOrder": 1,
+                            "maxOrder": 46,
+                            "rating": "4.50",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 21,
+                            "attributes": [
+                                {
+                                    "id": 17,
+                                    "value": "#ff0000",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "قرمز"
+                                },
+                                {
+                                    "id": 18,
+                                    "value": "فلزی",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 1,
+                                "label": "دیجی کالا"
+                            },
+                            "productId": "brand4-category1-subCategory0-item0as0005"
+                        }
+                    ]
+                },
+                {
+                    "action": 3,
+                    "deliveryTime": {
+                        "label": "کمتر از یک هفته",
+                        "value": "in1week"
+                    },
+                    "images": [],
+                    "psid": "brand4-category1-subCategory0-item1i0001-c19-s1",
+                    "shortName": "rogg16k4z8v",
+                    "payment_type": "Cash",
+                    "delivery": [
+                        {
+                            "locationName": "Shiraz",
+                            "locationId": 0,
+                            "locationLabel": "شیراز"
+                        },
+                        {
+                            "locationName": "Esfahan",
+                            "locationId": 1,
+                            "locationLabel": "اصفهان"
+                        }
+                    ],
+                    "buy_type": "Retail",
+                    "price": {
+                        "regularPrice": 50000000,
+                        "discountedPrice": 48000000,
+                        "discountPercent": null,
+                        "foreignCurrencyPrice": 0,
+                        "secondaryCost": 0,
+                        "percentagePrice1": 0,
+                        "percentagePrice2": 0,
+                        "percentagePrice3": 0
+                    },
+                    "sku": "SKU-1001",
+                    "stock": 5,
+                    "minOrder": 1,
+                    "maxOrder": 10,
+                    "rating": "4.70",
+                    "reviews_count": 0,
+                    "reviews": [],
+                    "selected": false,
+                    "special_offer": null,
+                    "seller": {
+                        "id": 1,
+                        "label": "دیجی کالا"
+                    },
+                    "productId": "brand4-category1-subCategory0-item1i0001",
+                    "id": "brand4-category1-subCategory0-item1i0001",
+                    "combinationsID": 19,
+                    "attributes": [
+                        {
+                            "id": 16,
+                            "value": "#000000",
+                            "attribute_name": "رنگ",
+                            "type": "color",
+                            "attribute_id": 1,
+                            "label": "مشکی"
+                        },
+                        {
+                            "id": 18,
+                            "value": "16GB",
+                            "attribute_name": "حافظه رم",
+                            "type": "ram",
+                            "attribute_id": 81
+                        }
+                    ],
+                    "name": "لپ\u200cتاپ ایسوس مدل ROG Strix G16",
+                    "nodes": [
+                        {
+                            "id": "brand4-category1-subCategory0-item1i0001",
+                            "name": "لپ\u200cتاپ ایسوس مدل ROG Strix G16",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand4-category1-subCategory0-item1i0001-c20-s2",
+                            "shortName": "rogg16k4a8v",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 53000000,
+                                "discountedPrice": 51000000,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-1002",
+                            "stock": 7,
+                            "minOrder": 1,
+                            "maxOrder": 15,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 20,
+                            "attributes": [
+                                {
+                                    "id": 17,
+                                    "value": "#C0C0C0",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "نقره‌ای"
+                                },
+                                {
+                                    "id": 19,
+                                    "value": "32GB",
+                                    "attribute_name": "حافظه رم",
+                                    "type": "ram",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 2,
+                                "label": "تک اسیا"
+                            },
+                            "productId": "brand4-category1-subCategory0-item1i0001"
+                        }
+                    ]
+                },
+                {
+                    "action": 3,
+                    "deliveryTime": {
+                        "label": "کمتر از 1 روز",
+                        "value": "in1day"
+                    },
+                    "images": [],
+                    "psid": "brand5-category1-subCategory0-item6f4d3c9-c19-s7",
+                    "shortName": "beatsxyz1234k4z8v",
+                    "payment_type": "Cash",
+                    "delivery": [
+                        {
+                            "locationName": "Shiraz",
+                            "locationId": 0,
+                            "locationLabel": "شیراز"
+                        },
+                        {
+                            "locationName": "Esfahan",
+                            "locationId": 1,
+                            "locationLabel": "اصفهان"
+                        }
+                    ],
+                    "buy_type": "Retail",
+                    "price": {
+                        "regularPrice": 2500000,
+                        "discountedPrice": 2400000,
+                        "discountPercent": 4,
+                        "foreignCurrencyPrice": 0,
+                        "secondaryCost": 0,
+                        "percentagePrice1": 0,
+                        "percentagePrice2": 0,
+                        "percentagePrice3": 0
+                    },
+                    "sku": "SKU-011",
+                    "stock": 50,
+                    "minOrder": 1,
+                    "maxOrder": 100,
+                    "rating": "4.75",
+                    "reviews_count": 8,
+                    "reviews": [],
+                    "selected": false,
+                    "special_offer": null,
+                    "seller": {
+                        "id": 7,
+                        "label": "ادبازار"
+                    },
+                    "productId": "brand5-category1-subCategory0-item6f4d3c9",
+                    "id": "brand5-category1-subCategory0-item6f4d3c9",
+                    "combinationsID": 19,
+                    "attributes": [
+                        {
+                            "id": 16,
+                            "value": "#FF0000",
+                            "attribute_name": "رنگ",
+                            "type": "color",
+                            "attribute_id": 1,
+                            "label": "قرمز"
+                        }
+                    ],
+                    "name": "هدفون با سیم بیتس مدل XYZ123",
+                    "nodes": []
+                }
+            ]
+        }
+    ],
+    "category": [
+        {
+            "idCategory": "category0",
+            "title": "موبایل",
+            "image": "/uploads/categories/phone.png",
+            "name": "mobile",
+            "subCategories": [
+                {
+                    "idSubCategory": "category0-subCategory0",
+                    "name": "گوشی ساده",
+                    "label": "phone",
+                    "image": "/uploads/categories-cat/phone.png",
+                    "brands": [
+                        {
+                            "idBrand": "brand0",
+                            "name": "اپل",
+                            "label": "apple",
+                            "image": "/uploads/categories-brands/apple.png"
+                        },
+                        {
+                            "idBrand": "brand1",
+                            "name": "سامسونگ",
+                            "label": "samsung",
+                            "image": "/uploads/categories-brands/samsung.png"
+                        }
+                    ]
+                },
+                {
+                    "idSubCategory": "category0-subCategory1",
+                    "name": "گوشی هوشمند",
+                    "label": "smartphone",
+                    "image": "/uploads/categories-cat/phone.png",
+                    "brands": [
+                        {
+                            "idBrand": "brand0",
+                            "name": "اپل",
+                            "label": "apple",
+                            "image": "/uploads/categories-brands/apple.png"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "idCategory": "category1",
+            "title": "کالای دیجیتال",
+            "image": "/uploads/brand-categories/digital.jpg",
+            "name": "digital",
+            "subCategories": [
+                {
+                    "idSubCategory": "category1-subCategory0",
+                    "name": "لپ تاپ",
+                    "label": "laptop",
+                    "image": "/uploads/categories/digital.jpg",
+                    "brands": [
+                        {
+                            "idBrand": "brand1",
+                            "name": "سامسونگ",
+                            "label": "samsung",
+                            "image": "/uploads/categories-brands/samsung.png"
+                        },
+                        {
+                            "idBrand": "brand0",
+                            "name": "اپل",
+                            "label": "apple",
+                            "image": "/uploads/categories-brands/apple.png"
+                        }
+                    ]
+                },
+                {
+                    "idSubCategory": "category1-subCategory1",
+                    "name": "فلش مموری",
+                    "label": "flash",
+                    "image": "/uploads/categories-cat/fm.jpg",
+                    "brands": [
+                        {
+                            "idBrand": "brand1",
+                            "name": "سامسونگ",
+                            "label": "samsung",
+                            "image": "/uploads/categories-brands/samsung.png"
+                        },
+                        {
+                            "idBrand": "brand0",
+                            "name": "اپل",
+                            "label": "apple",
+                            "image": "/uploads/categories-brands/apple.png"
+                        }
+                    ]
+                },
+                {
+                    "idSubCategory": "category1-subCategory2",
+                    "name": "ساعت هوشمند",
+                    "label": "smartwatch",
+                    "image": "/uploads/categories-cat/sm.jpg",
+                    "brands": [
+                        {
+                            "idBrand": "brand1",
+                            "name": "سامسونگ",
+                            "label": "samsung",
+                            "image": "/uploads/categories-brands/samsung.png"
+                        },
+                        {
+                            "idBrand": "brand0",
+                            "name": "اپل",
+                            "label": "apple",
+                            "image": "/uploads/categories-cat/apple.png"
+                        }
+                    ]
+                },
+                {
+                    "idSubCategory": "category1-subCategory3",
+                    "name": "هدفون",
+                    "label": "headphone",
+                    "image": "/uploads/categories-cat/hp.jpg",
+                    "brands": [
+                        {
+                            "idBrand": "brand1",
+                            "name": "سامسونگ",
+                            "label": "samsung",
+                            "image": "/uploads/categories-brands/samsung.png"
+                        },
+                        {
+                            "idBrand": "brand0",
+                            "name": "اپل",
+                            "label": "apple",
+                            "image": "/uploads/categories-brands/apple.png"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "idCategory": "category2",
+            "title": "لوازم برقی",
+            "image": "/uploads/brand-categories/electrical.png",
+            "name": "electrical",
+            "subCategories": [
+                {
+                    "idSubCategory": "category2-subCategory0",
+                    "name": "جارو برقی",
+                    "label": "vacuum",
+                    "image": "/uploads/categories/vacuum.jpg",
+                    "brands": [
+                        {
+                            "idBrand": "brand1",
+                            "name": "سامسونگ",
+                            "label": "samsung",
+                            "image": "/uploads/categories-brands/samsung.png"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "idCategory": "category3",
+            "title": "اکسسوری",
+            "image": "/uploads/brand-categories/accessory.png",
+            "name": "accessory",
+            "subCategories": [
+                {
+                    "idSubCategory": "category3-subCategory0",
+                    "name": "دست بند هوشمند",
+                    "label": "laptop",
+                    "image": "/uploads/categories-cat/sm.jpg",
+                    "brands": [
+                        {
+                            "idBrand": "brand1",
+                            "name": "سامسونگ",
+                            "label": "samsung",
+                            "image": "/uploads/categories-brands/samsung.png"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "idCategory": "category4",
+            "title": "سایر کالاها",
+            "image": "/uploads/brand-categories/others.png",
+            "name": "others",
+            "subCategories": [
+                {
+                    "idSubCategory": "category4-subCategory0",
+                    "name": "کتاب",
+                    "label": "laptop",
+                    "image": "/uploads/categories-cat/books.png",
+                    "brands": [
+                        {
+                            "idBrand": "brand2",
+                            "name": "سامسونگ",
+                            "label": "samsung",
+                            "image": "/uploads/categories-brands/samsung.png"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "filters": {
+        "sellers": [
+            {
+                "label": "دیجیکالا",
+                "value": "1"
+            },
+            {
+                "label": "باسلام",
+                "value": "2"
+            },
+            {
+                "label": "زنبیل",
+                "value": "3"
+            },
+            {
+                "label": "ترب",
+                "value": "4"
+            },
+            {
+                "label": "سورنا",
+                "value": "5"
+            },
+            {
+                "label": "چاره",
+                "value": "6"
+            },
+            {
+                "label": "ادبازار",
+                "value": "7"
+            },
+            {
+                "label": "کالا 118",
+                "value": "8"
+            },
+            {
+                "label": "مشهد کالا",
+                "value": "9"
+            },
+            {
+                "label": "فروشگاه اینترنتی ایمالز",
+                "value": "10"
+            },
+            {
+                "label": "شیکسون",
+                "value": "11"
+            },
+            {
+                "label": "پخش کالای مرکزی",
+                "value": "12"
+            },
+            {
+                "label": "ایران بازار",
+                "value": "13"
+            },
+            {
+                "label": "دیجی استایل",
+                "value": "14"
+            },
+            {
+                "label": "مدیسه",
+                "value": "15"
+            },
+            {
+                "label": "تک آسیا",
+                "value": "16"
+            }
+        ],
+        "colors": [
+            {
+                "label": "قرمز",
+                "value": "#EF4444"
+            },
+            {
+                "label": "نارنجی",
+                "value": "#F97316"
+            },
+            {
+                "label": "کهربایی",
+                "value": "#F59E0B"
+            },
+            {
+                "label": "زرد",
+                "value": "#EAB308"
+            },
+            {
+                "label": "سبز لیمویی",
+                "value": "#84CC16"
+            },
+            {
+                "label": "سبز",
+                "value": "#22C55E"
+            },
+            {
+                "label": "فیروزه\u200cای",
+                "value": "#14B8A6"
+            },
+            {
+                "label": "آبی روشن",
+                "value": "#0EA5E9"
+            },
+            {
+                "label": "آبی",
+                "value": "#3B82F6"
+            },
+            {
+                "label": "بنفش",
+                "value": "#8B5CF6"
+            },
+            {
+                "label": "صورتی",
+                "value": "#EC4899"
+            },
+            {
+                "label": "رز",
+                "value": "#F43F5E"
+            }
+        ],
+        "deliveryTime": [
+            {
+                "label": "کمتر از 3 ساعت",
+                "value": "in3hours"
+            },
+            {
+                "label": "کمتر از 1 روز",
+                "value": "in1day"
+            },
+            {
+                "label": "کمتر از 3 روز",
+                "value": "in3days"
+            },
+            {
+                "label": "کمتر از 1 هفته",
+                "value": "in1week"
+            },
+            {
+                "label": "کمتر از 15 روز",
+                "value": "in15days"
+            }
+        ]
+    },
+    "appliedFilters": [
+        {
+            "id": "723ac826-a9ba-4b26-9be1-15716568b0dc",
+            "name": "c"
+        }
+    ]
+}

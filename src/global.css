@@ -86,8 +86,10 @@
 /* Fix for horizontal scroll - CRITICAL */
 html {
   overflow-x: hidden;
+  overflow-y: scroll; /* Always show vertical scrollbar so modal open never changes layout width (prevents shift) */
   width: 100%;
   max-width: 100vw;
+  scrollbar-gutter: stable;
 }
 
 body {

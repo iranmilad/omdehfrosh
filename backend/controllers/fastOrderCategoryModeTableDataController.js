@@ -6,6 +6,20 @@ import FastOrderCategory from '../models/FastOrderCategory.js';
 import FastOrderLocation from '../models/FastOrderLocation.js';
 import FiltersSettingsCategory from '../models/SeachCategorySchema.js'
 
+// ----- MODIFIED 2026-02-07: hardcoded Persian color labels for attribute tooltip (no backend lib) -----
+const COLOR_LABELS = { "#000000": "مشکی", "#000080": "آبی تیره", "#0000ff": "آبی", "#008000": "سبز تیره", "#00ff00": "سبز", "#00ffff": "فیروزه‌ای", "#808080": "خاکستری", "#800000": "قهوه‌ای تیره", "#800080": "بنفش", "#a52a2a": "قهوه‌ای", "#ff0000": "قرمز", "#ff00ff": "ارغوانی", "#ffa500": "نارنجی", "#ffff00": "زرد", "#ffffff": "سفید" };
+const addOptionLabels = (opts) => {
+  if (!opts || !Array.isArray(opts)) return opts;
+  return opts.map(o => {
+    const isColor = (o.type && o.type.toLowerCase() === 'color') || o.attribute_name === 'رنگ';
+    const hex = o.value && String(o.value).trim();
+    const normalized = hex ? (hex.startsWith('#') ? hex.toLowerCase() : '#' + hex.toLowerCase()) : '';
+    const label = isColor && normalized ? (COLOR_LABELS[normalized] ?? o.value) : o.label;
+    return { ...o, ...(label != null && { label }) };
+  });
+};
+// ----- END MODIFIED 2026-02-07 -----
+
 // ⭐ Helper function to recursively remove _id, __v, and ICPrice fields
 const removeIdFields = (obj) => {
   if (Array.isArray(obj)) {
@@ -186,7 +200,7 @@ export const getFastOrderCategoryModeTableData = async (req, res) => {
                     allSuppliers.push({
                         ...item, // Spread supplier details
                         combinationsID: combination.id, // Attach combination ID
-                        attributes: combination.options, // Add attributes
+                        attributes: addOptionLabels(combination.options), // ----- MODIFIED 2026-02-07: include color label -----
                     });
                 });
             });
@@ -201,7 +215,7 @@ export const getFastOrderCategoryModeTableData = async (req, res) => {
                 productId: product.id, // Add product ID
                 id: product.id, // Add product ID
                 combinationsID: firstCombination.id, // Add combination ID
-                attributes: firstCombination.options, // Add attributes
+                attributes: addOptionLabels(firstCombination.options), // ----- MODIFIED 2026-02-07: include color label -----
                 name: product.general.title,
                 nodes: allSuppliersF.map(supplier => ({
                     ...supplier,
@@ -262,6 +276,8 @@ export const getFastOrderCategoryModeTableData = async (req, res) => {
 export const fetchTableDataByIds = async (req, res) => {
     const { searchType } = req.query;
     const { ids } = req.body; 
+
+    
 
     if (searchType !== "category") {
         return res.status(400).json({ message: "Only 'category' search type is supported currently" });
@@ -349,7 +365,7 @@ export const fetchTableDataByIds = async (req, res) => {
                     allSuppliers.push({
                         ...item, // Spread supplier details
                         combinationsID: combination.id, // Attach combination ID
-                        attributes: combination.options, // Add attributes
+                        attributes: addOptionLabels(combination.options), // ----- MODIFIED 2026-02-07: include color label -----
                     });
                 });
             });
@@ -364,7 +380,7 @@ export const fetchTableDataByIds = async (req, res) => {
                 productId: product.id, // Add product ID
                 id: product.id, // Add product ID
                 combinationsID: firstCombination.id, // Add combination ID
-                attributes: firstCombination.options, // Add attributes
+                attributes: addOptionLabels(firstCombination.options), // ----- MODIFIED 2026-02-07: include color label -----
                 name: product.general.title,
                 nodes: allSuppliersF.map(supplier => ({
                     ...supplier,

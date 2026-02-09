@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Alert,
   Anchor,
+  Autocomplete,
   Box,
   Button,
   Center,
@@ -50,9 +51,26 @@ const codeValidationSchema = yup.object().shape({
     .matches(/^\d{4}$/, 'کد باید دقیقاً شامل ۴ رقم باشد'),
 });
 
+const AUTH_LOGIN_FORM_COOKIE = "authLoginForm";
+const AUTH_LOGIN_FORM_MAX_AGE_DAYS = 30;
+
+function getSavedMobileFromCookie() {
+  try {
+    if (typeof document === "undefined") return "";
+    const match = document.cookie.match(new RegExp("(?:^|;\\s*)" + AUTH_LOGIN_FORM_COOKIE + "=([^;]*)"));
+    if (!match) return "";
+    const decoded = decodeURIComponent(match[1].trim());
+    const parsed = JSON.parse(decoded);
+    return parsed?.mobile && String(parsed.mobile).trim() ? String(parsed.mobile).trim() : "";
+  } catch {
+    return "";
+  }
+}
+
 const Login = () => {
   const [type, setType] = useState("enter");
-  const [cookies, setCookie] = useCookies(["user", "userFavorites"]);
+  const [cookies, setCookie] = useCookies(["user", "userFavorites", AUTH_LOGIN_FORM_COOKIE]);
+  const [savedMobileOption] = useState(getSavedMobileFromCookie);
   const bootstrap = useSelector((state) => state.global.bootstrap);
   const navigate = useNavigate();
   const redirectURL = QueryString.parse(location.search);
@@ -139,9 +157,7 @@ const Login = () => {
   
   const form = useForm({
     mode: "uncontrolled",
-    initialValues: {
-      mobile: "",
-    },
+    initialValues: { mobile: "" },
     validate: {
       mobile: (value) => {
         const sanitizedValue = value.replace(/\s+/g, ""); 
@@ -351,7 +367,10 @@ const Login = () => {
       setType("code");
       setErrors({});
       setStateMessage("ok");
-      
+      setCookie(AUTH_LOGIN_FORM_COOKIE, JSON.stringify({ mobile: sanitizedValue }), {
+        maxAge: AUTH_LOGIN_FORM_MAX_AGE_DAYS * 24 * 60 * 60,
+        path: "/",
+      });
       setCountdown(120);
       setCanResend(false);
       
@@ -506,7 +525,7 @@ const Login = () => {
               <>
                 <div className="flex flex-col gap-y-1 pt-5">
                   <form onSubmit={form.onSubmit((values) => submitForm(values))}>
-                    <TextInput
+                    <Autocomplete
                       label="لطفا شماره موبایل خود را وارد کنید"
                       type="text"
                       dir="ltr"
@@ -514,6 +533,7 @@ const Login = () => {
                       styles={{ input: { textAlign: "left" } }}
                       key={form.key("mobile")}
                       {...form.getInputProps("mobile")}
+                      data={savedMobileOption ? [savedMobileOption] : []}
                       withAsterisk
                       error={
                         (smsData?.state === "error" && smsData?.errors?.mobile) || form.errors.mobile ? (
@@ -525,7 +545,7 @@ const Login = () => {
                           </div>
                         ) : null
                       }
-                    />                      
+                    />
                     <Button
                       type="submit"
                       mt="md"

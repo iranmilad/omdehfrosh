@@ -39,6 +39,16 @@ const BulkPriceUpdateModal = ({
   const [percentage, setPercentage] = useState(5);
   const [operation, setOperation] = useState("increase"); // "increase" or "decrease"
 
+  // Debug: Log operation changes
+  useEffect(() => {
+    console.log("🔄 Operation state changed to:", operation);
+  }, [operation]);
+
+  // Debug: Log percentage changes
+  useEffect(() => {
+    console.log("🔢 Percentage state changed to:", percentage);
+  }, [percentage]);
+
   // Get stored filters based on search type
   const getStoredFilters = () => {
     const cookieName = searchType === "brand" ? COOKIE_NAME_BRAND : COOKIE_NAME_CATEGORY;
@@ -48,7 +58,7 @@ const BulkPriceUpdateModal = ({
       try {
         return JSON.parse(storedFilters);
       } catch (error) {
-        console.error("Error parsing stored filters:", error);
+        console.error("❌ Error parsing stored filters:", error);
         return null;
       }
     }
@@ -63,11 +73,22 @@ const BulkPriceUpdateModal = ({
         title: "خطا",
         message: "فیلتری برای بروزرسانی یافت نشد",
         color: "red",
+        icon: <IconAlertCircle size={16} />,
       });
       return;
     }
 
-    const effectivePercentage = operation === "decrease" ? -percentage : percentage;
+    // Convert to negative if decreasing
+    const effectivePercentage = operation === "decrease" ? -Math.abs(percentage) : Math.abs(percentage);
+
+    console.log("📤 Bulk update payload:", {
+      searchType,
+      filters,
+      percentage: effectivePercentage,
+      operation,
+      originalPercentage: percentage,
+      isDecrease: operation === "decrease"
+    });
 
     dispatch(bulkUpdatePrices({
       searchType,
@@ -77,31 +98,36 @@ const BulkPriceUpdateModal = ({
   };
 
   // Handle success/error notifications
-useEffect(() => {
-  if (success) {
-    notifications.show({
-      title: "موفق",
-      message: `قیمت ${updatedCount} محصول با موفقیت بروزرسانی شد`,
-      color: "green",
-      icon: <IconCheck size={16} />,
-    });
-    
-    // ✅ ADD THIS BLOCK - trigger refetch before closing
-    if (onSuccess) {
-      onSuccess();
+  useEffect(() => {
+    if (success) {
+      console.log("✅ Bulk update success! Updated count:", updatedCount);
+      
+      notifications.show({
+        title: "موفق",
+        message: `قیمت ${updatedCount} محصول با موفقیت ${operation === "decrease" ? "کاهش" : "افزایش"} یافت`,
+        color: "green",
+        icon: <IconCheck size={16} />,
+      });
+      
+      if (onSuccess) {
+        console.log("🔄 Calling onSuccess callback...");
+        onSuccess();
+      }
+      
+      onClose();
+      dispatch(clearBulkPriceUpdateState());
     }
-    
-    onClose();
-    dispatch(clearBulkPriceUpdateState());
-  }
-}, [success, updatedCount, onClose, dispatch, onSuccess]);
+  }, [success, updatedCount, onClose, dispatch, onSuccess, operation]);
 
   useEffect(() => {
     if (error) {
+      console.error("❌ Bulk update error:", error);
+      
       notifications.show({
         title: "خطا",
         message: error.message || "خطایی در بروزرسانی قیمت رخ داد",
         color: "red",
+        icon: <IconAlertCircle size={16} />,
       });
       dispatch(clearBulkPriceUpdateState());
     }
@@ -110,6 +136,7 @@ useEffect(() => {
   // Reset state when modal closes
   useEffect(() => {
     if (!opened) {
+      console.log("🔄 Modal closed - resetting state");
       setPercentage(5);
       setOperation("increase");
     }
@@ -120,6 +147,15 @@ useEffect(() => {
     (searchType === "brand" && filters.uniqueIDClickedBrands?.length > 0) ||
     (searchType === "category" && filters.uniqueIDClickedCategories?.length > 0)
   );
+
+  console.log("🔍 Current state:", {
+    operation,
+    percentage,
+    hasValidFilters,
+    loading,
+    success,
+    error
+  });
 
   return (
     <Modal
@@ -202,7 +238,10 @@ useEffect(() => {
           label="نوع عملیات"
           placeholder="انتخاب کنید"
           value={operation}
-          onChange={setOperation}
+          onChange={(value) => {
+            console.log("🎯 Select onChange triggered with value:", value);
+            setOperation(value);
+          }}
           data={[
             { value: "increase", label: "افزایش قیمت" },
             { value: "decrease", label: "کاهش قیمت" },
@@ -217,6 +256,8 @@ useEffect(() => {
               textAlign: "right",
             },
           }}
+          withinPortal
+          comboboxProps={{ zIndex: 10000 }}
         />
 
         {/* Percentage Input */}
@@ -224,7 +265,10 @@ useEffect(() => {
           label="درصد تغییر قیمت"
           placeholder="درصد را وارد کنید"
           value={percentage}
-          onChange={setPercentage}
+          onChange={(value) => {
+            console.log("🔢 NumberInput onChange triggered with value:", value);
+            setPercentage(value);
+          }}
           min={1}
           max={100}
           step={1}
@@ -246,7 +290,10 @@ useEffect(() => {
                 key={value}
                 variant={percentage === value ? "filled" : "light"}
                 size="xs"
-                onClick={() => setPercentage(value)}
+                onClick={() => {
+                  console.log("🔘 Quick select button clicked:", value);
+                  setPercentage(value);
+                }}
               >
                 {value}%
               </Button>
@@ -279,14 +326,35 @@ useEffect(() => {
           </Alert>
         )}
 
+        {/* Debug Info (Remove in production) */}
+        {/* <Alert color="gray" variant="light" title="Debug Info">
+          <Stack gap="xs">
+            <Text size="xs">Operation: {operation}</Text>
+            <Text size="xs">Percentage: {percentage}</Text>
+            <Text size="xs">Has Valid Filters: {hasValidFilters ? "Yes" : "No"}</Text>
+            <Text size="xs">Loading: {loading ? "Yes" : "No"}</Text>
+          </Stack>
+        </Alert> */}
+
         {/* Action Buttons */}
         <Group justify="flex-end" mt="md">
-          <Button variant="light" color="gray" onClick={onClose} disabled={loading}>
+          <Button 
+            variant="light" 
+            color="gray" 
+            onClick={() => {
+              console.log("❌ Cancel button clicked");
+              onClose();
+            }} 
+            disabled={loading}
+          >
             انصراف
           </Button>
           <Button
             color={operation === "increase" ? "green" : "red"}
-            onClick={handleSubmit}
+            onClick={() => {
+              console.log("✅ Submit button clicked");
+              handleSubmit();
+            }}
             loading={loading}
             disabled={!hasValidFilters || loading}
             leftSection={

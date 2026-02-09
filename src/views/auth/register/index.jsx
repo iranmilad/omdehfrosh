@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Alert,
   Anchor,
+  Autocomplete,
   Box,
   Button,
   Center,
@@ -55,9 +56,39 @@ const validationSchema = yup.object().shape({
     .matches(/^09\d{9}$/, 'شماره موبایل باید با 09 شروع شود و ۱۱ رقم باشد'),
 });
 
+const AUTH_REGISTER_FORM_COOKIE = "authRegisterForm";
+const AUTH_REGISTER_FORM_MAX_AGE_DAYS = 30;
+const AUTH_REGISTER_FORM_MAX_SAVED = 5;
+
+function toRecord(parsed) {
+  if (!parsed || typeof parsed !== "object") return null;
+  return {
+    name: parsed.name != null ? String(parsed.name).trim() : "",
+    family: parsed.family != null ? String(parsed.family).trim() : "",
+    nationalCode: parsed.nationalCode != null ? String(parsed.nationalCode).trim() : "",
+    mobile: parsed.mobile != null ? String(parsed.mobile).trim() : "",
+  };
+}
+
+function getSavedRegisterListFromCookie() {
+  try {
+    if (typeof document === "undefined") return [];
+    const match = document.cookie.match(new RegExp("(?:^|;\\s*)" + AUTH_REGISTER_FORM_COOKIE + "=([^;]*)"));
+    if (!match) return [];
+    const decoded = decodeURIComponent(match[1].trim());
+    const parsed = JSON.parse(decoded);
+    return Array.isArray(parsed)
+      ? parsed.map(toRecord).filter(Boolean).slice(0, AUTH_REGISTER_FORM_MAX_SAVED)
+      : toRecord(parsed) ? [toRecord(parsed)] : [];
+  } catch {
+    return [];
+  }
+}
+
 const Register = () => {
   const [type, setType] = useState("enter");
-  const [cookies, setCookie] = useCookies(["user"]);
+  const [cookies, setCookie] = useCookies(["user", AUTH_REGISTER_FORM_COOKIE]);
+  const [savedList] = useState(getSavedRegisterListFromCookie);
   const bootstrap = useSelector((state) => state.global.bootstrap);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -344,13 +375,8 @@ const Register = () => {
   }, [successMessage, errs]);
 
   const form = useForm({
-    mode: "uncontrolled",
-    initialValues: {
-      name: "",
-      family: "",
-      nationalCode: "",
-      mobile: ""
-    },
+    mode: "controlled",
+    initialValues: { name: "", family: "", nationalCode: "", mobile: "" },
     validate: yupResolver(validationSchema)
   });
 
@@ -392,7 +418,21 @@ const Register = () => {
       }
 
       setSuccessMessage(registerResult);
-      
+      const newRecord = { name: value.name ?? "", family: value.family ?? "", nationalCode: value.nationalCode ?? "", mobile };
+      const prevList = (() => {
+        try {
+          const raw = document.cookie.match(new RegExp("(?:^|;\\s*)" + AUTH_REGISTER_FORM_COOKIE + "=([^;]*)"));
+          if (!raw) return [];
+          const arr = JSON.parse(decodeURIComponent(raw[1].trim()));
+          return Array.isArray(arr) ? arr.map(toRecord).filter(Boolean) : toRecord(arr) ? [toRecord(arr)] : [];
+        } catch { return []; }
+      })();
+      const merged = [newRecord, ...prevList.filter((r) => (r.mobile || "").replace(/\s+/g, "") !== mobile)].slice(0, AUTH_REGISTER_FORM_MAX_SAVED);
+      setCookie(AUTH_REGISTER_FORM_COOKIE, JSON.stringify(merged), {
+        maxAge: AUTH_REGISTER_FORM_MAX_AGE_DAYS * 24 * 60 * 60,
+        path: "/",
+      });
+
       const smsResult = await sendSMSCode(mobile);
       
       if (smsResult && smsResult.state === "ok") {
@@ -504,9 +544,14 @@ const Register = () => {
                     onSubmit={form.onSubmit((values) => submitForm(values))}
                   >
                     <Stack gap={{ base: 'sm', sm: 'md' }}>
-                      <TextInput 
+                      <Autocomplete
                         label="نام"
                         {...form.getInputProps("name")}
+                        data={savedList.map((r) => r.name).filter(Boolean)}
+                        onOptionSubmit={(name) => {
+                          const record = savedList.find((r) => r.name === name);
+                          if (record) form.setValues(record);
+                        }}
                         withAsterisk
                         size={buttonSize}
                         error={

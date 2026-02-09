@@ -243,8 +243,7 @@ export function SingleCategoryWithSubcategories({
               const isCategoryActive = filterBrandsCategoryStorage.some(
                 (entry) => entry.idBrand === parentItem.idBrand && entry.idCategories.includes(category.idCategory)
               );
-              // When saved filter active, show all categories (disabled)
-              if (!isCategoryActive && !isDisabled) return null;
+              if (!isCategoryActive) return null;
 
               return (
                 <div key={index} className="flex flex-col items-center rounded-lg">

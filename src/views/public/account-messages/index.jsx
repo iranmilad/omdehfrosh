@@ -199,25 +199,25 @@ function Account_Messages() {
         />
       </Flex>
       <ScrollArea type="auto" mt="xl">
-        <Table highlightOnHover>
+        <Table highlightOnHover style={{ direction: 'rtl' }}>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right' }}>
+              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl', whiteSpace: 'nowrap' }}>
                 کد تیکت
               </Table.Th>
-              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right' }}>
+              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl' }}>
                 موضوع
               </Table.Th>
-              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right' }}>
+              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl', whiteSpace: 'nowrap' }}>
                 بخش
               </Table.Th>
-              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right' }}>
+              <Table.Th miw={100} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl', whiteSpace: 'nowrap' }}>
                 وضعیت
               </Table.Th>
-              <Table.Th miw={130} c={primaryColor} style={{ textAlign: 'right' }}>
+              <Table.Th miw={130} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl', whiteSpace: 'nowrap' }}>
                 آخرین به روز رسانی
               </Table.Th>
-              <Table.Th c={primaryColor} style={{ textAlign: 'right' }}>عملیات</Table.Th>
+              <Table.Th c={primaryColor} style={{ textAlign: 'right', direction: 'rtl', whiteSpace: 'nowrap' }}>عملیات</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -227,7 +227,7 @@ function Account_Messages() {
               )) : 
               !isLoadingData && (
                 <Table.Tr>
-                  <Table.Td colSpan={6} style={{ textAlign: 'center' }}>
+                  <Table.Td colSpan={6} style={{ textAlign: 'center', direction: 'rtl' }}>
                     <Text c="dimmed">
                       {sort === "all" ? "تیکتی وجود ندارد" : 
                        sort === "closed" ? "تیکت بسته شده‌ای وجود ندارد" :
@@ -247,24 +247,24 @@ function Account_Messages() {
 function ItemRow(props) {
   return (
     <Table.Tr>
-      <Table.Td style={{ textAlign: 'left' }}>
+      <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
         <Text size="sm" c="blue" component={NavLink} to={`/account/tickets/single/${props.ticketId}`}>
           {props.ticketId}
         </Text>
       </Table.Td>
-      <Table.Td style={{ textAlign: 'right' }}>
+      <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
         <Text size="sm" lineClamp={2}>{props.ticketTitle}</Text>
       </Table.Td>
-      <Table.Td style={{ textAlign: 'right' }}>
+      <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
         <Badge color="gray" size="sm" component={NavLink} to={`/account/tickets/single/${props.ticketId}`}>
           {props.teamName}
         </Badge>
       </Table.Td>
-      <Table.Td style={{ textAlign: 'right' }}>
+      <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
         {props.ticketStatus === "closed" ? "بسته شده" : "پاسخ داده نشده"}
       </Table.Td>
-      <Table.Td style={{ textAlign: 'left' }}>{props.updatedAt}</Table.Td>
-      <Table.Td style={{ textAlign: 'right' }}>
+      <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>{props.updatedAt}</Table.Td>
+      <Table.Td style={{ textAlign: 'center', direction: 'rtl' }}>
         <Button size="xs" component={NavLink} to={`/account/tickets/single/${props.ticketId}`} radius={999}>
           مشاهده
         </Button>

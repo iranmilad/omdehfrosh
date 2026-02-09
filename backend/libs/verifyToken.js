@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 
-const getUserFromToken = (req) => {
-  const authHeader = req.headers.authorization;
+/** @param {object} req - Express request (required). @param {object} [res] - Optional, ignored. */
+const getUserFromToken = (req, res) => {
+  const authHeader = req?.headers?.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
 

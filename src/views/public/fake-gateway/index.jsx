@@ -7,60 +7,7 @@ const FakeGateway = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  useEffect(() => {
-    // Get payment data from multiple sources
-    let data = {};
-
-    // First, try to get from URL search params (encoded data from backend redirect)
-    const encodedData = searchParams.get('data');
-    if (encodedData) {
-      try {
-        // Decode base64 in browser
-        const decodedString = atob(decodeURIComponent(encodedData));
-        const decodedData = JSON.parse(decodedString);
-        data = decodedData;
-      } catch (e) {
-        console.error('Error decoding URL data:', e);
-      }
-    }
-
-    // Also try to get individual params (fallback)
-    if (Object.keys(data).length === 0) {
-      for (const [key, value] of searchParams.entries()) {
-        if (key !== 'data') {
-          try {
-            // Try to parse as JSON if it looks like JSON
-            if (value.startsWith('{') || value.startsWith('[')) {
-              data[key] = JSON.parse(value);
-            } else {
-              data[key] = value;
-            }
-          } catch {
-            data[key] = value;
-          }
-        }
-      }
-    }
-
-    // If no data from URL params, try sessionStorage (set by paymentHelper)
-    if (Object.keys(data).length === 0) {
-      const storedData = sessionStorage.getItem('paymentData');
-      if (storedData) {
-        try {
-          data = JSON.parse(storedData);
-        } catch (e) {
-          console.error('Error parsing sessionStorage data:', e);
-        }
-      }
-    }
-
-    // Fallback to location state
-    if (Object.keys(data).length === 0 && location.state) {
-      data = location.state;
-    }
-
-    setPaymentData(data);
-
+  const startCountdown = (data) => {
     // Countdown timer
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -75,6 +22,130 @@ const FakeGateway = () => {
     }, 1000);
 
     return () => clearInterval(timer);
+  };
+
+  const getDataFromOtherSources = () => {
+    let data = {};
+
+    // Prefer sessionStorage (set by paymentHelper when user clicks پرداخت) – no sensitive data in URL
+    const storedData = sessionStorage.getItem('paymentData');
+    if (storedData) {
+      try {
+        data = JSON.parse(storedData);
+        sessionStorage.removeItem('paymentData');
+        setPaymentData(data);
+        startCountdown(data);
+        return;
+      } catch (e) {
+        console.error('Error parsing sessionStorage data:', e);
+        sessionStorage.removeItem('paymentData');
+      }
+    }
+
+    // If no sessionStorage, try temp_id (backend POST flow)
+    const tempId = searchParams.get('temp_id');
+    if (tempId) {
+      const backendUrl = process.env.NODE_ENV === 'production'
+        ? 'https://j2b.market'
+        : 'http://localhost:5000';
+      fetch(`${backendUrl}/api/fake-gateway/data/${tempId}`)
+        .then(response => response.json())
+        .then(result => {
+          if (result.success && result.data) {
+            setPaymentData(result.data);
+            startCountdown(result.data);
+          } else {
+            getDataFromUrlOrState();
+          }
+        })
+        .catch(() => getDataFromUrlOrState());
+      return;
+    }
+
+    getDataFromUrlOrState();
+  };
+
+  const getDataFromUrlOrState = () => {
+    let data = {};
+
+    // Avoid using ?data= in URL when possible; prefer sessionStorage/temp_id (already tried above)
+    const encodedData = searchParams.get('data');
+    if (encodedData) {
+      try {
+        const decodedString = atob(decodeURIComponent(encodedData));
+        const decodedData = JSON.parse(decodedString);
+        data = decodedData;
+        if (typeof window !== 'undefined' && window.history?.replaceState) {
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      } catch (e) {
+        console.error('Error decoding URL data:', e);
+      }
+    }
+
+    if (Object.keys(data).length === 0) {
+      const importantFields = ['transactionId', 'user_id', 'amount', 'redirect_url', 'order_id'];
+      for (const field of importantFields) {
+        const value = searchParams.get(field);
+        if (value) {
+          try {
+            // Try to parse as JSON if it looks like JSON
+            if (value.startsWith('{') || value.startsWith('[')) {
+              data[field] = JSON.parse(value);
+            } else {
+              data[field] = value;
+            }
+          } catch {
+            data[field] = value;
+          }
+        }
+      }
+
+      // If still no data, try all other params
+      if (Object.keys(data).length === 0) {
+        for (const [key, value] of searchParams.entries()) {
+          if (key !== 'data' && key !== 'temp_id') {
+            try {
+              // Try to parse as JSON if it looks like JSON
+              if (value.startsWith('{') || value.startsWith('[')) {
+                data[key] = JSON.parse(value);
+              } else {
+                data[key] = value;
+              }
+            } catch {
+              data[key] = value;
+            }
+          }
+        }
+      }
+    }
+
+    // If no data from URL params, try sessionStorage (set by paymentHelper)
+    if (Object.keys(data).length === 0) {
+      const storedData = sessionStorage.getItem('paymentData');
+      if (storedData) {
+        try {
+          data = JSON.parse(storedData);
+          // Clear sessionStorage after reading for security
+          sessionStorage.removeItem('paymentData');
+        } catch (e) {
+          console.error('Error parsing sessionStorage data:', e);
+          sessionStorage.removeItem('paymentData');
+        }
+      }
+    }
+
+    // Fallback to location state
+    if (Object.keys(data).length === 0 && location.state) {
+      data = location.state;
+    }
+
+    setPaymentData(data);
+    startCountdown(data);
+  };
+
+  useEffect(() => {
+    getDataFromOtherSources();
   }, [location, searchParams]);
 
   const redirectToListener = (data) => {

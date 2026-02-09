@@ -17,12 +17,16 @@ import { clearRemoveFavoriteStatus } from "../../../../redux/users/removeFromFav
 import { clearAddFavoriteStatus } from "../../../../redux/users/addtofavorites/addToFavoritesSlice";
 import { useNavigate } from "react-router";
 import { MdCompare } from "react-icons/md";
-import { useFavorites } from '../../../../Libs/hooks/useFavourites'
+import { useFavorites } from '../../../../Libs/hooks/useFavourites';
+import { useQueryClient } from "../../../../Libs/reactQuery";
+
+const USER_MY_ACCOUNT_QUERY_KEY = ["userMyAccount"];
 
 function IconBar({ favorite, data }) {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const shareModal = useDisclosure(false);
   const priceChart = useDisclosure(false);
@@ -92,17 +96,15 @@ function IconBar({ favorite, data }) {
   
   useEffect(() => {
     if (addToFavoritesData && addToFavoritesData.state === "ok") {
-      // API call succeeded - no need to update cache again as it was done optimistically
       notifications.show({
         title: addToFavoritesData?.message || "به علاقه‌مندی‌ها اضافه شد",
         color: "green",
         autoClose: true
       });
+      queryClient.invalidateQueries({ queryKey: USER_MY_ACCOUNT_QUERY_KEY });
     }
     if (addToFavoritesData && addToFavoritesData?.state === "error") {
-      // API returned error - need to rollback the optimistic update
       removeFromFavoritesCache(data.id);
-      
       notifications.show({
         title: addToFavoritesData?.errors?.addToFavorites || "خطا در افزودن به علاقه‌مندی‌ها",
         color: "red",
@@ -112,7 +114,7 @@ function IconBar({ favorite, data }) {
 
     dispatch(clearAddFavoriteStatus())
     dispatch(clearRemoveFavoriteStatus())
-  }, [addToFavoritesData, data.id, removeFromFavoritesCache, dispatch]);
+  }, [addToFavoritesData, data.id, removeFromFavoritesCache, dispatch, queryClient]);
 
   // remove from favorites
   useEffect(() => {
@@ -149,17 +151,15 @@ function IconBar({ favorite, data }) {
 
   useEffect(() => {
     if (removeFromFavoritesData && removeFromFavoritesData.state === "ok") {
-      // API call succeeded - no need to update cache again as it was done optimistically
       notifications.show({
         title: removeFromFavoritesData?.message || "از علاقه‌مندی‌ها حذف شد",
         color: "green",
         autoClose: true
       });
+      queryClient.invalidateQueries({ queryKey: USER_MY_ACCOUNT_QUERY_KEY });
     }
     if (removeFromFavoritesData && removeFromFavoritesData?.state === "error") {
-      // API returned error - need to rollback the optimistic update
       addToFavoritesCache(data.id);
-      
       notifications.show({
         title: removeFromFavoritesData?.errors?.removeFromFavorites || "خطا در حذف از علاقه‌مندی‌ها",
         color: "red",
@@ -169,7 +169,7 @@ function IconBar({ favorite, data }) {
 
     dispatch(clearAddFavoriteStatus())
     dispatch(clearRemoveFavoriteStatus())
-  }, [removeFromFavoritesData, data.id, addToFavoritesCache, dispatch]);
+  }, [removeFromFavoritesData, data.id, addToFavoritesCache, dispatch, queryClient]);
 
 
   const removeFavorite = () => {

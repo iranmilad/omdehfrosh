@@ -2,6 +2,20 @@ import SingleProduct from "../models/SingleProduct.js";
 import FastOrderBrand from "../models/FastOrderBrand.js";
 import FastOrderFilter from "../models/FastOrderFilter.js";
 
+// ----- MODIFIED 2026-02-07: hardcoded Persian color labels for attribute tooltip (no backend lib) -----
+const COLOR_LABELS = { "#000000": "مشکی", "#000080": "آبی تیره", "#0000ff": "آبی", "#008000": "سبز تیره", "#00ff00": "سبز", "#00ffff": "فیروزه‌ای", "#808080": "خاکستری", "#800000": "قهوه‌ای تیره", "#800080": "بنفش", "#a52a2a": "قهوه‌ای", "#ff0000": "قرمز", "#ff00ff": "ارغوانی", "#ffa500": "نارنجی", "#ffff00": "زرد", "#ffffff": "سفید" };
+const addOptionLabels = (opts) => {
+  if (!opts || !Array.isArray(opts)) return opts;
+  return opts.map(o => {
+    const isColor = (o.type && o.type.toLowerCase() === 'color') || o.attribute_name === 'رنگ';
+    const hex = o.value && String(o.value).trim();
+    const normalized = hex ? (hex.startsWith('#') ? hex.toLowerCase() : '#' + hex.toLowerCase()) : '';
+    const label = isColor && normalized ? (COLOR_LABELS[normalized] ?? o.value) : o.label;
+    return { ...o, ...(label != null && { label }) };
+  });
+};
+// ----- END MODIFIED 2026-02-07 -----
+
 export const fetchTableDataByIds = async (req, res) => {
   const { searchType } = req.params;
   const { ids } = req.body;
@@ -45,7 +59,7 @@ export const fetchTableDataByIds = async (req, res) => {
           allSuppliers.push({
             ...supplier,
             combinationsID: comb.id,
-            attributes: comb.options
+            attributes: addOptionLabels(comb.options) // ----- MODIFIED 2026-02-07: include color label -----
           });
         });
       });
@@ -58,7 +72,7 @@ export const fetchTableDataByIds = async (req, res) => {
         productId: product.id,
         id: product.id,
         combinationsID: firstCombination.id,
-        attributes: firstCombination.options,
+        attributes: addOptionLabels(firstCombination.options), // ----- MODIFIED 2026-02-07: include color label -----
         name: product.general.title,
         nodes: otherSuppliers.map(supplier => ({
           ...supplier,

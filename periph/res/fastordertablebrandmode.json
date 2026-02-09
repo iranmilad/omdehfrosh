@@ -1,0 +1,727 @@
+{
+    "products": [
+        {
+            "idBrand": "brand1",
+            "label": "سامسونگ",
+            "items": [
+                {
+                    "action": 3,
+                    "deliveryTime": {
+                        "label": "کمتر از 1 روز",
+                        "value": "in1day"
+                    },
+                    "images": [],
+                    "psid": "brand1-category0-subCategory1-item0is0001-c19-s1",
+                    "shortName": "a54k4z8v",
+                    "payment_type": "Cash",
+                    "delivery": [
+                        {
+                            "locationName": "Shiraz",
+                            "locationId": 0,
+                            "locationLabel": "شیراز"
+                        },
+                        {
+                            "locationName": "Esfahan",
+                            "locationId": 1,
+                            "locationLabel": "اصفهان"
+                        },
+                        {
+                            "locationName": "Tehran",
+                            "locationId": 2,
+                            "locationLabel": "تهران"
+                        }
+                    ],
+                    "buy_type": "Retail",
+                    "price": {
+                        "regularPrice": 43222,
+                        "discountedPrice": 950000,
+                        "discountPercent": null,
+                        "foreignCurrencyPrice": 0,
+                        "secondaryCost": 0,
+                        "percentagePrice1": 0,
+                        "percentagePrice2": 0,
+                        "percentagePrice3": 0
+                    },
+                    "sku": "SKU-001",
+                    "stock": 11,
+                    "minOrder": 10,
+                    "maxOrder": 94,
+                    "rating": "4.50",
+                    "reviews_count": 0,
+                    "reviews": [],
+                    "selected": true,
+                    "special_offer": {},
+                    "seller": {
+                        "id": 1,
+                        "label": "دیجی کالا"
+                    },
+                    "productId": "brand1-category0-subCategory1-item0is0001",
+                    "id": "brand1-category0-subCategory1-item0is0001",
+                    "combinationsID": 19,
+                    "attributes": [
+                        {
+                            "id": 16,
+                            "value": "#ff00ff",
+                            "attribute_name": "رنگ",
+                            "type": "color",
+                            "attribute_id": 1,
+                            "label": "ارغوانی"
+                        },
+                        {
+                            "id": 18,
+                            "value": "فلزی",
+                            "attribute_name": "جنس",
+                            "type": "material",
+                            "attribute_id": 81
+                        }
+                    ],
+                    "name": "گوشی موبایل سامسونگ مدل گلکسی A54 دو سیم کارت",
+                    "nodes": [
+                        {
+                            "id": "brand1-category0-subCategory1-item0is0001",
+                            "name": "گوشی موبایل سامسونگ مدل گلکسی A54 دو سیم کارت",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand1-category0-subCategory1-item0is0001-c19-s2",
+                            "shortName": "a54k4z8r",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 110,
+                                "discountedPrice": 130,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-002",
+                            "stock": 15,
+                            "minOrder": 2,
+                            "maxOrder": 150,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 19,
+                            "attributes": [
+                                {
+                                    "id": 16,
+                                    "value": "#ff00ff",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "ارغوانی"
+                                },
+                                {
+                                    "id": 18,
+                                    "value": "فلزی",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 2,
+                                "label": "تک اسیا"
+                            },
+                            "productId": "brand1-category0-subCategory1-item0is0001"
+                        },
+                        {
+                            "id": "brand1-category0-subCategory1-item0is0001",
+                            "name": "گوشی موبایل سامسونگ مدل گلکسی A54 دو سیم کارت",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand1-category0-subCategory1-item0is0001-c20-s4",
+                            "shortName": "a54k4z8f",
+                            "payment_type": "Credit",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Wholesale",
+                            "price": {
+                                "regularPrice": 110,
+                                "discountedPrice": 130,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-002",
+                            "stock": 15,
+                            "minOrder": 2,
+                            "maxOrder": 150,
+                            "rating": "4.80",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 20,
+                            "attributes": [
+                                {
+                                    "id": 16,
+                                    "value": "#ff00ff",
+                                    "attribute_name": "رنگ",
+                                    "type": "color",
+                                    "attribute_id": 1,
+                                    "label": "ارغوانی"
+                                },
+                                {
+                                    "id": 19,
+                                    "value": "پلاستیک",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 4,
+                                "label": "ترب"
+                            },
+                            "productId": "brand1-category0-subCategory1-item0is0001"
+                        },
+                        {
+                            "id": "brand1-category0-subCategory1-item0is0001",
+                            "name": "گوشی موبایل سامسونگ مدل گلکسی A54 دو سیم کارت",
+                            "action": 3,
+                            "deliveryTime": {
+                                "label": "کمتر از یک هفته",
+                                "value": "in1week"
+                            },
+                            "images": [],
+                            "psid": "brand1-category0-subCategory1-item0is0001-c21-s1",
+                            "shortName": "a54k4z8y",
+                            "payment_type": "Cash",
+                            "delivery": [
+                                {
+                                    "locationName": "Shiraz",
+                                    "locationId": 0,
+                                    "locationLabel": "شیراز"
+                                },
+                                {
+                                    "locationName": "Esfahan",
+                                    "locationId": 1,
+                                    "locationLabel": "اصفهان"
+                                }
+                            ],
+                            "buy_type": "Retail",
+                            "price": {
+                                "regularPrice": 100,
+                                "discountedPrice": 120,
+                                "discountPercent": null,
+                                "foreignCurrencyPrice": 0,
+                                "secondaryCost": 0,
+                                "percentagePrice1": 0,
+                                "percentagePrice2": 0,
+                                "percentagePrice3": 0
+                            },
+                            "sku": "SKU-001",
+                            "stock": 10,
+                            "minOrder": 1,
+                            "maxOrder": 46,
+                            "rating": "4.50",
+                            "reviews_count": 0,
+                            "reviews": [],
+                            "selected": false,
+                            "special_offer": null,
+                            "combinationsID": 21,
+                            "attributes": [
+                        {
+                            "id": 17,
+                            "value": "#ff0000",
+                            "attribute_name": "رنگ",
+                            "type": "color",
+                            "attribute_id": 1,
+                            "label": "قرمز"
+                        },
+                                {
+                                    "id": 18,
+                                    "value": "فلزی",
+                                    "attribute_name": "جنس",
+                                    "type": "material",
+                                    "attribute_id": 81
+                                }
+                            ],
+                            "seller": {
+                                "id": 1,
+                                "label": "دیجی کالا"
+                            },
+                            "productId": "brand1-category0-subCategory1-item0is0001"
+                        }
+                    ]
+                },
+                {
+                    "action": 3,
+                    "deliveryTime": {
+                        "label": "کمتر از یک هفته",
+                        "value": "in1week"
+                    },
+                    "images": [
+                        ""
+                    ],
+                    "psid": "brand1-category0-subCategory1-item1h0000-c51-s1",
+                    "shortName": "honormagic5prok4z8v",
+                    "payment_type": "Cash",
+                    "delivery": [
+                        {
+                            "locationName": "Shiraz",
+                            "locationId": 0,
+                            "locationLabel": "شیراز"
+                        },
+                        {
+                            "locationName": "Esfahan",
+                            "locationId": 1,
+                            "locationLabel": "اصفهان"
+                        }
+                    ],
+                    "buy_type": "Retail",
+                    "price": {
+                        "regularPrice": 1000000,
+                        "discountedPrice": 950000,
+                        "discountPercent": null,
+                        "foreignCurrencyPrice": 0,
+                        "secondaryCost": 0,
+                        "percentagePrice1": 0,
+                        "percentagePrice2": 0,
+                        "percentagePrice3": 0
+                    },
+                    "sku": "SKU-101",
+                    "stock": 20,
+                    "minOrder": 1,
+                    "maxOrder": 50,
+                    "rating": "4.70",
+                    "reviews_count": 0,
+                    "reviews": [],
+                    "selected": true,
+                    "special_offer": {},
+                    "seller": {
+                        "id": 1,
+                        "label": "دیجی کالا"
+                    },
+                    "productId": "brand1-category0-subCategory1-item1h0000",
+                    "id": "brand1-category0-subCategory1-item1h0000",
+                    "combinationsID": 51,
+                    "attributes": [
+                        {
+                            "id": 21,
+                            "value": "#008000",
+                            "attribute_name": "رنگ",
+                            "type": "color",
+                            "attribute_id": 1,
+                            "label": "سبز تیره"
+                        },
+                        {
+                            "id": 32,
+                            "value": "512GB",
+                            "attribute_name": "حافظه داخلی",
+                            "type": "internal_storage",
+                            "attribute_id": 81
+                        }
+                    ],
+                    "name": "گوشی موبایل آنر مدل مجیک 5 پرو دو سیم\u200c کارت",
+                    "nodes": []
+                }
+            ]
+        }
+    ],
+    "brands": [
+        {
+            "id": "0",
+            "title": "اپل",
+            "idBrand": "brand0",
+            "name": "apple",
+            "categories": [
+                {
+                    "id": "0",
+                    "title": "موبایل",
+                    "idCategory": "category0",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "گوشی ساده",
+                            "label": "smartphone",
+                            "idSubCategory": "category0-subCategory0",
+                            "image": "/images/brand-subcategories/phone.png"
+                        },
+                        {
+                            "id": "1",
+                            "name": "گوشی هوشمند",
+                            "label": "phone",
+                            "idSubCategory": "category0-subCategory1",
+                            "image": "/images/brand-subcategories/phone.png"
+                        }
+                    ],
+                    "image": "/images/brand-categories/phone.png"
+                },
+                {
+                    "id": "1",
+                    "title": "کالای دیجیتال",
+                    "idCategory": "category1",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "لپ تاپ",
+                            "label": "laptop",
+                            "idSubCategory": "category1-subCategory0",
+                            "image": "/images/brand-subcategories/laptop.png"
+                        }
+                    ],
+                    "image": "/images/brand-categories/digital.jpg"
+                },
+                {
+                    "id": "2",
+                    "title": "لوازم برقی",
+                    "idCategory": "category2",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "جارو برقی",
+                            "label": "vacuum",
+                            "idSubCategory": "category2-subCategory0",
+                            "image": "/images/brand-subcategories/vacuum.jpg"
+                        }
+                    ],
+                    "image": "/images/brand-categories/electrical.png"
+                }
+            ],
+            "image": "/uploads/brands/apple.png"
+        },
+        {
+            "id": "1",
+            "title": "سامسونگ",
+            "idBrand": "brand1",
+            "name": "samsung",
+            "categories": [
+                {
+                    "id": "1",
+                    "title": "کالای دیجیتال",
+                    "idCategory": "category1",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "لپ تاپ",
+                            "label": "laptop",
+                            "idSubCategory": "category1-subCategory0",
+                            "image": "/images/brand-subcategories/laptop.png"
+                        }
+                    ],
+                    "image": "/images/brand-categories/digital.jpg"
+                }
+            ],
+            "image": "/uploads/brands/samsung.png"
+        },
+        {
+            "id": "2",
+            "title": "آنر",
+            "idBrand": "brand2",
+            "name": "honor",
+            "categories": [
+                {
+                    "id": "2",
+                    "title": "لوازم برقی",
+                    "idCategory": "category2",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "جارو برقی",
+                            "label": "vacuum",
+                            "idSubCategory": "category2-subCategory0",
+                            "image": "/images/brand-subcategories/vacuum.jpg"
+                        }
+                    ],
+                    "image": "/images/brand-categories/electrical.png"
+                }
+            ],
+            "image": "/uploads/brands/honor.png"
+        },
+        {
+            "id": "3",
+            "title": "شیائومی",
+            "idBrand": "brand3",
+            "name": "xiaomi",
+            "categories": [
+                {
+                    "id": "3",
+                    "title": "اکسسوری",
+                    "idCategory": "category3",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "دست بند ساده",
+                            "label": "bracelet",
+                            "idSubCategory": "category3-subCategory0",
+                            "image": "/images/brand-subcategories/smartb.png"
+                        }
+                    ],
+                    "image": "/images/brand-categories/accessory.png"
+                }
+            ],
+            "image": "/uploads/brands/xiaomi.png"
+        },
+        {
+            "id": "4",
+            "title": "ایسوس",
+            "idBrand": "brand4",
+            "name": "asus",
+            "categories": [
+                {
+                    "id": "4",
+                    "title": "سایر کالاها",
+                    "idCategory": "category4",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "میز تلویزیون",
+                            "label": "tvtable",
+                            "idSubCategory": "category4-subCategory0",
+                            "image": "/images/brand-subcategories/tvt.png"
+                        }
+                    ],
+                    "image": "/images/brand-categories/others.png"
+                }
+            ],
+            "image": "/uploads/brands/asus.png"
+        },
+        {
+            "id": "5",
+            "title": "بیتس",
+            "idBrand": "brand5",
+            "name": "beats",
+            "categories": [
+                {
+                    "id": "1",
+                    "title": "کالای دیجیتال",
+                    "idCategory": "category1",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "هدفون با سیم",
+                            "label": "headphone",
+                            "idSubCategory": "category1-subCategory0",
+                            "image": "/images/brand-subcategories/hp.jpg"
+                        },
+                        {
+                            "id": "1",
+                            "name": "هدفون بی سیم",
+                            "label": "wirelessheadphone",
+                            "idSubCategory": "category1-subCategory1",
+                            "image": "/images/brand-subcategories/hp.jpg"
+                        }
+                    ],
+                    "image": "/images/brand-categories/digital.jpg"
+                }
+            ],
+            "image": "/uploads/brands/beats.png"
+        },
+        {
+            "id": "6",
+            "title": "ال جی",
+            "idBrand": "brand6",
+            "name": "lg",
+            "categories": [
+                {
+                    "id": "2",
+                    "title": "لوازم برقی",
+                    "idCategory": "category2",
+                    "subCategories": [
+                        {
+                            "id": "0",
+                            "name": "تلویزیون ساده",
+                            "label": "tv",
+                            "idSubCategory": "category2-subCategory1",
+                            "image": "/images/brand-subcategories/tv1.png"
+                        },
+                        {
+                            "id": "1",
+                            "name": "تلویزیون هوشمند",
+                            "label": "smarttv",
+                            "idSubCategory": "category2-subCategory1",
+                            "image": "/images/brand-subcategories/tv2.jpg"
+                        }
+                    ],
+                    "image": "/images/brand-categories/electrical.png"
+                }
+            ],
+            "image": "/uploads/brands/lg.png"
+        }
+    ],
+    "filters": {
+        "sellers": [
+            {
+                "label": "دیجیکالا",
+                "value": "1"
+            },
+            {
+                "label": "باسلام",
+                "value": "2"
+            },
+            {
+                "label": "زنبیل",
+                "value": "3"
+            },
+            {
+                "label": "ترب",
+                "value": "4"
+            },
+            {
+                "label": "سورنا",
+                "value": "5"
+            },
+            {
+                "label": "چاره",
+                "value": "6"
+            },
+            {
+                "label": "ادبازار",
+                "value": "7"
+            },
+            {
+                "label": "کالا 118",
+                "value": "8"
+            },
+            {
+                "label": "مشهد کالا",
+                "value": "9"
+            },
+            {
+                "label": "فروشگاه اینترنتی ایمالز",
+                "value": "10"
+            },
+            {
+                "label": "شیکسون",
+                "value": "11"
+            },
+            {
+                "label": "پخش کالای مرکزی",
+                "value": "12"
+            },
+            {
+                "label": "ایران بازار",
+                "value": "13"
+            },
+            {
+                "label": "دیجی استایل",
+                "value": "14"
+            },
+            {
+                "label": "مدیسه",
+                "value": "15"
+            },
+            {
+                "label": "تک آسیا",
+                "value": "16"
+            }
+        ],
+        "colors": [
+            {
+                "label": "قرمز",
+                "value": "#EF4444"
+            },
+            {
+                "label": "نارنجی",
+                "value": "#F97316"
+            },
+            {
+                "label": "کهربایی",
+                "value": "#F59E0B"
+            },
+            {
+                "label": "زرد",
+                "value": "#EAB308"
+            },
+            {
+                "label": "سبز لیمویی",
+                "value": "#84CC16"
+            },
+            {
+                "label": "سبز",
+                "value": "#22C55E"
+            },
+            {
+                "label": "فیروزه\u200cای",
+                "value": "#14B8A6"
+            },
+            {
+                "label": "آبی روشن",
+                "value": "#0EA5E9"
+            },
+            {
+                "label": "آبی",
+                "value": "#3B82F6"
+            },
+            {
+                "label": "بنفش",
+                "value": "#8B5CF6"
+            },
+            {
+                "label": "صورتی",
+                "value": "#EC4899"
+            },
+            {
+                "label": "رز",
+                "value": "#F43F5E"
+            }
+        ],
+        "deliveryTime": [
+            {
+                "label": "کمتر از 3 ساعت",
+                "value": "in3hours"
+            },
+            {
+                "label": "کمتر از 1 روز",
+                "value": "in1day"
+            },
+            {
+                "label": "کمتر از 3 روز",
+                "value": "in3days"
+            },
+            {
+                "label": "کمتر از 1 هفته",
+                "value": "in1week"
+            },
+            {
+                "label": "کمتر از 15 روز",
+                "value": "in15days"
+            }
+        ]
+    },
+    "appliedFilters": [
+        {
+            "id": "e268c59b-610e-4c63-a666-fa6b02baa133",
+            "name": "xx"
+        }
+    ]
+}

@@ -10,28 +10,41 @@ const FakeGateway = () => {
   const [paymentData, setPaymentData] = useState({});
   const [processing, setProcessing] = useState(false);
 
-  // Extract payment data from URL parameters or location state
+  // Extract payment data from POST form data (primary) or URL parameters (fallback)
   useEffect(() => {
     const extractedData = {};
     
-    // Get data from URL search params (if sent via GET)
+    // Get data from URL search params (fallback for old GET method)
     for (const [key, value] of searchParams.entries()) {
       extractedData[key] = value;
     }
     
-    // Get data from location state (if sent via POST form)
-    if (location.state) {
-      Object.assign(extractedData, location.state);
+    // Try to get POST data from URL params that might contain encoded data
+    const dataParam = searchParams.get('data');
+    if (dataParam) {
+      try {
+        const decodedData = decodeURIComponent(atob(dataParam));
+        const postData = JSON.parse(decodedData);
+        Object.assign(extractedData, postData);
+      } catch (error) {
+        console.error('Error decoding POST data from URL:', error);
+      }
     }
 
-    // Handle the specific data structure from your API
+    // For POST method, data should be available through window location after form submission
+    // In a real POST submission, the data would be sent to the server and then redirected
+    // For this fake gateway simulation, we'll check if we can extract from the URL hash or other means
+
+    // Handle specific data structure from your API
     const userId = extractedData.user_id || searchParams.get('user_id');
     const orderId = extractedData.order_id || searchParams.get('order_id');
-    const amountToPay = extractedData.amount_to_pay || searchParams.get('amount_to_pay');
+    const amountToPay = extractedData.amount || searchParams.get('amount_to_pay') || searchParams.get('amount');
+    const transactionId = extractedData.transactionId || extractedData.transaction_id;
+    const redirectUrl = extractedData.redirect_url;
     
     // Also support alternative naming from location state
     const receiptId = orderId || extractedData.orderId || searchParams.get('orderId');
-    const amount = amountToPay || extractedData.amount || searchParams.get('amount');
+    const amount = amountToPay;
     const sellerId = extractedData.sellerId || searchParams.get('sellerId');
 
     setPaymentData({
@@ -39,6 +52,8 @@ const FakeGateway = () => {
       user_id: userId,
       order_id: orderId,
       amount_to_pay: amountToPay,
+      transactionId,
+      redirect_url: redirectUrl,
       // Also keep alternative names for compatibility
       receiptId,
       amountToPay: amount,
@@ -46,6 +61,7 @@ const FakeGateway = () => {
     });
 
   }, [location, searchParams]);
+  // MODIFIED 2026-02-09 - Updated to handle POST data extraction from form submission
 
   // Simulate HTTP POST to the website's payment status check endpoint
   const sendPaymentResult = async (paymentStatus) => {

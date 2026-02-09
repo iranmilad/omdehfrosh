@@ -156,6 +156,7 @@ const Header = () => {
     endpoint: '/auth/user-initial-data',
     queryKey: ['userInitialData'],
     enabled: !!token, // Only fetch if token exists
+    meta: { showErrorNotification: false }, // Don't show "خطا در دریافت اطلاعات" when token is invalid/expired or user not logged in
     // Don't retry on 401 errors (token invalid/expired)
     retry: (failureCount, error) => {
       const errorMessage = typeof error === 'string' ? error : error?.message || String(error);
@@ -171,6 +172,7 @@ const Header = () => {
     endpoint: '/cart',
     queryKey: ['cart'],
     enabled: !!token,
+    meta: { showErrorNotification: false }, // Don't show error when not logged in / token invalid
     retry: (failureCount, error) => {
       const errorMessage = typeof error === 'string' ? error : error?.message || String(error);
       if (errorMessage.includes('401')) return false;
@@ -649,19 +651,21 @@ const Header = () => {
                   )}
                 </Flex>
 
-                {/* Login button for mobile when not logged in */}
-                {isSmallScreen && !user && (
-                  <Button 
-                    h={34} 
-                    px={14} 
-                    size="sm" 
-                    component={NavLink} 
-                    to="/login"
-                    style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
-                  >
-                    <span style={{ fontSize: '12px' }}>ورود/ثبت‌نام</span>
-                  </Button>
-                )}
+                {/* Login button only when right-side actions are hidden (below sm) — avoids duplicate at ~860px */}
+                <Box hiddenFrom="sm">
+                  {!user && (
+                    <Button 
+                      h={34} 
+                      px={14} 
+                      size="sm" 
+                      component={NavLink} 
+                      to="/login"
+                      style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                    >
+                      <span style={{ fontSize: '12px' }}>ورود/ثبت‌نام</span>
+                    </Button>
+                  )}
+                </Box>
               </Flex>
 
               {/* Right side: Icons (Notifications, Profile, Basket) */}

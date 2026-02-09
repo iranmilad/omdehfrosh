@@ -111,30 +111,12 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
     // For all payment methods (COD, wallet, and regular gateways): Use processPayment
     // This will redirect to listener (COD/wallet) or gateway (regular gateways)
     try {
-      // Determine payment_type based on gateway
-      let payment_type;
-      if (gateway?.name === "wallet" || gateway?.paymentMethod === "wallet") {
-        payment_type = "wallet";
-      } else if (isCODPayment) {
-        payment_type = "cod";
-      } else {
-        payment_type = "gateway";
-      }
-
       const success = await processPayment({
         order_id: orderId,
         amount: amount,
-        gateway: gateway.name,
-        payment_type: payment_type
+        gateway: gateway.name
       });
-      
-      if (!success) {
-        notifications.show({
-          title: "خطا",
-          message: "خطا در ایجاد لینک پرداخت. لطفا مجددا تلاش کنید.",
-          color: "red",
-        });
-      }
+      // MODIFIED 2026-02-09 - Removed payment_type field - backend will determine from gateway name
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         queryClient.invalidateQueries({ queryKey: ["cart"] });
@@ -142,12 +124,11 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
         queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
       }
     } catch (error) {
+      const status = error?.response?.status;
+      const msg = String(error?.message || '');
+      const is401 = status === 401 || msg.includes('401') || msg.toLowerCase().includes('unauthorized');
+      if (is401) return; // relogin modal handles; do not invalidate (would cause excessive refetches)
       console.error('Error in applySettings:', error);
-      notifications.show({
-        title: "خطا",
-        message: error.message || "خطا در پردازش پرداخت",
-        color: "red",
-      });
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         queryClient.invalidateQueries({ queryKey: ["cart"] });
@@ -184,16 +165,9 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
       const success = await processPayment({
         order_id: orderId,
         amount: amount,
-        payment_type: 'wallet'
+        gateway: 'wallet'
       });
-      
-      if (!success) {
-        notifications.show({
-          title: "خطا",
-          message: "خطا در پردازش پرداخت از کیف پول. لطفا مجددا تلاش کنید.",
-          color: "red",
-        });
-      }
+      // MODIFIED 2026-02-09 - Removed payment_type field, using gateway: 'wallet' instead
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         queryClient.invalidateQueries({ queryKey: ["cart"] });
@@ -201,12 +175,11 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
         queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
       }
     } catch (error) {
+      const status = error?.response?.status;
+      const msg = String(error?.message || '');
+      const is401 = status === 401 || msg.includes('401') || msg.toLowerCase().includes('unauthorized');
+      if (is401) return; // relogin modal handles; do not invalidate (would cause excessive refetches)
       console.error('Error in wallet payment from order:', error);
-      notifications.show({
-        title: "خطا",
-        message: error.message || "خطا در پردازش پرداخت از کیف پول",
-        color: "red",
-      });
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         queryClient.invalidateQueries({ queryKey: ["cart"] });
@@ -360,8 +333,17 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
     dispatch(fetchFinalReceipt());
   }, [dispatch]);
 
-  if (errorfinalreceipt) {
+  // On 401/Unauthorized only the global relogin modal should show – no error text here
+  const isAuthError = typeof errorfinalreceipt === 'string' && (
+    errorfinalreceipt.includes('401') ||
+    errorfinalreceipt.toLowerCase().includes('unauthorized') ||
+    errorfinalreceipt.toLowerCase().includes('user not found')
+  );
+  if (errorfinalreceipt && !isAuthError) {
     return <Alert message="خطا" description={errorfinalreceipt} type="error" showIcon />;
+  }
+  if (errorfinalreceipt && isAuthError) {
+    return null;
   }
 
   // Check if gateway is wallet or COD

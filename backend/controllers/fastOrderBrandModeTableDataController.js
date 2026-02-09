@@ -4,6 +4,19 @@ import SingleProduct from '../models/SingleProduct.js';
 import FastOrderLocation from '../models/FastOrderLocation.js';
 import FiltersSettingsBrand from '../models/SearchBrandSchema.js'
 
+// ----- MODIFIED 2026-02-07: hardcoded Persian color labels for attribute tooltip (no backend lib) -----
+const COLOR_LABELS = { "#000000": "مشکی", "#000080": "آبی تیره", "#0000ff": "آبی", "#008000": "سبز تیره", "#00ff00": "سبز", "#00ffff": "فیروزه‌ای", "#808080": "خاکستری", "#800000": "قهوه‌ای تیره", "#800080": "بنفش", "#a52a2a": "قهوه‌ای", "#ff0000": "قرمز", "#ff00ff": "ارغوانی", "#ffa500": "نارنجی", "#ffff00": "زرد", "#ffffff": "سفید" };
+const addOptionLabels = (opts) => {
+  if (!opts || !Array.isArray(opts)) return opts;
+  return opts.map(o => {
+    const isColor = (o.type && o.type.toLowerCase() === 'color') || o.attribute_name === 'رنگ';
+    const hex = o.value && String(o.value).trim();
+    const normalized = hex ? (hex.startsWith('#') ? hex.toLowerCase() : '#' + hex.toLowerCase()) : '';
+    const label = isColor && normalized ? (COLOR_LABELS[normalized] ?? o.value) : o.label;
+    return { ...o, ...(label != null && { label }) };
+  });
+};
+// ----- END MODIFIED 2026-02-07 -----
 
 // ⭐ Helper function to recursively remove _id, __v, and ICPrice fields
 const removeIdFields = (obj) => {
@@ -158,7 +171,7 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
                     allSuppliers.push({
                         ...item,
                         combinationsID: combination.id,
-                        attributes: combination.options,
+                        attributes: addOptionLabels(combination.options), // ----- MODIFIED 2026-02-07: include color label -----
                     });
                 });
             });
@@ -171,7 +184,7 @@ export const getFastOrderBrandModeTableData = async (req, res) => {
                 productId: product.id,
                 id: product.id,
                 combinationsID: firstCombination.id,
-                attributes: firstCombination.options,
+                attributes: addOptionLabels(firstCombination.options), // ----- MODIFIED 2026-02-07: include color label -----
                 name: product.general.title,
                 nodes: allSuppliersF.map(supplier => ({
                     ...supplier,
@@ -304,7 +317,7 @@ export const fetchTableDataByIds = async (req, res) => {
           allSuppliers.push({
             ...item,
             combinationsID: combination.id,
-            attributes: combination.options,
+            attributes: addOptionLabels(combination.options), // ----- MODIFIED 2026-02-07: include color label -----
           });
         });
       });
@@ -317,7 +330,7 @@ export const fetchTableDataByIds = async (req, res) => {
         productId: product.id,
         id: product.id,
         combinationsID: firstCombination.id,
-        attributes: firstCombination.options,
+        attributes: addOptionLabels(firstCombination.options), // ----- MODIFIED 2026-02-07: include color label -----
         name: product.general.title,
         nodes: allSuppliersF.map(supplier => ({
           ...supplier,

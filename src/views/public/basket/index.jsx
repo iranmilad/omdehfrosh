@@ -22,8 +22,10 @@ import { NavLink, useNavigate } from "react-router";
 import PaymentCalc from "../../../components/payment_calc";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState, useCallback } from "react";
-import { setInitial } from "../../../redux/cart";
-import { useSessionQuery, useQueryClient } from "../../../Libs/reactQuery";
+import { setInitial, clearCart } from "../../../redux/cart";
+import { logout } from "../../../redux/auth/authusers/auth";
+import { logout as logoutMaster } from "../../../redux/auth/authmaster/authMasterSlice";
+import { useSessionQuery, useQueryClient, clearCacheOnLogout } from "../../../Libs/reactQuery";
 import { useQueryClient as useQueryClientRQ } from "@tanstack/react-query";
 import AddressManagement from "../basket-info/AddressManagement";
 import { updateBasketOrdersAddress } from "../../../redux/orders/updateOrderAddress/updateOrderAddressActions";
@@ -32,6 +34,7 @@ import CounterBasket from "../../../components/counter-basket";
 import { DEFAULT_COLOR_MAP } from "../../../Libs/attribute_colors/colors";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import ImageIcon from "../../../resources/defaultImageIcon";
+import ReloginRequiredModal from "../../../components/ReloginRequiredModal";
 
 /* ---------------------- Pretty SVG placeholder as DATA URI ---------------------- */
 const buildPlaceholderDataUri = (label = "تصویر در دسترس نیست") => {
@@ -335,7 +338,7 @@ const BasketProduct = (props) => {
 };
 
 /* ---------------------- Basket Product With Fallback (inline from ProductWithFallback.jsx) ---------------------- */
-const BasketProductWithFallback = ({ onRemoveStart, forceShowInBasket = false, ...props }) => {
+const BasketProductWithFallback = ({ onRemoveStart, onUnauthorized, forceShowInBasket = false, ...props }) => {
   const cartItems = useSelector((state) => state.cart.items || []);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -422,6 +425,10 @@ const BasketProductWithFallback = ({ onRemoveStart, forceShowInBasket = false, .
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ productId, seller, combinationsID }),
     });
+    if (response.status === 401) {
+      if (typeof onUnauthorized === "function") onUnauthorized();
+      return null;
+    }
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData?.message || "Failed to remove item from cart");
@@ -435,6 +442,7 @@ const BasketProductWithFallback = ({ onRemoveStart, forceShowInBasket = false, .
     if (onRemoveStart) onRemoveStart();
     try {
       const removeResponse = await removeFromCartAPI(productId, seller, combinationsID);
+      if (removeResponse === null) return;
       if (removeResponse?.message === "ok") {
         if (Array.isArray(removeResponse.cart)) dispatch(setInitial(removeResponse.cart));
         else queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
@@ -579,6 +587,7 @@ const Basket = () => {
     endpoint: "/auth/user-initial-data",
     queryKey: ["userInitialData"],
     enabled: !!token,
+    queryOptions: { refetchOnMount: "always" }, // refetch when landing on basket so corrupt token gets 401 and modal shows
     retry: (failureCount, error) => {
       const msg = typeof error === "string" ? error : error?.message || String(error);
       if (msg.includes("401")) return false;
@@ -641,6 +650,18 @@ const Basket = () => {
   const [cartData, setCartData] = useState(null);
   const [cartError, setCartError] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showReloginModal, setShowReloginModal] = useState(false);
+
+  const clearAuthAndShowReloginModal = useCallback(() => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_master");
+    if (queryClient) clearCacheOnLogout(queryClient);
+    dispatch(logout());
+    dispatch(logoutMaster());
+    dispatch(clearCart());
+    dispatch(setInitial([]));
+    setShowReloginModal(true);
+  }, [queryClient, dispatch]);
 
   const reduxItems = useSelector((state) => state.cart.items || []);
   const authState = useSelector((state) => state.auth);
@@ -792,33 +813,40 @@ const Basket = () => {
       notifications.show({ title: "خطا", message: "لطفا یک آدرس برای تحویل انتخاب کنید", color: "red" });
       return;
     }
+    let loadingNotification = null;
     try {
-      const loadingNotification = notifications.show({
+      loadingNotification = notifications.show({
         title: "در حال ثبت آدرس...",
         message: "لطفا منتظر بمانید",
         loading: true,
         autoClose: false,
       });
       const result = await dispatch(updateBasketOrdersAddress({ address: selectedAddress })).unwrap();
-      notifications.hide(loadingNotification);
       if (result.success) {
         notifications.show({ title: "موفق", message: "آدرس با موفقیت ثبت شد", color: "green", autoClose: 2000 });
         setTimeout(() => navigate("/payment"), 500);
       }
     } catch (error) {
+      if (error?.status === 401 || error?.response?.status === 401) {
+        clearAuthAndShowReloginModal();
+        return;
+      }
       notifications.show({ title: "خطا", message: error?.message || "خطا در ثبت آدرس", color: "red", autoClose: 4000 });
       console.error("Error updating address:", error);
+    } finally {
+      if (loadingNotification != null) {
+        notifications.hide(loadingNotification);
+      }
     }
   };
 
   useEffect(() => {
-    if (!token) { navigate("/login", { replace: true }); return; }
+    if (!token) { setShowReloginModal(true); return; }
     const errMsg = userInitialError?.message ?? (typeof userInitialError === "string" ? userInitialError : "");
     if (userInitialError && errMsg.includes("401")) {
-      localStorage.removeItem("user");
-      navigate("/login", { replace: true });
+      clearAuthAndShowReloginModal();
     }
-  }, [token, userInitialError, navigate]);
+  }, [token, userInitialError, clearAuthAndShowReloginModal]);
 
   const isAuthLoading = !!token && isLoadingUserData && !userInitialData;
   const isCartLoading = !!token && !!userInitialData && !initialCartLoaded;
@@ -895,13 +923,28 @@ const Basket = () => {
     });
   }
 
-  if (!token) { navigate("/login", { replace: true }); return null; }
+  if (!token) {
+    return (
+      <>
+        <ReloginRequiredModal opened={true} onClose={() => navigate("/login", { replace: true })} />
+      </>
+    );
+  }
+  // Show relogin modal as soon as we get 401 (e.g. corrupt token), before loading check
+  const errMsg = userInitialError?.message ?? (typeof userInitialError === "string" ? userInitialError : "");
+  if (userInitialError && String(errMsg).includes("401")) {
+    return (
+      <>
+        <ReloginRequiredModal opened={true} onClose={() => navigate("/login", { replace: true })} />
+      </>
+    );
+  }
   if (isOverallLoading) return <LoadingComponent />;
-  if (token && userInitialError && (userInitialError?.message ?? "").includes("401")) return <AuthErrorComponent />;
   if (cartError && !isLoadingUserData) return <CartErrorComponent onRetry={handleRetry} />;
 
   return (
     <>
+      <ReloginRequiredModal opened={showReloginModal} onClose={() => setShowReloginModal(false)} />
       <style>{`
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
         @keyframes sparkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
@@ -952,6 +995,7 @@ const Basket = () => {
                       }
                       {...item}
                       onRemoveStart={handleRemoveStart}
+                      onUnauthorized={clearAuthAndShowReloginModal}
                       forceShowInBasket
                     />
                   ))

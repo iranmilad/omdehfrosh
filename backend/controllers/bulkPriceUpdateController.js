@@ -30,9 +30,12 @@ export const bulkUpdatePrices = async (req, res) => {
   }
 
   // User authentication check
-  const { user_id, decoded, role } = getUserFromToken(req, res);
+  const tokenData = getUserFromToken(req, res);
+  if (!tokenData || !tokenData.user_id) {
+    return res.status(401).json({ message: "Unauthorized: user not found" });
+  }
+  const { user_id, decoded, role } = tokenData;
   console.log("User Info:", { user_id, role });
-
   if (role !== "supplier") {
     return res.status(403).json({ message: "شما دسترسی به این عملیات را ندارید" });
   }

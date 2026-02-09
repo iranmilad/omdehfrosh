@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Cookies from "js-cookie";  
 import SlideCategory from "./SlideCategory";
 import { 
@@ -211,6 +211,23 @@ const SearchComponentBrandFastOrder = ({
     navigate('/login');
   };
 
+  // Prevent body shift when auth modal is open – run before paint so no flash
+  useLayoutEffect(() => {
+    if (!showAuthModal) return;
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+    const prevPaddingLeft = body.style.paddingLeft;
+    body.style.overflow = '';
+    body.style.paddingRight = '';
+    body.style.paddingLeft = '';
+    return () => {
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
+      body.style.paddingLeft = prevPaddingLeft;
+    };
+  }, [showAuthModal]);
+
   const handleMenuClick = () => {
     if (!user || !isVerified) {
       setShowAuthModal(true);
@@ -242,13 +259,27 @@ const SearchComponentBrandFastOrder = ({
   }, [searchType, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage, filters, localFilters]);
 
   const filterArray = useMemo(() => buildCurrentFilterArray(), [buildCurrentFilterArray]);
+
+  // Stable query key so same filter payload always hits cache (table data available on refresh like category mode)
+  const stableBrandQueryKey = useMemo(() => {
+    if (!filterArray?.length) return null;
+    const canonical = filterArray.map((item) => ({
+      searchType: item.searchType,
+      uniqueIDClickedBrands: [...(item.uniqueIDClickedBrands || [])].sort(),
+      uniqueIDClickedBrandsCategories: [...(item.uniqueIDClickedBrandsCategories || [])].sort(),
+      filterBrandsCategorySubCategoryStorage: [...(item.filterBrandsCategorySubCategoryStorage || [])].sort(),
+      filters: item.filters && typeof item.filters === 'object' ? Object.keys(item.filters).sort().reduce((acc, k) => { acc[k] = item.filters[k]; return acc; }, {}) : item.filters
+    }));
+    return JSON.stringify(canonical);
+  }, [filterArray]);
+
   const { data: tableDataFromQuery, isLoading: loadingFromQuery } = useApiQuery({
     endpoint: "/fast-order-brand-mode",
-    queryKey: ["fast-order-brand-mode", JSON.stringify(filterArray)],
+    queryKey: stableBrandQueryKey != null ? ["fast-order-brand-mode", stableBrandQueryKey] : ["fast-order-brand-mode", "disabled"],
     method: "post",
     body: filterArray,
     strategy: "CACHED",
-    enabled: checkedRows.size === 0 && filterArray?.length > 0,
+    enabled: checkedRows.size === 0 && filterArray?.length > 0 && stableBrandQueryKey != null,
   });
   // When no filter applied: use React Query data. When filter applied: use Redux data so sliders stay visible (first disabled, second/third cleared)
   const tableDataWhenChecked = reduxTableData && typeof reduxTableData === 'object' && !Array.isArray(reduxTableData) ? reduxTableData : null;
@@ -559,7 +590,8 @@ useEffect(() => {
         willUpdate: currentBrandId !== urlBrandId
       });
 
-      if (currentBrandId !== urlBrandId) {
+      const hasSecondOrThirdRow = (filterBrandsCategoryStorage?.length > 0) || (filterBrandsCategorySubCategoryStorage?.length > 0);
+      if (currentBrandId !== urlBrandId && !hasSecondOrThirdRow) {
         console.log('🔗 [FO SearchBrand] URL sync effect: UPDATING state from URL', { urlBrandId });
         setFilterBrandStorage([urlBrandId]);
         setFilterBrandsCategoryStorage([]);
@@ -576,14 +608,20 @@ useEffect(() => {
         Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
       }
     } else if (filterBrandStorage?.length > 0 && tableData.brands.length > 0) {
-      console.log('🔗 [FO SearchBrand] URL sync effect: URL brand not found, CLEARING state');
-      // URL slug not in current list (e.g. tableData was for another brand from cookie) – clear to refetch root brands
-      setFilterBrandStorage([]);
-      setFilterBrandsCategoryStorage([]);
-      setFilterBrandsCategorySubCategoryStorage([]);
+      // Do NOT clear when we have any selection: on refresh, tableData.brands is often the
+      // categories/subcategories for the selected brand, so URL slug (brand name) won't be in the list.
+      // Clearing here would wipe cookie-restored state. Only allow clear when we have no 2nd/3rd row
+      // AND we're sure we're at root (we can't be sure on refresh), so never clear when filterBrandStorage has content.
+      const hasAnySelection = filterBrandStorage?.length > 0 || (filterBrandsCategoryStorage?.length > 0) || (filterBrandsCategorySubCategoryStorage?.length > 0);
+      if (!hasAnySelection) {
+        console.log('🔗 [FO SearchBrand] URL sync effect: URL brand not found, CLEARING state');
+        setFilterBrandStorage([]);
+        setFilterBrandsCategoryStorage([]);
+        setFilterBrandsCategorySubCategoryStorage([]);
+      }
     }
   }
-}, [location.pathname, searchType, tableData?.brands, COOKIE_NAME, filterBrandStorage, localFilters, setFilterBrandStorage, setFilterBrandsCategoryStorage, setFilterBrandsCategorySubCategoryStorage, cookieUpdateTrigger]);
+}, [location.pathname, searchType, tableData?.brands, COOKIE_NAME, filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage, localFilters, setFilterBrandStorage, setFilterBrandsCategoryStorage, setFilterBrandsCategorySubCategoryStorage, cookieUpdateTrigger]);
 
 // Reset URL when switching TO brand mode – preserve previous brand selection; never use category slug for brand URL
   useEffect(() => {
@@ -608,18 +646,24 @@ useEffect(() => {
 
   return (
     <>
-      {/* Authentication Modal */}
+      {/* ورود به حساب کاربری / زمان حضور شما منقضی شده است – render in portal so always on top; no scroll lock to prevent shift */}
       <Modal
         opened={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         title="ورود به حساب کاربری"
         centered
+        zIndex={2147483647}
+        transitionProps={{ duration: 0 }}
+        removeScrollProps={{ removeScrollBar: false }}
+        portalProps={typeof document !== 'undefined' && document.getElementById('auth-modal-portal') ? { target: document.getElementById('auth-modal-portal') } : {}}
+        styles={{
+          root: { zIndex: 2147483647, position: 'fixed', inset: 0 },
+          inner: { zIndex: 2147483647, padding: 0 },
+          content: { zIndex: 2147483647 },
+        }}
+        overlayProps={{ style: { zIndex: 2147483647 }, backgroundOpacity: 0, blur: 0 }}
         closeOnClickOutside={false}
         closeOnEscape={false}
-        overlayProps={{
-          backgroundOpacity: 0,
-          blur: 0,
-        }}
         lockScroll={false}
         removeScrollBar={false}
       >

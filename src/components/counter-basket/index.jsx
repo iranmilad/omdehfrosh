@@ -3,12 +3,16 @@ import { IconPlus, IconMinus, IconTrash, IconBasket } from "@tabler/icons-react"
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
-import { setInitial } from "../../redux/cart";
-import { useProduct } from "../../views/public/product";
-import { useEffect, useState, useRef } from "react";
+import { setInitial, clearCart } from "../../redux/cart";
+import { logout } from "../../redux/auth/authusers/auth";
+import { logout as logoutMaster } from "../../redux/auth/authmaster/authMasterSlice";
+import { clearCacheOnLogout } from "../../Libs/reactQuery";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
+import ReloginRequiredModal from "../ReloginRequiredModal";
 
 // Direct API functions (no separate /cart fetch; use userInitialData cache)
+// Throws error with .status === 401 when backend returns 401 so callers can show relogin modal
 const cartAPI = {
   updateCart: async (body) => {
     const token = localStorage.getItem("user");
@@ -20,7 +24,12 @@ const cartAPI = {
       },
       body: JSON.stringify(body),
     });
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      const err = new Error(data.message || "Unauthorized");
+      err.status = 401;
+      throw err;
+    }
     if (!response.ok) {
       throw new Error(data.message || "Failed to update cart");
     }
@@ -33,65 +42,53 @@ const cartAPI = {
 
   removeFromCart: async (body) => {
     const token = localStorage.getItem("user");
-
-    try {
-      const response = await fetch(getApiUrl("/cart/remove"), {
-        method: "POST",
-        headers: {
-          'Authorization': `Bearer ${token}`, 
-          "Content-Type": "application/json"      
-        },
-        body: JSON.stringify(body),
-      });
-    
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to remove from cart");
-      }
-
-      return {
-        message: "ok",
-        cart: data.cart || [],
-        total: data.total || 0,
-      };
-    } catch (error) {
-      console.error("Remove from cart error:", error);
-      throw error;
+    const response = await fetch(getApiUrl("/cart/remove"), {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      const err = new Error(data.message || "Unauthorized");
+      err.status = 401;
+      throw err;
     }
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to remove from cart");
+    }
+    return {
+      message: "ok",
+      cart: data.cart || [],
+      total: data.total || 0,
+    };
   },
 
   getCart: async () => {
     const token = localStorage.getItem("user");
-
-    try {
-      const response = await fetch(getApiUrl("/cart"), {
-        method: "GET",
-        headers: {
-          'Authorization': `Bearer ${token}`, 
-          "Content-Type": "application/json"      
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch cart data");
-      }
-      
-      const serverD = await response.json();
-
-      return {
-        message: "ok",
-        cart: serverD.cart || [],
-        totalPrice: serverD.total || 0
-      };
-    } catch (error) {
-      console.error("Get cart error:", error);
-      return {
-        message: "error",
-        cart: [],
-        totalPrice: 0,
-      };
+    const response = await fetch(getApiUrl("/cart"), {
+      method: "GET",
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+    });
+    const serverD = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      const err = new Error("Unauthorized");
+      err.status = 401;
+      throw err;
     }
+    if (!response.ok) {
+      return { message: "error", cart: [], totalPrice: 0 };
+    }
+    return {
+      message: "ok",
+      cart: serverD.cart || [],
+      totalPrice: serverD.total || 0
+    };
   }
 };
 
@@ -115,8 +112,19 @@ const CounterBasket = (props) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const [isPageLoading, setIsPageLoading] = useState(false);
+  const [showReloginModal, setShowReloginModal] = useState(false);
   const isRemoving = useRef(false);
   const items = useSelector((state) => state.cart?.items || []);
+
+  const clearAuthAndShowReloginModal = useCallback(() => {
+    localStorage.removeItem("user");
+    if (queryClient) clearCacheOnLogout(queryClient);
+    dispatch(logout());
+    dispatch(logoutMaster());
+    dispatch(clearCart());
+    dispatch(setInitial([]));
+    setShowReloginModal(true);
+  }, [queryClient, dispatch]);
 
   // Calculate dynamic width based on number of digits
   const getInputWidth = (number) => {
@@ -196,10 +204,14 @@ const CounterBasket = (props) => {
       if (Array.isArray(response?.cart)) {
         dispatch(setInitial([...response.cart]));
       }
-      // Always invalidate both queries to ensure cache stays fresh
       queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     } catch (error) {
+      if (error?.status === 401) {
+        clearAuthAndShowReloginModal();
+        setLocalCount(0);
+        return;
+      }
       console.error("Update failed:", error);
       const currentCount = getProductCount(items, productId, seller, combinationsID);
       setLocalCount(currentCount);
@@ -237,6 +249,11 @@ const CounterBasket = (props) => {
       }
       
     } catch (error) {
+      if (error?.status === 401) {
+        clearAuthAndShowReloginModal();
+        setLocalCount(0);
+        return;
+      }
       console.error("Remove failed:", error);
     } finally {
       setIsPageLoading(false);
@@ -258,6 +275,7 @@ const CounterBasket = (props) => {
         left={0}
       />
       
+      <ReloginRequiredModal opened={showReloginModal} onClose={() => setShowReloginModal(false)} />
       {shouldShowCounter ? (
         <Flex align="center" gap="2px" style={{ minWidth: 'fit-content' }}>
           <Button 

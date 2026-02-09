@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Cookies from "js-cookie";
 import SlideCategory from "./SlideCategory";
 import SavedFiltersModalCategoryMode from "./savedfilters/categorymode/SavedFiltersModalCategoryModeFastOrder";
@@ -218,6 +218,23 @@ const SearchComponentCategory = ({
     navigate('/login');
   };
 
+  // Prevent body shift when auth modal is open – run before paint so no flash
+  useLayoutEffect(() => {
+    if (!showAuthModal) return;
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+    const prevPaddingLeft = body.style.paddingLeft;
+    body.style.overflow = '';
+    body.style.paddingRight = '';
+    body.style.paddingLeft = '';
+    return () => {
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
+      body.style.paddingLeft = prevPaddingLeft;
+    };
+  }, [showAuthModal]);
+
   // Enhanced menu click handler
   const handleMenuClick = () => {
     if (!user || !isVerified) {
@@ -322,13 +339,27 @@ const { setFilterValues } = useFastOrder();
   }, [searchType, filterCategoryStorage, filterCategorySubCategoryStorage, filterCategorySubCategoryBrandsStorage, filters, localFilters]);
 
   const filterArray = useMemo(() => buildCurrentFilterArray(), [buildCurrentFilterArray]);
+
+  // Stable query key so same filter payload always hits cache (avoids refetch when switching brand → category)
+  const stableCategoryQueryKey = useMemo(() => {
+    if (!filterArray?.length) return null;
+    const canonical = filterArray.map((item) => ({
+      searchType: item.searchType,
+      uniqueIDClickedCategories: [...(item.uniqueIDClickedCategories || [])].sort(),
+      uniqueIDClickedSubCategories: [...(item.uniqueIDClickedSubCategories || [])].sort(),
+      uniqueIDClickedSubCategoriesBrands: [...(item.uniqueIDClickedSubCategoriesBrands || [])].sort(),
+      filters: item.filters && typeof item.filters === 'object' ? Object.keys(item.filters).sort().reduce((acc, k) => { acc[k] = item.filters[k]; return acc; }, {}) : item.filters
+    }));
+    return JSON.stringify(canonical);
+  }, [filterArray]);
+
   const { data: tableDataFromQuery, isLoading: loadingFromQuery } = useApiQuery({
     endpoint: "/fast-order-category-mode",
-    queryKey: ["fast-order-category-mode", JSON.stringify(filterArray)],
+    queryKey: stableCategoryQueryKey != null ? ["fast-order-category-mode", stableCategoryQueryKey] : ["fast-order-category-mode", "disabled"],
     method: "post",
     body: filterArray,
     strategy: "CACHED",
-    enabled: checkedRows.size === 0 && filterArray?.length > 0,
+    enabled: checkedRows.size === 0 && filterArray?.length > 0 && stableCategoryQueryKey != null,
   });
   // When no filter applied: use React Query data. When filter applied: use Redux data so sliders stay visible (first disabled, second/third cleared)
   const tableDataWhenChecked = reduxTableData && typeof reduxTableData === 'object' && !Array.isArray(reduxTableData) ? reduxTableData : null;
@@ -572,8 +603,9 @@ useEffect(() => {
     if (matchingCategory && matchingCategory.idCategory) {
       const currentCategoryId = filterCategoryStorage[0];
       const urlCategoryId = matchingCategory.idCategory;
+      const hasSecondOrThirdRow = (filterCategorySubCategoryStorage?.length > 0) || (filterCategorySubCategoryBrandsStorage?.length > 0);
 
-      if (currentCategoryId !== urlCategoryId) {
+      if (currentCategoryId !== urlCategoryId && !hasSecondOrThirdRow) {
         setFilterCategoryStorage([urlCategoryId]);
         setFilterCategorySubCategoryStorage([]);
         setFilterCategorySubCategoryBrandsStorage([]);
@@ -589,13 +621,16 @@ useEffect(() => {
         Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
       }
     } else if (filterCategoryStorage?.length > 0) {
-      // URL slug not in current list (e.g. tableData was for another category from cookie) – clear to refetch root categories
-      setFilterCategoryStorage([]);
-      setFilterCategorySubCategoryStorage([]);
-      setFilterCategorySubCategoryBrandsStorage([]);
+      const hasSecondOrThirdRow = (filterCategorySubCategoryStorage?.length > 0) || (filterCategorySubCategoryBrandsStorage?.length > 0);
+      if (!hasSecondOrThirdRow) {
+        // URL slug not in current list – clear only when we don't have 2nd/3rd row (avoid clearing cookie state on refresh)
+        setFilterCategoryStorage([]);
+        setFilterCategorySubCategoryStorage([]);
+        setFilterCategorySubCategoryBrandsStorage([]);
+      }
     }
   }
-}, [location.pathname, searchType, tableData?.category, COOKIE_NAME, filterCategoryStorage, localFilters, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, cookieUpdateTrigger]);
+}, [location.pathname, searchType, tableData?.category, COOKIE_NAME, filterCategoryStorage, filterCategorySubCategoryStorage, filterCategorySubCategoryBrandsStorage, localFilters, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, cookieUpdateTrigger]);
   // Sync localFilters with parent filters when parent changes
   useEffect(() => {
     if (filters && JSON.stringify(filters) !== JSON.stringify(localFilters)) {
@@ -785,7 +820,8 @@ useEffect(() => {
           (cat.slug && (cat.slug === urlCategoryName || normalized(cat.slug) === normalized(urlCategoryName)))
       );
 
-      if (matchingCategory && matchingCategory.idCategory && !filterCategoryStorage.includes(matchingCategory.idCategory)) {
+      const hasSecondOrThirdRow = (filterCategorySubCategoryStorage?.length > 0) || (filterCategorySubCategoryBrandsStorage?.length > 0);
+      if (matchingCategory && matchingCategory.idCategory && !filterCategoryStorage.includes(matchingCategory.idCategory) && !hasSecondOrThirdRow) {
         setFilterCategoryStorage([matchingCategory.idCategory]);
         setFilterCategorySubCategoryStorage([]);
         setFilterCategorySubCategoryBrandsStorage([]);
@@ -799,13 +835,13 @@ useEffect(() => {
         };
 
         Cookies.set(COOKIE_NAME, JSON.stringify(cookieValue), { expires: 7 });
-      } else if (!matchingCategory && filterCategoryStorage?.length > 0) {
+      } else if (!matchingCategory && filterCategoryStorage?.length > 0 && !hasSecondOrThirdRow) {
         setFilterCategoryStorage([]);
         setFilterCategorySubCategoryStorage([]);
         setFilterCategorySubCategoryBrandsStorage([]);
       }
     }
-  }, [location.pathname, searchType, tableData?.category, COOKIE_NAME, filterCategoryStorage, localFilters, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage]);
+  }, [location.pathname, searchType, tableData?.category, COOKIE_NAME, filterCategoryStorage, filterCategorySubCategoryStorage, filterCategorySubCategoryBrandsStorage, localFilters, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage]);
 
 // Reset URL when switching TO category mode – don't skip when URL still shows brand (so link updates)
   useEffect(() => {
@@ -834,26 +870,30 @@ useEffect(() => {
   }, [searchType, navigate, location.pathname, tableData?.category, filterCategoryStorage]);
   return (
     <>
-      {/* Authentication Modal */}
+      {/* ورود به حساب کاربری / زمان حضور شما منقضی شده است – render in portal so always on top; no scroll lock to prevent shift */}
       <Modal
         opened={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         title="ورود به حساب کاربری"
         centered
-        closeOnClickOutside={true}
-        closeOnEscape={true}
-        withCloseButton={true}
-        overlayProps={{
-          backgroundOpacity: 0.55,
-          blur: 3,
-        }}
+        zIndex={2147483647}
+        transitionProps={{ duration: 0 }}
+        removeScrollProps={{ removeScrollBar: false }}
+        portalProps={typeof document !== 'undefined' && document.getElementById('auth-modal-portal') ? { target: document.getElementById('auth-modal-portal') } : {}}
         styles={{
+          root: { zIndex: 2147483647, position: 'fixed', inset: 0 },
+          inner: { zIndex: 2147483647, padding: 0 },
+          content: { zIndex: 2147483647 },
           header: {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
           },
         }}
+        overlayProps={{ style: { zIndex: 2147483647 }, backgroundOpacity: 0.55, blur: 3 }}
+        closeOnClickOutside={true}
+        closeOnEscape={true}
+        withCloseButton={true}
         lockScroll={false}
         removeScrollBar={false}
       >

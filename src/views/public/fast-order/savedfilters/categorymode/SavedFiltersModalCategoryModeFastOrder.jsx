@@ -14,8 +14,10 @@ import {
   Divider,
   TextInput,
   Badge,
+  Alert,
 } from "@mantine/core";
-import { IconPlus, IconTrash, IconEdit, IconDeviceFloppy } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconEdit, IconDeviceFloppy, IconAlertCircle } from '@tabler/icons-react';
+import { NavLink } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { notifications } from "@mantine/notifications";
@@ -32,6 +34,7 @@ const EMPTY_GET_FILTER = {};
 const EMPTY_SAVE_FILTER = {};
 const EMPTY_UPDATE_FILTER = {};
 const EMPTY_DELETE_FILTER = {};
+const EMPTY_AUTH = {};
 
 const SavedFiltersModalCategoryMode = ({
   opened,
@@ -76,6 +79,22 @@ const SavedFiltersModalCategoryMode = ({
   const { saveStatus, saveLoading } = useSelector((state) => state.saveFilterSettings ?? EMPTY_SAVE_FILTER);
   const { updateLoading } = useSelector((state) => state.updateFilterSettings ?? EMPTY_UPDATE_FILTER);
   const { deleteLoading } = useSelector((state) => state.deleteFilterSettings ?? EMPTY_DELETE_FILTER);
+  const { isVerified, user } = useSelector((state) => state.auth ?? EMPTY_AUTH);
+
+  // Same as brand mode: when opening saved filters while not logged in, show notification and close modal
+  useEffect(() => {
+    if (opened) {
+      if (!user || !isVerified) {
+        notifications.show({
+          title: 'لطفا ابتدا وارد حساب کاربری خود شوید',
+          message: 'برای استفاده از فیلترهای ذخیره شده باید وارد شوید',
+          color: 'red',
+          autoClose: 4000,
+        });
+        onClose();
+      }
+    }
+  }, [opened, user, isVerified, onClose]);
 
   const { 
     checkedRows, 
@@ -691,6 +710,43 @@ const handleFilterClick = useCallback((filter) => {
     onClose();
   }, 50);
 }, [COOKIE_NAME, setFilters, setSearchType, setSelectedRow, dispatch, onClose, isEditMode, editingFilterId, setFilterCategoryStorage, setFilterCategorySubCategoryStorage, setFilterCategorySubCategoryBrandsStorage, setLocalFilters, onCookieUpdate]);
+
+  // If not authenticated, show login message in modal (same as brand mode)
+  if (opened && (!user || !isVerified)) {
+    return (
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title="فیلترهای ذخیره شده - دسته‌بندی"
+        centered
+        size={isMobile ? "sm" : "md"}
+        padding={isMobile ? "sm" : "md"}
+        zIndex={1006}
+      >
+        <Alert icon={<IconAlertCircle size={16} />} title="لطفا ابتدا وارد حساب کاربری خود شوید" color="red" variant="light">
+          <Text size="sm" mb="md">
+            برای استفاده از فیلترهای ذخیره شده باید وارد حساب کاربری خود شوید
+          </Text>
+          <Button
+            component={NavLink}
+            to="/login"
+            fullWidth
+            styles={{
+              root: {
+                backgroundColor: '#093572',
+                '&:hover': {
+                  backgroundColor: '#0a4080',
+                },
+              },
+            }}
+          >
+            ورود / ثبت‌نام
+          </Button>
+        </Alert>
+      </Modal>
+    );
+  }
+
   return (
     <>
       {/* Add Filter Modal */}

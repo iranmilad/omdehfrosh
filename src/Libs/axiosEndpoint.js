@@ -58,10 +58,13 @@ axiosInstance.interceptors.response.use(
     if (error.response) {
       const { status } = error.response;
 
-      // Handle 401 Unauthorized
+      // Handle 401 Unauthorized: clear token and notify app to show relogin modal
       if (status === 401) {
         if (Cookies.get("user")) {
           Cookies.remove("user");
+        }
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth:401"));
         }
       }
     } else if (!error.response && error.request) {

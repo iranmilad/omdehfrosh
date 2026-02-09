@@ -85,6 +85,7 @@ const handleCookieUpdate = useCallback(() => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const VISIBLE_COLUMNS_STORAGE_KEY = "fastOrderVisibleColumns";
   const [visibleColumns, setVisibleColumns] = useState([]);
   const [nodes, setNodes] = useState(null);
   const [nodesSubCategoriesData, setNodesSubCategoriesData] = useState(null);
@@ -228,8 +229,8 @@ const handleCookieUpdate = useCallback(() => {
   const COLUMNS = [
     { key: "image", label: "تصویر", width: "160px" },
     { key: "name", label: "نام کالا", width: "160px" },
-    { key: "price", label: "قیمت", width: "160px" },
     { key: "attributes", label: "ویژگی ها", width: "60px" },
+    { key: "price", label: "قیمت", width: "160px" },
     { key: "stock", label: "موجودی", width: "160px" },
     { key: "minOrder", label: "حداقل سفارش", width: "120px" },
     { key: "maxOrder", label: "حداکثر سفارش", width: "120px" },
@@ -243,6 +244,26 @@ const handleCookieUpdate = useCallback(() => {
   const { saveStatus, saveLoading, saveError } = useSelector((state) => state.saveFilterSettings);
 
   const updatedColumns = COLUMNS;
+
+  // Restore persisted column visibility on mount (validated against current COLUMNS)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(VISIBLE_COLUMNS_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!Array.isArray(saved)) return;
+      const validKeys = COLUMNS.map((c) => c.key);
+      const filtered = saved.filter((k) => validKeys.includes(k));
+      if (filtered.length >= 0) setVisibleColumns(filtered);
+    } catch (_) {}
+  }, []);
+
+  // Persist column visibility when it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(VISIBLE_COLUMNS_STORAGE_KEY, JSON.stringify(visibleColumns));
+    } catch (_) {}
+  }, [visibleColumns]);
 
   const handleSave = () => setOpened(false);
 
@@ -431,8 +452,39 @@ useEffect(() => {
     } catch (e) {}
   }, [searchType]);
 
-
-
+  // Brand mode table data in index so nodes is set on refresh (same query key as SearchComponentBrand = deduped)
+  const brandFilterArray = useMemo(() => [{
+    searchType: 'brand',
+    uniqueIDClickedBrands: filterBrandStorage || [],
+    uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage || [],
+    filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage || [],
+    filters: localFilters_brand || filters_brand_mode,
+  }], [filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage, localFilters_brand, filters_brand_mode]);
+  const stableBrandQueryKey = useMemo(() => {
+    if (!brandFilterArray?.length) return null;
+    const canonical = brandFilterArray.map((item) => ({
+      searchType: item.searchType,
+      uniqueIDClickedBrands: [...(item.uniqueIDClickedBrands || [])].sort(),
+      uniqueIDClickedBrandsCategories: [...(item.uniqueIDClickedBrandsCategories || [])].sort(),
+      filterBrandsCategorySubCategoryStorage: [...(item.filterBrandsCategorySubCategoryStorage || [])].sort(),
+      filters: item.filters && typeof item.filters === 'object' ? Object.keys(item.filters).sort().reduce((acc, k) => { acc[k] = item.filters[k]; return acc; }, {}) : item.filters
+    }));
+    return JSON.stringify(canonical);
+  }, [brandFilterArray]);
+  const { data: brandTableData } = useApiQuery({
+    endpoint: "/fast-order-brand-mode",
+    queryKey: stableBrandQueryKey != null ? ["fast-order-brand-mode", stableBrandQueryKey] : ["fast-order-brand-mode", "disabled"],
+    method: "post",
+    body: brandFilterArray,
+    strategy: "CACHED",
+    enabled: searchType === "brand" && (brandFilterArray?.length > 0) && stableBrandQueryKey != null,
+  });
+  useEffect(() => {
+    if (searchType !== "brand") return;
+    if (brandTableData?.products != null) {
+      setNodes(Array.isArray(brandTableData.products) ? brandTableData.products : []);
+    }
+  }, [searchType, brandTableData]);
 
 
 
@@ -661,6 +713,7 @@ useEffect(() => {
                             setLocalFilters={setLocalFilters_brand}
                             localFilters={localFilters_brand}
                             onCookieUpdate={handleCookieUpdate}
+                            savedFilters={savedFilters}
                           />
                         </div>
                       </Group>

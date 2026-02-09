@@ -24,9 +24,11 @@ import { CACHE_STRATEGY, RETRY_DELAY, RETRY_CONFIG } from './cacheStrategies';
  * @param {object} query - The query object
  */
 const handleQueryError = (error, query) => {
-  // Skip notification for certain error types
-  if (error?.response?.status === 401) {
-    // Auth errors are handled by axios interceptor
+  // Skip notification for 401 (auth) – only show relogin modal, no toast
+  const status = error?.response?.status;
+  const message = typeof error?.message === 'string' ? error.message : String(error?.message || '');
+  const bodyMessage = error?.response?.data?.message || '';
+  if (status === 401 || message.includes('401') || message.toLowerCase().includes('unauthorized') || String(bodyMessage).toLowerCase().includes('unauthorized')) {
     return;
   }
 
@@ -35,6 +37,19 @@ const handleQueryError = (error, query) => {
     console.warn(`Resource not found: ${query.queryKey}`);
     return;
   }
+
+  // Don't show "خطا در دریافت اطلاعات" for user-initial-data when token is invalid/expired
+  const queryKeyFirst = Array.isArray(query.queryKey) ? query.queryKey[0] : query.queryKey;
+  if (queryKeyFirst === 'userInitialData') {
+    return;
+  }
+
+  // When user is not logged in, don't show error notifications (avoids repeated "خطا در دریافت اطلاعات" / 500 toasts)
+  try {
+    if (typeof window !== 'undefined' && !window.localStorage.getItem('user')) {
+      return;
+    }
+  } catch (_) {}
 
   // Log error for debugging
   if (process.env.NODE_ENV === 'development') {
@@ -66,8 +81,10 @@ const handleQueryError = (error, query) => {
  * @param {object} mutation - The mutation object
  */
 const handleMutationError = (error, variables, context, mutation) => {
-  // Skip notification for certain error types
-  if (error?.response?.status === 401) {
+  // Skip notification for 401 (auth) – only show relogin modal, no toast
+  const status = error?.response?.status;
+  const message = typeof error?.message === 'string' ? error.message : String(error?.message || '');
+  if (status === 401 || message.includes('401') || message.toLowerCase().includes('unauthorized')) {
     return;
   }
 
@@ -122,6 +139,13 @@ const handleMutationSuccess = (data, variables, context, mutation) => {
 // QUERY CLIENT CONFIGURATION
 // ============================================================================
 
+/** Never retry on 401 so first 401 shows relogin modal immediately without request flood */
+const defaultRetry = (failureCount, error) => {
+  if (error?.response?.status === 401) return false;
+  const max = typeof CACHE_STRATEGY.STANDARD.retry === 'number' ? CACHE_STRATEGY.STANDARD.retry : 3;
+  return failureCount < max;
+};
+
 /**
  * Default query options
  * These can be overridden per-query
@@ -129,6 +153,9 @@ const handleMutationSuccess = (data, variables, context, mutation) => {
 const defaultQueryOptions = {
   // Use STANDARD strategy as default
   ...CACHE_STRATEGY.STANDARD,
+
+  // Never retry on 401 – show relogin modal on first 401, avoid excessive refetches
+  retry: defaultRetry,
 
   // Network mode: 'online' | 'always' | 'offlineFirst'
   networkMode: 'online',
@@ -216,27 +243,19 @@ export const createQueryClient = (options = {}) => {
 
   // Set up global query cache callbacks
   queryClient.getQueryCache().config.onError = (error, query) => {
-    // Detect 401 errors from any route and invalidate userInitialData cache to trigger refetch
+    const status = error?.response?.status;
     const errorMessage =
       typeof error === 'string'
         ? error
         : error?.message || String(error);
 
-    if (errorMessage.includes('401')) {
-      // If this is NOT the userInitialData query itself, invalidate it to refresh user/cart data
-      // If it IS userInitialData query, don't invalidate (component will handle clearing token)
-      const isUserInitialDataQuery = 
-        Array.isArray(query.queryKey) && 
-        query.queryKey.length === 1 && 
-        query.queryKey[0] === 'userInitialData';
-      
-      if (!isUserInitialDataQuery) {
-        // 401 from another route (e.g., /cart) - invalidate userInitialData to refresh
-        queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[QueryClient] 🔒 401 detected on', query.queryKey, '- invalidated userInitialData cache (will refetch)');
-        }
+    if (status === 401 || errorMessage.includes('401')) {
+      // Show global relogin modal; do NOT invalidate queries (would refetch with same bad token and cause many duplicate 401 requests)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:401'));
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[QueryClient] 🔒 401 detected on', query.queryKey, '- auth:401 dispatched (no invalidation to avoid request flood)');
       }
     }
 
@@ -248,6 +267,13 @@ export const createQueryClient = (options = {}) => {
 
   // Set up global mutation cache callbacks
   queryClient.getMutationCache().config.onError = (error, variables, context, mutation) => {
+    const status = error?.response?.status;
+    const msg = typeof error?.message === 'string' ? error.message : String(error?.message || '');
+    if (status === 401 || msg.includes('401') || msg.toLowerCase().includes('unauthorized')) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:401'));
+      }
+    }
     if (enableErrorNotifications) {
       handleMutationError(error, variables, context, mutation);
     }

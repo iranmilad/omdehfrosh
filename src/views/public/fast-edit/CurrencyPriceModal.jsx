@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Stack, NumberInput, Text, Group, Button, Select, Loader, Center } from '@mantine/core';
+import { Modal, Stack, NumberInput, Text, Group, Button, Select, Loader, Center, Flex } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { notifications } from '@mantine/notifications';
@@ -187,9 +187,10 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
         <Stack spacing="lg">
           <Select
             label={
-              <Text size="sm" fw={500} c="#374151" mb={8}>
-                نوع ارز
-              </Text>
+              <Flex align="center" gap={4} mb={8}>
+                <Text component="span" c="red" size="sm" fw={500}>*</Text>
+                <Text size="sm" fw={500} c="#374151">نوع ارز</Text>
+              </Flex>
             }
             placeholder="انتخاب ارز"
             data={currencyOptions}
@@ -198,6 +199,7 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
             size="md"
             required
             disabled={loading}
+            withAsterisk={false}
             styles={{
               input: {
                 borderColor: '#d1d5db',
@@ -231,9 +233,10 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
 
           <NumberInput
             label={
-              <Text size="sm" fw={500} c="#374151" mb={8}>
-                قیمت ارز (به تومان)
-              </Text>
+              <Flex align="center" gap={4} mb={8}>
+                <Text component="span" c="red" size="sm" fw={500}>*</Text>
+                <Text size="sm" fw={500} c="#374151">قیمت ارز (به تومان)</Text>
+              </Flex>
             }
             placeholder="مثلا: 55000"
             value={priceInput}
@@ -245,6 +248,7 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
             size="md"
             thousandsSeparator=","
             disabled={loading}
+            withAsterisk={false}
             styles={{
               input: {
                 textAlign: 'right',

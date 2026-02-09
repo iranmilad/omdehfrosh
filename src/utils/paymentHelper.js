@@ -9,10 +9,11 @@ import { getApiUrl } from '../Libs/utils/apiutils/apiutils';
 export const initiatePayment = async (paymentData) => {
   try {
     console.log('📞 initiatePayment START');
-  const { order_id, gateway, amount, payment_type } = paymentData;
+  const { order_id, gateway, amount } = paymentData;
   // Support legacy 'geteway' for backward compatibility
   const geteway = gateway || paymentData.geteway;
-  console.log('📋 Payment data:', { order_id, gateway: gateway || geteway, amount, payment_type });
+  console.log('📋 Payment data:', { order_id, gateway: gateway || geteway, amount });
+  // MODIFIED 2026-02-09 - Removed payment_type field from API call
 
     // Get token from localStorage
     const token = localStorage.getItem("user");
@@ -21,10 +22,10 @@ export const initiatePayment = async (paymentData) => {
     const apiUrl = getApiUrl('/universal-payment/get-payment-link');
     
     // Build request body - only send what's needed
-    // For wallet recharge: { amount, gateway, payment_type: "wallet" }
-    // For order gateway: { order_id, gateway, payment_type: "gateway" }
-    // For order COD: { order_id, payment_type: "cod" }
-    // For order wallet: { order_id, payment_type: "wallet" }
+    // For wallet recharge: { amount, gateway }
+    // For order gateway: { order_id, gateway }
+    // For order COD: { order_id, gateway }
+    // For order wallet: { order_id, gateway }
     const requestBody = {};
     if (order_id) {
       requestBody.order_id = order_id;
@@ -33,29 +34,8 @@ export const initiatePayment = async (paymentData) => {
       requestBody.amount = amount;
     }
     
-    // Set payment_type if provided, otherwise determine from gateway
-    if (payment_type) {
-      requestBody.payment_type = payment_type;
-      // Also send gateway for wallet recharge and regular gateway payments
-      if (payment_type === "gateway" || (!order_id && amount)) {
-        requestBody.gateway = gateway || geteway;
-      }
-    } else {
-      // Legacy: determine payment_type from gateway
-      const gatewayName = gateway || geteway;
-      if (gatewayName === "wallet" && order_id) {
-        requestBody.payment_type = "wallet";
-      } else if (gatewayName === "cod" || gatewayName === "COD" || gatewayName === "نقدی" || gatewayName === "cash") {
-        requestBody.payment_type = "cod";
-      } else if (order_id) {
-        requestBody.payment_type = "gateway";
-        requestBody.gateway = gatewayName;
-      } else {
-        // Wallet recharge
-        requestBody.payment_type = "wallet";
-        requestBody.gateway = gatewayName;
-      }
-    }
+    // Always send gateway - backend will determine payment type from gateway name
+    requestBody.gateway = gateway || geteway;
     
     console.log('🌐 Making POST request to:', apiUrl);
     console.log('📤 Request payload:', requestBody);
@@ -194,34 +174,15 @@ export const redirectToGateway = (link, body) => {
     }
   }
 
-  // For fake gateway, navigate directly with data in URL (more reliable for React SPA)
+  // For fake gateway: never put payment data in URL. Store in sessionStorage and redirect to clean URL only.
   if (link.includes('fake-gateway')) {
-    console.log('🎭 Redirecting to fake gateway...');
-    
-    // Encode body data as base64 for URL
-    try {
-      // Use a safe encoding method that works with Unicode
-      const jsonString = JSON.stringify(body);
-      const encodedData = btoa(unescape(encodeURIComponent(jsonString)));
-      const fakeGatewayUrl = `${link}?data=${encodeURIComponent(encodedData)}`;
-      console.log('🔗 Navigating to:', fakeGatewayUrl);
-      console.log('📦 Body data:', body);
-      
-      // Use window.location for full page navigation (required for form POST simulation)
-      // This will cause a full page reload, which is what we want
-      setTimeout(() => {
-        window.location.href = fakeGatewayUrl;
-      }, 100);
-      return;
-    } catch (error) {
-      console.error('❌ Error encoding data:', error);
-      // Fallback: use sessionStorage only and navigate
-      console.log('🔄 Using fallback navigation with sessionStorage');
-      setTimeout(() => {
-        window.location.href = link;
-      }, 100);
-      return;
-    }
+    console.log('🎭 Redirecting to fake gateway (body via sessionStorage, no data in URL)...');
+    sessionStorage.setItem('paymentData', JSON.stringify(body));
+    const cleanLink = link.split('?')[0];
+    setTimeout(() => {
+      window.location.href = cleanLink;
+    }, 100);
+    return;
   }
 
   // For real gateway, create a form and submit with POST directly
@@ -276,32 +237,11 @@ export const processPayment = async (paymentData) => {
       const errorMsg = result?.error || 'خطا در ایجاد لینک پرداخت';
       console.error('❌ Payment failed:', errorMsg);
       console.error('❌ Full result object:', result);
-      
-      // Show error notification to user
-      const { notifications } = await import('@mantine/notifications');
-      notifications.show({
-        title: "خطا",
-        message: errorMsg,
-        color: "red",
-      });
       return false;
     }
   } catch (error) {
     console.error('❌ Error in processPayment:', error);
     console.error('❌ Error stack:', error.stack);
-    
-    // Show error notification to user
-    try {
-      const { notifications } = await import('@mantine/notifications');
-      notifications.show({
-        title: "خطا",
-        message: error.message || 'خطا در پردازش پرداخت',
-        color: "red",
-      });
-    } catch (notifError) {
-      console.error('Failed to show notification:', notifError);
-      alert(error.message || 'خطا در پردازش پرداخت');
-    }
     return false;
   }
 };

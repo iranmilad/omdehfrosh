@@ -11,45 +11,32 @@ export const getUniversalPaymentLink = async (req, res) => {
   console.log('🟢 Request body:', req.body);
   try {
     // Only extract required fields - phoneNumber is NOT used or accepted
-    const { order_id, gateway, amount, payment_type } = req.body;
+    const { order_id, gateway, amount } = req.body;
     // Support legacy 'geteway' for backward compatibility
     const geteway = gateway || req.body.geteway;
+    // MODIFIED 2026-02-09 - Removed payment_type field - backend will determine from gateway name
 
     // Get user from token
     const userInfo = getUserFromToken(req);
     console.log('🟢 User info:', userInfo);
     if (!userInfo || !userInfo.user_id) {
       console.log('❌ Unauthorized - no user info');
-      return res.status(403).json({ message: "Unauthorized" });
+      // MODIFIED 2026-02-07 - return 401 when token invalid so frontend shows relogin modal
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
     const { user_id } = userInfo;
     console.log('🟢 User ID:', user_id);
 
-    // Determine payment method: prioritize payment_type over gateway
-    // If payment_type is provided, use it; otherwise fall back to gateway/geteway
-    let paymentMethod;
-    if (payment_type) {
-      paymentMethod = payment_type;
-      console.log('🟢 Using payment_type:', paymentMethod);
-    } else {
-      paymentMethod = gateway || geteway;
-      if (!paymentMethod) {
-        console.log('❌ No gateway or payment_type provided');
-        return res.status(400).json({ message: "Gateway or payment_type is required" });
-      }
-      console.log('🟢 Using gateway:', paymentMethod);
+    // Determine payment method from gateway name only
+    const paymentMethod = gateway || geteway;
+    if (!paymentMethod) {
+      console.log('❌ No gateway provided');
+      return res.status(400).json({ message: "Gateway is required" });
     }
+    console.log('🟢 Using gateway:', paymentMethod);
     
-    // Map payment_type to gateway name for transaction record
-    let gatewayName;
-    if (payment_type === "cod") {
-      gatewayName = "cod";
-    } else if (payment_type === "wallet" && order_id) {
-      gatewayName = "wallet";
-    } else {
-      // For wallet recharge or regular gateways, use gateway name
-      gatewayName = gateway || geteway || payment_type;
-    }
+    // Map gateway name to transaction record
+    let gatewayName = paymentMethod;
     
     console.log('🟢 Final Gateway Name:', gatewayName);
 
@@ -58,15 +45,12 @@ export const getUniversalPaymentLink = async (req, res) => {
     let wallet_id; // Will be set from user_id for wallet payments
 
     // Check if COD payment (Cash on Delivery) or Wallet payment from order
-    // Use payment_type if provided, otherwise check gateway name
-    const isCODPayment = payment_type === "cod" || 
-                         payment_type === "COD" ||
-                         gatewayName === "cod" || 
+    // Determine from gateway name
+    const isCODPayment = gatewayName === "cod" || 
                          gatewayName === "COD" || 
                          gatewayName === "نقدی" || 
                          gatewayName === "cash";
-    const isWalletPaymentFromOrder = (payment_type === "wallet" && order_id) ||
-                                     (gatewayName === "wallet" && order_id);
+    const isWalletPaymentFromOrder = gatewayName === "wallet" && order_id;
     
     // Determine payment type based on provided parameters
     // For wallet recharge: { amount, gateway } (any gateway name) - wallet_id is derived from user token

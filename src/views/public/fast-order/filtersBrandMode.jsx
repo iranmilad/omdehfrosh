@@ -408,7 +408,8 @@ function FiltersBrandModeFastOrder({
   setFilterBrandsCategoryStorage,
   setFilterBrandsCategorySubCategoryStorage,
   setLocalFilters,
-  localFilters
+  localFilters,
+  savedFilters: savedFiltersProp
 }) {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -816,6 +817,7 @@ function FiltersBrandModeFastOrder({
   localFilters={localFilters}
   onCookieUpdate={onCookieUpdate}
   onEditModeChange={handleEditModeChange}
+  savedFiltersFromParent={savedFiltersProp}
 />
       )}
       </Paper>
