@@ -314,18 +314,14 @@ function ItemRow(props) {
 
     const paymentStatus = getPaymentStatusBadge(props.isPaid);
     const orderStatus = getOrderStatusBadge(props.status);
-// Helper function to reverse string for RTL display
-const reverseForRTL = (str) => {
-  if (!str) return 'نامشخص';
-  return str.split('').reverse().join('');
-};
+
     return (
       <Table.Tr>
-<Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
-  <Text size="sm" truncate style={{ maxWidth: 150 }}>
-    {reverseForRTL(formatOrderId(props.orderId))}
-  </Text>
-</Table.Td>
+        <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
+          <Text size="sm" truncate style={{ maxWidth: 150 }}>
+            {formatOrderId(props.orderId)}
+          </Text>
+        </Table.Td>
         <Table.Td style={{ textAlign: 'right', direction: 'rtl' }}>
           <Text size="sm">
             {formatDate(props.createdAt)}

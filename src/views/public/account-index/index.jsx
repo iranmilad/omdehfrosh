@@ -247,7 +247,7 @@ function Account_Index() {
         <Table highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th miw={150} c={primaryColor} style={{ textAlign: 'right' }}>
+              <Table.Th miw={150} c={primaryColor} style={{ textAlign: 'right', direction: 'rtl' }}>
                 شماره سفارش
               </Table.Th>
               <Table.Th miw={120} c={primaryColor} style={{ textAlign: 'right' }}>
@@ -277,12 +277,12 @@ function Account_Index() {
                 .slice(0, 10) // Show only latest 10 orders
                 .map((order) => (
                   <Table.Tr key={order.orderId}>
-                    <Table.Td style={{ textAlign: 'left' }}>
+                    <Table.Td style={{ textAlign: 'right' }}>
                       <Text size="sm" truncate style={{ maxWidth: 150 }}>
                         {String(order.orderId).replace('order_', '')}
                       </Text>
                     </Table.Td>
-                    <Table.Td style={{ textAlign: 'left' }}>
+                    <Table.Td style={{ textAlign: 'right' }}>
                       <Text size="sm">
                         {formatDate(order.createdAt)}
                       </Text>
