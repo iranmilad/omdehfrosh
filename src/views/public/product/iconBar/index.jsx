@@ -335,6 +335,8 @@ function IconBar({ favorite, data }) {
       <ShareModal
         link={`${window.location.origin}/product/${data.id}`}
         opened={shareModal[0]}
+                            removeScrollBar={false}
+
         close={shareModal[1].close}
       >
         این کالا را با دوستان خود به اشتراک بگذارید!{" "}

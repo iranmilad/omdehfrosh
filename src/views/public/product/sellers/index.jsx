@@ -38,7 +38,7 @@ import CounterSellers from "../../../../components/counter-sellers/counter-selle
 import persianDate from "persian-date";
 
 const RowSeller = ({ item, index }) => {
-  const { supplier, product, options } = useProduct();
+  const { supplier, product, options, selectedCombination } = useProduct();
 
   const [matchingCombination, setMatchingCombination] = useState(undefined);
 
@@ -289,11 +289,12 @@ const RowSeller = ({ item, index }) => {
                 productId={product?.id}
                 seller={item.id}
                 options={options}
-                productName={product?.general.title}
-                productImages={product?.general.images?.[0]}
-                // isPending={updateCart?.isPending}
+                combinationsID={selectedCombination?.id}
+                productName={product?.general?.title}
+                productImages={product?.general?.images?.[0]}
                 min={item.minOrder}
                 max={item.maxOrder}
+                stock={item.stock}
               />
               {validSpecialOffer ? (
                 <CountdownTimer shamsiDate={validSpecialOffer} />

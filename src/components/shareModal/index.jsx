@@ -11,6 +11,8 @@ function ShareModal({close,opened,link,children}) {
       title="اشتراک گذاری"
       onClose={close}
       opened={opened}
+      lockScroll={false}
+      removeScrollBar={false}
     >
       <Stack>
         <Text size="sm">

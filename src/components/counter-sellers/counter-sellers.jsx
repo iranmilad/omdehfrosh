@@ -179,7 +179,8 @@ const CounterSellers = (props) => {
     options,
     productName,
     productImages,
-    item
+    item,
+    combinationsID: combinationsIDProp,
   } = props;
 
   const [cookies] = useCookies(["user"]);
@@ -363,12 +364,13 @@ const CounterSellers = (props) => {
 
     setIsPending(true);
 
+    const combinationId = combinationsIDProp ?? matchingCombination?.id;
     try {
       const result = await cartAPI.updateCart({
         "productId": productId,
-        "seller": {"id": newSellerId, "label": newSellerName}, 
+        "seller": {"id": newSellerId, "label": newSellerName},
         "count": Number(value),
-        "combinationsID": matchingCombination?.id,
+        "combinationsID": combinationId,
       });
 
       if (result.cart) {
@@ -401,11 +403,12 @@ const CounterSellers = (props) => {
   
     setIsPending(true);
   
+    const combinationId = combinationsIDProp ?? matchingCombination?.id;
     try {
       const result = await cartAPI.removeFromCart({
         "productId": productId,
         "seller": { "id": item.id, "label": item.name },
-        "combinationsID": matchingCombination?.id
+        "combinationsID": combinationId,
       });
 
       if (result.cart) {
@@ -426,15 +429,11 @@ const CounterSellers = (props) => {
       return;
     }
 
-    if (!isSellerAvailable) {
-      return;
-    }
-    
-    if (item) {
-      // Use the minimum between minOrder and available stock
-      const safeMinOrder = Math.min(minOrder || 1, stock || 1, maxOrder || 1);
-      handleChange({ value: safeMinOrder, item });
-    }
+    if (!isSellerAvailable || !item) return;
+    if (stock == null || stock <= 0) return;
+
+    const safeMinOrder = Math.min(minOrder || 1, stock || 1, maxOrder || 1);
+    handleChange({ value: safeMinOrder, item });
   };
 
   useEffect(() => {
@@ -491,12 +490,8 @@ const CounterSellers = (props) => {
     }
   }, [matchingCombination, item]);
 
-  // Updated loading condition with robust image validation
-  // Handle cases where productImages might not be passed as prop
-  const isComponentLoading = !productName || 
-    (productImages !== undefined && !hasValidImages(productImages)) ||
-    !options || 
-    !combinations;
+  // Only require productName, options, combinations. Don't block on images (may be single string or undefined).
+  const isComponentLoading = !productName || !options || !combinations;
 
   const renderContent = () => {
     if (isComponentLoading) {
@@ -596,8 +591,9 @@ const CounterSellers = (props) => {
             leftSection={<IconBasket />}
             h={45}
             onClick={handleAddToCart}
+            disabled={stock == null || stock <= 0}
           >
-            افزودن به سبد خرید
+            {stock > 0 ? "افزودن به سبد خرید" : "ناموجود"}
           </Button>
         )}
       </>

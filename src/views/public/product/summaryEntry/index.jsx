@@ -1,8 +1,11 @@
 import { Stack, Text } from "@mantine/core";
 import Attributes from "../attributes";
+import { useProduct } from "..";
 
 function SummaryEntry({ data }) {
-  
+  const { optionsForDisplay } = useProduct();
+  const attributeItems = optionsForDisplay ?? data?.options;
+
   return (
     <Stack gap="md" p={{ base: "xs", md: "md" }}>
       <Text 
@@ -22,7 +25,7 @@ function SummaryEntry({ data }) {
           {data.general.english_title}
         </Text>
       )}
-      <Attributes items={data?.options} />
+      <Attributes items={attributeItems ?? []} />
     </Stack>
   );
 }

@@ -14,30 +14,10 @@ import CountdownTimer from "../../../../components/countDownTimer";
 import persianDate from "persian-date";
 
 function PurchasePanel() {
-  const { supplier, product, options } = useProduct();
+  const { selectedSupplier, selectedCombination, product, options } = useProduct();
 
-  // Get the selected supplier - try from combinations first, then fall back to root supplier
-  const getSelectedSupplier = () => {
-    // First, try to get supplier from product combinations
-    if (product?.combinations?.length) {
-      const combination = product.combinations[0];
-      const selectedSupplier = combination.suppliers?.find(s => s.selected) || combination.suppliers?.[0];
-      if (selectedSupplier) return selectedSupplier;
-    }
-    
-    // Fallback to root-level supplier if it exists and is selected
-    if (supplier && supplier.selected) {
-      return supplier;
-    }
-    
+  if (!selectedSupplier || !selectedCombination) {
     return null;
-  };
-
-  const selectedSupplier = getSelectedSupplier();
-
-
-  if (!selectedSupplier) {
-    return <></>;
   }
 
   const {
@@ -46,14 +26,25 @@ function PurchasePanel() {
     rating,
     payment_type,
     buy_type,
-    price,
+    price: rawPrice,
     stock,
     minOrder,
     maxOrder,
     special_offer,
   } = selectedSupplier;
 
-  const onChange = product?.onChange ?? supplier?.onChange ?? (() => {});
+  // Normalize price: support camelCase, snake_case, and flat number from API
+  const price =
+    rawPrice != null && typeof rawPrice === "object"
+      ? {
+          regularPrice: Number(rawPrice.regularPrice ?? rawPrice.regular_price ?? rawPrice.regular ?? rawPrice.final_price ?? rawPrice) || 0,
+          discountedPrice: Number(rawPrice.discountedPrice ?? rawPrice.discounted_price ?? rawPrice.discounted ?? rawPrice.regularPrice ?? rawPrice.regular_price ?? rawPrice.regular ?? rawPrice) || 0,
+        }
+      : { regularPrice: Number(rawPrice) || 0, discountedPrice: Number(rawPrice) || 0 };
+
+  const displayPrice = price.discountedPrice || price.regularPrice;
+
+  const onChange = product?.onChange ?? (() => {});
 
   // Helper function to parse special_offer date from various formats
   const parseSpecialOfferDate = (specialOffer) => {
@@ -236,16 +227,22 @@ function PurchasePanel() {
         
         {/* Price */}
         <Flex direction="column" align="end">
-          <PriceText fontSize="25px">{price?.discountedPrice}</PriceText>
-          {price?.discountedPrice && price?.regularPrice !== price?.discountedPrice ? (
-            <Box component="del" c="gray" fz="sm">
-              <NumberFormatter
-                value={price.regularPrice}
-                thousandSeparator
-                style={{fontSize:"18px"}}
-              />
-            </Box>
-          ) : null}
+          {displayPrice > 0 ? (
+            <>
+              <PriceText fontSize="25px">{displayPrice}</PriceText>
+              {price.regularPrice > 0 && price.discountedPrice > 0 && price.regularPrice > price.discountedPrice ? (
+                <Box component="del" c="gray" fz="sm">
+                  <NumberFormatter
+                    value={price.regularPrice}
+                    thousandSeparator
+                    style={{fontSize:"18px"}}
+                  />
+                </Box>
+              ) : null}
+            </>
+          ) : (
+            <Text size="sm" c="dimmed">قیمت را از فروشنده بپرسید</Text>
+          )}
         </Flex>
         
         {/* Inventory */}
@@ -270,7 +267,7 @@ function PurchasePanel() {
         </Flex>
       </Flex> */}
 
-      {/* Counter Component */}
+      {/* Counter: add to basket with selected combination + selected supplier */}
       <Counter
         onChange={onChange}
         min={minOrder}
@@ -280,11 +277,10 @@ function PurchasePanel() {
         productId={product.id}
         seller={id}
         options={options}
-        productName={product.general.title}
-        productImages={product.general.images}
-        attributes={selectedSupplier}
-        // isPending={updateCart?.isPending}
-        combinationsID={product.combinations[0]?.id}
+        productName={product.general?.title}
+        productImages={product.general?.images}
+        item={selectedSupplier}
+        combinationsID={selectedCombination?.id}
       />
 
       <Box mt="sm">

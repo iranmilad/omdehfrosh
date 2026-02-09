@@ -1,6 +1,5 @@
 import { Center, Flex, Loader, Paper, Grid, GridCol } from "@mantine/core";
-import { useIsFirstRender } from "@mantine/hooks";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import InfoBox from "../../../components/InfoBox";
 import IconBar from "./iconBar";
@@ -30,45 +29,49 @@ const Product = () => {
     enabled: !!slug,
   });
 
-  console.log('Product data:ssssssssssss', product);
-
-  // Clean up throttle when component unmounts (optional)
-  // useEffect(() => {
-  //   return () => {
-  //     // clearProductThrottle(slug); // optional
-  //   };
-  // }, [slug]);
-
-  let supplier = null;
-  const isFirstRender = useIsFirstRender();
   const combinations = product?.combinations || [];
 
+  // Default: on open, set options from the combination that has selected: true (and sync product.options children selected)
   useEffect(() => {
-    if (product?.combinations?.length > 0) {
-      let selectedComb = product?.combinations.find((item) => item.selected);
-      if (!selectedComb) {
-        selectedComb = product?.combinations[0] || {};
-      }
-      setOptions(selectedComb.options || []);
-    }
-  }, [loading, product?.combinations]);
+    if (!product?.combinations?.length) return;
+    const selectedComb = product.combinations.find((c) => c.selected === true) || product.combinations[0];
+    const defaultOptions = selectedComb?.options || [];
+    setOptions(defaultOptions);
+  }, [product?.combinations, product?.id]);
 
-  // Fixed supplier logic
-  if (options?.length > 0) {
-    const selectedOptionIds = options.map((option) => option.id);
-    
-    const matchingCombinations = product?.combinations.filter((combination) => {
-      const combinationOptionIds = combination?.options?.map((option) => option.id) || [];
-      return selectedOptionIds.every((id) => combinationOptionIds.includes(id));
+  // Matching combination for current options (when user changes attributes)
+  const selectedCombination =
+    options?.length > 0 && product?.combinations?.length > 0
+      ? (() => {
+          const optionIds = options.map((o) => o.id).sort((a, b) => a - b);
+          return product.combinations.find((comb) => {
+            const combIds = (comb.options || []).map((o) => o.id).sort((a, b) => a - b);
+            return optionIds.length === combIds.length && optionIds.every((id, i) => combIds[i] === id);
+          }) || null;
+        })()
+      : product?.combinations?.find((c) => c.selected) || product?.combinations?.[0] || null;
+
+  // Default supplier for top "add to basket": use supplier with selected: true in current combination
+  const selectedSupplier =
+    selectedCombination?.suppliers?.find((s) => s.selected === true) || selectedCombination?.suppliers?.[0] || null;
+
+  // Option values disabled when: no supplier, or enable === false
+  const optionsForDisplay = useMemo(() => {
+    const opts = product?.options;
+    if (!opts || !Array.isArray(opts)) return opts;
+    return opts.map((attr) => {
+      const children = (attr.children || []).map((child) => {
+        const hasSupplier = (product?.combinations || []).some(
+          (comb) =>
+            (comb.options || []).some((o) => String(o.id) === String(child.id)) &&
+            (comb.suppliers?.length ?? 0) > 0
+        );
+        const isEnabled = child.enable !== false;
+        return { ...child, selected: child.selected !== false && hasSupplier && isEnabled };
+      });
+      return { ...attr, children };
     });
-    
-    supplier = matchingCombinations.length > 0 ? matchingCombinations[0] : null;
-  } else {
-    if (product?.combinations?.length > 0) {
-      const selectedComb = product.combinations.find((item) => item.selected);
-      supplier = selectedComb || product.combinations[0];
-    }
-  }
+  }, [product?.options, product?.combinations]);
 
   // Show loading while product is being fetched
   if (loading) {
@@ -84,7 +87,18 @@ const Product = () => {
 
   return (
     <ProductContext.Provider
-      value={{ options, setOptions, combinations, loading, product, slug, supplier }}
+      value={{
+        options,
+        setOptions,
+        combinations,
+        loading,
+        product,
+        slug,
+        supplier: selectedCombination,
+        selectedCombination,
+        selectedSupplier,
+        optionsForDisplay: optionsForDisplay ?? product?.options,
+      }}
     >
       <div className="lg:my-10">
         <Paper pt="xl" px={{ base: "md", md: "xl", lg: "xl" }}>
@@ -104,8 +118,8 @@ const Product = () => {
           </Grid>
         </Paper>
         
-        {supplier?.suppliers && supplier.suppliers.length > 0 && (
-          <Sellers items={supplier.suppliers} />
+        {selectedCombination?.suppliers && selectedCombination.suppliers.length > 0 && (
+          <Sellers items={selectedCombination.suppliers} />
         )}
         
         <Tab data={product} slug={slug} />

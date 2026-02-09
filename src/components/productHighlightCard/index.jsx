@@ -38,8 +38,8 @@ function ProductHighlightCard({ items = [] }) {
   };
 
   // Responsive dimensions
-  const CARD_WIDTH = isMobile ? 280 : isSmall ? 250 : 220;
-  const IMAGE_HEIGHT = isMobile ? 280 : isSmall ? 250 : 220;
+  const CARD_WIDTH = isMobile ? 240 : isSmall ? 230 : 190;
+  const IMAGE_HEIGHT = isMobile ? 240 : isSmall ? 230 : 190;
 
   const createProductPlaceholder = (title) => {
     // Array of green-based gradient backgrounds matching ProductBox
@@ -247,7 +247,7 @@ function ProductHighlightCard({ items = [] }) {
                 {category.children.map((item, itemIndex) => (
                   <GridCol 
                     key={item.url || `${categoryIndex}-${itemIndex}`} 
-                    span={{ base: 12, xs: 6, sm: 4, md: 3 }}
+                    span={{ base: 12, xs: 6, sm: 4, md: 3, lg: 2.4 }}
                   >
                     {renderProductCard(item, categoryIndex, itemIndex)}
                   </GridCol>
@@ -269,7 +269,7 @@ function ProductHighlightCard({ items = [] }) {
             {row.map((item, itemIndex) => (
               <GridCol 
                 key={item.url || `${rowIndex}-${itemIndex}`} 
-                span={{ base: 12, xs: 6, sm: 4, md: 3 }}
+                span={{ base: 12, xs: 6, sm: 4, md: 3, lg: 2.4 }}
               >
                 {renderProductCard(item, rowIndex, itemIndex)}
               </GridCol>
