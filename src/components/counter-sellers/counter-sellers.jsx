@@ -289,16 +289,20 @@ const CounterSellers = (props) => {
   };
 
   const getProductCount = (items, productId, itemSellerId, matchingCombination) => {
-    if (!items || !Array.isArray(items) || !productId || !itemSellerId || !matchingCombination) {
+    if (!items || !Array.isArray(items) || productId == null || itemSellerId == null) {
       return 0;
     }
-    const foundItem = items.find(
-      (item) => 
-        item.productId === productId &&
-        item.seller.id === itemSellerId &&
-        item.combinationsID === matchingCombination.id
-    );
-  
+    const norm = (v) => (v == null ? '' : String(v).trim());
+    const normCombo = (v) => (v == null || v === '' ? null : Number(v));
+    const comboId = matchingCombination?.id;
+    const foundItem = items.find((item) => {
+      const productMatch = norm(item.productId) === norm(productId);
+      const sellerMatch = norm(item.seller?.id ?? item.seller) === norm(itemSellerId);
+      const a = normCombo(item.combinationsID);
+      const b = normCombo(comboId);
+      const comboMatch = a === b || (a == null && b == null);
+      return productMatch && sellerMatch && comboMatch;
+    });
     return foundItem ? foundItem.count : 0;
   };
   
@@ -369,8 +373,8 @@ const CounterSellers = (props) => {
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
-        // Refresh session-persisted user/cart snapshot (Header uses this)
-        queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
       } else {
         throw new Error("Failed to fetch cart data");
       }
@@ -406,8 +410,8 @@ const CounterSellers = (props) => {
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
-        // Refresh session-persisted user/cart snapshot (Header uses this)
-        queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
       }
     } catch (error) {
       console.error("Failed to remove from cart:", error);

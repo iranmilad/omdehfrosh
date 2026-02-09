@@ -2,6 +2,7 @@
 import { ActionIcon, Flex, Input, LoadingOverlay, Modal, Text, Box, Button } from "@mantine/core";
 import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { setInitial } from "../../redux/cart";
 import { useState } from "react";
 import { getApiUrl } from "../../Libs/utils/apiutils/apiutils";
@@ -147,6 +148,7 @@ const CounterHomePage = ({
   maxOrder = 0
 }) => {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [isPending, setIsPending] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -161,19 +163,19 @@ const CounterHomePage = ({
     return Math.max(20, digits * 8);
   };
 
-  // Get the count for this specific product
+  // Get the count for this specific product (normalized IDs so add-to-cart updates UI)
   const getProductCount = () => {
-    if (!items || !Array.isArray(items) || !productId) {
+    if (!items || !Array.isArray(items) || productId == null) {
       return 0;
     }
-  
-    const foundItem = items.find(
-      (item) => 
-        item.productId === productId &&
-        (!defaultSellerId || item.seller.id === defaultSellerId) &&
-        (!defaultCombinationId || item.combinationsID === defaultCombinationId)
-    );
-  
+    const norm = (v) => (v == null ? '' : String(v).trim());
+    const normCombo = (v) => (v == null || v === '' ? null : Number(v));
+    const foundItem = items.find((item) => {
+      const productMatch = norm(item.productId) === norm(productId);
+      const sellerMatch = defaultSellerId == null || norm(item.seller?.id ?? item.seller) === norm(defaultSellerId);
+      const comboMatch = normCombo(item.combinationsID) === normCombo(defaultCombinationId) || (defaultCombinationId == null && (item.combinationsID == null || item.combinationsID === ''));
+      return productMatch && sellerMatch && comboMatch;
+    });
     return foundItem ? foundItem.count : 0;
   };
   
@@ -201,8 +203,10 @@ const CounterHomePage = ({
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
       } else {
-        throw new Error("Failed to fetch cart data");              
+        throw new Error("Failed to fetch cart data");
       }
     } catch (error) {
       console.error("Failed to update cart:", error);
@@ -228,6 +232,8 @@ const CounterHomePage = ({
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
       } else {
         throw new Error("Failed to fetch cart data");
       }

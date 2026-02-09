@@ -80,7 +80,7 @@ const NewBasketIcon = ({ size = 24, color = "currentColor", ...props }) => (
   </svg>
 );
 
-const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min }) => {
+const MiniBox = ({ productId, item, name, image, price, count, attributes, seller, combinationsID, max, min, maxOrder, minOrder, stock }) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const [isRemoving, setIsRemoving] = useState(false);
@@ -102,10 +102,12 @@ const MiniBox = ({ productId, item, name, image, price, count, attributes, selle
   }, [queryClient, dispatch]);
 
   const handleTokenExpiration = useCallback((error) => {
-    const is401 =
-      error?.status === 401 ||
-      (typeof error?.message === "string" && (error.message.includes("توکن نامعتبر است") || error.message.includes("Unauthorized") || error.message.includes("401")));
-    if (is401) {
+    const status401 = error?.status === 401 || error?.response?.status === 401;
+    const msg = typeof error?.message === "string" ? error.message : "";
+    const isAuthError =
+      status401 ||
+      /401|unauthorized|توکن نامعتبر|احراز هویت|ورود مجدد|لطفا.*وارد/i.test(msg);
+    if (isAuthError) {
       clearAuthAndShowReloginModal();
       return true;
     }
@@ -246,11 +248,8 @@ const discountPercentage = useMemo(() => {
 
     } catch (error) {
       console.error("Update failed:", error);
-      
-      if (handleTokenExpiration(error)) {
-        return;
-      }
-      
+      // Always show 401 modal for auth errors; never show toast for them
+      if (handleTokenExpiration(error)) return;
       notifications.show({
         title: 'خطا',
         message: 'مشکلی در به‌روزرسانی پیش آمد',
@@ -359,32 +358,27 @@ const discountPercentage = useMemo(() => {
 
     } catch (error) {
       console.error("Remove failed:", error);
-      
+      // Always show 401 modal for auth errors; never show toast for them
       if (handleTokenExpiration(error)) {
         setIsRemoving(false);
         return;
       }
-      
+      const msg = typeof error?.message === 'string' ? error.message : '';
       let errorMessage = 'مشکلی پیش آمده است دوباره تلاش کنید';
       let errorTitle = 'خطا در حذف';
-      
-      if (error.message.includes('404') || error.message.includes('not found')) {
+      if (msg.includes('404') || msg.includes('not found')) {
         errorMessage = 'محصول در سبد خرید یافت نشد';
         errorTitle = 'محصول یافت نشد';
-      } else if (error.message.includes('400')) {
+      } else if (msg.includes('400')) {
         errorMessage = 'اطلاعات ارسالی نامعتبر است';
         errorTitle = 'خطا در اطلاعات';
-      } else if (error.message.includes('401') || error.message.includes('authentication')) {
-        errorMessage = 'لطفا دوباره وارد شوید';
-        errorTitle = 'خطا در احراز هویت';
-      } else if (error.message.includes('500')) {
+      } else if (msg.includes('500')) {
         errorMessage = 'مشکل در سرور، لطفا بعداً تلاش کنید';
         errorTitle = 'خطا در سرور';
-      } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+      } else if (msg.includes('NetworkError') || msg.includes('fetch')) {
         errorMessage = 'مشکل در اتصال به اینترنت';
         errorTitle = 'خطا در اتصال';
       }
-      
       notifications.show({
         title: errorTitle,
         message: errorMessage,
@@ -393,7 +387,6 @@ const discountPercentage = useMemo(() => {
         autoClose: 5000,
         position: 'top-right'
       });
-      
       setIsRemoving(false);
     }
 
@@ -540,8 +533,9 @@ const discountPercentage = useMemo(() => {
     seller={seller}
     combinationsID={combinationsID}
     count={count}
-    max={max}
-    min={min}
+    max={max ?? maxOrder ?? item?.maxOrder ?? item?.max}
+    min={min ?? minOrder ?? item?.minOrder ?? item?.min ?? 1}
+    stock={stock ?? item?.stock ?? item?.product?.stock}
     onUpdate={updateItem}
     onRemove={removeItem}
     isLoading={isRemoving}
@@ -614,16 +608,22 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
   const close = externalClose || internalHandlers.close;
 
   const cartState = useSelector((state) => state.cart);
-
-
-  console.log("Cart state in MiniCart:", cartState);
-
-
-
-
   const items = cartState?.items || [];
 
   const { user, isVerified } = useSelector((state) => state.auth);
+
+  // When token is expired, clear auth and show 401 modal so MiniCart does not show stale items
+  const clearAuthAndShow401Modal = useCallback(() => {
+    localStorage.removeItem("user");
+    if (queryClient) clearCacheOnLogout(queryClient);
+    dispatch(logout());
+    dispatch(logoutMaster());
+    dispatch(clearCart());
+    dispatch(setInitial([]));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("auth:401"));
+    }
+  }, [queryClient, dispatch]);
 
   const calculatedTotal = useMemo(() => {
     return items.reduce((total, item) => {
@@ -635,17 +635,40 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
   const shouldShowCart = user && isVerified;
   const cartCount = shouldShowCart ? items.length : 0;
 
-  // Invalidate and refetch cart data when minicart is opened
+  // When drawer opens with token: validate session (GET /cart). If 401, clear auth and show 401 modal so we don't show stale items.
   useEffect(() => {
-    if (!opened || !user || !isVerified) return;
+    if (!opened) return;
 
     const token = localStorage.getItem("user");
     if (!token) return;
 
-    // Invalidate queries to trigger refetch with fresh data
-    queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
-    queryClient.invalidateQueries({ queryKey: ["cart"] });
-  }, [opened, user, isVerified, queryClient]);
+    let cancelled = false;
+    const validateCart = async () => {
+      try {
+        const res = await fetch(getApiUrl("/cart"), {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (cancelled) return;
+        if (res.status === 401) {
+          clearAuthAndShow401Modal();
+          return;
+        }
+        if (res.ok) {
+          queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
+        }
+      } catch {
+        if (cancelled) return;
+        // Network error: don't clear auth; keep showing cart from Redux
+      }
+    };
+    validateCart();
+    return () => { cancelled = true; };
+  }, [opened, queryClient, clearAuthAndShow401Modal]);
 
   const handleNavigateToBasket = () => {
     close();

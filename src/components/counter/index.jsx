@@ -2,6 +2,7 @@ import { ActionIcon, Button, Center, Flex, Input, LoadingOverlay, Modal, Text } 
 import { IconPlus, IconMinus, IconTrash, IconBasket } from "@tabler/icons-react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { setInitial } from "../../redux/cart";
 import { useProduct } from "../../views/public/product";
 import { useEffect, useState } from "react";
@@ -152,6 +153,7 @@ const Counter = (props) => {
 
   const [cookies] = useCookies(["user"]);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   const [matchingCombination, setMatchingCombination] = useState(undefined);
   const [maxOrder, setMaxOrder] = useState(undefined);
@@ -329,17 +331,20 @@ const Counter = (props) => {
   };
 
   const getProductCount = (items, productId, seller, matchingCombination) => {
-    if (!items || !Array.isArray(items) || !productId || !seller || !matchingCombination) {
+    if (!items || !Array.isArray(items) || productId == null || seller == null) {
       return 0;
     }
-  
-    const foundItem = items.find(
-      (item) => 
-        item.productId === productId &&
-        item.seller.id === seller &&
-        item.combinationsID === matchingCombination.id
-    );
-  
+    const norm = (v) => (v == null ? '' : String(v).trim());
+    const normCombo = (v) => (v == null || v === '' ? null : Number(v));
+    const comboId = matchingCombination?.id;
+    const foundItem = items.find((item) => {
+      const productMatch = norm(item.productId) === norm(productId);
+      const sellerMatch = norm(item.seller?.id ?? item.seller) === norm(seller);
+      const a = normCombo(item.combinationsID);
+      const b = normCombo(comboId);
+      const comboMatch = a === b || (a == null && b == null);
+      return productMatch && sellerMatch && comboMatch;
+    });
     return foundItem ? foundItem.count : 0;
   };
   
@@ -401,6 +406,8 @@ const Counter = (props) => {
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
       } else {
         throw new Error("Failed to fetch cart data");
       }
@@ -432,6 +439,8 @@ const Counter = (props) => {
 
       if (result.cart) {
         dispatch(setInitial([...result.cart]));
+        queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
       } else {
         throw new Error("Failed to fetch cart data");
       }

@@ -245,7 +245,7 @@ const Header = () => {
     dispatch(setInitial(newCartData.cart));
   }, [userInitialData, cartApiData, token, dispatch, user]);
 
-  // Handle 401 / unauthorized: clear token, redux state, and remove cached query
+  // Handle 401 / unauthorized: clear token, redux state, show 401 modal, remove cached query
   useEffect(() => {
     if (!userInitialError) return;
 
@@ -254,18 +254,24 @@ const Header = () => {
         ? userInitialError
         : userInitialError?.message || String(userInitialError);
 
-    if (!errorMessage.includes('401')) return;
+    if (!errorMessage.includes('401') && userInitialError?.response?.status !== 401) return;
 
     // Clear token first to disable the query
     localStorage.removeItem("user");
-    
-    // Clear Redux state
+
+    // Clear Redux state so MiniCart and account do not show stale data
     dispatch(logout());
     dispatch(clearCart());
     dispatch(setInitial([]));
     queryClient.removeQueries({ queryKey: ['userInitialData'] });
     queryClient.removeQueries({ queryKey: ['notificationNumber'] });
-    
+    queryClient.removeQueries({ queryKey: ['cart'] });
+
+    // Show 401 relogin modal (Auth401Modal listens for auth:401)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth:401'));
+    }
+
     if (process.env.NODE_ENV === 'development') {
       console.log('[Header] 🔒 401 detected - cleared token and userInitialData cache');
     }

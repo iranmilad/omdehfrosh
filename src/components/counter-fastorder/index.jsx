@@ -3,6 +3,7 @@ import { ActionIcon, Button, Flex, LoadingOverlay, Modal, Text, Box } from "@man
 import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { setInitial, clearCart } from "../../redux/cart";
 import { logout } from "../../redux/auth/authusers/auth";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -23,6 +24,7 @@ const CounterFastOrder = (props) => {
 
   const [cookies] = useCookies(["user"]);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   
   const { isVerified, loading: authLoading, error: authError, user } = useSelector((state) => state.auth);
@@ -124,6 +126,8 @@ const CounterFastOrder = (props) => {
 
       const data = await response.json();
       await fetchCartData();
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
       return data;
     } catch (error) {
       console.error("Error updating cart:", error);
@@ -164,6 +168,8 @@ const CounterFastOrder = (props) => {
 
       const data = await response.json();
       await fetchCartData();
+      queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
       return data;
     } catch (error) {
       console.error("Error removing from cart:", error);
@@ -175,24 +181,21 @@ const CounterFastOrder = (props) => {
     }
   };
 
-  // Improved function to get item count from Redux items
+  // Get item count from Redux items (normalized IDs so add/update reflects in UI)
   const getItemCount = (cartItems, currentItem) => {
     if (!Array.isArray(cartItems) || !currentItem) {
       return 0;
     }
-
-    const matchedItem = cartItems.find(cartItem => {
-      const productMatch = cartItem.productId === currentItem.productId;
-      const sellerMatch = cartItem.seller?.id === currentItem.seller?.id;
-      const combinationMatch = cartItem.combinationsID === currentItem.combinationsID;
-      
-      if (!currentItem.combinationsID && !cartItem.combinationsID) {
-        return productMatch && sellerMatch;
-      }
-      
-      return productMatch && sellerMatch && combinationMatch;
+    const norm = (v) => (v == null ? '' : String(v).trim());
+    const normCombo = (v) => (v == null || v === '' ? null : Number(v));
+    const matchedItem = cartItems.find((cartItem) => {
+      const productMatch = norm(cartItem.productId) === norm(currentItem.productId);
+      const sellerMatch = norm(cartItem.seller?.id ?? cartItem.seller) === norm(currentItem.seller?.id ?? currentItem.seller);
+      const a = normCombo(cartItem.combinationsID);
+      const b = normCombo(currentItem.combinationsID);
+      const comboMatch = a === b || (a == null && b == null);
+      return productMatch && sellerMatch && comboMatch;
     });
-
     return matchedItem ? matchedItem.count : 0;
   };
 

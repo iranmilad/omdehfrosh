@@ -2,52 +2,61 @@ import { ActionIcon, Button, Flex, Input, Loader } from "@mantine/core";
 import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 
-const CounterMiniCart = ({ 
-  productId, 
-  seller, 
-  combinationsID, 
-  count, 
-  max, 
+const CounterMiniCart = ({
+  productId,
+  seller,
+  combinationsID,
+  count,
+  max,
   min = 1,
+  stock,
   onUpdate,
   onRemove,
-  isLoading = false
+  isLoading = false,
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Calculate dynamic width based on number of digits
   const getInputWidth = (number) => {
     const digits = String(number).length;
-    // Base width + additional width per digit
-    return Math.max(35, 20 + (5 * 7));
+    return Math.max(35, 20 + 5 * 7);
   };
+
+  // Same logic as counter/index.jsx and counter-basket: cap by both max and stock
+  const numMax = max != null && max !== '' ? Number(max) : NaN;
+  const numStock = stock != null && stock !== '' ? Number(stock) : NaN;
+  const numMin = min != null && min !== '' ? Number(min) : 1;
+  const numCount = Number(count) || 0;
+
+  const realMax =
+    !Number.isNaN(numMax) && !Number.isNaN(numStock)
+      ? Math.min(numMax, numStock)
+      : !Number.isNaN(numMax)
+        ? numMax
+        : !Number.isNaN(numStock)
+          ? numStock
+          : 999;
 
   const handleIncrement = async () => {
     if (isUpdating || isLoading) return;
-    
-    const maxAllowed = max || 999;
-    if (count < maxAllowed) {
-      setIsUpdating(true);
-      try {
-        await onUpdate(count + 1);
-      } finally {
-        setIsUpdating(false);
-      }
+    if (numCount >= realMax) return;
+    setIsUpdating(true);
+    try {
+      await onUpdate(numCount + 1);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleDecrement = async () => {
     if (isUpdating || isLoading) return;
-    
-    if (count > min) {
+    if (numCount > numMin) {
       setIsUpdating(true);
       try {
-        await onUpdate(count - 1);
+        await onUpdate(numCount - 1);
       } finally {
         setIsUpdating(false);
       }
     } else {
-      // If at minimum, remove the item
       setIsUpdating(true);
       try {
         await onRemove();
@@ -59,21 +68,17 @@ const CounterMiniCart = ({
 
   const handleSetMax = async () => {
     if (isUpdating || isLoading) return;
-    
-    const maxAllowed = max || 999;
-    if (count < maxAllowed) {
-      setIsUpdating(true);
-      try {
-        await onUpdate(maxAllowed);
-      } finally {
-        setIsUpdating(false);
-      }
+    if (numCount >= realMax) return;
+    setIsUpdating(true);
+    try {
+      await onUpdate(realMax);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleRemove = async () => {
     if (isUpdating || isLoading) return;
-    
     setIsUpdating(true);
     try {
       await onRemove();
@@ -83,8 +88,8 @@ const CounterMiniCart = ({
   };
 
   const isActionDisabled = isUpdating || isLoading;
-  const isAtMinimum = count <= min;
-  const isAtMaximum = count >= (max || 999);
+  const isAtMinimum = numCount <= numMin;
+  const isAtMaximum = numCount >= realMax;
 
   return (
     <Flex align="center" gap={8} style={{ flexShrink: 0 }}>

@@ -20,9 +20,10 @@ import {
   Group,
 } from "@mantine/core";
 import { IconBasket, IconCreditCard, IconMessage2, IconLogin } from "@tabler/icons-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Import Swiper styles
 import "swiper/css";
@@ -36,6 +37,14 @@ import MyAccountProductBox from "../../../components/myaccountproductbox";
 import { clearTicketCreationState } from "../../../redux/usermyaccounts/usermyaccounts/newuserticket/newUserTicketSlice";
 import { useSessionQuery } from "../../../Libs/reactQuery";
 
+function is401Error(error) {
+  if (!error) return false;
+  const status = error?.response?.status ?? error?.status;
+  if (status === 401) return true;
+  const msg = typeof error?.message === "string" ? error.message : String(error ?? "");
+  return /401|unauthorized/i.test(msg);
+}
+
 function Account_Index() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -43,12 +52,13 @@ function Account_Index() {
   const token = typeof window !== "undefined" ? localStorage.getItem("user") : null;
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const hasDispatched401 = useRef(false);
 
   const { isVerified, loading: authLoading, user } = useSelector((state) => state.auth);
 
   const { primaryColor } = useMantineTheme();
 
-  const { data: userAccountData, isLoading: loadingUserAccount } = useSessionQuery({
+  const { data: userAccountData, isLoading: loadingUserAccount, error: userAccountError } = useSessionQuery({
     endpoint: "/user-myaccounts",
     queryKey: ["userMyAccount"],
     enabled: !!token,
@@ -59,7 +69,7 @@ function Account_Index() {
     },
   });
 
-  const { data: ordersData, isLoading: loadingOrdersByUserId } = useSessionQuery({
+  const { data: ordersData, isLoading: loadingOrdersByUserId, error: ordersError } = useSessionQuery({
     endpoint: "/orders/allordersbyuserid",
     queryKey: ["ordersByUserId"],
     enabled: !!token,
@@ -77,6 +87,20 @@ function Account_Index() {
   useEffect(() => {
     dispatch(clearTicketCreationState());
   }, [dispatch]);
+
+  // When token is expired (401 from account queries), show 401 modal and do not show account content
+  useEffect(() => {
+    if (!token) {
+      hasDispatched401.current = false;
+      return;
+    }
+    if (!hasDispatched401.current && (is401Error(userAccountError) || is401Error(ordersError))) {
+      hasDispatched401.current = true;
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("auth:401"));
+      }
+    }
+  }, [token, userAccountError, ordersError]);
 
   useEffect(() => {
     if (!authLoading && (!isVerified || !user)) {
@@ -126,6 +150,15 @@ function Account_Index() {
 
   // Show loading while checking authentication
   if (authLoading) {
+    return (
+      <Center>
+        <Loader />
+      </Center>
+    );
+  }
+
+  // Token expired (401 from account APIs): do not show account content; 401 modal will show
+  if (token && (is401Error(userAccountError) || is401Error(ordersError))) {
     return (
       <Center>
         <Loader />

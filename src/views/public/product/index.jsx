@@ -30,6 +30,8 @@ const Product = () => {
     enabled: !!slug,
   });
 
+  console.log('Product data:ssssssssssss', product);
+
   // Clean up throttle when component unmounts (optional)
   // useEffect(() => {
   //   return () => {
