@@ -146,11 +146,12 @@ function Home() {
                   </Box>
                 );
               case "featured_promo":
-                return (
+                return ( section.data && section.data.length > 0 ) ? (
+                  
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
                     <BadgedSlider items={section.data} checkalllink={section.checkalllink} />
                   </Box>
-                );
+                ) : null;
               case "categories":
                 return (
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
