@@ -31,10 +31,22 @@ const Product = () => {
 
   const combinations = product?.combinations || [];
 
-  // Default: on open, set options from the combination that has selected: true (and sync product.options children selected)
+  console.log("Product data:", product);
+
+  // Helper: combination has stock if at least one supplier has stock > 0 (or truthy)
+  const combinationHasStock = (comb) =>
+    comb?.suppliers?.some((s) => {
+      const st = s.stock;
+      if (typeof st === "number") return st > 0;
+      return Boolean(st);
+    }) ?? false;
+
+  // Default: on open, set options from the combination that has selected: true from API; else first combination
   useEffect(() => {
     if (!product?.combinations?.length) return;
-    const selectedComb = product.combinations.find((c) => c.selected === true) || product.combinations[0];
+    const selectedComb =
+      product.combinations.find((c) => c.selected === true) ||
+      product.combinations[0];
     const defaultOptions = selectedComb?.options || [];
     setOptions(defaultOptions);
   }, [product?.combinations, product?.id]);
@@ -55,19 +67,19 @@ const Product = () => {
   const selectedSupplier =
     selectedCombination?.suppliers?.find((s) => s.selected === true) || selectedCombination?.suppliers?.[0] || null;
 
-  // Option values disabled when: no supplier, or enable === false
+  // Option values selectable only when at least one combination containing this option has stock
   const optionsForDisplay = useMemo(() => {
     const opts = product?.options;
     if (!opts || !Array.isArray(opts)) return opts;
     return opts.map((attr) => {
       const children = (attr.children || []).map((child) => {
-        const hasSupplier = (product?.combinations || []).some(
+        const hasStock = (product?.combinations || []).some(
           (comb) =>
             (comb.options || []).some((o) => String(o.id) === String(child.id)) &&
-            (comb.suppliers?.length ?? 0) > 0
+            combinationHasStock(comb)
         );
         const isEnabled = child.enable !== false;
-        return { ...child, selected: child.selected !== false && hasSupplier && isEnabled };
+        return { ...child, selected: hasStock && isEnabled };
       });
       return { ...attr, children };
     });
@@ -100,8 +112,8 @@ const Product = () => {
         optionsForDisplay: optionsForDisplay ?? product?.options,
       }}
     >
-      <div className="lg:my-10">
-        <Paper pt="xl" px={{ base: "md", md: "xl", lg: "xl" }}>
+      <div className="">
+        <Paper pt="" px={{ base: "md", md: "xl", lg: "xl" }}>
           <Grid gutter={{ base: "md", md: "lg", lg: "xl" }}>
             <GridCol span={{ base: 12, md: 5, lg: 4 }}>
               <Flex gap="md" direction={{ base: "column", md: "column", lg: "row" }}>

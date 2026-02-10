@@ -1,18 +1,14 @@
 import {
   Paper,
   Box,
-  Center,
   Text,
   Flex,
   Grid,
   GridCol,
   Badge,
-  Button,
-  Collapse,
   Stack,
   Rating,
   NumberFormatter,
-  useMantineTheme,
 } from "@mantine/core";
 import { NavLink } from "react-router";
 import {
@@ -27,7 +23,6 @@ import {
   IconClock12,
 } from "@tabler/icons-react";
 import PriceText from "../../../../components/priceText";
-import { useDisclosure } from "@mantine/hooks";
 import Title from "../../../../components/title";
 import CountdownTimer from "../../../../components/countDownTimer";
 import { useSelector } from "react-redux";
@@ -307,31 +302,15 @@ const RowSeller = ({ item, index }) => {
   );
 };
 
-function Sellers({ items}) {
-  const [opened, { open, close, toggle }] = useDisclosure(false);
-
+function Sellers({ items }) {
   return (
     <Paper my={50} p="xl">
       <Title>فروشندگان این کالا</Title>
       <Stack mt="xl" gap="40">
-        {items.slice(0, 2).map((item, index) => (
-          <RowSeller key={index} item={item} index={index} />
+        {items.map((item, index) => (
+          <RowSeller key={item.id ?? index} item={item} index={index} />
         ))}
       </Stack>
-      <Collapse in={opened}>
-        <Stack gap="40" mt="40">
-          {items.slice(2, items.length).map((item, index) => (
-            <RowSeller key={index + 2} item={item} index={index + 2} />
-          ))}
-        </Stack>
-      </Collapse>
-      {items.length > 2 ? (
-        <Center>
-          <Button radius={999} variant="light" mt="xl" onClick={() => toggle()}>
-            مشاهده {opened ? "کمتر" : "بیشتر"} فروشگاه ها
-          </Button>
-        </Center>
-      ) : null}
     </Paper>
   );
 }
