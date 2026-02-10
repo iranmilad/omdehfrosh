@@ -12,7 +12,8 @@ const Filters = React.memo(({
   setSearch, 
   setPage, 
   filterDisclosure,
-  handlePriceChange // This prop should now properly dispatch to Redux
+  handlePriceChange,
+  slug: brandSlug, // brand from URL (?brand=samsung) – show as checked and unselectable
 }) => {
   const dynamicFilters = data?.filters || [];
 
@@ -27,12 +28,17 @@ const Filters = React.memo(({
   };
 
   const handleFilterChange = (filterKey, optionValue, checked) => {
+    if (filterKey === "brands" && brandSlug) return;
     const currentValues = form.values.dynamic[filterKey] || [];
     const updatedValues = checked
       ? [...currentValues, optionValue]
       : currentValues.filter((val) => val !== optionValue);
     handleDynamicChange(filterKey, updatedValues);
   };
+
+  const isBrandsFilterLocked = (filterKey) => filterKey === "brands" && brandSlug;
+  const isChecked = (filterKey, optionValue) =>
+    (filterKey === "brands" && brandSlug && optionValue === brandSlug) || form.values.dynamic[filterKey]?.includes(optionValue);
 
   return (
     <>
@@ -59,7 +65,8 @@ const Filters = React.memo(({
               <Checkbox
                 key={option.value}
                 label={option.label}
-                checked={form.values.dynamic[filter.key]?.includes(option.value)}
+                checked={isChecked(filter.key, option.value)}
+                disabled={isBrandsFilterLocked(filter.key)}
                 onChange={(e) => handleFilterChange(filter.key, option.value, e.target.checked)}
               />
             ))}
@@ -99,7 +106,8 @@ const Filters = React.memo(({
                 <Checkbox
                   key={option.value}
                   label={option.label}
-                  checked={form.values.dynamic[filter.key]?.includes(option.value)}
+                  checked={isChecked(filter.key, option.value)}
+                  disabled={isBrandsFilterLocked(filter.key)}
                   onChange={(e) => handleFilterChange(filter.key, option.value, e.target.checked)}
                 />
               ))}

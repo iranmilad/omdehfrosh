@@ -33,6 +33,11 @@ function Home() {
     endpoint: '/homepage/homepagedata',
     queryKey: ['homepage', 'data'],
     strategy: 'CACHED', // 5 min stale time
+    transformer: (response) => {
+      const raw = response?.data;
+      const list = raw?.data ?? (Array.isArray(raw) ? raw : null);
+      return Array.isArray(list) ? list : [];
+    },
   });
 
   // Comprehensive debug logging and monitoring
@@ -122,23 +127,17 @@ function Home() {
   // RENDER SECTIONS
   // ============================================================================
 
-  // Ensure homeData is an array before mapping
-  if (!Array.isArray(homeData)) {
-    console.error('Home data is not an array:', homeData);
-    return (
-      <Container className="px-3 md:px-5 my-10">
-        <Alert color="orange" title="خطا در فرمت داده">
-          داده دریافتی معتبر نیست
-        </Alert>
-      </Container>
-    );
+  // Normalize to array (transformer should already return array; guard for cache/legacy)
+  const sections = Array.isArray(homeData) ? homeData : [];
+  if (sections.length === 0 && homeData != null && !Array.isArray(homeData)) {
+    console.warn('Home data was not an array, using empty list:', typeof homeData, homeData);
   }
 
   return (
     <>
       <Container className="px-3 md:px-5">
         <Stack gap="1rem">
-          {homeData.map((section, index) => {
+          {sections.map((section, index) => {
             switch (section.type) {
               case "wideslider":
                 return (
@@ -149,7 +148,7 @@ function Home() {
               case "featured_promo":
                 return (
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <BadgedSlider items={section.data} />
+                    <BadgedSlider items={section.data} checkalllink={section.checkalllink} />
                   </Box>
                 );
               case "categories":

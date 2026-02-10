@@ -1,6 +1,6 @@
 // src\components\counterhomepage\index.jsx
 import { ActionIcon, Flex, Input, LoadingOverlay, Modal, Text, Box, Button } from "@mantine/core";
-import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
+import { IconBasket, IconMinus, IconTrash } from "@tabler/icons-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
 import { setInitial } from "../../redux/cart";
@@ -315,7 +315,7 @@ const CounterHomePage = ({
           color="gray"
           disabled
         >
-          <IconPlus size={14} />
+          <IconBasket size={14} />
         </ActionIcon>
       </Box>
     );
@@ -351,7 +351,7 @@ const CounterHomePage = ({
               backgroundColor: "var(--mantine-color-white)",
             }}
           >
-            {/* Plus button */}
+            {/* Increment button */}
             <ActionIcon
               size="xs"
               variant="transparent"
@@ -365,7 +365,7 @@ const CounterHomePage = ({
                 flexShrink: 0,
               }}
             >
-              <IconPlus size={14} />
+              <IconBasket size={14} />
             </ActionIcon>
           
             {/* Divider */}
@@ -450,7 +450,7 @@ const CounterHomePage = ({
               },
             }}
           >
-            <IconPlus size={16} />
+            <IconBasket size={16} />
           </ActionIcon>
         </Box>
       )}

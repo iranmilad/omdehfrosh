@@ -15,22 +15,17 @@ export const getBrandProducts = async (req, res) => {
       return res.status(404).json({ status: 404, message: "No brand products found" });
     }
 
-    // 🔹 Remove the "brands" filter if brand is specified
-    const updatedFilters = brand
-      ? archive.filters.filter((f) => f.key !== "brands")
-      : archive.filters;
-
-      
+    // Always return full filters (including brands); frontend shows selected brand as unselectable when from URL
     res.json({
       message: "محصولات با موفقیت ارسال شدند",
       state: "ok",
       data: {
-        products: archive.products,        // ✅ full list
+        products: archive.products,
         totalPages: archive.totalPages,
         currentPage: page,
         totalProducts: archive.products.length,
         price: archive.price,
-        filters: updatedFilters,           // ✅ brands removed if requested
+        filters: archive.filters,
       },
     });
   } catch (err) {

@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Flex, Image, Text } from '@mantine/core';
+import { ActionIcon, Box, Flex, Group, Image, Text } from '@mantine/core';
 import FeaturedPromos from "../../assets/FeaturedPromos.svg";
 import BoxImage from "../../assets/box.webp";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -9,7 +9,7 @@ import { useRef, useState } from 'react';
 import "./style.css";
 import { NavLink } from 'react-router';
 
-function BadgedSlider({ items = [] }) {
+function BadgedSlider({ items = [], checkalllink = "/incredible-offers" }) {
 
   console.log("items", items);
 
@@ -104,10 +104,12 @@ function BadgedSlider({ items = [] }) {
         ))}
         <SwiperSlide className='badged-slider-left-right'>
           <Flex justify="center" align="center" gap="md" w="100%" h="100%" direction="column">
-            <Text c="white" component={NavLink} to="/incredible-offers">مشاهده همه</Text>
-            <ActionIcon size="lg" variant='white' component={NavLink} to="/incredible-offers">
+            <Group gap="xs" align="center">
+              <Text c="white" component={NavLink} to={checkalllink}>مشاهده همه</Text>
+              <ActionIcon size="lg" variant="white" component={NavLink} to={checkalllink}>
               <IconChevronLeft />
-            </ActionIcon>
+              </ActionIcon>
+            </Group>
           </Flex>
         </SwiperSlide>
       </Swiper>

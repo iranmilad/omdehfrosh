@@ -49,6 +49,7 @@ const FiltersSection = React.memo(({
   slug, 
   form, 
   handleDynamicChange, 
+  handlePriceChange,
   setSearch, 
   setPage, 
   filterDisclosure,
@@ -58,11 +59,6 @@ const FiltersSection = React.memo(({
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
-    setPage(1);
-  };
-
-  const handlePriceChange = (updatedPrice) => {
-    form.setFieldValue("price", updatedPrice);
     setPage(1);
   };
 
@@ -221,8 +217,14 @@ function Category({ enabled, onSelectProduct }) {
   const [debouncedSearch] = useDebouncedValue(search, 600);
   const filterDisclosure = useDisclosure(false);
   
-  // Parse URL filters once and use them in form initialization
-  const urlFilters = useMemo(() => parseUrlFilters(), [parseUrlFilters]);
+  // Parse URL filters once; when slug is present and no brands in URL, set brand from slug (e.g. /category/samsung)
+  const urlFilters = useMemo(() => {
+    const parsed = parseUrlFilters();
+    if (slug && !searchParams.get('brands') && parsed.brands?.length === 0) {
+      return { ...parsed, brands: [slug] };
+    }
+    return parsed;
+  }, [parseUrlFilters, slug, searchParams]);
   
   const form = useForm({
     initialValues: {
@@ -332,6 +334,11 @@ function Category({ enabled, onSelectProduct }) {
     fetchCategoryData({ [key]: value, page: 1 });
   }, [form, fetchCategoryData]);
 
+  const handlePriceChange = useCallback((updatedPrice) => {
+    form.setFieldValue("price", updatedPrice);
+    setPage(1);
+  }, [form]);
+
   const handlePageChange = useCallback((newPage) => {
     setPage(newPage);
     fetchCategoryData({ page: newPage });
@@ -341,6 +348,19 @@ function Category({ enabled, onSelectProduct }) {
     fetchCategoryData();
     filterDisclosure[1].close();
   }, [fetchCategoryData, filterDisclosure]);
+
+  // Price filter on frontend (API unchanged for other pages)
+  const productsFilteredByPrice = useMemo(() => {
+    const list = categoryData?.products;
+    if (!Array.isArray(list)) return list ?? [];
+    const min = Number(form.values.price?.min) ?? 0;
+    const max = Number(form.values.price?.max) ?? 9000000;
+    if (min <= 0 && max >= 9000000) return list;
+    return list.filter((p) => {
+      const price = Number(p.discountedPrice ?? p.regularPrice ?? 0);
+      return price >= min && price <= max;
+    });
+  }, [categoryData?.products, form.values.price?.min, form.values.price?.max]);
 
   // Handle API error case with retry functionality (skip for 401 – only show relogin modal)
   const errStr = typeof errorCategoryData === 'string' ? errorCategoryData : (errorCategoryData?.message || '');
@@ -430,6 +450,7 @@ function Category({ enabled, onSelectProduct }) {
                 slug={slug}
                 setSearch={setSearch}
                 handleDynamicChange={handleDynamicChange}
+                handlePriceChange={handlePriceChange}
                 setPage={setPage}
                 filterDisclosure={filterDisclosure}
                 isFetching={loadingCategoryData}
@@ -463,7 +484,7 @@ function Category({ enabled, onSelectProduct }) {
                   />
                 </Flex>
               </Paper>
-              <ProductList onSelectProduct={onSelectProduct} products={categoryData?.products}  />
+              <ProductList onSelectProduct={onSelectProduct} products={productsFilteredByPrice} />
               <Center>
                 <Pagination 
                   total={Math.ceil((categoryData?.totalCount || 0) / 20)} 
@@ -579,6 +600,7 @@ function Category({ enabled, onSelectProduct }) {
               slug={slug}
               setSearch={setSearch}
               handleDynamicChange={handleDynamicChange}
+              handlePriceChange={handlePriceChange}
               setPage={setPage}
               filterDisclosure={filterDisclosure}
               isFetching={loadingCategoryData}
@@ -612,7 +634,7 @@ function Category({ enabled, onSelectProduct }) {
                 />
               </Flex>
             </Paper>
-            <ProductList onSelectProduct={onSelectProduct} products={categoryData?.products}  />
+            <ProductList onSelectProduct={onSelectProduct} products={productsFilteredByPrice} />
             <Center>
               <Pagination 
                 total={Math.ceil((categoryData?.totalCount || 0) / 20)} 

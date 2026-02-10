@@ -1,3 +1,4 @@
+import { useParams, Navigate } from "react-router";
 import Public from "../../layouts/public"
 import Page404 from "../../views/auth/404"
 import Product from "../../views/public/product"
@@ -73,7 +74,6 @@ import Subscriptions from "../../views/public/master-dashboard/subscriptions/sub
 import AddBatchSubscriptions from "../../views/public/master-dashboard/subscriptions/subscriptions/addbatchsubscriptions"
 import Archive from "../../components/archive"
 import ArchiveWrapper from "../../components/archivewrapper"
-import Category from "../../components/category"
 import CategoryFilters from "../../views/public/master-dashboard/categoryfilters/categoryfilters/categoryfilters"
 import AddBatchCategoryFilters from "../../views/public/master-dashboard/categoryfilters/categoryfilters/categoryfilters/addbatchcategoryfilters"
 import PaymentSellers from "../../views/public/payment-sellers"
@@ -99,6 +99,18 @@ import WalletPaymentPage from "../../views/public/walletpayment"
 import CODPaymentPage from "../../views/public/codpayment"
 import NewFakeGateway from "../../views/public/fake-gateway"
 import PaymentListener from "../../views/public/payment-listener"
+
+// /category/samsung -> /shop?brand=samsung (Shop page with brand filter)
+function CategoryToShopRedirect() {
+  const { slug } = useParams();
+  return <Navigate to={`/shop?brand=${encodeURIComponent(slug || "")}`} replace />;
+}
+
+// /shop/samsung -> /shop?brand=samsung (checkalllink from API)
+function ShopBrandRedirect() {
+  const { brand } = useParams();
+  return <Navigate to={`/shop?brand=${encodeURIComponent(brand || "")}`} replace />;
+}
 
 export const PublicRoutes = [
     {
@@ -330,7 +342,7 @@ export const PublicRoutes = [
             },
             // {
             //     path: "/category/:slug",
-            //     element: <Category />
+            //     element: <CategoryToShopRedirect />
             // },
             {
                 path: "/basket",
@@ -454,6 +466,10 @@ export const PublicRoutes = [
             {
                 path: "/seller/:id",
                 element: <Seller />,
+            },
+            {
+                path: "/shop/:brand",
+                element: <ShopBrandRedirect />,
             },
             {
                 path: "/shop",

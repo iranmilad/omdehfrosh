@@ -8,7 +8,7 @@ import getUserFromToken from '../libs/verifyToken.js';
 
 export const getCategoryDataBySlug = async (req, res) => {
 
-  const { filters } = req.body;
+  const filters = req.body?.filters || {};
   const { slug } = req.params;
   
 
@@ -68,9 +68,13 @@ export const getCategoryDataBySlug = async (req, res) => {
       // This allows the compare feature to work even if Category collection is incomplete
     }
     
-    // Get filters
+    // Get filters (with safe default when no filter document exists)
     const allfilters = await CategoryFilter.find().lean();
-    const allfiltersNew = allfilters[0];
+    const allfiltersNew = allfilters[0] || {
+      filters: [],
+      price: { min: 0, max: 0 },
+      totalPages: totalPages,
+    };
 
     // if (!products || products.length === 0) {
     //   return res.status(404).json({ message: "No products found for this category." });
@@ -119,8 +123,8 @@ export const getCategoryDataBySlug = async (req, res) => {
       userHasPurchasedSubscription = true; // Set to true so access is granted
     }
 
-    // 💡 Add `filterCheck: true` based on incoming filters
-    const updatedFilters = allfiltersNew.filters.map((filter) => {
+    // 💡 Add `filterCheck: true` based on incoming filters (safe when filters array is empty)
+    const updatedFilters = (allfiltersNew.filters || []).map((filter) => {
       const key = filter.key;
       const activeValues = filters[key]; // e.g., filters["brands"] → ['apple', 'samsung']
 

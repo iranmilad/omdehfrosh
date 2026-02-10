@@ -206,10 +206,12 @@ export const getHomePageData = async (req, res) => {
     const plainPriceLists = priceLists.map(p => toPlainObject(p));
     const plainPg = pg.map(p => toPlainObject(p));
 
-    // Structure the data as expected by the client
+    const checkalllink = process.env.HOMEPAGE_CHECKALL_LINK || "/shop/samsung";
+
+    // Structure the data as expected by the client (checkalllink inside featured_promo)
     const data = [
       { type: "wideslider", data: plainSliders },
-      { type: "featured_promo", data: shuffledFeaturedPromo },
+      { type: "featured_promo", checkalllink, data: shuffledFeaturedPromo },
       { type: "categories", data: filteredCategories },
       { type: "banners", data: plainBanners },
       { type: "prices", data: plainPriceLists },  

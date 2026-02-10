@@ -34,10 +34,10 @@ function Price({ priceRange, onPriceChange, data }) {
 
 
   useEffect(() => {
-    if (categoryData.userPriceSet) {
-      setPrice([categoryData.userPriceSet.min, categoryData.userPriceSet.max])
+    if (categoryData?.userPriceSet) {
+      setPrice([categoryData.userPriceSet.min, categoryData.userPriceSet.max]);
     }
-  }, [categoryData])
+  }, [categoryData]);
 
 
 
