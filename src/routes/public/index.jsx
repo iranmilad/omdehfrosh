@@ -339,6 +339,7 @@ export const PublicRoutes = [
             {
                 path: "/product/:slug",
                 element: <Product />
+                
             },
             // {
             //     path: "/category/:slug",
