@@ -174,13 +174,13 @@ function PurchasePanel() {
       {/* Payment Type */}
       <div className="flex gap-x-1 items-center text-zinc-600 text-sm pt-3 mb-4">
         <IconCash size={20} stroke={1.3} className="text-zinc-700" />
-        <div>{payment_type === "Cash" ? "نقدی" : "پیش فروش"}</div>
+        <div>{payment_type === "cash" ? "نقدی" : "پیش فروش"}</div>
       </div>
 
       {/* Delivery Info */}
       <div className="flex gap-x-1 items-center text-zinc-600 text-sm py-4">
         <IconTruckDelivery size={20} stroke={1.3} className="text-zinc-700" />
-        <div>فروش {buy_type === "Wholesale" ? "عمده" : "تکی"}</div>
+        <div>فروش {buy_type === "wholesale" ? "عمده" : "تکی"}</div>
       </div>
 
       {/* Seller Info */}
