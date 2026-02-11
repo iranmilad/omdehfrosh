@@ -62,8 +62,7 @@ const DropDownMenu = ({ menuItems }) => {
                     isValidIcon(link.icon) ? (
                       <Image
                         src={getIconSrc(link.icon)}
-                        w={24}
-                        h={24}
+                        style={{ width: '24px', height: '24px' }}
                         fit="contain"
                         alt={link.label}
                         onError={(e) => (e.target.style.display = "none")}
@@ -114,16 +113,13 @@ const DropDownMenu = ({ menuItems }) => {
                         active={false}
                         leftSection={
                           isValidIcon(child.icon) ? (
-                            <Image
-                              src={getIconSrc(child.icon)}
-                              w={18}
-                              h={18}
-                              fit="contain"
-                              alt={child.label}
-                              onError={(e) =>
-                                (e.target.style.display = "none")
-                              }
-                            />
+                      <Image
+                        src={getIconSrc(link.icon)}
+                        style={{ width: '24px', height: '24px' }}
+                        fit="contain"
+                        alt={link.label}
+                        onError={(e) => (e.target.style.display = "none")}
+                      />
                           ) : null
                         }
                         styles={{
@@ -163,8 +159,7 @@ const DropDownMenu = ({ menuItems }) => {
                     isValidIcon(link.icon) ? (
                       <Image
                         src={getIconSrc(link.icon)}
-                        w={20}
-                        h={20}
+                        style={{ width: '24px', height: '24px' }}
                         fit="contain"
                         alt={link.label}
                         onError={(e) => (e.target.style.display = "none")}
