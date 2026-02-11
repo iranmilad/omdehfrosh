@@ -11,12 +11,24 @@ const paymentResultStore = new Map();
 const PAYMENT_RESULT_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 function setPaymentResult(transactionId, payload) {
-  paymentResultStore.set(transactionId, { ...payload, expires: Date.now() + PAYMENT_RESULT_TTL_MS });
+  const key = transactionId != null ? String(transactionId).trim() : '';
+  if (!key) return;
+  paymentResultStore.set(key, { ...payload, expires: Date.now() + PAYMENT_RESULT_TTL_MS });
+  console.log('[PAYMENT] stored result for transactionId', key.slice(0, 12) + '...', 'store size', paymentResultStore.size);
+}
+
+function getPaymentResult(transactionId) {
+  const key = transactionId != null ? String(transactionId).trim() : '';
+  const entry = paymentResultStore.get(key);
+  if (!entry) return null;
+  if (entry.expires && Date.now() > entry.expires) return null;
+  return { link: entry.link, message: entry.message };
 }
 
 function getAndDeletePaymentResult(transactionId) {
-  const entry = paymentResultStore.get(transactionId);
-  paymentResultStore.delete(transactionId);
+  const key = transactionId != null ? String(transactionId).trim() : '';
+  const entry = paymentResultStore.get(key);
+  paymentResultStore.delete(key);
   if (!entry) return null;
   if (entry.expires && Date.now() > entry.expires) return null;
   return { link: entry.link, message: entry.message };
@@ -407,22 +419,33 @@ async function runVerifyLogic(body, success) {
   return { link: redirectLinkDeposit, message: `آقای ${walletUserName} پرداخت شما با شماره تراکنش ${transactionId} موفق بوده است.` };
 }
 
-// POST /universal-payment/verify-payment
-// (1) body { transactionId, success? } → return stored { message, link } (React listener page)
-// (2) body { link, body } → run verification, return { message, link } (legacy)
+// GET /universal-payment/verify-payment?transactionId=xxx&success=true → return { link, message } (same result until TTL expires)
+// POST /universal-payment/verify-payment body { link, body } → run verification, return { message, link } (legacy)
+export const verifyPaymentGet = async (req, res) => {
+  try {
+    const transactionId = req.query?.transactionId != null ? String(req.query.transactionId).trim() : '';
+    console.log('[PAYMENT] GET verify-payment', { transactionId: transactionId ? transactionId.slice(0, 12) + '...' : '', storeSize: paymentResultStore.size });
+    if (!transactionId) {
+      return res.status(400).json({ message: "transactionId لازم است.", link: "/" });
+    }
+    const payload = getPaymentResult(transactionId);
+    if (!payload) {
+      console.warn('[PAYMENT] no result for transactionId', transactionId.slice(0, 12) + '...');
+      return res.status(404).json({ message: "نتیجه پرداخت یافت نشد یا منقضی شده است.", link: "/" });
+    }
+    return res.status(200).json({ message: payload.message, link: payload.link });
+  } catch (error) {
+    console.error("Error in verifyPaymentGet:", error);
+    return res.status(500).json({ link: "/", message: "خطا در پردازش پرداخت. لطفا با پشتیبانی تماس بگیرید." });
+  }
+};
+
 export const verifyPayment = async (req, res) => {
   try {
     const body = req.body || {};
-    if (body.transactionId) {
-      const payload = getAndDeletePaymentResult(body.transactionId);
-      if (!payload) {
-        return res.status(404).json({ message: "نتیجه پرداخت یافت نشد یا منقضی شده است.", link: "/" });
-      }
-      return res.status(200).json({ message: payload.message, link: payload.link });
-    }
     const { link, body: verifyBody } = body;
     if (!link || !verifyBody) {
-      return res.status(400).json({ link: "/", message: "Link and body are required" });
+      return res.status(400).json({ link: "/", message: "برای POST، link و body لازم است." });
     }
     const successFromUrl = link.includes('success=false') ? 'false' : (link.includes('success=true') ? 'true' : null);
     const success = verifyBody.success ?? successFromUrl ?? 'true';
@@ -451,13 +474,14 @@ export const paymentListenerController = async (req, res) => {
     if (!body || typeof body !== 'object') {
       body = {};
     }
-    const transactionId = body.transactionId || uuidv4();
+    const transactionId = (body.transactionId != null ? String(body.transactionId).trim() : null) || uuidv4();
     const successRaw = body.success ?? body.ResCode ?? body.resCode ?? 'true';
     const successNorm = String(successRaw).toLowerCase() === 'true' || successRaw === true || String(successRaw) === '0';
     const successStr = successNorm ? 'true' : 'false';
     const result = await runVerifyLogic(body, successStr);
     setPaymentResult(transactionId, { link: result.link, message: result.message });
     const redirectUrl = `${frontendBaseUrl}/payment-listener/?transactionId=${encodeURIComponent(transactionId)}&success=${successStr}`;
+    console.log('[PAYMENT] payment-listener redirect', { transactionId: transactionId.slice(0, 12) + '...', redirectUrl: redirectUrl.slice(0, 80) + '...' });
     return res.redirect(302, redirectUrl);
   } catch (error) {
     console.error("Error in paymentListenerController:", error);

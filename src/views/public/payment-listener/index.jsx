@@ -30,12 +30,9 @@ const PaymentListener = () => {
       setTimeout(() => navigate('/'), 3000);
       return;
     }
-    console.log('[PAYMENT][LISTENER] POST /api/universal-payment/verify-payment', { transactionId, success });
-    fetch('/api/universal-payment/verify-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transactionId, success }),
-    })
+    const verifyUrl = `/api/universal-payment/verify-payment?transactionId=${encodeURIComponent(transactionId)}&success=${encodeURIComponent(success)}`;
+    console.log('[PAYMENT][LISTENER] GET verify-payment (URL only, no body)', verifyUrl);
+    fetch(verifyUrl, { method: 'GET', credentials: 'same-origin' })
       .then(async (res) => {
         const contentType = res.headers.get('content-type') || '';
         const isJson = contentType.includes('application/json');

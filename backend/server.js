@@ -114,7 +114,10 @@ app.options('*', cors(corsOptions));
 
 
 
-app.use(express.json());
+// Skip JSON body parsing for GET so GET with accidental body (e.g. "http:...") does not throw
+app.use(express.json({
+  type: (req) => req.method !== 'GET' && /application\/json/i.test(req.headers['content-type'] || '')
+}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/cart", cartRoutes); // ✅ Routes should come after middleware
 

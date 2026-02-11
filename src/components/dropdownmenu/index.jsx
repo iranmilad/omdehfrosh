@@ -62,8 +62,8 @@ const DropDownMenu = ({ menuItems }) => {
                     isValidIcon(link.icon) ? (
                       <Image
                         src={getIconSrc(link.icon)}
-                        w={25}
-                        h={25}
+                        w={24}
+                        h={24}
                         fit="contain"
                         alt={link.label}
                         onError={(e) => (e.target.style.display = "none")}
