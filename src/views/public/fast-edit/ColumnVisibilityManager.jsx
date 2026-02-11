@@ -42,6 +42,8 @@ function ColumnVisibilityManager({
       <Modal
         opened={opened}
         onClose={() => setOpened(false)}
+                removeScrollProps={{ removeScrollBar: false }}
+
         title="نمایش دادن ستون‌ها"
         zIndex={1100}
         styles={{

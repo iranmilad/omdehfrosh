@@ -370,656 +370,736 @@ const handleCookieUpdate = useCallback(() => {
 // FIND this useEffect (around line 200-220) and REPLACE it:
 useEffect(() => {
   const storedFilters = Cookies.get(COOKIE_NAME_BRAND_MODE);
-  console.log('[FO Index] BRAND cookie effect (cookieUpdateTrigger): running', { cookieUpdateTrigger, hasCookie: !!storedFilters, cookieLength: storedFilters?.length });
   if (storedFilters) {
     try {
       const parsed = JSON.parse(storedFilters);
       const brands = parsed.uniqueIDClickedBrands || [];
       const cats = parsed.uniqueIDClickedBrandsCategories || [];
       const subcats = parsed.filterBrandsCategorySubCategoryStorage || [];
-      console.log('[FO Index] BRAND cookie effect: setting state FROM cookie', { brandsLen: brands.length, catsLen: cats.length, subcatsLen: subcats.length });
       setFilterBrandStorage(brands);
       setFilterBrandsCategoryStorage(cats);
       setFilterBrandsCategorySubCategoryStorage(subcats);
-      setLocalFilters_brand(parsed.filters || initialFilters_brand_mode.filters);
-      setFilters_brand_mode(parsed.filters || initialFilters_brand_mode.filters);
-    } catch (error) {
-      console.error("[FastOrder] Error loading brand cookie:", error);
-    }
+      setLocalFilters_brand(
+        parsed.filters || initialFilters_brand_mode.filters
+      );
+      setFilters_brand_mode(
+        parsed.filters || initialFilters_brand_mode.filters
+      );
+    } catch (error) {}
   }
 }, [cookieUpdateTrigger, COOKIE_NAME_BRAND_MODE]); // ✅ Add cookieUpdateTrigger dependency
 
-  // CATEGORY cookie effect: when saved filter is applied (onCookieUpdate), re-sync category slider state from cookie
-  // When saved filter is unchecked (categorySavedFilterActive goes true -> false), force-empty sliders so we never load stale cookie
-  useEffect(() => {
-    const wasActive = prevCategorySavedFilterActiveRef.current;
-    prevCategorySavedFilterActiveRef.current = categorySavedFilterActive;
+// CATEGORY cookie effect: when saved filter is applied (onCookieUpdate), re-sync category slider state from cookie
+// When saved filter is unchecked (categorySavedFilterActive goes true -> false), force-empty sliders so we never load stale cookie
+useEffect(() => {
+  const wasActive = prevCategorySavedFilterActiveRef.current;
+  prevCategorySavedFilterActiveRef.current = categorySavedFilterActive;
 
-    if (categorySavedFilterActive) return;
+  if (categorySavedFilterActive) return;
 
-    // Just unchecked: force empty sliders and cookie; do not read cookie (avoids loading previous slider state)
-    if (wasActive) {
-      setFilterCategoryStorage([]);
-      setFilterCategorySubCategoryStorage([]);
-      setFilterCategorySubCategoryBrandsStorage([]);
-      setLocalFilters_category(initialFilters_category_mode.filters);
-      setFilters_category_mode(initialFilters_category_mode.filters);
-      const emptyCookie = {
-        searchType: "category",
-        uniqueIDClickedCategories: [],
-        uniqueIDClickedSubCategories: [],
-        uniqueIDClickedSubCategoriesBrands: [],
-        filters: initialFilters_category_mode.filters,
-      };
-      Cookies.set(COOKIE_NAME_CATEGORY_MODE, JSON.stringify(emptyCookie), { expires: 7 });
-      return;
-    }
+  // Just unchecked: force empty sliders and cookie; do not read cookie (avoids loading previous slider state)
+  if (wasActive) {
+    setFilterCategoryStorage([]);
+    setFilterCategorySubCategoryStorage([]);
+    setFilterCategorySubCategoryBrandsStorage([]);
+    setLocalFilters_category(initialFilters_category_mode.filters);
+    setFilters_category_mode(initialFilters_category_mode.filters);
+    const emptyCookie = {
+      searchType: "category",
+      uniqueIDClickedCategories: [],
+      uniqueIDClickedSubCategories: [],
+      uniqueIDClickedSubCategoriesBrands: [],
+      filters: initialFilters_category_mode.filters,
+    };
+    Cookies.set(COOKIE_NAME_CATEGORY_MODE, JSON.stringify(emptyCookie), {
+      expires: 7,
+    });
+    return;
+  }
 
-    const stored = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
-    if (!stored) return;
-    try {
-      const parsed = JSON.parse(stored);
-      const categories = parsed.uniqueIDClickedCategories || [];
-      const subCategories = parsed.uniqueIDClickedSubCategories || [];
-      const subCategoriesBrands = parsed.uniqueIDClickedSubCategoriesBrands || [];
-      setFilterCategoryStorage(categories);
-      setFilterCategorySubCategoryStorage(subCategories);
-      setFilterCategorySubCategoryBrandsStorage(subCategoriesBrands);
-      setLocalFilters_category(parsed.filters || initialFilters_category_mode.filters);
-      setFilters_category_mode(parsed.filters || initialFilters_category_mode.filters);
-    } catch (e) {
-      console.error("[FastOrder] Error loading category cookie:", e);
-    }
-  }, [cookieUpdateTrigger, COOKIE_NAME_CATEGORY_MODE, categorySavedFilterActive]);
+  const stored = Cookies.get(COOKIE_NAME_CATEGORY_MODE);
+  if (!stored) return;
+  try {
+    const parsed = JSON.parse(stored);
+    const categories = parsed.uniqueIDClickedCategories || [];
+    const subCategories = parsed.uniqueIDClickedSubCategories || [];
+    const subCategoriesBrands = parsed.uniqueIDClickedSubCategoriesBrands || [];
+    setFilterCategoryStorage(categories);
+    setFilterCategorySubCategoryStorage(subCategories);
+    setFilterCategorySubCategoryBrandsStorage(subCategoriesBrands);
+    setLocalFilters_category(
+      parsed.filters || initialFilters_category_mode.filters
+    );
+    setFilters_category_mode(
+      parsed.filters || initialFilters_category_mode.filters
+    );
+  } catch (e) {
+    console.error("[FastOrder] Error loading category cookie:", e);
+  }
+}, [cookieUpdateTrigger, COOKIE_NAME_CATEGORY_MODE, categorySavedFilterActive]);
 
-  // When switching back to brand tab, restore brand slider state from cookie (so sliders persist like category mode)
-  useEffect(() => {
-    if (searchType !== "brand") return;
-    const stored = Cookies.get(COOKIE_NAME_BRAND_MODE);
-    console.log('[FO Index] BRAND cookie effect (searchType): running', { searchType, hasCookie: !!stored });
-    if (!stored) return;
-    try {
-      const parsed = JSON.parse(stored);
-      const brands = parsed.uniqueIDClickedBrands || [];
-      const cats = parsed.uniqueIDClickedBrandsCategories || [];
-      const subcats = parsed.filterBrandsCategorySubCategoryStorage || [];
-      console.log('[FO Index] BRAND cookie effect (searchType): setting state FROM cookie', { brandsLen: brands.length, catsLen: cats.length, subcatsLen: subcats.length });
-      setFilterBrandStorage(brands);
-      setFilterBrandsCategoryStorage(cats);
-      setFilterBrandsCategorySubCategoryStorage(subcats);
-      setLocalFilters_brand(parsed.filters || initialFilters_brand_mode.filters);
-      setFilters_brand_mode(parsed.filters || initialFilters_brand_mode.filters);
-    } catch (e) {}
-  }, [searchType]);
+// When switching back to brand tab, restore brand slider state from cookie (so sliders persist like category mode)
+useEffect(() => {
+  if (searchType !== "brand") return;
+  const stored = Cookies.get(COOKIE_NAME_BRAND_MODE);
+  if (!stored) return;
+  try {
+    const parsed = JSON.parse(stored);
+    const brands = parsed.uniqueIDClickedBrands || [];
+    const cats = parsed.uniqueIDClickedBrandsCategories || [];
+    const subcats = parsed.filterBrandsCategorySubCategoryStorage || [];
+    setFilterBrandStorage(brands);
+    setFilterBrandsCategoryStorage(cats);
+    setFilterBrandsCategorySubCategoryStorage(subcats);
+    setLocalFilters_brand(parsed.filters || initialFilters_brand_mode.filters);
+    setFilters_brand_mode(parsed.filters || initialFilters_brand_mode.filters);
+  } catch (e) {}
+}, [searchType]);
 
-  // Brand mode table data in index so nodes is set on refresh (same query key as SearchComponentBrand = deduped)
-  const brandFilterArray = useMemo(() => [{
-    searchType: 'brand',
-    uniqueIDClickedBrands: filterBrandStorage || [],
-    uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage || [],
-    filterBrandsCategorySubCategoryStorage: filterBrandsCategorySubCategoryStorage || [],
-    filters: localFilters_brand || filters_brand_mode,
-  }], [filterBrandStorage, filterBrandsCategoryStorage, filterBrandsCategorySubCategoryStorage, localFilters_brand, filters_brand_mode]);
-  const stableBrandQueryKey = useMemo(() => {
-    if (!brandFilterArray?.length) return null;
-    const canonical = brandFilterArray.map((item) => ({
-      searchType: item.searchType,
-      uniqueIDClickedBrands: [...(item.uniqueIDClickedBrands || [])].sort(),
-      uniqueIDClickedBrandsCategories: [...(item.uniqueIDClickedBrandsCategories || [])].sort(),
-      filterBrandsCategorySubCategoryStorage: [...(item.filterBrandsCategorySubCategoryStorage || [])].sort(),
-      filters: item.filters && typeof item.filters === 'object' ? Object.keys(item.filters).sort().reduce((acc, k) => { acc[k] = item.filters[k]; return acc; }, {}) : item.filters
-    }));
-    return JSON.stringify(canonical);
-  }, [brandFilterArray]);
-  const { data: brandTableData } = useApiQuery({
-    endpoint: "/fast-order-brand-mode",
-    queryKey: stableBrandQueryKey != null ? ["fast-order-brand-mode", stableBrandQueryKey] : ["fast-order-brand-mode", "disabled"],
-    method: "post",
-    body: brandFilterArray,
-    strategy: "CACHED",
-    enabled: searchType === "brand" && (brandFilterArray?.length > 0) && stableBrandQueryKey != null,
-  });
-  useEffect(() => {
-    if (searchType !== "brand") return;
-    if (brandTableData?.products != null) {
-      setNodes(Array.isArray(brandTableData.products) ? brandTableData.products : []);
-    }
-  }, [searchType, brandTableData]);
-
-
-
-
-
-
-
-
-
-
-
-
-  useEffect(() => {
-    if (
-      saveError && 
-      Number(saveError.status) !== 400 
-      && Number(saveError.status) !== 401 
-      && Number(saveError.status) !== 403
-      && Number(saveError.status) !== 404
-      && Number(saveError.status) !== 405
-      && Number(saveError.status) !== 408
-      && Number(saveError.status) !== 409
-      && Number(saveError.status) !== 410
-      && Number(saveError.status) !== 411
-      && Number(saveError.status) !== 412
-      && Number(saveError.status) !== 413
-      && Number(saveError.status) !== 414
-      && Number(saveError.status) !== 415
-      && Number(saveError.status) !== 416
-      && Number(saveError.status) !== 417
-      && Number(saveError.status) !== 422   
-      && Number(saveError.status) !== 429
-    ) {
-      notifications.show({
-        title: saveError.message,
-        color: "red",
-        autoClose: true
-      });
-    }
-  }, [saveError]);
-  
-  // Only run save-error modal/navigate in brand mode; category mode handles errors in SearchComponentCategory
-  useEffect(() => {
-    if (searchType !== "brand" || !saveError) return;
-    if (saveError.status === 401) {
-      setModalOpen(true);
-      setTimeout(() => {
-        setModalOpen(false);
-        dispatch(clearSaveFilterState());
-        navigate("/");
-      }, 4000);
-    }
-
-    if (saveError.status === 403) {
-      setModalOpen(true);
-      setTimeout(() => {
-        dispatch(clearSaveFilterState());
-        setModalOpen(false);
-      }, 4000);
-    }
-  }, [searchType, saveError, dispatch, navigate]);
-
-  useEffect(() => {
-    if (searchType !== "brand" || !saveError?.status) return;
-    handleKnownErrors(saveError.status, setModalOpen, navigate);
-  }, [searchType, saveError, saveStatus]);
-
-  const form = useForm({
-    initialValues: {
-      inputBox: "",
+// Brand mode table data in index so nodes is set on refresh (same query key as SearchComponentBrand = deduped)
+const brandFilterArray = useMemo(
+  () => [
+    {
+      searchType: "brand",
+      uniqueIDClickedBrands: filterBrandStorage || [],
+      uniqueIDClickedBrandsCategories: filterBrandsCategoryStorage || [],
+      filterBrandsCategorySubCategoryStorage:
+        filterBrandsCategorySubCategoryStorage || [],
+      filters: localFilters_brand || filters_brand_mode,
     },
-    validate: {
-      title: (value) => (value.trim() ? null : "نام الزامی است"),
-    },
-  });
+  ],
+  [
+    filterBrandStorage,
+    filterBrandsCategoryStorage,
+    filterBrandsCategorySubCategoryStorage,
+    localFilters_brand,
+    filters_brand_mode,
+  ]
+);
+const stableBrandQueryKey = useMemo(() => {
+  if (!brandFilterArray?.length) return null;
+  const canonical = brandFilterArray.map((item) => ({
+    searchType: item.searchType,
+    uniqueIDClickedBrands: [...(item.uniqueIDClickedBrands || [])].sort(),
+    uniqueIDClickedBrandsCategories: [
+      ...(item.uniqueIDClickedBrandsCategories || []),
+    ].sort(),
+    filterBrandsCategorySubCategoryStorage: [
+      ...(item.filterBrandsCategorySubCategoryStorage || []),
+    ].sort(),
+    filters:
+      item.filters && typeof item.filters === "object"
+        ? Object.keys(item.filters)
+            .sort()
+            .reduce((acc, k) => {
+              acc[k] = item.filters[k];
+              return acc;
+            }, {})
+        : item.filters,
+  }));
+  return JSON.stringify(canonical);
+}, [brandFilterArray]);
+const { data: brandTableData } = useApiQuery({
+  endpoint: "/fast-order-brand-mode",
+  queryKey:
+    stableBrandQueryKey != null
+      ? ["fast-order-brand-mode", stableBrandQueryKey]
+      : ["fast-order-brand-mode", "disabled"],
+  method: "post",
+  body: brandFilterArray,
+  strategy: "CACHED",
+  enabled:
+    searchType === "brand" &&
+    brandFilterArray?.length > 0 &&
+    stableBrandQueryKey != null,
+});
+useEffect(() => {
+  if (searchType !== "brand") return;
+  if (brandTableData?.products != null) {
+    setNodes(
+      Array.isArray(brandTableData.products) ? brandTableData.products : []
+    );
+  }
+}, [searchType, brandTableData]);
 
-  const [isFixed, setIsFixed] = useState(false);
-  const componentRef = useRef(null);
-  const containerRef = useRef(null);
-  const lastScrollY = useRef(0);
-  const originalTop = useRef(0);
-  const [containerWidth, setContainerWidth] = useState('100%');
-  const [containerLeft, setContainerLeft] = useState(0);
-  const isManualFilterUpdate = useRef(false); // ✅ ADD THIS LINE FOR CATEGORY MODE
+useEffect(() => {
+  if (
+    saveError &&
+    Number(saveError.status) !== 400 &&
+    Number(saveError.status) !== 401 &&
+    Number(saveError.status) !== 403 &&
+    Number(saveError.status) !== 404 &&
+    Number(saveError.status) !== 405 &&
+    Number(saveError.status) !== 408 &&
+    Number(saveError.status) !== 409 &&
+    Number(saveError.status) !== 410 &&
+    Number(saveError.status) !== 411 &&
+    Number(saveError.status) !== 412 &&
+    Number(saveError.status) !== 413 &&
+    Number(saveError.status) !== 414 &&
+    Number(saveError.status) !== 415 &&
+    Number(saveError.status) !== 416 &&
+    Number(saveError.status) !== 417 &&
+    Number(saveError.status) !== 422 &&
+    Number(saveError.status) !== 429
+  ) {
+    notifications.show({
+      title: saveError.message,
+      color: "red",
+      autoClose: true,
+    });
+  }
+}, [saveError]);
 
-  useEffect(() => {
-    if (componentRef.current) {
-      originalTop.current = componentRef.current.offsetTop;
-    }
+// Only run save-error modal/navigate in brand mode; category mode handles errors in SearchComponentCategory
+useEffect(() => {
+  if (searchType !== "brand" || !saveError) return;
+  if (saveError.status === 401) {
+    setModalOpen(true);
+    setTimeout(() => {
+      setModalOpen(false);
+      dispatch(clearSaveFilterState());
+      navigate("/");
+    }, 4000);
+  }
 
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+  if (saveError.status === 403) {
+    setModalOpen(true);
+    setTimeout(() => {
+      dispatch(clearSaveFilterState());
+      setModalOpen(false);
+    }, 4000);
+  }
+}, [searchType, saveError, dispatch, navigate]);
 
-      if (currentScrollY < lastScrollY.current) {
-        if (currentScrollY > originalTop.current) {
-          setIsFixed(true);
-        } else {
-          setIsFixed(false);
-        }
+useEffect(() => {
+  if (searchType !== "brand" || !saveError?.status) return;
+  handleKnownErrors(saveError.status, setModalOpen, navigate);
+}, [searchType, saveError, saveStatus]);
+
+const form = useForm({
+  initialValues: {
+    inputBox: "",
+  },
+  validate: {
+    title: (value) => (value.trim() ? null : "نام الزامی است"),
+  },
+});
+
+const [isFixed, setIsFixed] = useState(false);
+const componentRef = useRef(null);
+const containerRef = useRef(null);
+const lastScrollY = useRef(0);
+const originalTop = useRef(0);
+const [containerWidth, setContainerWidth] = useState("100%");
+const [containerLeft, setContainerLeft] = useState(0);
+const isManualFilterUpdate = useRef(false); // ✅ ADD THIS LINE FOR CATEGORY MODE
+
+useEffect(() => {
+  if (componentRef.current) {
+    originalTop.current = componentRef.current.offsetTop;
+  }
+
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+
+    if (currentScrollY < lastScrollY.current) {
+      if (currentScrollY > originalTop.current) {
+        setIsFixed(true);
       } else {
         setIsFixed(false);
       }
+    } else {
+      setIsFixed(false);
+    }
 
-      lastScrollY.current = currentScrollY;
-    };
+    lastScrollY.current = currentScrollY;
+  };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
 
-  // Update container width and left position
-  useEffect(() => {
-    const updateContainerDimensions = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setContainerWidth(`${rect.width}px`);
-        setContainerLeft(rect.left);
-      }
-    };
+// Update container width and left position
+useEffect(() => {
+  const updateContainerDimensions = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setContainerWidth(`${rect.width}px`);
+      setContainerLeft(rect.left);
+    }
+  };
 
-    updateContainerDimensions();
-    window.addEventListener("resize", updateContainerDimensions);
-    window.addEventListener("scroll", updateContainerDimensions);
-    return () => {
-      window.removeEventListener("resize", updateContainerDimensions);
-      window.removeEventListener("scroll", updateContainerDimensions);
-    };
-  }, []);
+  updateContainerDimensions();
+  window.addEventListener("resize", updateContainerDimensions);
+  window.addEventListener("scroll", updateContainerDimensions);
+  return () => {
+    window.removeEventListener("resize", updateContainerDimensions);
+    window.removeEventListener("scroll", updateContainerDimensions);
+  };
+}, []);
 
-  const LoadingPlaceholder = ({ height = "200px" }) => (
+const LoadingPlaceholder = ({ height = "200px" }) => (
+  <Box
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height,
+      backgroundColor: "#f8f9fa",
+      border: "1px dashed #dee2e6",
+      borderRadius: "8px",
+    }}
+  >
+    <Loader size="lg" />
+  </Box>
+);
+
+// ✅ Check screen size for modal responsiveness
+const isMobile = window.innerWidth < 768;
+
+return (
+  <>
+    <RotateModal isPortrait={isPortrait} />
+
     <Box
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height,
-        backgroundColor: "#f8f9fa",
-        border: "1px dashed #dee2e6",
-        borderRadius: "8px",
-      }}
+      ref={containerRef}
+      style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }}
     >
-      <Loader size="lg" />
-    </Box>
-  );
+      <RowSelectionProvider>
+        {/* ✅ Wrap brand mode in BrandRowSelectionProvider */}
+        {searchType === "brand" ? (
+          <BrandRowSelectionProvider>
+            <FastOrderContext.Provider
+              value={{
+                visibleColumns,
+                setVisibleColumns,
+                filters_brand_mode,
+                filterValues,
+                setFilters_brand_mode,
+                setFilterValues,
+                searchType,
+                opened,
+                setOpened,
+                handleVisibleColumnsChange,
+                updatedColumns: COLUMNS,
+              }}
+            >
+              <FilterProvider>
+                {loadingStates.componentsLoading ? (
+                  <>
+                    <div>
+                      <SearchComponentBrandFastOrder
+                        filters={filters_brand_mode}
+                        setFilters={setFilters_brand_mode}
+                        setNodesSubCategories={setNodesSubCategoriesData}
+                        setNodes={setNodes}
+                        setAvailableLocations={setAvailableLocations}
+                        searchType={searchType}
+                        setSearchType={setSearchType}
+                        cookieUpdateTrigger={cookieUpdateTrigger}
+                        filterBrandStorage={filterBrandStorage}
+                        setFilterBrandStorage={setFilterBrandStorage}
+                        filterBrandsCategoryStorage={
+                          filterBrandsCategoryStorage
+                        }
+                        setFilterBrandsCategoryStorage={
+                          setFilterBrandsCategoryStorage
+                        }
+                        filterBrandsCategorySubCategoryStorage={
+                          filterBrandsCategorySubCategoryStorage
+                        }
+                        setFilterBrandsCategorySubCategoryStorage={
+                          setFilterBrandsCategorySubCategoryStorage
+                        }
+                        localFilters={localFilters_brand}
+                        setLocalFilters={setLocalFilters_brand}
+                        onCookieUpdate={handleCookieUpdate}
+                      />
+                    </div>
 
-  // ✅ Check screen size for modal responsiveness
-  const isMobile = window.innerWidth < 768;
-
-  return (
-    <>
-      <RotateModal isPortrait={isPortrait} />
-
-      <Box ref={containerRef} style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
-        <RowSelectionProvider>
-          {/* ✅ Wrap brand mode in BrandRowSelectionProvider */}
-          {searchType === "brand" ? (
-            <BrandRowSelectionProvider>
-              <FastOrderContext.Provider 
-                value={{
-                  visibleColumns, 
-                  setVisibleColumns, 
-                  filters_brand_mode, 
-                  filterValues, 
-                  setFilters_brand_mode, 
-                  setFilterValues, 
-                  searchType,
-                  opened,
-                  setOpened,
-                  handleVisibleColumnsChange,
-                  updatedColumns: COLUMNS
-                }}
-              >
-                <FilterProvider>
-
-                  {loadingStates.componentsLoading ? (
-                    <>
-                      <div>
-                        <SearchComponentBrandFastOrder
-                          filters={filters_brand_mode} 
+                    <Group>
+                      <div
+                        ref={componentRef}
+                        style={{
+                          position: isFixed ? "fixed" : "static",
+                          top: isFixed ? 0 : "auto",
+                          left: isFixed ? containerLeft : "auto",
+                          width: isFixed ? containerWidth : "100%",
+                          zIndex: 999,
+                          background: isFixed ? "white" : "transparent",
+                          boxShadow: isFixed
+                            ? "0 2px 8px rgba(0,0,0,0.1)"
+                            : "none",
+                          transition: "all 0.3s ease",
+                        }}
+                      >
+                        <FiltersBrandMode
                           setFilters={setFilters_brand_mode}
-                          setNodesSubCategories={setNodesSubCategoriesData} 
-                          setNodes={setNodes} 
-                          setAvailableLocations={setAvailableLocations}
-                          searchType={searchType} 
+                          nodes={nodes}
+                          setNodesSubCategories={setNodesSubCategoriesData}
+                          setNodes={setNodes}
+                          filters={filters_brand_mode}
+                          searchType={searchType}
                           setSearchType={setSearchType}
-                          cookieUpdateTrigger={cookieUpdateTrigger} 
-                          filterBrandStorage={filterBrandStorage}
+                          COOKIE_NAME={COOKIE_NAME_BRAND_MODE}
+                          getInitialFilters={getInitialFilters_brand_mode}
                           setFilterBrandStorage={setFilterBrandStorage}
-                          filterBrandsCategoryStorage={filterBrandsCategoryStorage}
-                          setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                          filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
-                          setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-                          localFilters={localFilters_brand}
+                          setFilterBrandsCategoryStorage={
+                            setFilterBrandsCategoryStorage
+                          }
+                          setFilterBrandsCategorySubCategoryStorage={
+                            setFilterBrandsCategorySubCategoryStorage
+                          }
                           setLocalFilters={setLocalFilters_brand}
-                          onCookieUpdate={handleCookieUpdate} 
-                        />
-                      </div>
-
-                      <Group>
-                        <div
-                          ref={componentRef}
-                          style={{
-                            position: isFixed ? "fixed" : "static",
-                            top: isFixed ? 0 : "auto",
-                            left: isFixed ? containerLeft : "auto",
-                            width: isFixed ? containerWidth : "100%",
-                            zIndex: 999,
-                            background: isFixed ? "white" : "transparent",
-                            boxShadow: isFixed ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
-                            transition: "all 0.3s ease",
-                          }}
-                        >
-                          <FiltersBrandMode
-                            setFilters={setFilters_brand_mode}
-                            nodes={nodes}
-                            setNodesSubCategories={setNodesSubCategoriesData}
-                            setNodes={setNodes}
-                            filters={filters_brand_mode}
-                            searchType={searchType}
-                            setSearchType={setSearchType}
-                            COOKIE_NAME={COOKIE_NAME_BRAND_MODE}
-                            getInitialFilters={getInitialFilters_brand_mode}
-                            setFilterBrandStorage={setFilterBrandStorage}
-                            setFilterBrandsCategoryStorage={setFilterBrandsCategoryStorage}
-                            setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
-                            setLocalFilters={setLocalFilters_brand}
-                            localFilters={localFilters_brand}
-                            onCookieUpdate={handleCookieUpdate}
-                            savedFilters={savedFilters}
-                          />
-                        </div>
-                      </Group>
-                    </>
-                  ) : (
-                    <LoadingPlaceholder height="200px" />
-                  )}
-
-                  {loadingStates.tableLoading ? (
-                    <>
-                      {nodes !== null && nodes?.length > 0 && (
-                        <>
-                          <FastTableBrand 
-                            type="head" 
-                            isPortrait={isPortrait} 
-                            isLandscape={isLandscape} 
-                            filters_brand_mode={filters_brand_mode} 
-                            filterValues={filterValues} 
-                            availableLocations={availableLocations} 
-                            COLUMNS={updatedColumns} 
-                            nodes={nodes[0]?.items?.slice(0, 1) || []} 
-                            setVisibleColumns={setVisibleColumns} 
-                            visibleColumns={visibleColumns} 
-                          />
-                          {nodes.map((item, index) => (
-                            <React.Fragment key={index}>
-                              <Flex h={40} align="center" justify="center" bg="#e5e7eb">
-                                <Text size="16px" fw={600} c="dark">
-                                  {item.label}
-                                </Text>
-                              </Flex>
-                              <FastTableBrand 
-                                keyIndex={index} 
-                                isPortrait={isPortrait} 
-                                isLandscape={isLandscape} 
-                                filters_brand_mode={filters_brand_mode} 
-                                filterValues={filterValues} 
-                                setNodes={setNodes} 
-                                availableLocations={availableLocations}  
-                                type="data" 
-                                COLUMNS={updatedColumns} 
-                                nodes={item.items || []} 
-                                setVisibleColumns={setVisibleColumns} 
-                                visibleColumns={visibleColumns} 
-                              />
-                            </React.Fragment>
-                          ))}
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <LoadingPlaceholder height="300px" />
-                  )}
-
-                  {/* ✅ Modal moved to context but kept here */}
-                  <Modal
-                    opened={opened}
-                    onClose={() => setOpened(false)}
-                    title="نمایش دادن ستون‌ها"
-                    zIndex={1100}
-                    styles={{
-                      header: {
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
-                        backgroundColor: 'var(--mantine-color-body)',
-                        borderBottom: '1px solid var(--mantine-color-gray-3)',
-                        paddingBottom: 'var(--mantine-spacing-md)',
-                        margin: 0,
-                        marginTop: 0,
-                        paddingTop: 0,
-                      },
-                      title: {
-                        margin: 0,
-                        marginTop: 0,
-                        paddingTop: 0,
-                      },
-                      body: {
-                        paddingTop: 'var(--mantine-spacing-md)',
-                        paddingBottom: 'var(--mantine-spacing-lg)',
-                        maxHeight: 'calc(100vh - 140px)',
-                        overflowY: 'auto',
-                        overflowX: 'hidden',
-                        marginBottom: 0,
-                      },
-                      content: {
-                        overflow: 'visible',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        maxHeight: '90vh',
-                      },
-                      inner: {
-                        padding: 0,
-                      }
-                    }}
-                    lockScroll={false}
-                    removeScrollBar={false}
-                  >
-                    <Stack gap="sm" pb="xs">
-                      {updatedColumns.map((column) => (
-                        <Checkbox
-                          key={column.key}
-                          label={column.label}
-                          checked={!visibleColumns.includes(column.key)}
-                          onChange={(event) => handleVisibleColumnsChange(event, column.key)}
-                        />
-                      ))}
-                    </Stack>
-                  </Modal>
-
-                </FilterProvider>
-              </FastOrderContext.Provider>
-            </BrandRowSelectionProvider>
-          ) : (
-            /* ✅ Wrap category mode in CategoryRowSelectionProvider */
-            <CategoryRowSelectionProvider>
-              <FastOrderContext.Provider 
-                value={{
-                  visibleColumns, 
-                  setVisibleColumns, 
-                  filters_brand_mode, 
-                  filterValues, 
-                  setFilters_brand_mode, 
-                  setFilterValues, 
-                  searchType,
-                  opened,
-                  setOpened,
-                  handleVisibleColumnsChange,
-                  updatedColumns: COLUMNS
-                }}
-              >
-                <FilterProvider>
-
-                  {loadingStates.componentsLoading ? (
-                    <>
-                      <div>
-                        <SearchComponentCategory 
-                          filters={filters_category_mode} 
-                          setFilters={setFilters_category_mode}
-                          setNodesSubCategories={setNodesSubCategoriesData} 
-                          setNodes={setNodes} 
-                          setAvailableLocations={setAvailableLocations}
-                          searchType={searchType} 
-                          setSearchType={setSearchType}
-                          cookieUpdateTrigger={cookieUpdateTrigger}
+                          localFilters={localFilters_brand}
                           onCookieUpdate={handleCookieUpdate}
-                          filterCategoryStorage={filterCategoryStorage}
-                          setFilterCategoryStorage={setFilterCategoryStorage}
-                          filterCategorySubCategoryStorage={filterCategorySubCategoryStorage}
-                          setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                          filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
-                          setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                          localFilters={localFilters_category}
-                          setLocalFilters={setLocalFilters_category}
+                          savedFilters={savedFilters}
                         />
                       </div>
+                    </Group>
+                  </>
+                ) : (
+                  <LoadingPlaceholder height="200px" />
+                )}
 
-                      <Group>
-                        <div
-                          ref={componentRef}
-                          style={{
-                            position: isFixed ? "fixed" : "static",
-                            top: isFixed ? 0 : "auto",
-                            left: isFixed ? containerLeft : "auto",
-                            width: isFixed ? containerWidth : "100%",
-                            zIndex: 999,
-                            background: isFixed ? "white" : "transparent",
-                            boxShadow: isFixed ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
-                            transition: "all 0.3s ease",
-                          }}
+                {loadingStates.tableLoading ? (
+                  <>
+                    {nodes !== null && nodes?.length > 0 && (
+                      <>
+                        <FastTableBrand
+                          type="head"
+                          isPortrait={isPortrait}
+                          isLandscape={isLandscape}
+                          filters_brand_mode={filters_brand_mode}
+                          filterValues={filterValues}
+                          availableLocations={availableLocations}
+                          COLUMNS={updatedColumns}
+                          nodes={nodes[0]?.items?.slice(0, 1) || []}
+                          setVisibleColumns={setVisibleColumns}
+                          visibleColumns={visibleColumns}
+                        />
+                        {nodes.map((item, index) => (
+                          <React.Fragment key={index}>
+                            <Flex
+                              h={40}
+                              align="center"
+                              justify="center"
+                              bg="#e5e7eb"
+                            >
+                              <Text size="16px" fw={600} c="dark">
+                                {item.label}
+                              </Text>
+                            </Flex>
+                            <FastTableBrand
+                              keyIndex={index}
+                              isPortrait={isPortrait}
+                              isLandscape={isLandscape}
+                              filters_brand_mode={filters_brand_mode}
+                              filterValues={filterValues}
+                              setNodes={setNodes}
+                              availableLocations={availableLocations}
+                              type="data"
+                              COLUMNS={updatedColumns}
+                              nodes={item.items || []}
+                              setVisibleColumns={setVisibleColumns}
+                              visibleColumns={visibleColumns}
+                            />
+                          </React.Fragment>
+                        ))}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <LoadingPlaceholder height="300px" />
+                )}
+
+                {/* ✅ Modal moved to context but kept here */}
+                <Modal
+                  opened={opened}
+                  removeScrollProps={{ removeScrollBar: false }}
+                  onClose={() => setOpened(false)}
+                  title="نمایش دادن ستون‌ها"
+                  zIndex={1100}
+                  styles={{
+                    header: {
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 10,
+                      backgroundColor: "var(--mantine-color-body)",
+                      borderBottom: "1px solid var(--mantine-color-gray-3)",
+                      paddingBottom: "var(--mantine-spacing-md)",
+                      margin: 0,
+                      marginTop: 0,
+                      paddingTop: 0,
+                    },
+                    title: {
+                      margin: 0,
+                      marginTop: 0,
+                      paddingTop: 0,
+                    },
+                    body: {
+                      paddingTop: "var(--mantine-spacing-md)",
+                      paddingBottom: "var(--mantine-spacing-lg)",
+                      maxHeight: "calc(100vh - 140px)",
+                      overflowY: "auto",
+                      overflowX: "hidden",
+                      marginBottom: 0,
+                    },
+                    content: {
+                      overflow: "visible",
+                      display: "flex",
+                      flexDirection: "column",
+                      maxHeight: "90vh",
+                    },
+                    inner: {
+                      padding: 0,
+                    },
+                  }}
+                  lockScroll={false}
+                  removeScrollBar={false}
+                >
+                  <Stack gap="sm" pb="xs">
+                    {updatedColumns.map((column) => (
+                      <Checkbox
+                        key={column.key}
+                        label={column.label}
+                        checked={!visibleColumns.includes(column.key)}
+                        onChange={(event) =>
+                          handleVisibleColumnsChange(event, column.key)
+                        }
+                      />
+                    ))}
+                  </Stack>
+                </Modal>
+              </FilterProvider>
+            </FastOrderContext.Provider>
+          </BrandRowSelectionProvider>
+        ) : (
+          /* ✅ Wrap category mode in CategoryRowSelectionProvider */
+          <CategoryRowSelectionProvider>
+            <FastOrderContext.Provider
+              value={{
+                visibleColumns,
+                setVisibleColumns,
+                filters_brand_mode,
+                filterValues,
+                setFilters_brand_mode,
+                setFilterValues,
+                searchType,
+                opened,
+                setOpened,
+                handleVisibleColumnsChange,
+                updatedColumns: COLUMNS,
+              }}
+            >
+              <FilterProvider>
+                {loadingStates.componentsLoading ? (
+                  <>
+                    <div>
+                      <SearchComponentCategory
+                        filters={filters_category_mode}
+                        setFilters={setFilters_category_mode}
+                        setNodesSubCategories={setNodesSubCategoriesData}
+                        setNodes={setNodes}
+                        setAvailableLocations={setAvailableLocations}
+                        searchType={searchType}
+                        setSearchType={setSearchType}
+                        cookieUpdateTrigger={cookieUpdateTrigger}
+                        onCookieUpdate={handleCookieUpdate}
+                        filterCategoryStorage={filterCategoryStorage}
+                        setFilterCategoryStorage={setFilterCategoryStorage}
+                        filterCategorySubCategoryStorage={
+                          filterCategorySubCategoryStorage
+                        }
+                        setFilterCategorySubCategoryStorage={
+                          setFilterCategorySubCategoryStorage
+                        }
+                        filterCategorySubCategoryBrandsStorage={
+                          filterCategorySubCategoryBrandsStorage
+                        }
+                        setFilterCategorySubCategoryBrandsStorage={
+                          setFilterCategorySubCategoryBrandsStorage
+                        }
+                        localFilters={localFilters_category}
+                        setLocalFilters={setLocalFilters_category}
+                      />
+                    </div>
+
+                    <Group>
+                      <div
+                        ref={componentRef}
+                        style={{
+                          position: isFixed ? "fixed" : "static",
+                          top: isFixed ? 0 : "auto",
+                          left: isFixed ? containerLeft : "auto",
+                          width: isFixed ? containerWidth : "100%",
+                          zIndex: 999,
+                          background: isFixed ? "white" : "transparent",
+                          boxShadow: isFixed
+                            ? "0 2px 8px rgba(0,0,0,0.1)"
+                            : "none",
+                          transition: "all 0.3s ease",
+                        }}
+                      >
+                        <FiltersCategoryMode
+                          setFilters={setFilters_category_mode}
+                          nodes={nodes}
+                          setNodesSubCategories={setNodesSubCategoriesData}
+                          setNodes={setNodes}
+                          filters={filters_category_mode}
+                          searchType={searchType}
+                          setSearchType={setSearchType}
+                          COOKIE_NAME={COOKIE_NAME_CATEGORY_MODE}
+                          getInitialFilters={getInitialFilters_category_mode}
+                          setFilterCategoryStorage={setFilterCategoryStorage}
+                          setFilterCategorySubCategoryStorage={
+                            setFilterCategorySubCategoryStorage
+                          }
+                          setFilterCategorySubCategoryBrandsStorage={
+                            setFilterCategorySubCategoryBrandsStorage
+                          }
+                          setLocalFilters={setLocalFilters_category}
+                          localFilters={localFilters_category}
+                          onCookieUpdate={handleCookieUpdate}
+                          onCategorySavedFilterActiveChange={
+                            setCategorySavedFilterActive
+                          }
+                        />
+                      </div>
+                    </Group>
+                  </>
+                ) : (
+                  <LoadingPlaceholder height="200px" />
+                )}
+
+                {loadingStates.tableLoading ? (
+                  <>
+                    {nodesSubCategoriesData !== null &&
+                      nodesSubCategoriesData?.length > 0 && (
+                        <Paper
+                          p={0}
+                          className="overflow-hidden"
+                          bg="white"
+                          id="tables"
                         >
-                          <FiltersCategoryMode
-                            setFilters={setFilters_category_mode}
-                            nodes={nodes}
-                            setNodesSubCategories={setNodesSubCategoriesData}
-                            setNodes={setNodes}
-                            filters={filters_category_mode}
-                            searchType={searchType}
-                            setSearchType={setSearchType}
-                            COOKIE_NAME={COOKIE_NAME_CATEGORY_MODE}
-                            getInitialFilters={getInitialFilters_category_mode}
-                            setFilterCategoryStorage={setFilterCategoryStorage}
-                            setFilterCategorySubCategoryStorage={setFilterCategorySubCategoryStorage}
-                            setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
-                            setLocalFilters={setLocalFilters_category}
-                            localFilters={localFilters_category}
-                            onCookieUpdate={handleCookieUpdate}
-                            onCategorySavedFilterActiveChange={setCategorySavedFilterActive}
-                          />
-                        </div>
-                      </Group>
-                    </>
-                  ) : (
-                    <LoadingPlaceholder height="200px" />
-                  )}
-
-                  {loadingStates.tableLoading ? (
-                    <>
-                      {nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 && (
-                        <Paper p={0} className="overflow-hidden" bg="white" id="tables">
-                          <FastTableCategory 
-                            type="head" 
-                            isPortrait={isPortrait} 
-                            isLandscape={isLandscape} 
-                            filters_category_mode={filters_category_mode} 
-                            filterValues={filterValues} 
-                            availableLocations={availableLocations} 
-                            COLUMNS={updatedColumns} 
-                            nodes={nodesSubCategoriesData[0]?.items?.slice(0, 1) || []} 
-                            setVisibleColumns={setVisibleColumns} 
-                            visibleColumns={visibleColumns} 
+                          <FastTableCategory
+                            type="head"
+                            isPortrait={isPortrait}
+                            isLandscape={isLandscape}
+                            filters_category_mode={filters_category_mode}
+                            filterValues={filterValues}
+                            availableLocations={availableLocations}
+                            COLUMNS={updatedColumns}
+                            nodes={
+                              nodesSubCategoriesData[0]?.items?.slice(0, 1) ||
+                              []
+                            }
+                            setVisibleColumns={setVisibleColumns}
+                            visibleColumns={visibleColumns}
                           />
                           {nodesSubCategoriesData?.map((item, index) => (
                             <React.Fragment key={index}>
-                              <Flex h={40} align="center" justify="center" bg="#e5e7eb">
+                              <Flex
+                                h={40}
+                                align="center"
+                                justify="center"
+                                bg="#e5e7eb"
+                              >
                                 <Text size="16px" fw={600} c="dark">
                                   {item.label}
                                 </Text>
                               </Flex>
-                              <FastTableCategory 
-                                isPortrait={isPortrait} 
-                                isLandscape={isLandscape} 
-                                filters_category_mode={filters_category_mode} 
-                                filterValues={filterValues} 
-                                keyIndex={index} 
-                                availableLocations={availableLocations}  
-                                setNodes={setNodesSubCategoriesData} 
-                                type="data" 
-                                COLUMNS={updatedColumns} 
-                                nodes={item.items || []} 
-                                setVisibleColumns={setVisibleColumns} 
-                                visibleColumns={visibleColumns} 
+                              <FastTableCategory
+                                isPortrait={isPortrait}
+                                isLandscape={isLandscape}
+                                filters_category_mode={filters_category_mode}
+                                filterValues={filterValues}
+                                keyIndex={index}
+                                availableLocations={availableLocations}
+                                setNodes={setNodesSubCategoriesData}
+                                type="data"
+                                COLUMNS={updatedColumns}
+                                nodes={item.items || []}
+                                setVisibleColumns={setVisibleColumns}
+                                visibleColumns={visibleColumns}
                               />
                             </React.Fragment>
                           ))}
                         </Paper>
                       )}
-                    </>
-                  ) : (
-                    <LoadingPlaceholder height="300px" />
-                  )}
+                  </>
+                ) : (
+                  <LoadingPlaceholder height="300px" />
+                )}
 
-                  {/* ✅ Modal moved to context but kept here */}
-                  <Modal
-                    opened={opened}
-                    onClose={() => setOpened(false)}
-                    title="نمایش دادن ستون‌ها"
-                    zIndex={1100}
-                    styles={{
-                      header: {
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
-                        backgroundColor: 'var(--mantine-color-body)',
-                        borderBottom: '1px solid var(--mantine-color-gray-3)',
-                        paddingBottom: 'var(--mantine-spacing-md)',
-                        margin: 0,
-                        marginTop: 0,
-                        paddingTop: 0,
-                      },
-                      title: {
-                        margin: 0,
-                        marginTop: 0,
-                        paddingTop: 0,
-                      },
-                      body: {
-                        paddingTop: 'var(--mantine-spacing-md)',
-                        paddingBottom: 'var(--mantine-spacing-lg)',
-                        maxHeight: 'calc(100vh - 140px)',
-                        overflowY: 'auto',
-                        overflowX: 'hidden',
-                        marginBottom: 0,
-                      },
-                      content: {
-                        overflow: 'visible',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        maxHeight: '90vh',
-                      },
-                      inner: {
-                        padding: 0,
-                      }
-                    }}
-                    lockScroll={false}
-                    removeScrollBar={false}
-                  >
-                    <Stack gap="sm" pb="xs">
-                      {updatedColumns.map((column) => (
-                        <Checkbox
-                          key={column.key}
-                          label={column.label}
-                          checked={!visibleColumns.includes(column.key)}
-                          onChange={(event) => handleVisibleColumnsChange(event, column.key)}
-                        />
-                      ))}
-                    </Stack>
-                  </Modal>
+                {/* ✅ Modal moved to context but kept here */}
+                <Modal
+                  opened={opened}
+                          removeScrollProps={{ removeScrollBar: false }}
 
-                </FilterProvider>
-              </FastOrderContext.Provider>
-            </CategoryRowSelectionProvider>
-          )}
-        </RowSelectionProvider>
-      </Box>
-    </>
-  );
+                  onClose={() => setOpened(false)}
+                  title="نمایش دادن ستون‌ها"
+                  zIndex={1100}
+                  styles={{
+                    header: {
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 10,
+                      backgroundColor: "var(--mantine-color-body)",
+                      borderBottom: "1px solid var(--mantine-color-gray-3)",
+                      paddingBottom: "var(--mantine-spacing-md)",
+                      margin: 0,
+                      marginTop: 0,
+                      paddingTop: 0,
+                    },
+                    title: {
+                      margin: 0,
+                      marginTop: 0,
+                      paddingTop: 0,
+                    },
+                    body: {
+                      paddingTop: "var(--mantine-spacing-md)",
+                      paddingBottom: "var(--mantine-spacing-lg)",
+                      maxHeight: "calc(100vh - 140px)",
+                      overflowY: "auto",
+                      overflowX: "hidden",
+                      marginBottom: 0,
+                    },
+                    content: {
+                      overflow: "visible",
+                      display: "flex",
+                      flexDirection: "column",
+                      maxHeight: "90vh",
+                    },
+                    inner: {
+                      padding: 0,
+                    },
+                  }}
+                  lockScroll={false}
+                  removeScrollBar={false}
+                >
+                  <Stack gap="sm" pb="xs">
+                    {updatedColumns.map((column) => (
+                      <Checkbox
+                        key={column.key}
+                        label={column.label}
+                        checked={!visibleColumns.includes(column.key)}
+                        onChange={(event) =>
+                          handleVisibleColumnsChange(event, column.key)
+                        }
+                      />
+                    ))}
+                  </Stack>
+                </Modal>
+              </FilterProvider>
+            </FastOrderContext.Provider>
+          </CategoryRowSelectionProvider>
+        )}
+      </RowSelectionProvider>
+    </Box>
+  </>
+);
 }
 
 export const useFastOrder = () => useContext(FastOrderContext);

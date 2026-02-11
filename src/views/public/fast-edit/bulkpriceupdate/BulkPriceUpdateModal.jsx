@@ -39,21 +39,12 @@ const BulkPriceUpdateModal = ({
   const [percentage, setPercentage] = useState(5);
   const [operation, setOperation] = useState("increase"); // "increase" or "decrease"
 
-  // Debug: Log operation changes
-  useEffect(() => {
-    console.log("🔄 Operation state changed to:", operation);
-  }, [operation]);
-
-  // Debug: Log percentage changes
-  useEffect(() => {
-    console.log("🔢 Percentage state changed to:", percentage);
-  }, [percentage]);
-
   // Get stored filters based on search type
   const getStoredFilters = () => {
-    const cookieName = searchType === "brand" ? COOKIE_NAME_BRAND : COOKIE_NAME_CATEGORY;
+    const cookieName =
+      searchType === "brand" ? COOKIE_NAME_BRAND : COOKIE_NAME_CATEGORY;
     const storedFilters = Cookies.get(cookieName);
-    
+
     if (storedFilters) {
       try {
         return JSON.parse(storedFilters);
@@ -67,7 +58,7 @@ const BulkPriceUpdateModal = ({
 
   const handleSubmit = () => {
     const filters = getStoredFilters();
-    
+
     if (!filters) {
       notifications.show({
         title: "خطا",
@@ -79,41 +70,34 @@ const BulkPriceUpdateModal = ({
     }
 
     // Convert to negative if decreasing
-    const effectivePercentage = operation === "decrease" ? -Math.abs(percentage) : Math.abs(percentage);
+    const effectivePercentage =
+      operation === "decrease" ? -Math.abs(percentage) : Math.abs(percentage);
 
-    console.log("📤 Bulk update payload:", {
-      searchType,
-      filters,
-      percentage: effectivePercentage,
-      operation,
-      originalPercentage: percentage,
-      isDecrease: operation === "decrease"
-    });
-
-    dispatch(bulkUpdatePrices({
-      searchType,
-      filters,
-      percentage: effectivePercentage,
-    }));
+    dispatch(
+      bulkUpdatePrices({
+        searchType,
+        filters,
+        percentage: effectivePercentage,
+      })
+    );
   };
 
   // Handle success/error notifications
   useEffect(() => {
     if (success) {
-      console.log("✅ Bulk update success! Updated count:", updatedCount);
-      
       notifications.show({
         title: "موفق",
-        message: `قیمت ${updatedCount} محصول با موفقیت ${operation === "decrease" ? "کاهش" : "افزایش"} یافت`,
+        message: `قیمت ${updatedCount} محصول با موفقیت ${
+          operation === "decrease" ? "کاهش" : "افزایش"
+        } یافت`,
         color: "green",
         icon: <IconCheck size={16} />,
       });
-      
+
       if (onSuccess) {
-        console.log("🔄 Calling onSuccess callback...");
         onSuccess();
       }
-      
+
       onClose();
       dispatch(clearBulkPriceUpdateState());
     }
@@ -121,8 +105,6 @@ const BulkPriceUpdateModal = ({
 
   useEffect(() => {
     if (error) {
-      console.error("❌ Bulk update error:", error);
-      
       notifications.show({
         title: "خطا",
         message: error.message || "خطایی در بروزرسانی قیمت رخ داد",
@@ -136,48 +118,42 @@ const BulkPriceUpdateModal = ({
   // Reset state when modal closes
   useEffect(() => {
     if (!opened) {
-      console.log("🔄 Modal closed - resetting state");
       setPercentage(5);
       setOperation("increase");
     }
   }, [opened]);
 
   const filters = getStoredFilters();
-  const hasValidFilters = filters && (
-    (searchType === "brand" && filters.uniqueIDClickedBrands?.length > 0) ||
-    (searchType === "category" && filters.uniqueIDClickedCategories?.length > 0)
-  );
-
-  console.log("🔍 Current state:", {
-    operation,
-    percentage,
-    hasValidFilters,
-    loading,
-    success,
-    error
-  });
+  const hasValidFilters =
+    filters &&
+    ((searchType === "brand" && filters.uniqueIDClickedBrands?.length > 0) ||
+      (searchType === "category" &&
+        filters.uniqueIDClickedCategories?.length > 0));
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
+      removeScrollProps={{ removeScrollBar: false }}
       zIndex={1006}
       title={
         <Group gap="xs">
           <IconPercentage size={24} color="#228be6" />
-          <Text fw={600} size="lg">بروزرسانی دسته‌جمعی قیمت</Text>
+          <Text fw={600} size="lg">
+            بروزرسانی دسته‌جمعی قیمت
+          </Text>
         </Group>
       }
       centered
       size="md"
       styles={{
         header: {
-          position: 'sticky',
+          position: "sticky",
           top: 0,
           zIndex: 10,
-          backgroundColor: 'var(--mantine-color-body)',
+          backgroundColor: "var(--mantine-color-body)",
           borderBottom: "1px solid #e9ecef",
-          paddingBottom: 'var(--mantine-spacing-md)',
+          paddingBottom: "var(--mantine-spacing-md)",
           margin: 0,
           marginTop: 0,
           paddingTop: 0,
@@ -188,31 +164,31 @@ const BulkPriceUpdateModal = ({
           paddingTop: 0,
         },
         body: {
-          paddingTop: 'var(--mantine-spacing-md)',
-          paddingBottom: 'var(--mantine-spacing-lg)',
-          maxHeight: 'calc(100vh - 140px)',
-          overflowY: 'auto',
-          overflowX: 'hidden',
+          paddingTop: "var(--mantine-spacing-md)",
+          paddingBottom: "var(--mantine-spacing-lg)",
+          maxHeight: "calc(100vh - 140px)",
+          overflowY: "auto",
+          overflowX: "hidden",
           marginBottom: 0,
         },
         content: {
-          overflow: 'visible',
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '90vh',
+          overflow: "visible",
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "90vh",
         },
         inner: {
           padding: 0,
-        }
+        },
       }}
       lockScroll={false}
       removeScrollBar={false}
     >
       <Stack gap="lg" pb="xs">
         {/* Product Count Info */}
-        <Alert 
-          icon={<IconAlertCircle size={16} />} 
-          color="blue" 
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          color="blue"
           variant="light"
         >
           <Flex justify="space-between" align="center">
@@ -225,7 +201,9 @@ const BulkPriceUpdateModal = ({
 
         {/* Search Type Info */}
         <Group justify="space-between">
-          <Text size="sm" c="dimmed">حالت جستجو:</Text>
+          <Text size="sm" c="dimmed">
+            حالت جستجو:
+          </Text>
           <Badge color={searchType === "brand" ? "violet" : "teal"}>
             {searchType === "brand" ? "برند" : "دسته‌بندی"}
           </Badge>
@@ -239,7 +217,6 @@ const BulkPriceUpdateModal = ({
           placeholder="انتخاب کنید"
           value={operation}
           onChange={(value) => {
-            console.log("🎯 Select onChange triggered with value:", value);
             setOperation(value);
           }}
           data={[
@@ -247,9 +224,11 @@ const BulkPriceUpdateModal = ({
             { value: "decrease", label: "کاهش قیمت" },
           ]}
           leftSection={
-            operation === "increase" 
-              ? <IconTrendingUp size={16} color="#40c057" />
-              : <IconTrendingDown size={16} color="#fa5252" />
+            operation === "increase" ? (
+              <IconTrendingUp size={16} color="#40c057" />
+            ) : (
+              <IconTrendingDown size={16} color="#fa5252" />
+            )
           }
           styles={{
             input: {
@@ -266,7 +245,6 @@ const BulkPriceUpdateModal = ({
           placeholder="درصد را وارد کنید"
           value={percentage}
           onChange={(value) => {
-            console.log("🔢 NumberInput onChange triggered with value:", value);
             setPercentage(value);
           }}
           min={1}
@@ -283,7 +261,9 @@ const BulkPriceUpdateModal = ({
 
         {/* Quick Select Buttons */}
         <div>
-          <Text size="sm" c="dimmed" mb="xs">انتخاب سریع:</Text>
+          <Text size="sm" c="dimmed" mb="xs">
+            انتخاب سریع:
+          </Text>
           <Group gap="xs">
             {[5, 10, 15, 20, 25, 30].map((value) => (
               <Button
@@ -291,7 +271,6 @@ const BulkPriceUpdateModal = ({
                 variant={percentage === value ? "filled" : "light"}
                 size="xs"
                 onClick={() => {
-                  console.log("🔘 Quick select button clicked:", value);
                   setPercentage(value);
                 }}
               >
@@ -304,14 +283,19 @@ const BulkPriceUpdateModal = ({
         <Divider />
 
         {/* Preview */}
-        <Alert 
-          color={operation === "increase" ? "green" : "red"} 
+        <Alert
+          color={operation === "increase" ? "green" : "red"}
           variant="light"
           title="پیش‌نمایش تغییرات"
         >
           <Text size="sm">
-            قیمت محصولات {operation === "increase" ? "افزایش" : "کاهش"} خواهد یافت به میزان{" "}
-            <Text component="span" fw={700} c={operation === "increase" ? "green" : "red"}>
+            قیمت محصولات {operation === "increase" ? "افزایش" : "کاهش"} خواهد
+            یافت به میزان{" "}
+            <Text
+              component="span"
+              fw={700}
+              c={operation === "increase" ? "green" : "red"}
+            >
               {percentage}%
             </Text>
           </Text>
@@ -319,7 +303,11 @@ const BulkPriceUpdateModal = ({
 
         {/* Warning if no valid filters */}
         {!hasValidFilters && (
-          <Alert color="yellow" variant="light" icon={<IconAlertCircle size={16} />}>
+          <Alert
+            color="yellow"
+            variant="light"
+            icon={<IconAlertCircle size={16} />}
+          >
             <Text size="sm">
               لطفاً ابتدا برند یا دسته‌بندی مورد نظر را انتخاب کنید
             </Text>
@@ -338,13 +326,12 @@ const BulkPriceUpdateModal = ({
 
         {/* Action Buttons */}
         <Group justify="flex-end" mt="md">
-          <Button 
-            variant="light" 
-            color="gray" 
+          <Button
+            variant="light"
+            color="gray"
             onClick={() => {
-              console.log("❌ Cancel button clicked");
               onClose();
-            }} 
+            }}
             disabled={loading}
           >
             انصراف
@@ -352,13 +339,16 @@ const BulkPriceUpdateModal = ({
           <Button
             color={operation === "increase" ? "green" : "red"}
             onClick={() => {
-              console.log("✅ Submit button clicked");
               handleSubmit();
             }}
             loading={loading}
             disabled={!hasValidFilters || loading}
             leftSection={
-              loading ? <Loader size={16} color="white" /> : <IconPercentage size={16} />
+              loading ? (
+                <Loader size={16} color="white" />
+              ) : (
+                <IconPercentage size={16} />
+              )
             }
           >
             {loading ? "در حال بروزرسانی..." : "اعمال تغییرات"}

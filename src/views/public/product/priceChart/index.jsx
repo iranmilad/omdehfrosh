@@ -39,6 +39,7 @@ function PriceChart({ opened, close, title, priceHistory }) {
       title={`نمودار قیمت ${title}`}
       onClose={close}
       zIndex={1100}
+      removeScrollProps={{ removeScrollBar: false }}
       lockScroll={false}
       removeScrollBar={false}
       styles={{

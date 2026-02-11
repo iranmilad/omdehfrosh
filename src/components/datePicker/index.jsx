@@ -123,7 +123,11 @@ function DatePicker(props) {
           selectedDay || "_"
         }`}
       />
-      <Modal opened={opened} onClose={close} centered>
+      <Modal 
+      opened={opened} 
+        removeScrollProps={{ removeScrollBar: false }}
+
+       onClose={close} centered>
         {renderBackButton()}
         <AnimatePresence mode="wait">
           {view === "year" && (

@@ -328,6 +328,8 @@ const CounterHomePage = ({
         onClose={() => setShowAuthModal(false)}
         title="ورود به حساب کاربری"
         centered
+                removeScrollProps={{ removeScrollBar: false }}
+
       >
         <Text>لطفا وارد حساب کاربری شوید</Text>
       </Modal>

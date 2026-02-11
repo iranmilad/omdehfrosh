@@ -5,7 +5,6 @@ export const fetchFastOrderCategoryModeTableData = createAsyncThunk(
   "fastOrderCategoryModeTableData/fetch",
   async (payload, { rejectWithValue, getState }) => {
 
-    console.log('🔥 Category Redux Action - Received payload:', payload);
 
     // Get current filters from state (if needed as fallback)
     const state = getState();
@@ -46,7 +45,6 @@ export const fetchFastOrderCategoryModeTableData = createAsyncThunk(
         body: JSON.stringify(requestBody)
       });
 
-      console.log('🔥 Category Redux Action - Sending to API:', requestBody);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

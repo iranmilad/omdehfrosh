@@ -79,11 +79,7 @@ const SearchComponentCategory = ({
   localFilters,  // ✅ ADD THIS
   setLocalFilters  // ✅ ADD THIS
 }) => {
-  // console.log('🔍 [SearchComponent Category] Received props:', {
-  //   hasOnCookieUpdate: !!onCookieUpdate,
-  //   onCookieUpdateType: typeof onCookieUpdate,
-  //   cookieUpdateTrigger
-  // });
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();

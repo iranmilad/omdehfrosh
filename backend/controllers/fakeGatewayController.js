@@ -24,7 +24,7 @@ export const handleFakeGatewayPost = (req, res) => {
     // Redirect to the frontend fake-gateway page with the temp ID
     const frontendUrl = process.env.NODE_ENV === 'production' 
       ? 'https://j2b.market/fake-gateway' 
-      : 'http://localhost:3001/fake-gateway';
+      : 'http://localhost:3000/fake-gateway';
     
     const redirectUrl = `${frontendUrl}?temp_id=${tempId}`;
     

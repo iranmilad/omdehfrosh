@@ -8,6 +8,7 @@ const ErrorMessageModal = ({ opened, onClose, message }) => {
     <Modal
       opened={opened}
       onClose={onClose}
+      removeScrollProps={{ removeScrollBar: false }}
       title={
         <Group gap="xs">
           <IconAlertCircle size={20} color="red" />
@@ -27,8 +28,12 @@ const ErrorMessageModal = ({ opened, onClose, message }) => {
         root: { zIndex: MODAL_Z },
         inner: { zIndex: MODAL_Z },
         overlay: { zIndex: MODAL_Z - 1 },
-        content: { maxHeight: '85vh', display: 'flex', flexDirection: 'column' },
-        body: { overflowY: 'auto', flex: '1 1 auto', minHeight: 0 },
+        content: {
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+        },
+        body: { overflowY: "auto", flex: "1 1 auto", minHeight: 0 },
       }}
     >
       <Box>

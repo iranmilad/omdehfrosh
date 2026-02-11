@@ -94,12 +94,12 @@ const SliderComponentCategoriesFastOrder = ({
 // Enhanced SVG Icon Component for fallback
 const CategoryIcon = () => (
   <svg 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
+    width="28" 
+    height="28" 
+    viewBox="0 0 28 28" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    className="w-[24px] h-[24px]"
+    className="w-[28px] h-[28px]"
   >
     <rect x="3" y="3" width="18" height="18" rx="2" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
     <rect x="6" y="6" width="5" height="5" rx="1" fill="#9CA3AF"/>
@@ -248,20 +248,20 @@ export function SingleCategoryGroup({
                       <div
                         className='rounded-full overflow-hidden flex-shrink-0 relative'
                         style={{
-                          width: '24px',
-                          height: '24px',
+                          width: '28px',
+                          height: '28px',
                           lineHeight: 0,
                           marginRight: 0
                         }}
                       >
                         <img
                           className="w-full inline-block"
-                          style={{ objectFit: 'cover', display: 'block', width: '24px', height: '24px', marginRight: 0 }}
+                          style={{ objectFit: 'cover', display: 'block', width: '28px', height: '28px', marginRight: 0 }}
                           src={category.image}
                           alt={category.title}
                           onError={(e) => handleImageError(e, category.title)}
-                          width="24"
-                          height="24"
+                          width="28"
+                          height="28"
                         />
                         <div className="fallback-icon" style={{ display: 'none' }}>
                           <CategoryIcon />
@@ -271,8 +271,8 @@ export function SingleCategoryGroup({
                       <div 
                         className='rounded-full overflow-hidden flex-shrink-0'
                         style={{ 
-                          width: '24px', 
-                          height: '24px',
+                          width: '28px', 
+                          height: '28px',
                           lineHeight: 0
                         }}
                       >

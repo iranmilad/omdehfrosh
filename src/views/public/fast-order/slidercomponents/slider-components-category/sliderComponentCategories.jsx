@@ -38,12 +38,6 @@ const SliderComponentCategoriesCMFastOrder = ({
   const nextRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(true);
-  // console.log("SliderComponentCategoriesCM rendered with:", {
-  //   items: items?.length,
-  //   filterCategoryStorage,  // Should show the selected category
-  //   itemsData: items?.map(i => ({ id: i.idCategory, title: i.title }))
-  // });
-  // console.log("SliderComponentCategoriesCM rendered with items:", items);
 
   const isSlideSelectionActive = checkedRows.size > 0;
 
@@ -141,17 +135,9 @@ export function SingleCategoryGroupCM({
   if (!parentItem || !Array.isArray(parentItem.subCategories)) return null;
 
   const onClick = (e) => {
-    console.log('🖱️ [SliderCategories] onClick FIRED', {
-      eventType: e?.type,
-      isDisabled,
-      categoryId: parentItem.idCategory,
-      categoryName: parentItem.name || parentItem.title,
-      currentFilterCategoryStorage: filterCategoryStorage,
-      timestamp: Date.now()
-    });
+
     
     if (isDisabled) {
-      console.log('🖱️ [SliderCategories] onClick BLOCKED - isDisabled=true');
       return;
     }
     
@@ -161,12 +147,10 @@ export function SingleCategoryGroupCM({
     const isActive = filterCategoryStorage.includes(parentItem.idCategory);
     
     if (isActive) {
-      console.log('🖱️ [SliderCategories] DESELECTING category - calling setFilterCategoryStorage([])');
       // Deselecting - go back to base category page
       setFilterCategoryStorage([]);
       navigate('/fastorder/category');
     } else {
-      console.log('🖱️ [SliderCategories] SELECTING category - calling setFilterCategoryStorage([' + parentItem.idCategory + '])');
       // Selecting - update URL with category name
       setFilterCategoryStorage([parentItem.idCategory]);
       navigate(`/fastorder/category/${parentItem.name}`);
@@ -219,20 +203,20 @@ export function SingleCategoryGroupCM({
           <div
             className='rounded-full overflow-hidden flex-shrink-0'
             style={{
-              width: '24px',
-              height: '24px',
+              width: '28px',
+              height: '28px',
               lineHeight: 0,
               marginRight: 0
             }}
           >
             <img
               className="w-full inline-block"
-              style={{ objectFit: 'cover', width: '24px', height: '24px', marginRight: 0 }}
+              style={{ objectFit: 'cover', width: '28px', height: '28px', marginRight: 0 }}
               src={getCategoryImageSrc(parentItem.image)}
               alt={parentItem.title}
               onError={handleImageError}
-              width="24"
-              height="24"
+              width="28"
+              height="28"
             />
           </div>
           <span className="leading-none">

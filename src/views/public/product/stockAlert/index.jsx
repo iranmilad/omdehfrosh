@@ -374,6 +374,7 @@ function StockAlert(props) {
     <>
       <Modal
         size={mobile ? "100%" : tablet ? "lg" : "md"}
+        removeScrollProps={{ removeScrollBar: false }}
         fullScreen={mobile}
         title={
           <Text size={mobile ? "lg" : "xl"} fw={600}>
@@ -396,13 +397,15 @@ function StockAlert(props) {
           },
           content: {
             maxWidth: "100%",
-          }
+          },
         }}
       >
         <Stack spacing={mobile ? "md" : "sm"}>
           {/* Notification Methods */}
           <Box>
-            <Title order={mobile ? 6 : 5} mb="xs">چطور به شما اطلاع دهیم؟</Title>
+            <Title order={mobile ? 6 : 5} mb="xs">
+              چطور به شما اطلاع دهیم؟
+            </Title>
             <Stack spacing="xs">
               <Checkbox
                 size={mobile ? "md" : "sm"}
@@ -411,7 +414,7 @@ function StockAlert(props) {
                 onChange={handleSmsChange}
                 disabled={!user}
                 styles={{
-                  label: { fontSize: mobile ? "14px" : "13px" }
+                  label: { fontSize: mobile ? "14px" : "13px" },
                 }}
               />
               <Checkbox
@@ -421,7 +424,7 @@ function StockAlert(props) {
                 onChange={handleEmailChange}
                 disabled={!user}
                 styles={{
-                  label: { fontSize: mobile ? "14px" : "13px" }
+                  label: { fontSize: mobile ? "14px" : "13px" },
                 }}
               />
             </Stack>
@@ -431,7 +434,9 @@ function StockAlert(props) {
 
           {/* Alert Type */}
           <Box>
-            <Title order={mobile ? 6 : 5} mb="xs">نحوه گزارش</Title>
+            <Title order={mobile ? 6 : 5} mb="xs">
+              نحوه گزارش
+            </Title>
             <Select
               size={mobile ? "md" : "sm"}
               data={filteredAlertTypes}
@@ -474,7 +479,9 @@ function StockAlert(props) {
             <>
               <Divider size="xs" />
               <Box>
-                <Title order={mobile ? 6 : 5} mb="xs">انتخاب تامین کننده</Title>
+                <Title order={mobile ? 6 : 5} mb="xs">
+                  انتخاب تامین کننده
+                </Title>
                 <Select
                   size={mobile ? "md" : "sm"}
                   data={supplierSelectionOptions}
@@ -486,27 +493,31 @@ function StockAlert(props) {
                   comboboxProps={{ zIndex: 1020 }}
                 />
 
-                {form.values.supplierSelection === "select" && uniqueSuppliers.length > 0 && (
-                  <Stack spacing="xs">
-                    {uniqueSuppliers.map((supplier) => (
-                      <Checkbox
-                        key={supplier.id}
-                        size={mobile ? "md" : "sm"}
-                        label={
-                          <Text size={mobile ? "sm" : "xs"}>
-                            {supplier.name} <Text component="span" size="xs" c="dimmed">(ID: {supplier.id})</Text>
-                          </Text>
-                        }
-                        checked={
-                          Array.isArray(form.values.selectedSuppliers) && 
-                          form.values.selectedSuppliers.includes(supplier.id)
-                        }
-                        onChange={() => handleSupplierToggle(supplier.id)}
-                        disabled={!user}
-                      />
-                    ))}
-                  </Stack>
-                )}
+                {form.values.supplierSelection === "select" &&
+                  uniqueSuppliers.length > 0 && (
+                    <Stack spacing="xs">
+                      {uniqueSuppliers.map((supplier) => (
+                        <Checkbox
+                          key={supplier.id}
+                          size={mobile ? "md" : "sm"}
+                          label={
+                            <Text size={mobile ? "sm" : "xs"}>
+                              {supplier.name}{" "}
+                              <Text component="span" size="xs" c="dimmed">
+                                (ID: {supplier.id})
+                              </Text>
+                            </Text>
+                          }
+                          checked={
+                            Array.isArray(form.values.selectedSuppliers) &&
+                            form.values.selectedSuppliers.includes(supplier.id)
+                          }
+                          onChange={() => handleSupplierToggle(supplier.id)}
+                          disabled={!user}
+                        />
+                      ))}
+                    </Stack>
+                  )}
               </Box>
             </>
           )}
@@ -514,40 +525,38 @@ function StockAlert(props) {
           <Divider />
 
           {/* Action Buttons */}
-          <Flex 
-            gap="xs" 
-            wrap="wrap"
-            direction={mobile ? "column" : "row"}
-          >
-            <Button 
+          <Flex gap="xs" wrap="wrap" direction={mobile ? "column" : "row"}>
+            <Button
               size={mobile ? "md" : "sm"}
               fullWidth={mobile}
-              onClick={submitStockAlertSettings} 
+              onClick={submitStockAlertSettings}
               disabled={
-                !user || 
+                !user ||
                 (!form.values.sms && !form.values.email) ||
                 !form.values.alertType ||
                 form.values.alertType === "not_selected" ||
                 form.values.alertType === "" ||
-                (form.values.alertType === "price_reach" && (!form.values.price || form.values.price === "")) ||
-                (form.values.alertType === "inventory_reach" && (!form.values.inventory || form.values.inventory === ""))
+                (form.values.alertType === "price_reach" &&
+                  (!form.values.price || form.values.price === "")) ||
+                (form.values.alertType === "inventory_reach" &&
+                  (!form.values.inventory || form.values.inventory === ""))
               }
               loading={stockAlert.setLoading}
             >
               ذخیره
             </Button>
-            <Button 
+            <Button
               size={mobile ? "md" : "sm"}
               fullWidth={mobile}
-              variant="light" 
-              color="red" 
+              variant="light"
+              color="red"
               onClick={handleRemoveStockAlert}
               loading={stockAlert.removeLoading}
               disabled={!user}
             >
               حذف
             </Button>
-            <Button 
+            <Button
               size={mobile ? "md" : "sm"}
               fullWidth={mobile}
               variant="outline"
@@ -571,6 +580,7 @@ function StockAlert(props) {
       {/* Previous Settings Modal - Compact */}
       <Modal
         opened={showPreviousSettings}
+        removeScrollProps={{ removeScrollBar: false }}
         onClose={() => setShowPreviousSettings(false)}
         title={
           <Text size={mobile ? "md" : "lg"} fw={600}>
@@ -588,16 +598,18 @@ function StockAlert(props) {
           },
           header: {
             padding: mobile ? "12px" : "16px",
-          }
+          },
         }}
       >
         <Stack spacing={mobile ? "md" : "xs"}>
           <Text size={mobile ? "sm" : "xs"}>
-            <strong>نوع هشدار:</strong> {alertTypeTranslations[userAlertInfo.alertType] || "مشخص نشده"}
+            <strong>نوع هشدار:</strong>{" "}
+            {alertTypeTranslations[userAlertInfo.alertType] || "مشخص نشده"}
           </Text>
           {userAlertInfo.alertType === "price_reach" && (
             <Text size={mobile ? "sm" : "xs"}>
-              <strong>قیمت مد نظر:</strong> {userAlertInfo.price?.toLocaleString()} تومان
+              <strong>قیمت مد نظر:</strong>{" "}
+              {userAlertInfo.price?.toLocaleString()} تومان
             </Text>
           )}
           {userAlertInfo.alertType === "inventory_reach" && (
@@ -607,20 +619,25 @@ function StockAlert(props) {
           )}
           <Text size={mobile ? "sm" : "xs"}>
             <strong>روش اطلاع‌رسانی:</strong>{" "}
-            {userAlertInfo.sms && userAlertInfo.email ? "پیامک و ایمیل" : 
-             userAlertInfo.sms ? "پیامک" : 
-             userAlertInfo.email ? "ایمیل" : "انتخاب نشده"}
+            {userAlertInfo.sms && userAlertInfo.email
+              ? "پیامک و ایمیل"
+              : userAlertInfo.sms
+              ? "پیامک"
+              : userAlertInfo.email
+              ? "ایمیل"
+              : "انتخاب نشده"}
           </Text>
           <Text size={mobile ? "sm" : "xs"}>
             <strong>تامین‌کننده‌ها:</strong>{" "}
             {userAlertInfo.supplierSelection === "all"
               ? "تمامی تامین‌کننده‌ها"
-              : Array.isArray(userAlertInfo.selectedSuppliers) && userAlertInfo.selectedSuppliers.length > 0
+              : Array.isArray(userAlertInfo.selectedSuppliers) &&
+                userAlertInfo.selectedSuppliers.length > 0
               ? userAlertInfo.selectedSuppliers.join(", ")
               : "هیچ تامین‌کننده‌ای انتخاب نشده"}
           </Text>
-          <Button 
-            size={mobile ? "md" : "sm"} 
+          <Button
+            size={mobile ? "md" : "sm"}
             fullWidth={mobile}
             onClick={() => setShowPreviousSettings(false)}
           >
@@ -632,6 +649,7 @@ function StockAlert(props) {
       {/* Login Required Modal */}
       <Modal
         opened={showLoginModal}
+        removeScrollProps={{ removeScrollBar: false }}
         onClose={() => setShowLoginModal(false)}
         title={
           <Text size={mobile ? "md" : "lg"} fw={600}>
@@ -648,15 +666,17 @@ function StockAlert(props) {
           },
           header: {
             padding: mobile ? "12px" : "16px",
-          }
+          },
         }}
       >
         <Stack align="center" spacing={mobile ? "md" : "sm"}>
-          <Text size={mobile ? "3xl" : "xl"} c="blue">🔐</Text>
+          <Text size={mobile ? "3xl" : "xl"} c="blue">
+            🔐
+          </Text>
           <Text size={mobile ? "md" : "sm"} ta="center" fw={500}>
             ابتدا وارد سایت شوید
           </Text>
-          <Button 
+          <Button
             size={mobile ? "md" : "sm"}
             fullWidth={mobile}
             onClick={() => setShowLoginModal(false)}
@@ -671,6 +691,7 @@ function StockAlert(props) {
       {/* Success Modal - Compact */}
       <Modal
         opened={showSuccessModal}
+        removeScrollProps={{ removeScrollBar: false }}
         onClose={() => setShowSuccessModal(false)}
         title={
           <Text size={mobile ? "md" : "lg"} fw={600}>
@@ -687,15 +708,17 @@ function StockAlert(props) {
           },
           header: {
             padding: mobile ? "12px" : "16px",
-          }
+          },
         }}
       >
         <Stack align="center" spacing={mobile ? "md" : "sm"}>
-          <Text size={mobile ? "3xl" : "xl"} c="green">✅</Text>
+          <Text size={mobile ? "3xl" : "xl"} c="green">
+            ✅
+          </Text>
           <Text size={mobile ? "md" : "sm"} ta="center" c="green" fw={500}>
             {successMessage}
           </Text>
-          <Button 
+          <Button
             size={mobile ? "md" : "sm"}
             fullWidth={mobile}
             onClick={() => setShowSuccessModal(false)}

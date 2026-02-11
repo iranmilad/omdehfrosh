@@ -23,14 +23,10 @@ import { CACHE_STRATEGY, getStrategy, STALE_TIME, GC_TIME } from '../cacheStrate
  */
 const defaultTransformer = (response) => {
   // Debug in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[useApiQuery] Full Response:', response);
-    console.log('[useApiQuery] Response Data:', response?.data);
-  }
+
 
   // Handle null/undefined response
   if (!response) {
-    console.warn('[useApiQuery] Empty response received');
     return null;
   }
 
@@ -46,16 +42,12 @@ const defaultTransformer = (response) => {
 
   // If API response has a data property, return it
   if (apiResponse?.data !== undefined) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[useApiQuery] Extracted data:', apiResponse.data);
-    }
+
     return apiResponse.data;
   }
 
   // Otherwise return the whole API response
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[useApiQuery] Returning full apiResponse:', apiResponse);
-  }
+
   return apiResponse;
 };
 
@@ -185,23 +177,7 @@ export function useApiQuery({
   const finalStaleTime = customStaleTime ?? cacheConfig.staleTime;
   const finalGcTime = customGcTime ?? cacheConfig.gcTime;
 
-  // Comprehensive logging for query initialization
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[useApiQuery] 📋 Query initialized:`, {
-      queryKey,
-      endpoint: finalUrl,
-      strategy,
-      critical,
-      enabled,
-      cacheConfig: {
-        staleTime: `${finalStaleTime / 1000}s`,
-        gcTime: `${finalGcTime / 1000}s`,
-        refetchOnMount: cacheConfig.refetchOnMount,
-        refetchOnWindowFocus: cacheConfig.refetchOnWindowFocus,
-        refetchOnReconnect: cacheConfig.refetchOnReconnect,
-      },
-    });
-  }
+
 
   // Get query client to check cache status
   const queryClient = useQueryClient();
@@ -234,34 +210,10 @@ export function useApiQuery({
           ? `Cache expired/stale (was ${cachedDataAge}s old, staleTime: ${finalStaleTime / 1000}s) - refreshing` 
           : 'First load - no cache available';
         
-        console.log(`%c[useApiQuery] 🌐 ⚠️ API CALL INITIATED`, 
-          'color: orange; font-weight: bold; font-size: 14px;',
-          {
-            requestId,
-            queryKey: qKey,
-            endpoint: finalUrl,
-            timestamp: new Date().toLocaleTimeString(),
-            reason,
-            hasCachedData,
-            cachedDataAge: cachedDataAge !== null ? `${cachedDataAge}s` : 'N/A',
-            willShowCachedData: hasCachedData ? 'Yes (showing cached while fetching)' : 'No',
-            activeFetches: activeFetches.length,
-            staleTime: `${finalStaleTime / 1000}s`,
-            warning: activeFetches.length > 1 
-              ? `⚠️ WARNING: ${activeFetches.length} active fetches detected! React Query should dedupe these.`
-              : hasCachedData 
-                ? `Cache expired after ${cachedDataAge}s (staleTime: ${finalStaleTime / 1000}s)`
-                : 'First load - cache will be created after this request',
-            note: hasCachedData 
-              ? 'This is expected - cache expired. After this fetch, cache will be fresh for 5 minutes.'
-              : 'After this fetch, cache will prevent API calls for 5 minutes.',
-          }
-        );
+
       }
       try {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[useApiQuery] Making request:', { finalUrl, method, params });
-        }
+
 
         // Build request config
         const requestConfig = {
@@ -277,37 +229,20 @@ export function useApiQuery({
           requestConfig.signal = signal;
         }
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[useApiQuery] Request config:', {
-            url: finalUrl,
-            method: method.toLowerCase(),
-            hasSignal: !!signal,
-            hasParams: !!params,
-            hasBody: !!body,
-            baseURL: ApiCaller.defaults?.baseURL,
-          });
-        }
+
 
         // Make the request using axios instance's request method
         // This is more reliable than method-specific calls
         const methodLower = method.toLowerCase();
         
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[useApiQuery] About to call axios:', {
-            url: finalUrl,
-            method: methodLower,
-            fullUrl: `${ApiCaller.defaults?.baseURL}${finalUrl}`,
-          });
-        }
+
 
         // Use fetch as a workaround for MirageJS passthrough issue with axios
         // MirageJS doesn't properly resolve axios promises when using passthrough
         // but works fine with fetch
         let response;
         try {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[useApiQuery] 🔄 Fetching data (cache will be used on subsequent calls within staleTime)...');
-          }
+
 
           // Build full URL
           const baseURL = ApiCaller.defaults?.baseURL || '';
@@ -389,9 +324,7 @@ export function useApiQuery({
           // 304 Not Modified: body is empty; use cached data so the query settles instead of throwing
           if (fetchResponse.status === 304) {
             const cached = queryClient.getQueryData(qKey);
-            if (process.env.NODE_ENV === 'development') {
-              console.log('[useApiQuery] 304 Not Modified – using cached data', { queryKey: qKey, hasCached: cached != null });
-            }
+
             return cached;
           }
 
@@ -414,77 +347,21 @@ export function useApiQuery({
           };
 
           const fetchDuration = Date.now() - fetchStartTime;
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[useApiQuery] ✅ API Request SUCCESS:', {
-              requestId: typeof requestId !== 'undefined' ? requestId : 'N/A',
-              queryKey: qKey,
-              endpoint: finalUrl,
-              status: response?.status,
-              statusText: response?.statusText,
-              fetchDuration: `${fetchDuration}ms`,
-              cacheDuration: `${finalStaleTime / 1000}s`,
-              dataSize: response?.data ? JSON.stringify(response.data).length : 0,
-              hasData: !!response?.data,
-              dataType: typeof response?.data,
-              note: 'If server logs show duplicate calls, check if requestId appears twice or if there are multiple queryKeys',
-              dataKeys: response?.data && typeof response.data === 'object' ? Object.keys(response.data) : null,
-              timestamp: new Date().toLocaleTimeString(),
-            });
-          }
+
         } catch (axiosError) {
           const fetchDuration = Date.now() - fetchStartTime;
-          if (process.env.NODE_ENV === 'development') {
-            console.error('[useApiQuery] ❌ API Request FAILED:', {
-              queryKey: qKey,
-              endpoint: finalUrl,
-              fetchDuration: `${fetchDuration}ms`,
-              error: {
-                message: axiosError?.message,
-                code: axiosError?.code,
-                response: axiosError?.response ? {
-                  status: axiosError.response.status,
-                  statusText: axiosError.response.statusText,
-                  data: axiosError.response.data,
-                } : null,
-                request: axiosError?.request ? 'Request object exists' : null,
-              },
-              timestamp: new Date().toLocaleTimeString(),
-            });
-          }
+
           throw axiosError;
         }
 
         const transformed = transformer(response);
         
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[useApiQuery] 🔄 Data transformed:', {
-            queryKey: qKey,
-            originalDataType: typeof response?.data,
-            transformedDataType: typeof transformed,
-            transformedIsArray: Array.isArray(transformed),
-            transformedLength: Array.isArray(transformed) ? transformed.length : 'N/A',
-          });
-        }
+
 
         return transformed;
       } catch (error) {
         const fetchDuration = Date.now() - fetchStartTime;
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[useApiQuery] ❌ Query function ERROR:', {
-            queryKey: qKey,
-            endpoint: finalUrl,
-            fetchDuration: `${fetchDuration}ms`,
-            error: {
-              message: error?.message,
-              name: error?.name,
-              response: error?.response,
-              request: error?.request,
-              config: error?.config,
-              stack: error?.stack,
-            },
-            timestamp: new Date().toLocaleTimeString(),
-          });
-        }
+
         throw error;
       }
     },
@@ -533,73 +410,11 @@ export function useApiQuery({
       const isUsingCache = cacheAgeSeconds > 0;
       const timeUntilStale = cacheInfo.timeUntilStale !== null ? cacheInfo.timeUntilStale : 0;
       
-      if (isUsingCache) {
-        // Using cached data - NO API CALL!
-        console.log(`%c[useApiQuery] 💾 ✅ USING CACHE - NO API CALL!`, 
-          'color: green; font-weight: bold; font-size: 14px;', 
-          {
-            queryKey,
-            endpoint: finalUrl,
-            source: '✅ CACHE (no network request)',
-            cacheAge: `${cacheAgeSeconds}s old`,
-            freshness: cacheInfo.isFresh ? '✅ Fresh' : '⚠️ Stale',
-            timeUntilStale: `${timeUntilStale}s remaining before stale`,
-            staleTime: `${finalStaleTime / 1000}s`,
-            dataUpdatedAt: cacheInfo.dataUpdatedAt ? new Date(cacheInfo.dataUpdatedAt).toLocaleTimeString() : 'Never',
-            isStale: query.isStale,
-            fetchStatus: query.fetchStatus,
-            status: query.status,
-            dataSize: Array.isArray(query.data) ? `${query.data.length} items` : typeof query.data,
-            willRefetch: query.isStale ? 'Yes (data is stale)' : `No (data is fresh for ${timeUntilStale}s more)`,
-            note: '🎉 Cache is working! No API call made.',
-          }
-        );
-      } else {
-        // Just loaded - will use cache next time
-        console.log(`%c[useApiQuery] ✅ DATA LOADED - Will use cache for ${finalStaleTime / 1000}s`, 
-          'color: blue; font-weight: bold;', 
-          {
-            queryKey,
-            endpoint: finalUrl,
-            source: 'Just fetched from API',
-            cacheAge: 'Just cached',
-            staleTime: `${finalStaleTime / 1000}s`,
-            note: `Next time you visit (within ${finalStaleTime / 1000}s), cache will be used - NO API CALL!`,
-            warning: '⚠️ Page refresh will clear cache (this is normal - cache is in-memory only)',
-          }
-        );
-      }
+
     }
 
-    // Log when fetching starts (background refetch)
-    if (query.isFetching && !query.isLoading && query.data) {
-      console.log(`[useApiQuery] 🔄 BACKGROUND REFETCH (showing cached data):`, {
-        queryKey,
-        endpoint: finalUrl,
-        reason: query.isStale ? 'Data is stale' : 'Manual/automatic refetch',
-        currentCacheAge: cacheInfo.cacheAgeSeconds !== null ? `${cacheInfo.cacheAgeSeconds}s` : 'N/A',
-        isStale: query.isStale,
-      });
-    }
 
-    // Log initial loading state
-    if (query.status === 'pending' && query.isLoading && !query.data) {
-      console.log(`[useApiQuery] ⏳ INITIAL LOADING (no cache available):`, {
-        queryKey,
-        endpoint: finalUrl,
-        hasCachedData: false,
-      });
-    }
 
-    // Log when refetching while showing cached data
-    if (query.status === 'success' && query.data && query.isFetching && query.isLoading === false) {
-      console.log(`[useApiQuery] 🔄 REFETCHING (showing cached data while fetching fresh):`, {
-        queryKey,
-        endpoint: finalUrl,
-        hasCachedData: true,
-        cacheAge: cacheInfo.cacheAgeSeconds !== null ? `${cacheInfo.cacheAgeSeconds}s` : 'N/A',
-      });
-    }
   }
 
   // Enhanced return with additional helpers

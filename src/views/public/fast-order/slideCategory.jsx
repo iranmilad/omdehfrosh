@@ -66,33 +66,7 @@ function SlideCategory({
   // isSlideSelectionActive should be false during edit mode so all sliders remain visible
   const isSlideSelectionActive = !isEditMode && checkedRows.size > 0;
 
-  console.log('📊 [SlideCategory] RENDER', {
-    searchType,
-    checkedRowsSize: checkedRows.size,
-    isEditMode,
-    isSlideSelectionActive,
-    filterCategoryStorage,
-    filterCategorySubCategoryStorage,
-    filterCategorySubCategoryBrandsStorage,
-    filterBrandStorage,
-    filterBrandsCategoryStorage,
-    filterBrandsCategorySubCategoryStorage,
-    timestamp: Date.now()
-  });
 
-// Debug logging
-  // console.log('🎚️ [SlideCategory] Render state:', {
-  //   searchType,
-  //   checkedRowsSize: checkedRows.size,
-  //   isEditMode,
-  //   isSlideSelectionActive,
-  //   filterBrandStorage,
-  //   filterBrandsCategoryStorage,
-  //   filterBrandsCategorySubCategoryStorage,
-  //   filterCategoryStorage,  // ✅ ADD THIS
-  //   filterCategorySubCategoryStorage,  // ✅ ADD THIS
-  //   filterCategorySubCategoryBrandsStorage  // ✅ ADD THIS
-  // });
 
   // switch case method to return in different modes
   switch(searchType) {

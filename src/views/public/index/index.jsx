@@ -40,39 +40,6 @@ function Home() {
     },
   });
 
-  // Comprehensive debug logging and monitoring
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      const cacheInfo = {
-        hasData: !!homeData,
-        dataLength: Array.isArray(homeData) ? homeData.length : 'not array',
-        dataType: typeof homeData,
-        isLoading: loadingHome,
-        isFetching: fetchingHome,
-        isError,
-        status,
-        error: errorHome,
-      };
-
-      // Log state changes with clear indicators
-      if (loadingHome) {
-        console.log('🏠 [Home Component] ⏳ LOADING STATE:', cacheInfo);
-      } else if (fetchingHome && homeData) {
-        console.log('🏠 [Home Component] 🔄 BACKGROUND FETCH (showing cached data):', cacheInfo);
-      } else if (homeData) {
-        console.log('🏠 [Home Component] ✅ RENDERED WITH DATA:', {
-          ...cacheInfo,
-          sections: Array.isArray(homeData) ? homeData.map(s => s.type) : 'not array',
-          sample: Array.isArray(homeData) ? homeData.slice(0, 2) : homeData,
-        });
-      } else if (isError) {
-        console.log('🏠 [Home Component] ❌ ERROR STATE:', cacheInfo);
-      } else {
-        console.log('🏠 [Home Component] 📭 EMPTY STATE:', cacheInfo);
-      }
-    }
-  }, [loadingHome, fetchingHome, isError, status, homeData, errorHome]);
-
   // ============================================================================
   // LOADING STATE
   // ============================================================================

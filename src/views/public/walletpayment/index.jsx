@@ -26,10 +26,7 @@ const WalletPaymentPage = () => {
 
   // Reset state when component mounts or location changes
   useEffect(() => {
-    // console.log('=== WalletPaymentPage mounted/updated ===');
-    // console.log('OrderId:', orderId);
-    // console.log('Amount:', amount);
-    
+
     // Reset all state
     setLoading(false);
     setWalletBalance(0);
@@ -64,11 +61,9 @@ const WalletPaymentPage = () => {
       return;
     }
 
-    // console.log('=== Checking order status ===');
 
     try {
       // Fetch from user's orders list
-      // console.log('Fetching user orders...');
       const ordersResponse = await fetch(getApiUrl('/orders/allordersbyuserid'), {
         method: 'GET',
         headers: {
@@ -78,12 +73,10 @@ const WalletPaymentPage = () => {
       });
 
       if (!ordersResponse.ok) {
-        // console.log('Failed to fetch orders:', ordersResponse.status);
         throw new Error('Failed to fetch orders');
       }
 
       const ordersData = await ordersResponse.json();
-      // console.log('Orders response:', ordersData);
       
       // Find the current order
       let currentOrder = null;
@@ -94,7 +87,6 @@ const WalletPaymentPage = () => {
         );
       }
       
-      // console.log('Current order found:', currentOrder);
       
       if (currentOrder) {
         setOrderDetails(currentOrder);
@@ -106,15 +98,9 @@ const WalletPaymentPage = () => {
           currentOrder.paymentMethod === 'wallet' ||
           currentOrder.status === 'paid';
         
-        // console.log('Payment check:', {
-        //   isPaid: currentOrder.isPaid,
-        //   paymentMethod: currentOrder.paymentMethod,
-        //   status: currentOrder.status,
-        //   result: isPaidStatus
-        // });
+ 
         
         if (isPaidStatus) {
-          // console.log('Order is already paid!');
           setIsAlreadyPaid(true);
           setLoadingDetails(false);
           
@@ -135,7 +121,6 @@ const WalletPaymentPage = () => {
           return;
         }
       } else {
-        // console.log('Order not found in orders list - proceeding with payment');
       }
 
       // If we reach here, order is not paid yet
@@ -178,7 +163,6 @@ const WalletPaymentPage = () => {
       }
 
       const data = await response.json();
-      // console.log('Wallet data:', data);
       setWalletBalance(data.wallet?.balance || data.balance || 0);
     } catch (error) {
       console.error('Error fetching wallet balance:', error);

@@ -31,7 +31,6 @@ const Product = () => {
 
   const combinations = product?.combinations || [];
 
-  console.log("Product data:", product);
 
   // Helper: combination has stock if at least one supplier has stock > 0 (or truthy)
   const combinationHasStock = (comb) =>

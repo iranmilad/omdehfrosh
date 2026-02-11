@@ -442,9 +442,10 @@ const SavedFiltersModalBrandModeFastEdit = ({
       {/* Add Filter Modal */}
       <Modal
         opened={openedAddModal}
+        removeScrollProps={{ removeScrollBar: false }}
         onClose={() => {
           setOpenedAddModal(false);
-          setFilterName('');
+          setFilterName("");
         }}
         title="افزودن فیلتر جدید - ویرایش سریع"
         centered
@@ -456,32 +457,34 @@ const SavedFiltersModalBrandModeFastEdit = ({
         <TextInput
           label="نام فیلتر"
           placeholder="نام را وارد کنید"
-          {...form.getInputProps("inputBox")} 
+          {...form.getInputProps("inputBox")}
           value={filterName}
           onChange={(event) => setFilterName(event.currentTarget.value)}
           size={isMobile ? "sm" : "md"}
           error={
-            (saveStatus?.state === "error" && saveStatus?.error?.inputBox) || form.errors.inputBox ? (
+            (saveStatus?.state === "error" && saveStatus?.error?.inputBox) ||
+            form.errors.inputBox ? (
               <div>
-                {saveStatus?.state === "error" && saveStatus?.error?.inputBox && (
-                  <div>{saveStatus.error.inputBox}</div>
-                )}
+                {saveStatus?.state === "error" &&
+                  saveStatus?.error?.inputBox && (
+                    <div>{saveStatus.error.inputBox}</div>
+                  )}
                 {form.errors.inputBox && <div>{form.errors.inputBox}</div>}
               </div>
             ) : null
           }
         />
-        <Button 
-          mt="md" 
+        <Button
+          mt="md"
           onClick={saveFiltersSettings}
           disabled={!filterName.trim()}
           size={isMobile ? "sm" : "md"}
           fullWidth={isMobile}
           styles={{
             root: {
-              backgroundColor: '#093572',
-              '&:hover': {
-                backgroundColor: '#0a4080',
+              backgroundColor: "#093572",
+              "&:hover": {
+                backgroundColor: "#0a4080",
               },
             },
           }}
@@ -494,6 +497,7 @@ const SavedFiltersModalBrandModeFastEdit = ({
       <Modal
         opened={opened}
         onClose={onClose}
+        removeScrollProps={{ removeScrollBar: false }}
         title="فیلترهای ذخیره شده"
         centered
         size={isMobile ? "sm" : "md"}
@@ -512,8 +516,8 @@ const SavedFiltersModalBrandModeFastEdit = ({
                   size="sm"
                   styles={{
                     root: {
-                      backgroundColor: '#e3f2fd',
-                      color: '#093572',
+                      backgroundColor: "#e3f2fd",
+                      color: "#093572",
                     },
                   }}
                 >
@@ -555,9 +559,9 @@ const SavedFiltersModalBrandModeFastEdit = ({
             disabled={isEditMode}
             styles={{
               root: {
-                backgroundColor: '#093572',
-                '&:hover': {
-                  backgroundColor: '#0a4080',
+                backgroundColor: "#093572",
+                "&:hover": {
+                  backgroundColor: "#0a4080",
                 },
               },
             }}
@@ -569,9 +573,9 @@ const SavedFiltersModalBrandModeFastEdit = ({
           {checkedRows.size > 0 && (
             <>
               <Divider />
-              <Button 
-                size="sm" 
-                variant="subtle" 
+              <Button
+                size="sm"
+                variant="subtle"
                 color="gray"
                 onClick={clearSelectedFilters}
                 fullWidth
@@ -586,11 +590,13 @@ const SavedFiltersModalBrandModeFastEdit = ({
 
           {/* Filters List */}
           {savedFilters && savedFilters.length > 0 ? (
-            <Box style={{ 
-              maxHeight: isMobile ? '300px' : '400px', 
-              overflowY: 'auto',
-              overflowX: 'hidden'
-            }}>
+            <Box
+              style={{
+                maxHeight: isMobile ? "300px" : "400px",
+                overflowY: "auto",
+                overflowX: "hidden",
+              }}
+            >
               <Stack spacing="xs">
                 {savedFilters.map((filter) => (
                   <Paper key={filter.id} p="sm" withBorder>
@@ -600,14 +606,18 @@ const SavedFiltersModalBrandModeFastEdit = ({
                           checked={isChecked(filter.id)}
                           onChange={(event) => {
                             if (isEditMode) return;
-                            const isCurrentlyChecked = event.currentTarget.checked;
-                            handleFilterCheckboxChange(filter.id, isCurrentlyChecked);
+                            const isCurrentlyChecked =
+                              event.currentTarget.checked;
+                            handleFilterCheckboxChange(
+                              filter.id,
+                              isCurrentlyChecked
+                            );
                           }}
                           size={isMobile ? "sm" : "md"}
                           disabled={isEditMode}
                           style={{
                             opacity: isEditMode ? 0.5 : 1,
-                            cursor: isEditMode ? 'not-allowed' : 'pointer'
+                            cursor: isEditMode ? "not-allowed" : "pointer",
                           }}
                         />
                         <Text
@@ -615,19 +625,22 @@ const SavedFiltersModalBrandModeFastEdit = ({
                           fw={editingFilterId === filter.id ? 600 : 500}
                           c={editingFilterId === filter.id ? "blue" : undefined}
                           style={{
-                            cursor: 'default',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                            cursor: "default",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                             flex: 1,
-                            opacity: isEditMode && editingFilterId !== filter.id ? 0.5 : 1
+                            opacity:
+                              isEditMode && editingFilterId !== filter.id
+                                ? 0.5
+                                : 1,
                           }}
-                          title={filter.filterName || 'بدون نام'}
+                          title={filter.filterName || "بدون نام"}
                         >
-                          {filter.filterName || 'بدون نام'}
+                          {filter.filterName || "بدون نام"}
                         </Text>
                       </Group>
-                      
+
                       <Group gap="xs" style={{ flexShrink: 0 }}>
                         <ActionIcon
                           variant="subtle"
@@ -642,7 +655,7 @@ const SavedFiltersModalBrandModeFastEdit = ({
                           disabled={isEditMode}
                           style={{
                             opacity: isEditMode ? 0.5 : 1,
-                            cursor: isEditMode ? 'not-allowed' : 'pointer'
+                            cursor: isEditMode ? "not-allowed" : "pointer",
                           }}
                         >
                           <IconEdit size={isMobile ? 12 : 14} />
@@ -661,7 +674,7 @@ const SavedFiltersModalBrandModeFastEdit = ({
                           title="حذف"
                           style={{
                             opacity: isEditMode ? 0.5 : 1,
-                            cursor: isEditMode ? 'not-allowed' : 'pointer'
+                            cursor: isEditMode ? "not-allowed" : "pointer",
                           }}
                         >
                           <IconTrash size={isMobile ? 12 : 14} />

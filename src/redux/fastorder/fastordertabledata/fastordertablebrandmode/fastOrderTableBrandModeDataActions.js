@@ -5,7 +5,6 @@ export const fetchFastOrderBrandModeTableData = createAsyncThunk(
   "fastOrderBrandModeTableData/fetch",
   async (payload, { rejectWithValue, getState }) => {
 
-    console.log('🔥 Redux Action - Received payload:', payload);
 
     // Get current filters from state (assuming they're stored in Redux)
     const state = getState();
@@ -46,7 +45,6 @@ export const fetchFastOrderBrandModeTableData = createAsyncThunk(
         body: JSON.stringify(requestBody)
       });
 
-      console.log('🔥 Redux Action - Sending to API:', requestBody);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

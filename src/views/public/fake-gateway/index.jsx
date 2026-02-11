@@ -150,11 +150,9 @@ const FakeGateway = () => {
 
   const redirectToListener = (data) => {
     if (!data || !data.redirect_url) {
-      console.error('❌ Missing data or redirect_url');
       return;
     }
 
-    console.log('🔄 Redirecting to listener with data:', data);
 
     // Generate a random transaction reference (simulating bank redirect)
     const transactionRef = `tried${Math.floor(Math.random() * 10000000)}`;
@@ -172,12 +170,10 @@ const FakeGateway = () => {
       // Format: /payment-listener?tried3637378&success=true&bodyData=<encoded>
       const redirectUrl = `${baseUrl}?${transactionRef}&success=true&bodyData=${encodeURIComponent(encodedBody)}`;
       
-      console.log('🔗 Redirecting to:', redirectUrl);
       
       // Redirect directly to listener page (no backend route needed)
       window.location.href = redirectUrl;
     } catch (error) {
-      console.error('❌ Error encoding body data:', error);
       // Fallback: redirect without body data
       const redirectUrl = `${baseUrl}?${transactionRef}&success=true`;
       window.location.href = redirectUrl;

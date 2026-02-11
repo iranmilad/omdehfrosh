@@ -11,7 +11,6 @@ import { NavLink } from 'react-router';
 
 function BadgedSlider({ items = [], checkalllink = "/incredible-offers" }) {
 
-  console.log("items", items);
 
   
   const sliderRef = useRef(null);

@@ -8,9 +8,6 @@ import { IconAlignCenter, IconAlignLeft, IconAlignRight, IconCategory } from "@t
 
 function Categories({ items, title, title_align }) {
 
-  console.log("cat items", items)
-
-
 
   // Early return if no items
   if (!items || items.length === 0) {

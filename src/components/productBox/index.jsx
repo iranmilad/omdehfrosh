@@ -52,7 +52,6 @@ function ProductBox({
   const { ref, width } = useElementSize();
   const [imageError, setImageError] = useState(false);
 
-  console.log("itemitemitem", stock)
 
 
 

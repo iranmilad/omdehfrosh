@@ -16,6 +16,7 @@ import smsRoutes from "./routes/smsRoutes.js";
 import discountCodeRoutes from './routes/discountCodeRoutes.js'
 import paymentRoutes from './routes/paymentRoutes.js'
 import universalPaymentRoutes from './routes/universalPaymentRoutes.js'
+import { paymentListenerController, fakeGatewayController } from './controllers/universalPaymentControllers.js'
 import productRoutes from './routes/productRoutes.js'
 import bannerRoutes from './routes/master-dashboard/bannerRoutes.js'
 import brandRoutes from './routes/master-dashboard/brandRoutes.js'
@@ -83,8 +84,6 @@ import homeRoutes from './routes/homePageRoutes.js'
 import brandsRoutes from './routes/brandsRoutes.js'
 import searchRoutes from './routes/searchRoutes.js'
 import currencyPriceRoutes from './routes/currencyPriceRoutes.js';
-import fakeGatewayRoutes from './routes/fakeGatewayRoutes.js';
-
 dotenv.config();
 
 connectDB();
@@ -150,9 +149,12 @@ app.use("/api/discount", discountCodeRoutes); // Use discount code routes
 // payment routes
 app.use("/api/payment", paymentRoutes); // Use discount code routes
 
-// universal payment routes
+// universal payment routes (mount under both paths so /api/universal-payment and /universal-payment work)
 console.log('✅ Universal payment routes loaded');
+app.use("/universal-payment", universalPaymentRoutes);
 app.use("/api/universal-payment", universalPaymentRoutes);
+app.post("/api/fakegateway", fakeGatewayController);
+app.post("/api/payment-listener", express.raw({ type: () => true }), paymentListenerController);
 
 app.use("/fetch-table-by-ids", checkedRowsTableDataRoutes);
 
@@ -192,12 +194,6 @@ app.use('/api/fast-order-category-mode', fastOrderCategoryModeRoutes);
 
 // payment routes
 app.use('/api/gatewaysdata', gateWaysDataRoutes);
-
-// fake gateway route (no /api prefix - this simulates external gateway)
-app.use('/fake-gateway', fakeGatewayRoutes);
-
-// fake gateway API routes (with /api prefix for data retrieval)
-app.use('/api/fake-gateway', fakeGatewayRoutes);
 
 app.use('/api/fastedit', fastEditRoutes);
 

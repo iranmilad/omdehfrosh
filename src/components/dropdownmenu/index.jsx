@@ -15,7 +15,6 @@ import { verifyToken } from "../../redux/auth/authusers/auth";
 const DropDownMenu = ({ menuItems }) => {
   const { user } = useSelector((state) => state.auth);
 
-  console.log("DropDownMenu rendered at ", menuItems);
 
   // Remove this - it's causing re-renders on every hover!
   // const dispatch = useDispatch();

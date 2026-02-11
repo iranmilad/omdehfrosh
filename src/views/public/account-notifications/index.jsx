@@ -356,6 +356,7 @@ function Account_Notifications() {
           onClose={handleModalClose}
           closeOnClickOutside={false}
           closeOnEscape={false}
+          removeScrollProps={{ removeScrollBar: false }}
           withCloseButton={true}
           title="ورود به حساب کاربری"
           centered
@@ -370,20 +371,19 @@ function Account_Notifications() {
             در حال انتقال به صفحه ورود در 3 ثانیه...
           </Text>
           <Flex gap="sm" justify="flex-end">
-            <Button 
-              onClick={handleGoToLogin}
-              variant="filled"
-            >
+            <Button onClick={handleGoToLogin} variant="filled">
               رفتن به صفحه ورود
             </Button>
           </Flex>
         </Modal>
-        
+
         {/* Show a placeholder content while modal is open */}
         <Container size="md" py="xl">
           <Center h={400}>
             <Stack align="center" gap="md">
-              <Text size="xl" c="dimmed">در حال بررسی وضعیت ورود...</Text>
+              <Text size="xl" c="dimmed">
+                در حال بررسی وضعیت ورود...
+              </Text>
               <Loader size="md" />
             </Stack>
           </Center>
@@ -416,7 +416,7 @@ function Account_Notifications() {
             color="red"
             variant="light"
           >
-            {reduxComponentError || dynamicError || 'خطا در بارگذاری پیام‌ها'}
+            {reduxComponentError || dynamicError || "خطا در بارگذاری پیام‌ها"}
           </Alert>
           <Center>
             <Button onClick={handleRefresh} variant="light">
@@ -430,9 +430,9 @@ function Account_Notifications() {
 
   // Main authenticated view
   return (
-    <Container size="md" py="md" px="xs" style={{ maxWidth: '100%' }}>
+    <Container size="md" py="md" px="xs" style={{ maxWidth: "100%" }}>
       <Flex justify="space-between" align="center" mb="md" wrap="wrap" gap="xs">
-        <Title order={2} style={{ textAlign: 'right' }}>
+        <Title order={2} style={{ textAlign: "right" }}>
           {labels.pageTitle}
         </Title>
         <ActionIcon
@@ -447,13 +447,14 @@ function Account_Notifications() {
       </Flex>
 
       {/* List: 100% from backend – no frontend-built list */}
-      <Box style={{ width: '100%', minWidth: 0 }}>
+      <Box style={{ width: "100%", minWidth: 0 }}>
         {DynamicComponent && <DynamicComponent {...dynamicComponentProps} />}
       </Box>
 
       {/* Modal: 100% content from backend – above bottom nav (z-index 1000) */}
       <Modal
         opened={messageModalOpen}
+        removeScrollProps={{ removeScrollBar: false }}
         onClose={modalCloseHandler}
         title={selectedNotification?.title || labels.modalDefaultTitle}
         size="md"
@@ -461,13 +462,18 @@ function Account_Notifications() {
         lockScroll={false}
         removeScrollBar={false}
         zIndex={1100}
-        styles={{ title: { textAlign: 'right', fontWeight: 600 } }}
+        styles={{ title: { textAlign: "right", fontWeight: 600 } }}
       >
-        {selectedNotification && (
-          notificationData?.modalComponent && ModalBodyComponent && !modalBodyError
-            ? <ModalBodyComponent {...modalBodyProps} />
-            : <Text size="sm" c="dimmed" style={{ textAlign: 'right' }}>{labels.modalLoadError}</Text>
-        )}
+        {selectedNotification &&
+          (notificationData?.modalComponent &&
+          ModalBodyComponent &&
+          !modalBodyError ? (
+            <ModalBodyComponent {...modalBodyProps} />
+          ) : (
+            <Text size="sm" c="dimmed" style={{ textAlign: "right" }}>
+              {labels.modalLoadError}
+            </Text>
+          ))}
       </Modal>
     </Container>
   );

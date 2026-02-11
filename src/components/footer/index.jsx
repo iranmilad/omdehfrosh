@@ -219,10 +219,6 @@ const Footer = () => {
 {/* Social Links */}
 <Group gap="md">
   {(() => {
-    console.log('=== SOCIAL LINKS DEBUG ===');
-    console.log('bootstrap?.data.menu?.social:', bootstrap?.data.menu?.social);
-    console.log('social[0]:', bootstrap?.data.menu?.social?.[0]);
-    console.log('links:', bootstrap?.data.menu?.social?.[0]?.links);
     
     const links = bootstrap?.data.menu?.social?.[0]?.links;
     if (links) {

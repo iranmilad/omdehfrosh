@@ -37,18 +37,15 @@ function ShareModal({ filters, data, isLoading }) {
 
   return (
     <>
-      <Button 
-        size="xs" 
-        rightSection={<IconShare size={16} />} 
-        onClick={open}
-      >
+      <Button size="xs" rightSection={<IconShare size={16} />} onClick={open}>
         اشتراک گذاری
       </Button>
-      
+
       <Modal
         centered
         title="اشتراک گذاری محصولات شما"
         onClose={close}
+        removeScrollProps={{ removeScrollBar: false }}
         opened={opened}
         lockScroll={false}
         removeScrollBar={false}

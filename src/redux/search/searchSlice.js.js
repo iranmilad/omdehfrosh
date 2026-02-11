@@ -37,7 +37,6 @@ const searchSlice = createSlice({
         state.error = null;
       })
       .addCase(getSearchResults.fulfilled, (state, action) => {
-        console.log('🎯 Search fulfilled with payload:', action.payload);
         
         state.loading = false;
         state.currentQuery = action.payload.query;
@@ -46,7 +45,6 @@ const searchSlice = createSlice({
         // Get the results array from the payload
         const resultsArray = action.payload.results || [];
         
-        console.log('📦 Results array:', resultsArray);
         
         // Initialize with empty arrays
         let products = [];
@@ -55,19 +53,15 @@ const searchSlice = createSlice({
         
         // Parse the response structure
         resultsArray.forEach(resultGroup => {
-          console.log('🔄 Processing result group:', resultGroup);
           
           if (resultGroup.searchResultName === "product" && Array.isArray(resultGroup.products)) {
             products = resultGroup.products;
-            console.log('✅ Found products:', products.length);
           } 
           else if (resultGroup.searchResultName === "category" && Array.isArray(resultGroup.categories)) {
             categories = resultGroup.categories;
-            console.log('✅ Found categories:', categories.length);
           } 
           else if (resultGroup.searchResultName === "brand" && Array.isArray(resultGroup.brands)) {
             brands = resultGroup.brands;
-            console.log('✅ Found brands:', brands.length);
           }
         });
         
@@ -76,17 +70,12 @@ const searchSlice = createSlice({
         state.results.categories = categories;
         state.results.brands = brands;
         
-        console.log('💾 Final results state:', {
-          products: state.results.products.length,
-          categories: state.results.categories.length,
-          brands: state.results.brands.length
-        });
+
       })
       .addCase(getSearchResults.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "An error occurred";
         // Keep existing results on error
-        console.error('❌ Search rejected:', action.payload);
       });
   },
 });

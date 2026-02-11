@@ -194,7 +194,12 @@ const getOrderStatusBadge = (status) => {
     };
   
     return (
-      <Modal opened={opened} onClose={onClose} title="تایید تحویل سفارش">
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        removeScrollProps={{ removeScrollBar: false }}
+        title="تایید تحویل سفارش"
+      >
         <Text size="sm">آیا از تحویل سفارش اطمینان دارید؟</Text>
         <Flex justify="flex-end" gap="xs" wrap="wrap" mt="md">
           <Button onClick={onClose} variant="outline" color="gray" size="sm">

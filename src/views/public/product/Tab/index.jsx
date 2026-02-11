@@ -7,7 +7,6 @@ function index({data, slug}) {
 
     const [activeTab, setActiveTab] = React.useState("desc");
 
-    console.log("data", data)
 
   return (
     // <Tabs

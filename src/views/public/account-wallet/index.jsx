@@ -179,13 +179,15 @@ function Account_Wallet() {
 const handleSubmitModal = (e) => {
   e.preventDefault();
 
-  if (walletModalType === 'deposit') {
+  if (walletModalType === "deposit") {
     const isValid = depositForm.validate();
 
     if (!isValid.hasErrors) {
       setWalletModalOpen(false);
 
-      const info = fetchedGateways.find(gateway => gateway._id === selectedGatewayId);
+      const info = fetchedGateways.find(
+        (gateway) => gateway._id === selectedGatewayId
+      );
 
       // Invalidate wallet/account cache so when user returns from payment we refetch
       if (queryClient) {
@@ -195,18 +197,21 @@ const handleSubmitModal = (e) => {
 
       // Use new universal payment flow for wallet recharge
       // Send amount, gateway - backend will get wallet_id from user token
-      // MODIFIED 2026-02-09 - Removed payment_type field
+      console.log("[PAYMENT][WALLET] واریز به کیف پول (deposit)", {
+        amount: depositForm.values.amount,
+        gateway: info?.info?.name || "fake",
+      });
       processPayment({
         amount: depositForm.values.amount,
-        gateway: info?.info?.name || 'fake'
+        gateway: info?.info?.name || "fake",
       });
     }
     return;
   }
 
-  if (walletModalType === 'withdraw') {
+  if (walletModalType === "withdraw") {
     const isValid = withdrawForm.validate();
-    
+
     if (!isValid.hasErrors) {
       setWalletModalOpen(false);
       setConfirmWithdrawModal(true);
@@ -215,9 +220,9 @@ const handleSubmitModal = (e) => {
     return;
   }
 
-  if (walletModalType === 'transfer') {
+  if (walletModalType === "transfer") {
     const isValid = transferForm.validate();
-    
+
     if (!isValid.hasErrors) {
       setWalletModalOpen(false);
       setConfirmTransferModal(true);
@@ -230,21 +235,31 @@ const handleSubmitModal = (e) => {
 // Add this function at the top of your component (after imports, before the main function)
 const GatewayIcon = ({ src, alt, width = 20 }) => {
   const [hasError, setHasError] = useState(false);
-  
+
   // Check if src is invalid
-  const isInvalid = !src || 
-                    src === "" || 
-                    src === null || 
-                    src === undefined || 
-                    (Array.isArray(src) && (src.length === 0 || src[0] === ""));
+  const isInvalid =
+    !src ||
+    src === "" ||
+    src === null ||
+    src === undefined ||
+    (Array.isArray(src) && (src.length === 0 || src[0] === ""));
 
   // Default SVG icon
   const DefaultIcon = () => (
     <svg width={width} height={width} viewBox="0 0 24 24" fill="none">
-      <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
-      <rect x="2" y="8" width="20" height="2" fill="currentColor"/>
-      <circle cx="6" cy="14" r="1" fill="currentColor"/>
-      <circle cx="10" cy="14" r="1" fill="currentColor"/>
+      <rect
+        x="2"
+        y="4"
+        width="20"
+        height="16"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+      />
+      <rect x="2" y="8" width="20" height="2" fill="currentColor" />
+      <circle cx="6" cy="14" r="1" fill="currentColor" />
+      <circle cx="10" cy="14" r="1" fill="currentColor" />
     </svg>
   );
 
@@ -258,7 +273,7 @@ const GatewayIcon = ({ src, alt, width = 20 }) => {
       alt={alt}
       width={width}
       onError={() => setHasError(true)}
-      style={{ objectFit: 'contain' }}
+      style={{ objectFit: "contain" }}
     />
   );
 };
@@ -269,103 +284,125 @@ const GatewayIcon = ({ src, alt, width = 20 }) => {
 // With this line:
 // leftSection={<GatewayIcon src={gateway.icon} alt={gateway.label} width={20} />}
 
-
-
 useEffect(() => {
-  if (withdrawResult && withdrawResult.state === "error" && withdrawResult.errors) {
+  if (
+    withdrawResult &&
+    withdrawResult.state === "error" &&
+    withdrawResult.errors
+  ) {
     withdrawResult.errors.forEach((err) => {
       withdrawForm.setFieldError(err.name, err.message);
     });
   }
 }, [withdrawResult]);
 
-
-  useEffect(() => {
-  if (transferResult && transferResult.state === "error" && transferResult.errors) {
+useEffect(() => {
+  if (
+    transferResult &&
+    transferResult.state === "error" &&
+    transferResult.errors
+  ) {
     transferResult.errors.forEach((err) => {
       transferForm.setFieldError(err.name, err.message);
     });
   }
 }, [transferResult]);
 
-
-  const depositForm = useForm({
-    initialValues: {
-      name: '',
-      family: '',
-      amount: '',
-    },
-    validate: yupResolver(depositValidationSchema),
-  });
-
+const depositForm = useForm({
+  initialValues: {
+    name: "",
+    family: "",
+    amount: "",
+  },
+  validate: yupResolver(depositValidationSchema),
+});
 
 const withdrawForm = useForm({
   initialValues: {
-    amount: '',
+    amount: "",
   },
   validate: yupResolver(withdrawValidationSchema),
 });
 
 const transferForm = useForm({
   initialValues: {
-    receiverPhone: '',
-    amount: '',
-    note: '',
+    receiverPhone: "",
+    amount: "",
+    note: "",
   },
   validate: yupResolver(transferValidationSchema),
 });
 
-  const form = useForm({
-    initialValues: {
-      name: "",
-      family: "",
-      mobile: "",
-      email: "",
-      nationalCode: "",
-      birthday: "",
-    },
-    validate: yupResolver(validationSchema),
-  });
+const form = useForm({
+  initialValues: {
+    name: "",
+    family: "",
+    mobile: "",
+    email: "",
+    nationalCode: "",
+    birthday: "",
+  },
+  validate: yupResolver(validationSchema),
+});
 
-  useEffect(() => {
-    if (userInfo?.user) {
-      const { name, family, mobile, email, nationalCode, birthday } = userInfo.user;
-      form.setValues({ name, family, mobile, email, nationalCode, birthday });
-    }
-  }, [userInfo]);
+useEffect(() => {
+  if (userInfo?.user) {
+    const { name, family, mobile, email, nationalCode, birthday } =
+      userInfo.user;
+    form.setValues({ name, family, mobile, email, nationalCode, birthday });
+  }
+}, [userInfo]);
 
-  useEffect(() => {
-    if (!selectedGatewayId && fetchedGateways.length > 0) {
-      setSelectedGatewayId(fetchedGateways[0]._id); // Select the first gateway by default
-    }
-  }, [fetchedGateways, selectedGatewayId]);
+useEffect(() => {
+  if (!selectedGatewayId && fetchedGateways.length > 0) {
+    setSelectedGatewayId(fetchedGateways[0]._id); // Select the first gateway by default
+  }
+}, [fetchedGateways, selectedGatewayId]);
 
+useEffect(() => {
+  if (updateuser?.state === "ok") {
+    notifications.show({
+      title: updateuser.message,
+      color: "green",
+      autoClose: true,
+    });
+  } else if (updateuser?.state === "error") {
+    notifications.show({
+      title: updateuser.message,
+      color: "red",
+      autoClose: true,
+    });
+  }
+}, [updateuser]);
 
-  useEffect(() => {
-    if (updateuser?.state === "ok") {
-      notifications.show({ title: updateuser.message, color: "green", autoClose: true });
-    } else if (updateuser?.state === "error") {
-      notifications.show({ title: updateuser.message, color: "red", autoClose: true });
-    }
-  }, [updateuser]);
+useEffect(() => {
+  const criticalErrors = [
+    400, 401, 403, 404, 405, 406, 408, 409, 410, 411, 412, 413, 414, 415, 416,
+    417, 422, 429,
+  ];
+  if (
+    errorUpdateUser &&
+    !criticalErrors.includes(Number(errorUpdateUser.status))
+  ) {
+    notifications.show({
+      title: errorUpdateUser.message,
+      color: "red",
+      autoClose: true,
+    });
+  }
 
-  useEffect(() => {
-    const criticalErrors = [400, 401, 403, 404, 405, 406, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 422, 429];
-    if (errorUpdateUser && !criticalErrors.includes(Number(errorUpdateUser.status))) {
-      notifications.show({ title: errorUpdateUser.message, color: "red", autoClose: true });
-    }
+  if (errorUpdateUser?.status === 401 || errorUpdateUser?.status === 403) {
+    setModalOpen(true);
+    setTimeout(() => {
+      setModalOpen(false);
+      dispatch(clearUserInfo());
+      if (errorUpdateUser?.status === 401) navigate("/");
+    }, 4000);
+  }
+}, [errorUpdateUser, dispatch, navigate]);
 
-    if (errorUpdateUser?.status === 401 || errorUpdateUser?.status === 403) {
-      setModalOpen(true);
-      setTimeout(() => {
-        setModalOpen(false);
-        dispatch(clearUserInfo());
-        if (errorUpdateUser?.status === 401) navigate("/");
-      }, 4000);
-    }
-  }, [errorUpdateUser, dispatch, navigate]);
-
-  const submitForm = useCallback(async (values) => {
+const submitForm = useCallback(
+  async (values) => {
     const updatedValues = { ...values, phone: values.mobile };
     await dispatch(updateUserInfo(updatedValues));
     if (queryClient) {
@@ -373,246 +410,232 @@ const transferForm = useForm({
       queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
       queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
     }
-  }, [dispatch, queryClient]);
+  },
+  [dispatch, queryClient]
+);
 
-  const handleDeposit = () => {
+const handleDeposit = () => {
+  setWalletModalType("deposit");
 
-    setWalletModalType("deposit");
+  setWalletModalOpen(true);
+};
 
-    setWalletModalOpen(true);
+const handleWithdraw = () => {
+  setWalletModalType("withdraw");
+  setWalletModalOpen(true);
+};
 
-  };
+const handleTransfer = () => {
+  setWalletModalType("transfer");
+  setWalletModalOpen(true);
+};
 
-  const handleWithdraw = () => {
-    setWalletModalType("withdraw");
-    setWalletModalOpen(true);
-  };
+useEffect(() => {
+  if (withdrawResult && withdrawResult?.state === "ok") {
+    setWalletModalOpen(false);
+    notifications.show({
+      title: withdrawResult.message,
+      color: "green",
+      autoClose: true,
+    });
+  }
 
-  const handleTransfer = () => {
-    setWalletModalType("transfer");
-    setWalletModalOpen(true);
-  };
+  if (withdrawResult && withdrawResult?.state === "error") {
+    notifications.show({
+      title: withdrawResult.message,
+      color: "red",
+      autoClose: true,
+    });
+  }
+}, [errorWithdraw, withdrawResult]);
 
+useEffect(() => {
+  if (
+    errorWithdraw &&
+    Number(errorWithdraw.status) !== 400 &&
+    Number(errorWithdraw.status) !== 401 &&
+    Number(errorWithdraw.status) !== 403 &&
+    Number(errorWithdraw.status) !== 404 &&
+    Number(errorWithdraw.status) !== 405 &&
+    Number(errorWithdraw.status) !== 406 &&
+    Number(errorWithdraw.status) !== 408 &&
+    Number(errorWithdraw.status) !== 409 &&
+    Number(errorWithdraw.status) !== 410 &&
+    Number(errorWithdraw.status) !== 411 &&
+    Number(errorWithdraw.status) !== 412 &&
+    Number(errorWithdraw.status) !== 413 &&
+    Number(errorWithdraw.status) !== 414 &&
+    Number(errorWithdraw.status) !== 415 &&
+    Number(errorWithdraw.status) !== 416 &&
+    Number(errorWithdraw.status) !== 417 &&
+    Number(errorWithdraw.status) !== 422 &&
+    Number(errorWithdraw.status) !== 429
+  ) {
+    setWalletModalOpen(false);
 
-      useEffect(() => {
-        if (withdrawResult && withdrawResult?.state === "ok" ) {
-          setWalletModalOpen(false);
-          notifications.show({
-            title: withdrawResult.message,
-            color: "green",
-            autoClose: true
-          });
-        }
-  
-        if (withdrawResult && withdrawResult?.state === "error" ) {
-            notifications.show({
-              title: withdrawResult.message,
-              color: "red",
-              autoClose: true
-            });
-          }
+    notifications.show({
+      title: errorWithdraw.message,
+      color: "red",
+      autoClose: true,
+    });
 
-      }, [errorWithdraw, withdrawResult]);
+    dispatch(clearWithdrawState());
+  }
+}, [errorWithdraw]);
 
+useEffect(() => {
+  if (errorWithdraw?.status) {
+    handleKnownErrors(
+      errorWithdraw?.status,
+      setModalOpenWithdrawError,
+      navigate
+    );
+    setErrMessage(errorWithdraw?.message);
+  }
 
-            useEffect(() => {
-              if (
-                  errorWithdraw && 
-                  Number(errorWithdraw.status) !== 400 
-                  && Number(errorWithdraw.status) !== 401 
-                  && Number(errorWithdraw.status) !== 403
-                  && Number(errorWithdraw.status) !== 404
-                  && Number(errorWithdraw.status) !== 405
-                  && Number(errorWithdraw.status) !== 406
-                  && Number(errorWithdraw.status) !== 408
-                  && Number(errorWithdraw.status) !== 409
-                  && Number(errorWithdraw.status) !== 410
-                  && Number(errorWithdraw.status) !== 411
-                  && Number(errorWithdraw.status) !== 412
-                  && Number(errorWithdraw.status) !== 413
-                  && Number(errorWithdraw.status) !== 414
-                  && Number(errorWithdraw.status) !== 415
-                  && Number(errorWithdraw.status) !== 416
-                  && Number(errorWithdraw.status) !== 417
-                  && Number(errorWithdraw.status) !== 422   
-                  && Number(errorWithdraw.status) !== 429
-          ) {
-                setWalletModalOpen(false);
+  dispatch(clearWithdrawState());
+}, [errorWithdraw]);
 
-                notifications.show({
-                  title: errorWithdraw.message,
-                  color: "red",
-                  autoClose: true
-                });
+useEffect(() => {
+  if (transferResult && transferResult?.state === "ok") {
+    setWalletModalOpen(false);
+    notifications.show({
+      title: transferResult.message,
+      color: "green",
+      autoClose: true,
+    });
+  }
 
-              dispatch(clearWithdrawState())
+  if (transferResult && transferResult?.state === "error") {
+    notifications.show({
+      title: transferResult.message,
+      color: "red",
+      autoClose: true,
+    });
+  }
+}, [errorTransfer, transferResult]);
 
-              }
-            }, [errorWithdraw]);
+useEffect(() => {
+  if (withdrawResult?.state === "ok" && queryClient) {
+    queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+    queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+  }
+}, [withdrawResult?.state, queryClient]);
 
+useEffect(() => {
+  if (transferResult?.state === "ok" && queryClient) {
+    queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+    queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+  }
+}, [transferResult?.state, queryClient]);
+useEffect(() => {
+  if (
+    errorTransfer &&
+    Number(errorTransfer.status) !== 400 &&
+    Number(errorTransfer.status) !== 401 &&
+    Number(errorTransfer.status) !== 403 &&
+    Number(errorTransfer.status) !== 404 &&
+    Number(errorTransfer.status) !== 405 &&
+    Number(errorTransfer.status) !== 406 &&
+    Number(errorTransfer.status) !== 408 &&
+    Number(errorTransfer.status) !== 409 &&
+    Number(errorTransfer.status) !== 410 &&
+    Number(errorTransfer.status) !== 411 &&
+    Number(errorTransfer.status) !== 412 &&
+    Number(errorTransfer.status) !== 413 &&
+    Number(errorTransfer.status) !== 414 &&
+    Number(errorTransfer.status) !== 415 &&
+    Number(errorTransfer.status) !== 416 &&
+    Number(errorTransfer.status) !== 417 &&
+    Number(errorTransfer.status) !== 422 &&
+    Number(errorTransfer.status) !== 429
+  ) {
+    setWalletModalOpen(false);
 
-          useEffect(() => {
-            
-             if (errorWithdraw?.status) {
-               handleKnownErrors(errorWithdraw?.status, setModalOpenWithdrawError, navigate);
-               setErrMessage(errorWithdraw?.message)
-             }
+    notifications.show({
+      title: errorTransfer.message,
+      color: "red",
+      autoClose: true,
+    });
 
-             dispatch(clearWithdrawState())
-            
+    dispatch(clearTransferState());
+  }
+}, [errorTransfer]);
 
-             
-          }, [errorWithdraw]);
+useEffect(() => {
+  if (errorTransfer?.status) {
+    handleKnownErrors(
+      errorTransfer?.status,
+      setModalOpenTransferError,
+      navigate
+    );
+    setErrMessageTransfer(errorTransfer?.message);
+  }
 
+  dispatch(clearTransferState());
+}, [errorTransfer]);
 
-      useEffect(() => {
-        if (transferResult && transferResult?.state === "ok" ) {
-          setWalletModalOpen(false);
-          notifications.show({
-            title: transferResult.message,
-            color: "green",
-            autoClose: true
-          });
-        }
+useEffect(() => {
+  // Only check after auth loading is complete
+  if (!authLoading) {
+    if (!isVerified || !user) {
+      setLoginModalOpen(true);
+      // Auto redirect to login after 3 seconds
+      const timer = setTimeout(() => {
+        navigate("/login");
+      }, 3000);
 
-  
-        if (transferResult && transferResult?.state === "error" ) {
-            notifications.show({
-              title: transferResult.message,
-              color: "red",
-              autoClose: true
-            });
-          }
-
-      }, [errorTransfer, transferResult]);
-      
-  useEffect(() => {
-    if (withdrawResult?.state === "ok" && queryClient) {
-      queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
-      queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
+      // Cleanup timer if component unmounts
+      return () => clearTimeout(timer);
+    } else {
+      setLoginModalOpen(false);
+      // User is authenticated - data already fetched by other useEffects
     }
-  }, [withdrawResult?.state, queryClient]);
+  }
+}, [dispatch, isVerified, user, authLoading, navigate]);
 
-  useEffect(() => {
-    if (transferResult?.state === "ok" && queryClient) {
-      queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
-      queryClient.invalidateQueries({ queryKey: ["userMyAccount"] });
-    }
-  }, [transferResult?.state, queryClient]);
-            useEffect(() => {
-              if (
-                  errorTransfer && 
-                  Number(errorTransfer.status) !== 400 
-                  && Number(errorTransfer.status) !== 401 
-                  && Number(errorTransfer.status) !== 403
-                  && Number(errorTransfer.status) !== 404
-                  && Number(errorTransfer.status) !== 405
-                  && Number(errorTransfer.status) !== 406
-                  && Number(errorTransfer.status) !== 408
-                  && Number(errorTransfer.status) !== 409
-                  && Number(errorTransfer.status) !== 410
-                  && Number(errorTransfer.status) !== 411
-                  && Number(errorTransfer.status) !== 412
-                  && Number(errorTransfer.status) !== 413
-                  && Number(errorTransfer.status) !== 414
-                  && Number(errorTransfer.status) !== 415
-                  && Number(errorTransfer.status) !== 416
-                  && Number(errorTransfer.status) !== 417
-                  && Number(errorTransfer.status) !== 422   
-                  && Number(errorTransfer.status) !== 429
-          ) {
-                setWalletModalOpen(false);
+// Handle immediate redirect to login page
+const handleGoToLogin = () => {
+  navigate("/login");
+};
 
-                notifications.show({
-                  title: errorTransfer.message,
-                  color: "red",
-                  autoClose: true
-                });
+if (!isVerified || !user) {
+  return (
+    <>
+      <Modal
+        removeScrollProps={{ removeScrollBar: false }}
+        opened={loginModalOpen}
+        onClose={() => {}} // Prevent closing by clicking outside
+        closeOnClickOutside={false}
+        closeOnEscape={false}
+        withCloseButton={false}
+        title="ورود به حساب کاربری"
+        centered
+        overlayProps={{
+          backgroundOpacity: 0,
+          blur: 0,
+        }}
+      >
+        <Text mb="md">لطفا وارد حساب کاربری شوید</Text>
+        <Text size="sm" c="dimmed" mb="md">
+          در حال انتقال به صفحه ورود...
+        </Text>
+        <Flex gap="sm" justify="flex-end">
+          <Button onClick={handleGoToLogin}>رفتن به صفحه ورود</Button>
+        </Flex>
+      </Modal>
 
-              dispatch(clearTransferState())
-
-              }
-            }, [errorTransfer]);
-
-
-
-          useEffect(() => {
-            
-             if (errorTransfer?.status) {
-               handleKnownErrors(errorTransfer?.status, setModalOpenTransferError, navigate);
-               setErrMessageTransfer(errorTransfer?.message)
-             }
-
-              dispatch(clearTransferState())
-            
-
-             
-          }, [errorTransfer]);
-
-
-
-    useEffect(() => {
-      // Only check after auth loading is complete
-      if (!authLoading) {
-        if (!isVerified || !user) {
-          setLoginModalOpen(true);
-          // Auto redirect to login after 3 seconds
-          const timer = setTimeout(() => {
-            navigate('/login');
-          }, 3000);
-          
-          // Cleanup timer if component unmounts
-          return () => clearTimeout(timer);
-        } else {
-          setLoginModalOpen(false);
-          // User is authenticated - data already fetched by other useEffects
-        }
-      }
-    }, [dispatch, isVerified, user, authLoading, navigate]);
-
-    // Handle immediate redirect to login page
-    const handleGoToLogin = () => {
-      navigate('/login');
-    };
-
-              if (!isVerified || !user) {
-                return (
-                  <>
-                    <Modal
-                      opened={loginModalOpen}
-                      onClose={() => {}} // Prevent closing by clicking outside
-                      closeOnClickOutside={false}
-                      closeOnEscape={false}
-                      withCloseButton={false}
-                      title="ورود به حساب کاربری"
-                      centered
-                      overlayProps={{
-                        backgroundOpacity: 0,
-                        blur: 0,
-                      }}
-                    >
-                      <Text mb="md">لطفا وارد حساب کاربری شوید</Text>
-                      <Text size="sm" c="dimmed" mb="md">
-                        در حال انتقال به صفحه ورود...
-                      </Text>
-                      <Flex gap="sm" justify="flex-end">
-                        <Button 
-                          onClick={handleGoToLogin}
-                        >
-                          رفتن به صفحه ورود
-                        </Button>
-                      </Flex>
-                    </Modal>
-                    
-                    {/* Show a placeholder content while modal is open */}
-                    <Center h={400}>
-                      <Stack align="center" gap="md">
-                        <Text size="xl" c="dimmed">در حال بررسی وضعیت ورود...</Text>
-                      </Stack>
-                    </Center>
-                  </>
-                );
-              }
+      {/* Show a placeholder content while modal is open */}
+      <Center h={400}>
+        <Stack align="center" gap="md">
+          <Text size="xl" c="dimmed">
+            در حال بررسی وضعیت ورود...
+          </Text>
+        </Stack>
+      </Center>
+    </>
+  );
+}
           
 
   if (loadingUserInfo) return <Center><Loader /></Center>;
@@ -650,6 +673,8 @@ const transferForm = useForm({
       <Modal
         opened={walletModalOpen}
         onClose={() => setWalletModalOpen(false)}
+        removeScrollProps={{ removeScrollBar: false }}
+
         title={
           walletModalType === "deposit"
             ? "واریز به کیف پول"
@@ -795,6 +820,8 @@ const transferForm = useForm({
         onClose={() => setConfirmWithdrawModal(false)}
         title="تأیید برداشت"
         size={detailsModalSmall ? 'sm' : 'md'}
+                removeScrollProps={{ removeScrollBar: false }}
+
         zIndex={1100}
         lockScroll={false}
         removeScrollBar={false}
@@ -826,6 +853,8 @@ const transferForm = useForm({
         opened={confirmTransferModal}
         onClose={() => setConfirmTransferModal(false)}
         title="تأیید انتقال"
+                removeScrollProps={{ removeScrollBar: false }}
+
         size={detailsModalSmall ? 'sm' : 'md'}
         zIndex={1100}
         lockScroll={false}
@@ -864,6 +893,8 @@ const transferForm = useForm({
         opened={modalOpenDetail}
         onClose={() => setModalOpenDetail(false)}
         title="جزئیات کامل"
+                removeScrollProps={{ removeScrollBar: false }}
+
         size={detailsModalSmall ? 'sm' : 'lg'}
         zIndex={1100}
         lockScroll={false}

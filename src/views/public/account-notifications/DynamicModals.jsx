@@ -6,6 +6,7 @@ const DynamicModal = ({ children, onClose, opened }) => {
   return (
     <Modal
       opened={opened}
+      removeScrollProps={{ removeScrollBar: false }}
       onClose={onClose}
       centered
       size="lg"

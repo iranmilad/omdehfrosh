@@ -91,6 +91,7 @@ function Account_Favorite() {
           opened={loginModalOpen}
           onClose={handleModalClose}
           closeOnClickOutside={false}
+          removeScrollProps={{ removeScrollBar: false }}
           closeOnEscape={false}
           withCloseButton={true}
           title="ورود به حساب کاربری"
@@ -105,20 +106,19 @@ function Account_Favorite() {
             در حال انتقال به صفحه ورود در 3 ثانیه...
           </Text>
           <Flex gap="sm" justify="flex-end">
-            <Button 
-              onClick={handleGoToLogin}
-              variant="filled"
-            >
+            <Button onClick={handleGoToLogin} variant="filled">
               رفتن به صفحه ورود
             </Button>
           </Flex>
         </Modal>
-        
+
         {/* Show a placeholder content while modal is open */}
         <Container size="md" py="xl">
           <Center h={400}>
             <Stack align="center" gap="md">
-              <Text size="xl" c="dimmed">در حال بررسی وضعیت ورود...</Text>
+              <Text size="xl" c="dimmed">
+                در حال بررسی وضعیت ورود...
+              </Text>
               <Loader size="md" />
             </Stack>
           </Center>

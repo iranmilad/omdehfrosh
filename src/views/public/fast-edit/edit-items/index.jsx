@@ -32,8 +32,6 @@ const EditItemsFastOrder = (props) => {
       setPreviousData(null);
       dispatch(clearFastEditBrandModeState()); // clear so effect doesn’t re-run after refetch and cause extra API calls
     } else if (brandModeUpdate && brandModeUpdate.state === "error") {
-      // ❌ Error: Revert to previous data
-      console.log(`❌ Update failed for psid: ${item.psid}, reverting...`);
 
       if (previousData && setNodes) {
         // Revert the local state to previous values
@@ -83,7 +81,6 @@ const EditItemsFastOrder = (props) => {
 
     setShowLoader(true);
 
-    // console.log(`📤 Sending update for ${mode} mode:`, sanitizedData);
 
     dispatch(updateFastEditBrandMode({
       updateData: sanitizedData,

@@ -62,7 +62,6 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
     (state) => state.cartfinalreceipt
   );
 
-  console.log("Order Final Receipt:", orderfinalreceipt);
 
   const getOrderIdForSeller = (sellerId) => {
     if (!orderfinalreceipt?.orderTracking) return null;
@@ -110,12 +109,14 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
 
     // For all payment methods (COD, wallet, and regular gateways): Use processPayment
     // This will redirect to listener (COD/wallet) or gateway (regular gateways)
+    console.log('[PAYMENT][BASKET] پرداخت (order)', { order_id: orderId, amount, gateway: gateway?.name });
     try {
       const success = await processPayment({
         order_id: orderId,
         amount: amount,
         gateway: gateway.name
       });
+      console.log('[PAYMENT][BASKET] processPayment returned', success);
       // MODIFIED 2026-02-09 - Removed payment_type field - backend will determine from gateway name
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
@@ -161,12 +162,14 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
     }
 
     // Use processPayment for wallet payment (redirects to listener, then verify)
+    console.log('[PAYMENT][BASKET] پرداخت از کیف پول (order)', { order_id: orderId, amount, gateway: 'wallet' });
     try {
       const success = await processPayment({
         order_id: orderId,
         amount: amount,
         gateway: 'wallet'
       });
+      console.log('[PAYMENT][BASKET] processPayment (wallet) returned', success);
       // MODIFIED 2026-02-09 - Removed payment_type field, using gateway: 'wallet' instead
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ["userInitialData"] });

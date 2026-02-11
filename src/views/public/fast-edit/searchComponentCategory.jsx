@@ -278,7 +278,6 @@ const SearchComponentCategory = ({
     dispatch(clearSaveFilterState());
   }, [saveError, dispatch]);
   
-  console.log("render SearchComponentCategory Fast Edit", storedFilters);
 
   return (
     <>

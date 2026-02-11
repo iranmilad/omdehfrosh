@@ -1,9 +1,34 @@
 import { v4 as uuidv4 } from 'uuid';
+import qs from 'qs';
 import getUserFromToken from "../libs/verifyToken.js";
 import OrderJ2B from "../models/Orders_J2B.js";
 import UserMyAccount from "../models/UserMyAccount.js";
 import PaymentLink from "../models/PaymentLink.js";
 import Transaction from "../models/Transaction.js";
+
+// One-time payment result store: transactionId -> { link, message }; frontend reads ?transactionId=&success= and POSTs to verify-payment to get result
+const paymentResultStore = new Map();
+const PAYMENT_RESULT_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function setPaymentResult(transactionId, payload) {
+  paymentResultStore.set(transactionId, { ...payload, expires: Date.now() + PAYMENT_RESULT_TTL_MS });
+}
+
+function getAndDeletePaymentResult(transactionId) {
+  const entry = paymentResultStore.get(transactionId);
+  paymentResultStore.delete(transactionId);
+  if (!entry) return null;
+  if (entry.expires && Date.now() > entry.expires) return null;
+  return { link: entry.link, message: entry.message };
+}
+
+function getBackendBaseUrl() {
+  return process.env.BACKEND_BASE_URL || process.env.API_URL || 'http://localhost:5000';
+}
+
+function getFrontendBaseUrl() {
+  return process.env.FRONTEND_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://j2b.market' : 'http://localhost:3000');
+}
 
 // Universal Get Payment Link Controller
 export const getUniversalPaymentLink = async (req, res) => {
@@ -98,25 +123,11 @@ export const getUniversalPaymentLink = async (req, res) => {
     // Generate unique transaction ID
     const transactionId = uuidv4();
 
-    // Create redirect URL (always listener URL)
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? 'https://j2b.market'
-      : 'http://localhost:3001';
+    const frontendBaseUrl = getFrontendBaseUrl();
+    const redirect_url = `${frontendBaseUrl}/payment-listener`;
 
-    const redirect_url = `${baseUrl}/payment-listener`;
-
-    // Determine gateway URL based on payment type
-    let gatewayUrl;
-    if (isCODPayment || isWalletPaymentFromOrder) {
-      // For COD and wallet payments from order: redirect directly to listener (skip fake gateway)
-      // Add success=true to indicate successful payment (COD/wallet are always successful when requested)
-      gatewayUrl = `${redirect_url}?tried${Math.floor(Math.random() * 10000000)}&success=true`;
-    } else {
-      // For regular gateways: use fake gateway in dev, real gateway in production
-      gatewayUrl = process.env.NODE_ENV === 'production'
-        ? `https://gateway.${gatewayName}.com/payment` // Replace with actual gateway URL
-        : 'http://localhost:3001/fake-gateway';
-    }
+    // All payments: user is POSTed to /api/fakegateway; fakegateway reads body and POSTs to /api/payment-listener
+    const gatewayUrl = `${getBackendBaseUrl()}/api/fakegateway`;
 
     // Create body to send to gateway (exact format as specified)
     const paymentBody = {
@@ -190,125 +201,39 @@ const checkUserHasUnpaidOrders = async (user_id) => {
   }
 };
 
-// Verify Payment Controller
-export const verifyPayment = async (req, res) => {
-  try {
-    console.log('🔍 verifyPayment called');
-    console.log('📥 Request body:', req.body);
-    
-    const { link, body } = req.body;
+/**
+ * Core verification logic: process payment with body and success flag. Returns { link, message } and optional httpStatus.
+ * Used by both POST /verify-payment (legacy) and POST /api/payment-listener.
+ */
+async function runVerifyLogic(body, success) {
+  const { transactionId, user_id, amount, order_id, wallet_id } = body || {};
+  const isWalletPayment = !order_id;
 
-    if (!link || !body) {
-      console.error('❌ Missing link or body');
-      return res.status(400).json({ 
-        link: "/",
-        message: "Link and body are required" 
-      });
-    }
+  const transaction = await Transaction.findOne({ transactionId });
+  if (!transaction) {
+    return { link: "/", message: "تراکنش یافت نشد.", httpStatus: 404 };
+  }
 
-    const { transactionId, user_id, amount, order_id, wallet_id, success: bodySuccess } = body;
-    console.log('📋 Extracted data:', { transactionId, user_id, amount, order_id, wallet_id, bodySuccess });
-    
-    // Determine payment type - if no order_id, it's a wallet payment
-    // wallet_id in body is optional (legacy support), we use user_id from body to find wallet account
-    const isWalletPayment = !order_id;
-
-    // Parse query params from link (format: j2b.market/?tried3637378&success=true)
-    let success = null;
-    try {
-      // Handle both localhost and production URLs
-      const url = link.startsWith('http') 
-        ? new URL(link) 
-        : new URL(`http://${link}`);
-      const searchParams = url.searchParams;
-      success = searchParams.get('success');
-      console.log('🔍 Success from URL params:', success);
-      
-      // Also check if success is in the query string directly
-      if (!success && link.includes('success=')) {
-        const match = link.match(/success=([^&]+)/);
-        if (match) {
-          success = match[1];
-          console.log('🔍 Success from regex match:', success);
-        }
-      }
-    } catch (urlError) {
-      console.error('❌ Error parsing URL:', urlError);
-      // Try to extract success from link string directly
-      if (link.includes('success=true')) {
-        success = 'true';
-        console.log('🔍 Success from string check (true)');
-      } else if (link.includes('success=false')) {
-        success = 'false';
-        console.log('🔍 Success from string check (false)');
-      }
-    }
-    
-    // Also check if success is in the body (from fake gateway)
-    if (!success && bodySuccess) {
-      success = bodySuccess;
-      console.log('🔍 Success from body:', success);
-    }
-    
-    // Default to true if not specified (for testing)
-    if (!success) {
-      console.log('⚠️ No success parameter found, defaulting to true');
-      success = 'true';
-    }
-    
-    console.log('✅ Final success value:', success);
-
-    console.log('🔍 Verifying payment:', { transactionId, success, order_id, wallet_id, isWalletPayment });
-
-    // Find transaction in database
-    const transaction = await Transaction.findOne({ transactionId });
-    if (!transaction) {
-      console.log('❌ Transaction not found:', transactionId);
-      const responseData = {
-        link: "/",
-        message: "تراکنش یافت نشد."
-      };
-      
-      console.log('❌ Returning transaction not found response:', responseData);
-      return res.status(404).json(responseData);
-    }
-
-    // Check if payment was successful
-    if (success !== 'true') {
-      // Update transaction status to failed
-      transaction.status = 'failed';
-      await transaction.save();
-
-      const responseData = {
-        link: order_id ? `/account/orders/${order_id}` : "/account/wallet",
-        message: `پرداخت شما با شماره تراکنش ${transactionId} ناموفق بود. لطفا مجددا تلاش کنید.`
-      };
-      
-      console.log('❌ Returning payment failed response:', responseData);
-      return res.status(200).json(responseData);
-    }
-
-    // Process successful payment
-    // Update transaction status
-    transaction.status = 'success';
+  if (success !== 'true') {
+    transaction.status = 'failed';
     await transaction.save();
+    return {
+      link: order_id ? `/account/orders` : "/account/wallet",
+      message: `پرداخت شما با شماره تراکنش ${transactionId} ناموفق بود. لطفا مجددا تلاش کنید.`
+    };
+  }
 
-    if (order_id) {
-      // Process order payment
-      console.log('💳 Processing order payment:', order_id);
-      
-      const order = await OrderJ2B.findOne({ id: order_id, user_id });
-      
-      if (!order) {
-        console.log('⚠️ Order not found, but payment verified');
-        const responseData = {
-          link: "/account/orders",
-          message: `پرداخت شما با شماره تراکنش ${transactionId} موفق بوده است.`
-        };
-        
-        console.log('✅ Returning order payment success (order not found) response:', responseData);
-        return res.status(200).json(responseData);
-      }
+  transaction.status = 'success';
+  await transaction.save();
+
+  if (order_id) {
+    const order = await OrderJ2B.findOne({ id: order_id, user_id });
+    if (!order) {
+      return {
+        link: "/account/orders",
+        message: `پرداخت شما با شماره تراکنش ${transactionId} موفق بوده است.`
+      };
+    }
 
       // Determine payment type from transaction gateway name
       const isCODPayment = transaction.gatewayName === "cod" || 
@@ -376,270 +301,196 @@ export const verifyPayment = async (req, res) => {
         const userRecordForCOD = await UserModelForCOD.findOne({ userId: user_id });
         const codUserName = userRecordForCOD?.name || 'کاربر';
 
-        // Check if user has other unpaid orders
-        const hasUnpaidOrders = await checkUserHasUnpaidOrders(user_id);
-        const redirectLink = hasUnpaidOrders ? "/payment" : "/account/orders";
+    const hasUnpaidOrders = await checkUserHasUnpaidOrders(user_id);
+    const redirectLink = hasUnpaidOrders ? "/payment" : "/account/orders";
+    return { link: redirectLink, message: `درخواست پرداخت در محل با موفقیت ثبت شد` };
+  }
 
-        const responseData = {
-          link: redirectLink,
-          message: `درخواست پرداخت در محل با موفقیت ثبت شد`
-        };
-        
-        console.log('✅ Returning COD payment success response:', responseData);
-        return res.status(200).json(responseData);
-      }
-
-      // Handle wallet payment from order (keep payment_type as "gateway", not "wallet")
-      if (isWalletPaymentFromOrder) {
-        console.log('💰 Processing wallet payment from order in verify');
-        
-        // Find user wallet account
-        const userAccount = await UserMyAccount.findOne({ userId: user_id });
-        if (!userAccount) {
-          return res.status(404).json({
-            link: "/account/orders",
-            message: "کیف پول یافت نشد."
-          });
-        }
-
-        // Check wallet balance
-        const numericAmount = parseInt(amount) || 0;
-        const walletBalance = userAccount.wallet?.balance || 0;
-        if (walletBalance < numericAmount) {
-          return res.status(400).json({
-            link: "/account/wallet",
-            message: `موجودی کیف پول کافی نیست. موجودی: ${walletBalance.toLocaleString()} تومان، مبلغ مورد نیاز: ${numericAmount.toLocaleString()} تومان`
-          });
-        }
-
-        // Deduct from wallet
-        userAccount.wallet.balance = walletBalance - numericAmount;
-        
-        // Add transaction to wallet history (amount is negative for purchase)
-        const walletTransaction = {
-          transactionId: transactionId,
-          date: new Date().toLocaleDateString("fa-IR"),
-          amount: -numericAmount, // Negative for deduction
-          type: "purchase",
-          typeDescriptionFa: "خرید از کیف پول",
-          method: "wallet",
-          methodDescriptionFa: "پرداخت از کیف پول",
-          description: `پرداخت سفارش ${order_id}`,
-        };
-        userAccount.wallet.paymentHistory = userAccount.wallet.paymentHistory || [];
-        userAccount.wallet.paymentHistory.push(walletTransaction);
-        userAccount.wallet.lastTransaction = walletTransaction;
-        await userAccount.save();
-
-        // Update order items for wallet payment (set payment_type as "wallet")
-        const OrderItemJ2B = (await import("../models/OrderItemJ2B.js")).default;
-        await OrderItemJ2B.updateMany(
-          { order_id: order_id },
-          {
-            $set: {
-              isPaid: "paid",
-              status: "processing",
-              updatedAt: new Date(),
-              payment_type: "wallet"
-            }
-          }
-        );
-
-        // Check if all items are paid
-        const unpaidItems = await OrderItemJ2B.countDocuments({
-          order_id: order_id,
-          isPaid: { $ne: "paid" }
-        });
-
-        // Update main order for wallet payment (set payment_type as "wallet")
-        const orderUpdateFields = {
-          updatedAt: new Date(),
-          payment_type: "wallet"
-        };
-
-        if (unpaidItems === 0) {
-          await OrderJ2B.updateOne(
-            { id: order_id },
-            {
-              $set: {
-                ...orderUpdateFields,
-                isPaid: "paid",
-                status: "processing"
-              }
-            }
-          );
-        } else {
-          await OrderJ2B.updateOne(
-            { id: order_id },
-            {
-              $set: {
-                ...orderUpdateFields,
-                isPaid: "prepaid",
-                status: "waiting"
-              }
-            }
-          );
-        }
-
-        // Get user info for message
-        const UserModelForWallet = (await import("../models/User.js")).default;
-        const userRecordForWallet = await UserModelForWallet.findOne({ userId: user_id });
-        const walletOrderUserName = userRecordForWallet?.name || 'کاربر';
-
-        // Check if user has other unpaid orders
-        const hasUnpaidOrdersWallet = await checkUserHasUnpaidOrders(user_id);
-        const redirectLinkWallet = hasUnpaidOrdersWallet ? "/payment" : "/account/orders";
-
-        const responseData = {
-          link: redirectLinkWallet,
-          message: `آقای ${walletOrderUserName} پرداخت شما از کیف پول با موفقیت انجام شد.`
-        };
-        
-        console.log('✅ Returning wallet payment from order success response:', responseData);
-        return res.status(200).json(responseData);
-      }
-
-      // Handle regular gateway payment (melli, mellat, etc.)
-      // Update order items
-      const OrderItemJ2B = (await import("../models/OrderItemJ2B.js")).default;
-      await OrderItemJ2B.updateMany(
-        { order_id: order_id },
-        {
-          $set: {
-            isPaid: "paid",
-            status: "processing",
-            updatedAt: new Date(),
-            payment_type: "gateway"
-          }
-        }
-      );
-
-      // Check if all items are paid
-      const unpaidItems = await OrderItemJ2B.countDocuments({
-        order_id: order_id,
-        isPaid: { $ne: "paid" }
-      });
-
-      // Update main order
-      const orderUpdateFields = {
-        updatedAt: new Date(),
-        payment_type: "gateway"
+  if (transaction.gatewayName === "wallet" && order_id) {
+    const userAccount = await UserMyAccount.findOne({ userId: user_id });
+    if (!userAccount) {
+      return { link: "/account/orders", message: "کیف پول یافت نشد.", httpStatus: 404 };
+    }
+    const numericAmount = parseInt(amount) || 0;
+    const walletBalance = userAccount.wallet?.balance || 0;
+    if (walletBalance < numericAmount) {
+      return {
+        link: "/account/wallet",
+        message: `موجودی کیف پول کافی نیست. موجودی: ${walletBalance.toLocaleString()} تومان، مبلغ مورد نیاز: ${numericAmount.toLocaleString()} تومان`,
+        httpStatus: 400
       };
-
-      if (unpaidItems === 0) {
-        // All items paid
-        await OrderJ2B.updateOne(
-          { id: order_id },
-          {
-            $set: {
-              ...orderUpdateFields,
-              isPaid: "paid",
-              status: "processing"
-            }
-          }
-        );
-      } else {
-        // Partially paid
-        await OrderJ2B.updateOne(
-          { id: order_id },
-          {
-            $set: {
-              ...orderUpdateFields,
-              isPaid: "prepaid",
-              status: "waiting"
-            }
-          }
-        );
-      }
-
-      // Get user info for message
-      const UserModelForOrder = (await import("../models/User.js")).default;
-      const userRecordForOrder = await UserModelForOrder.findOne({ userId: user_id });
-      const orderUserName = userRecordForOrder?.name || 'کاربر';
-
-      // Check if user has other unpaid orders
-      const hasUnpaidOrdersGateway = await checkUserHasUnpaidOrders(user_id);
-      const redirectLinkGateway = hasUnpaidOrdersGateway ? "/payment" : "/account/orders";
-
-      const responseData = {
-        link: redirectLinkGateway,
-        message: `آقای ${orderUserName} پرداخت شما با شماره تراکنش ${transactionId} موفق بوده است.`
-      };
-      
-      console.log('✅ Returning order payment success response:', responseData);
-      return res.status(200).json(responseData);
     }
 
-    if (isWalletPayment) {
-      // Process wallet payment - use user_id to find wallet account
-      console.log('💰 Processing wallet payment for user_id:', user_id);
-      
-      // Find wallet account by userId (from token)
-      const userAccount = await UserMyAccount.findOne({ userId: user_id });
-      if (!userAccount) {
-        console.log('❌ Wallet account not found for user_id:', user_id);
-        return res.status(404).json({
-          link: "/account/wallet",
-          message: "کیف پول یافت نشد."
-        });
-      }
-      
-      // Update wallet balance
-      const numericAmount = parseInt(amount) || 0;
-      userAccount.wallet.balance = (userAccount.wallet.balance || 0) + numericAmount;
-      
-      // Add transaction to history
-      const newTransaction = {
-        transactionId: transactionId,
-        date: new Date().toLocaleDateString("fa-IR"),
-        amount: numericAmount,
-        type: "deposit",
-        typeDescriptionFa: "واریز به کیف پول",
-        method: "online_gateway",
-        methodDescriptionFa: "پرداخت آنلاین",
-        description: "شارژ کیف پول از درگاه پرداخت",
-      };
-      userAccount.wallet.paymentHistory = userAccount.wallet.paymentHistory || [];
-      userAccount.wallet.paymentHistory.push(newTransaction);
-      userAccount.wallet.lastTransaction = newTransaction;
-      
-      await userAccount.save();
-
-      // Get user info for message
-      const UserModelForWallet = (await import("../models/User.js")).default;
-      const userRecordForWallet = await UserModelForWallet.findOne({ userId: user_id });
-      const walletUserName = userRecordForWallet?.name || 'کاربر';
-
-      // Check if user has unpaid orders - if so, redirect to payment page
-      const hasUnpaidOrdersDeposit = await checkUserHasUnpaidOrders(user_id);
-      const redirectLinkDeposit = hasUnpaidOrdersDeposit ? "/payment" : "/account/wallet";
-
-      const responseData = {
-        link: redirectLinkDeposit,
-        message: `آقای ${walletUserName} پرداخت شما با شماره تراکنش ${transactionId} موفق بوده است.`
-      };
-      
-      console.log('✅ Returning wallet payment success response:', responseData);
-      return res.status(200).json(responseData);
-    }
-
-    const responseData = {
-      link: "/",
-      message: "نوع تراکنش نامشخص است."
+    userAccount.wallet.balance = walletBalance - numericAmount;
+    const walletTransaction = {
+      transactionId: transactionId,
+      date: new Date().toLocaleDateString("fa-IR"),
+      amount: -numericAmount,
+      type: "purchase",
+      typeDescriptionFa: "خرید از کیف پول",
+      method: "wallet",
+      methodDescriptionFa: "پرداخت از کیف پول",
+      description: `پرداخت سفارش ${order_id}`,
     };
-    
-    console.log('❌ Returning unknown transaction type response:', responseData);
-    return res.status(400).json(responseData);
+    userAccount.wallet.paymentHistory = userAccount.wallet.paymentHistory || [];
+    userAccount.wallet.paymentHistory.push(walletTransaction);
+    userAccount.wallet.lastTransaction = walletTransaction;
+    await userAccount.save();
 
+    const OrderItemJ2B = (await import("../models/OrderItemJ2B.js")).default;
+    await OrderItemJ2B.updateMany(
+      { order_id: order_id },
+      { $set: { isPaid: "paid", status: "processing", updatedAt: new Date(), payment_type: "wallet" } }
+    );
+    const unpaidItemsWallet = await OrderItemJ2B.countDocuments({ order_id: order_id, isPaid: { $ne: "paid" } });
+    const orderUpdateFieldsWallet = { updatedAt: new Date(), payment_type: "wallet" };
+    if (unpaidItemsWallet === 0) {
+      await OrderJ2B.updateOne({ id: order_id }, { $set: { ...orderUpdateFieldsWallet, isPaid: "paid", status: "processing" } });
+    } else {
+      await OrderJ2B.updateOne({ id: order_id }, { $set: { ...orderUpdateFieldsWallet, isPaid: "prepaid", status: "waiting" } });
+    }
+    const UserModelForWallet = (await import("../models/User.js")).default;
+    const userRecordForWallet = await UserModelForWallet.findOne({ userId: user_id });
+    const walletOrderUserName = userRecordForWallet?.name || 'کاربر';
+    const hasUnpaidOrdersWallet = await checkUserHasUnpaidOrders(user_id);
+    const redirectLinkWallet = hasUnpaidOrdersWallet ? "/payment" : "/account/orders";
+    return { link: redirectLinkWallet, message: `آقای ${walletOrderUserName} پرداخت شما از کیف پول با موفقیت انجام شد.` };
+  }
+
+  // Regular gateway payment (melli, mellat, etc.)
+  const OrderItemJ2B = (await import("../models/OrderItemJ2B.js")).default;
+  await OrderItemJ2B.updateMany(
+    { order_id: order_id },
+    { $set: { isPaid: "paid", status: "processing", updatedAt: new Date(), payment_type: "gateway" } }
+  );
+  const unpaidItemsGw = await OrderItemJ2B.countDocuments({ order_id: order_id, isPaid: { $ne: "paid" } });
+  const orderUpdateFieldsGw = { updatedAt: new Date(), payment_type: "gateway" };
+  if (unpaidItemsGw === 0) {
+    await OrderJ2B.updateOne({ id: order_id }, { $set: { ...orderUpdateFieldsGw, isPaid: "paid", status: "processing" } });
+  } else {
+    await OrderJ2B.updateOne({ id: order_id }, { $set: { ...orderUpdateFieldsGw, isPaid: "prepaid", status: "waiting" } });
+  }
+  const UserModelForOrder = (await import("../models/User.js")).default;
+  const userRecordForOrder = await UserModelForOrder.findOne({ userId: user_id });
+  const orderUserName = userRecordForOrder?.name || 'کاربر';
+  const hasUnpaidOrdersGateway = await checkUserHasUnpaidOrders(user_id);
+  const redirectLinkGateway = hasUnpaidOrdersGateway ? "/payment" : "/account/orders";
+  return { link: redirectLinkGateway, message: `آقای ${orderUserName} پرداخت شما با شماره تراکنش ${transactionId} موفق بوده است.` };
+  }
+
+  // Wallet recharge (no order_id)
+  const userAccount = await UserMyAccount.findOne({ userId: user_id });
+  if (!userAccount) {
+    return { link: "/account/wallet", message: "کیف پول یافت نشد.", httpStatus: 404 };
+  }
+  const numericAmount = parseInt(amount) || 0;
+  userAccount.wallet.balance = (userAccount.wallet.balance || 0) + numericAmount;
+  const newTransaction = {
+    transactionId: transactionId,
+    date: new Date().toLocaleDateString("fa-IR"),
+    amount: numericAmount,
+    type: "deposit",
+    typeDescriptionFa: "واریز به کیف پول",
+    method: "online_gateway",
+    methodDescriptionFa: "پرداخت آنلاین",
+    description: "شارژ کیف پول از درگاه پرداخت",
+  };
+  userAccount.wallet.paymentHistory = userAccount.wallet.paymentHistory || [];
+  userAccount.wallet.paymentHistory.push(newTransaction);
+  userAccount.wallet.lastTransaction = newTransaction;
+  await userAccount.save();
+  const UserModelForWallet = (await import("../models/User.js")).default;
+  const userRecordForWallet = await UserModelForWallet.findOne({ userId: user_id });
+  const walletUserName = userRecordForWallet?.name || 'کاربر';
+  const hasUnpaidOrdersDeposit = await checkUserHasUnpaidOrders(user_id);
+  const redirectLinkDeposit = hasUnpaidOrdersDeposit ? "/payment" : "/account/wallet";
+  return { link: redirectLinkDeposit, message: `آقای ${walletUserName} پرداخت شما با شماره تراکنش ${transactionId} موفق بوده است.` };
+}
+
+// POST /universal-payment/verify-payment
+// (1) body { transactionId, success? } → return stored { message, link } (React listener page)
+// (2) body { link, body } → run verification, return { message, link } (legacy)
+export const verifyPayment = async (req, res) => {
+  try {
+    const body = req.body || {};
+    if (body.transactionId) {
+      const payload = getAndDeletePaymentResult(body.transactionId);
+      if (!payload) {
+        return res.status(404).json({ message: "نتیجه پرداخت یافت نشد یا منقضی شده است.", link: "/" });
+      }
+      return res.status(200).json({ message: payload.message, link: payload.link });
+    }
+    const { link, body: verifyBody } = body;
+    if (!link || !verifyBody) {
+      return res.status(400).json({ link: "/", message: "Link and body are required" });
+    }
+    const successFromUrl = link.includes('success=false') ? 'false' : (link.includes('success=true') ? 'true' : null);
+    const success = verifyBody.success ?? successFromUrl ?? 'true';
+    const result = await runVerifyLogic(verifyBody, success);
+    const status = result.httpStatus || 200;
+    return res.status(status).json({ link: result.link, message: result.message });
   } catch (error) {
-    console.error("❌ Error in verifyPayment:", error);
-    const responseData = {
-      link: "/",
-      message: "خطا در پردازش پرداخت. لطفا با پشتیبانی تماس بگیرید.",
-      error: error.message
-    };
-    
-    console.log('❌ Returning error response:', responseData);
-    return res.status(500).json(responseData);
+    console.error("Error in verifyPayment:", error);
+    return res.status(500).json({ link: "/", message: "خطا در پردازش پرداخت. لطفا با پشتیبانی تماس بگیرید." });
+  }
+};
+
+// POST /api/payment-listener: process payment, then redirect to frontend /payment-listener?transactionId=XXX&success=true|false
+export const paymentListenerController = async (req, res) => {
+  const frontendBaseUrl = getFrontendBaseUrl();
+  try {
+    let body = req.body;
+    if (Buffer.isBuffer(req.body)) {
+      const str = req.body.toString('utf8');
+      try {
+        body = JSON.parse(str);
+      } catch {
+        body = qs.parse(str);
+      }
+    }
+    if (!body || typeof body !== 'object') {
+      body = {};
+    }
+    const transactionId = body.transactionId || uuidv4();
+    const successRaw = body.success ?? body.ResCode ?? body.resCode ?? 'true';
+    const successNorm = String(successRaw).toLowerCase() === 'true' || successRaw === true || String(successRaw) === '0';
+    const successStr = successNorm ? 'true' : 'false';
+    const result = await runVerifyLogic(body, successStr);
+    setPaymentResult(transactionId, { link: result.link, message: result.message });
+    const redirectUrl = `${frontendBaseUrl}/payment-listener/?transactionId=${encodeURIComponent(transactionId)}&success=${successStr}`;
+    return res.redirect(302, redirectUrl);
+  } catch (error) {
+    console.error("Error in paymentListenerController:", error);
+    let errBody = req.body;
+    if (Buffer.isBuffer(errBody)) {
+      try { errBody = JSON.parse(errBody.toString('utf8')); } catch { errBody = {}; }
+    }
+    const transactionId = (errBody && errBody.transactionId) || uuidv4();
+    setPaymentResult(transactionId, { link: "/", message: "خطا در پردازش پرداخت. لطفا با پشتیبانی تماس بگیرید." });
+    const redirectUrl = `${frontendBaseUrl}/payment-listener/?transactionId=${encodeURIComponent(transactionId)}&success=false`;
+    return res.redirect(302, redirectUrl);
+  }
+};
+
+// POST /api/fakegateway: receives POST body from frontend (after get-payment-link), forwards POST to /api/payment-listener, then redirects user to the same Location (React listener page)
+export const fakeGatewayController = async (req, res) => {
+  try {
+    const body = req.body || {};
+    const listenerUrl = `${getBackendBaseUrl()}/api/payment-listener`;
+    const response = await fetch(listenerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      redirect: 'manual',
+    });
+    if (response.status === 302) {
+      const location = response.headers.get('Location');
+      if (location) return res.redirect(302, location);
+    }
+    const fallbackUrl = `${getFrontendBaseUrl()}/payment-listener`;
+    return res.redirect(302, fallbackUrl);
+  } catch (error) {
+    console.error("Error in fakeGatewayController:", error);
+    return res.redirect(302, `${getFrontendBaseUrl()}/payment-listener`);
   }
 };

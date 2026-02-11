@@ -178,29 +178,29 @@ function Account_Message() {
             backgroundOpacity={0.6}
             blur={2}
             style={{
-              position: 'fixed',
+              position: "fixed",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
               zIndex: 10000,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <Box
               style={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                padding: '32px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                textAlign: 'center',
-                minWidth: '220px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center'
+                backgroundColor: "white",
+                borderRadius: "12px",
+                padding: "32px",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                textAlign: "center",
+                minWidth: "220px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               <Loader size="lg" color="blue" />
@@ -212,22 +212,22 @@ function Account_Message() {
         )}
 
         <ErrorMessageModal
-            opened={modalOpen}
-            onClose={() => setModalOpen(false)}
-            message={modalErrorMessage}
+          opened={modalOpen}
+          onClose={() => setModalOpen(false)}
+          message={modalErrorMessage}
         />
         {!loadingUserTicketById ? (
           <>
             {userTicketById?.ticketStatus === "closed" && (
               <Alert variant="light" color="yellow" mb="md">
                 <Text c="yellow" size="sm">
-                  این تیکت بسته شده است. در صورتی که نیاز به پشتیبانی دارید، تیکت
-                  جدیدی باز کنید.
+                  این تیکت بسته شده است. در صورتی که نیاز به پشتیبانی دارید،
+                  تیکت جدیدی باز کنید.
                 </Text>
               </Alert>
             )}
-            <Flex 
-              justify="space-between" 
+            <Flex
+              justify="space-between"
               align="center"
               direction={{ base: "column", sm: "row" }}
               gap={{ base: "sm", sm: "md" }}
@@ -243,7 +243,11 @@ function Account_Message() {
                 <IconArrowRight style={{ marginLeft: "10px" }} />
                 {userTicketById?.ticketId + "#"} {userTicketById?.ticketTitle}
               </Title>
-              <ActionIcon variant="transparent" onClick={open} size={{ base: "md", sm: "lg" }}>
+              <ActionIcon
+                variant="transparent"
+                onClick={open}
+                size={{ base: "md", sm: "lg" }}
+              >
                 <IconInfoCircle />
               </ActionIcon>
             </Flex>
@@ -261,8 +265,13 @@ function Account_Message() {
                 </Box>
               ))}
             </Stack>
-  
-            <Modal opened={opened} title="اطلاعات تیکت" onClose={close}>
+
+            <Modal
+              opened={opened}
+              title="اطلاعات تیکت"
+              onClose={close}
+              removeScrollProps={{ removeScrollBar: false }}
+            >
               {userTicketById?.messages && (
                 <SimpleGrid mt="md">
                   <LabelValue
@@ -284,7 +293,9 @@ function Account_Message() {
                       <>
                         <Badge
                           color={
-                            userTicketById.ticketStatus === "closed" ? "gray" : ""
+                            userTicketById.ticketStatus === "closed"
+                              ? "gray"
+                              : ""
                           }
                         >
                           {userTicketById.ticketStatus === "closed"
@@ -301,7 +312,7 @@ function Account_Message() {
               )}
             </Modal>
             <Divider my="md" />
-  
+
             {userTicketById?.ticketStatus !== "closed" && (
               <Box
                 p={{ base: "sm", sm: "md" }}
@@ -312,7 +323,10 @@ function Account_Message() {
                   backgroundColor: "#f9f9f9",
                 }}
               >
-                <Text size={{ base: "xs", sm: "sm" }} mb={{ base: "xs", sm: "xs" }}>
+                <Text
+                  size={{ base: "xs", sm: "sm" }}
+                  mb={{ base: "xs", sm: "xs" }}
+                >
                   ارسال
                 </Text>
                 <Stack gap={{ base: "xs", sm: "sm" }}>
@@ -328,44 +342,49 @@ function Account_Message() {
                     maxRows={6}
                     autosize
                     error={
-                      (ticketData?.state === "error" && ticketData?.errors?.message) || 
+                      (ticketData?.state === "error" &&
+                        ticketData?.errors?.message) ||
                       errors.messageText
                     }
                     styles={{
                       input: {
                         fontSize: "14px",
-                      }
+                      },
                     }}
                   />
-                  {(ticketData?.state === "error" && ticketData?.errors?.message) || errors.messageText ? (
+                  {(ticketData?.state === "error" &&
+                    ticketData?.errors?.message) ||
+                  errors.messageText ? (
                     <Text color="red" size="xs" mt={-8}>
-                      {ticketData?.state === "error" && ticketData?.errors?.message 
-                        ? ticketData.errors.message 
+                      {ticketData?.state === "error" &&
+                      ticketData?.errors?.message
+                        ? ticketData.errors.message
                         : errors.messageText}
                     </Text>
                   ) : null}
-                  {ticketData?.state === "error" && ticketData?.errors?.file && (
-                    <Text color="red" size="xs">
-                      {ticketData.errors.file}
-                    </Text>
-                  )}
-                  
-                  <Flex 
-                    justify="space-between" 
+                  {ticketData?.state === "error" &&
+                    ticketData?.errors?.file && (
+                      <Text color="red" size="xs">
+                        {ticketData.errors.file}
+                      </Text>
+                    )}
+
+                  <Flex
+                    justify="space-between"
                     align={{ base: "stretch", sm: "center" }}
                     direction={{ base: "column", sm: "row" }}
                     gap={{ base: "sm", sm: "md" }}
                     style={{
                       ...(isLargeScreen && {
-                        display: 'flex',
-                        width: '100%'
-                      })
+                        display: "flex",
+                        width: "100%",
+                      }),
                     }}
                   >
-                    <Box 
-                      style={{ 
-                        flex: isLargeScreen ? '1 1' : 'none',
-                        width: isLargeScreen ? '100%' : 'auto'
+                    <Box
+                      style={{
+                        flex: isLargeScreen ? "1 1" : "none",
+                        width: isLargeScreen ? "100%" : "auto",
                       }}
                     >
                       <FileButton
@@ -382,9 +401,11 @@ function Account_Message() {
                             {...props}
                             variant="outline"
                             size={isSmallScreen ? "xs" : "sm"}
-                            fullWidth={isLargeScreen ? true : { base: true, sm: false }}
-                            style={{ 
-                              flexShrink: 0
+                            fullWidth={
+                              isLargeScreen ? true : { base: true, sm: false }
+                            }
+                            style={{
+                              flexShrink: 0,
                             }}
                           >
                             {file ? file.name : "انتخاب فایل"}
@@ -399,10 +420,10 @@ function Account_Message() {
                     </Box>
 
                     {/* Send Button */}
-                    <Box 
-                      style={{ 
-                        flex: isLargeScreen ? '1 1' : 'none',
-                        width: isLargeScreen ? '100%' : 'auto'
+                    <Box
+                      style={{
+                        flex: isLargeScreen ? "1 1" : "none",
+                        width: isLargeScreen ? "100%" : "auto",
                       }}
                     >
                       <Button
@@ -410,20 +431,28 @@ function Account_Message() {
                         variant="filled"
                         disabled={sending}
                         onClick={handleSendMessage}
-                        leftSection={<IconSend size={isSmallScreen ? 14 : 16} />}
+                        leftSection={
+                          <IconSend size={isSmallScreen ? 14 : 16} />
+                        }
                         size={isSmallScreen ? "xs" : "sm"}
                         radius="md"
-                        fullWidth={isLargeScreen ? true : { base: true, sm: false }}
+                        fullWidth={
+                          isLargeScreen ? true : { base: true, sm: false }
+                        }
                         style={{
-                          minWidth: isSmallScreen ? '100%' : (isLargeScreen ? '100%' : '80px'),
-                          fontWeight: 500
+                          minWidth: isSmallScreen
+                            ? "100%"
+                            : isLargeScreen
+                            ? "100%"
+                            : "80px",
+                          fontWeight: 500,
                         }}
                       >
                         ارسال
                       </Button>
                     </Box>
                   </Flex>
-                  
+
                   {error && (
                     <Text color="red" size="xs" mt="sm">
                       {typeof error === "string" ? error : error.message}

@@ -915,6 +915,7 @@ const handleBulkPriceUpdateSuccess = useCallback(() => {
       <Modal
         opened={true}
         onClose={() => {}}
+        removeScrollProps={{ removeScrollBar: false }}
         title="ورود به حساب کاربری"
         centered
         withCloseButton={false}
@@ -952,6 +953,7 @@ const handleBulkPriceUpdateSuccess = useCallback(() => {
         onClose={() => {}}
         title="ورود به حساب کاربری"
         centered
+        removeScrollProps={{ removeScrollBar: false }}
         withCloseButton={false}
         closeOnClickOutside={false}
         zIndex={authModalZIndex}

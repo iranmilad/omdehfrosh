@@ -298,7 +298,7 @@ export const confirmCODPayment = async (req, res) => {
     console.log(JSON.stringify({orderId, sellerId, amount, payment_method}))
 
     // Set CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
+    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -789,7 +789,7 @@ export const checkPaymentStatusWalletAlternative = async (req, res) => {
 
 export const checkPaymentStatus = async (req, res) => {
   // Set CORS headers FIRST before any operations
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -1270,7 +1270,7 @@ export const getPaymentLink = async (req, res) => {
 
     // Generate link
     const link_id = uuidv4();
-    const link_url = "http://localhost:3001/fake-gateway";
+    const link_url = "http://localhost:3000/fake-gateway";
 
     const body = {
       user_id,
@@ -1314,7 +1314,7 @@ export const getPaymentLinkWallet = async (req, res) => {
     const transactionId = uuidv4();
 
     // Wallet gateway link
-    const link_url = "http://localhost:3001/fake-gateway-wallet";
+    const link_url = "http://localhost:3000/fake-gateway-wallet";
 
     // Build transaction body (include transactionId here too ✅)
     const body = {
@@ -1362,7 +1362,7 @@ export const paymentWebhook = async (req, res) => {
     const { status, body } = req.body;
 
     // Set CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
+    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -1572,7 +1572,7 @@ export const paymentWebhookWallet = async (req, res) => {
     const { link_id, status } = req.body;
 
     // ✅ Set CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3001");
+    res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -1643,7 +1643,7 @@ export const paymentWebhookWallet = async (req, res) => {
 
     await userAccount.save();
 
-    const redirectUrl = `http://localhost:3001/payment-statuscheck-wallet?order_id=${order_id}&status=OK`;
+    const redirectUrl = `http://localhost:3000/payment-statuscheck-wallet?order_id=${order_id}&status=OK`;
     return res.status(200).json({ redirectUrl });
 
   } catch (error) {

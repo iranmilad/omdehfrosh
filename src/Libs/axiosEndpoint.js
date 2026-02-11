@@ -7,11 +7,6 @@ import { notifications } from "@mantine/notifications";
 const getBaseUrl = () => {
   const apiUrl = process.env.REACT_APP_API_URL || process.env.API || '/api';
 
-  // Debug log in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Axios] Base URL:', apiUrl);
-  }
-
   return apiUrl;
 };
 

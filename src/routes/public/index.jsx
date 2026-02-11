@@ -97,7 +97,6 @@ import Bootstrap from "../../views/public/master-dashboard/bootstrap/bootstrap"
 import AddBatchBootstrap from "../../views/public/master-dashboard/bootstrap/bootstrap/addbatchbootstrap"
 import WalletPaymentPage from "../../views/public/walletpayment"
 import CODPaymentPage from "../../views/public/codpayment"
-import NewFakeGateway from "../../views/public/fake-gateway"
 import PaymentListener from "../../views/public/payment-listener"
 
 // /category/samsung -> /shop?brand=samsung (Shop page with brand filter)
@@ -396,10 +395,6 @@ export const PublicRoutes = [
             {
                 path: 'cod-payment',
                 element: <CODPaymentPage />
-            },
-            {
-                path: 'fake-gateway',
-                element: <NewFakeGateway />
             },
             {
                 path: 'payment-listener',

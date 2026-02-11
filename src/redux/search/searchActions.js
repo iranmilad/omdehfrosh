@@ -36,7 +36,6 @@ export const getSearchResults = createAsyncThunk(
   async (options = {}, { rejectWithValue }) => {
     const { query, forceRefresh = false } = options;
 
-    console.log('🔍 getSearchResults called with:', { query, forceRefresh });
 
     // Validate query length
     if (!query || query.length < 3) {
@@ -55,7 +54,6 @@ export const getSearchResults = createAsyncThunk(
 
       // Build the URL with the correct parameter name
       const url = getApiUrl(`/search?query=${encodeURIComponent(query)}`);
-      console.log('📡 Fetching search results from:', url);
       
       const response = await fetch(url, {
         method: "GET",
@@ -65,17 +63,13 @@ export const getSearchResults = createAsyncThunk(
         // credentials: "include"
       });
 
-      console.log('📥 Response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Search API error:', response.status, errorData);
         return rejectWithValue(errorData?.message || `Server error: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('✅ Search results received:', data);
-      console.log('📊 Data structure:', JSON.stringify(data, null, 2));
       
       const payload = {
         query,
@@ -83,11 +77,9 @@ export const getSearchResults = createAsyncThunk(
         timestamp: Date.now()
       };
       
-      console.log('🎁 Returning payload:', payload);
       
       return payload;
     } catch (error) {
-      console.error("💥 Search network error:", error);
       return rejectWithValue(error.message || "Network error or server not responding");
     }
   }

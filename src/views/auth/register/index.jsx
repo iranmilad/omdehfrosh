@@ -119,7 +119,6 @@ const Register = () => {
     setRegisterData(null);
     
     try {
-      console.log('Sending registration data:', userData);
       
       const response = await fetch(getApiUrl("/auth/signup"), {
         method: "POST",
@@ -127,19 +126,15 @@ const Register = () => {
         body: JSON.stringify(userData),
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
+
 
       const text = await response.text();
-      console.log('Response text:', text);
 
       let data = null;
       try {
         data = text ? JSON.parse(text) : null;
-        console.log('Parsed data:', data);
       } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        console.error('Raw text was:', text);
+
         
         const errorData = {
           state: "error",
@@ -189,11 +184,9 @@ const Register = () => {
         return errorData;
       }
 
-      console.log('Registration successful:', data);
       
       if (data.token) {
         localStorage.setItem('user', data.token);
-        console.log('Token stored');
       }
       
       const successData = {

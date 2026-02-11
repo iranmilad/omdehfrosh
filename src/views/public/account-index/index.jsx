@@ -175,6 +175,7 @@ function Account_Index() {
           onClose={() => {}} // Prevent closing by clicking outside
           closeOnClickOutside={false}
           closeOnEscape={false}
+          removeScrollProps={{ removeScrollBar: false }}
           withCloseButton={false}
           title="ورود به حساب کاربری"
           centered
@@ -188,19 +189,17 @@ function Account_Index() {
             در حال انتقال به صفحه ورود...
           </Text>
           <Flex gap="sm" justify="flex-end">
-            <Button 
-              onClick={handleGoToLogin}
-            >
-              رفتن به صفحه ورود
-            </Button>
+            <Button onClick={handleGoToLogin}>رفتن به صفحه ورود</Button>
           </Flex>
         </Modal>
-        
+
         {/* Show a placeholder content while modal is open */}
         <Center h={400}>
           <Stack align="center" gap="md">
             <IconLogin size={80} color="#e9ecef" />
-            <Text size="xl" c="dimmed">در حال بررسی وضعیت ورود...</Text>
+            <Text size="xl" c="dimmed">
+              در حال بررسی وضعیت ورود...
+            </Text>
           </Stack>
         </Center>
       </>

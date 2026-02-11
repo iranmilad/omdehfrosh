@@ -28,11 +28,7 @@ function ShareModal(filters) {
   return (
     <>
       {userInfo?.role === "supplier" && (
-        <Button
-          size="xs"
-          rightSection={<IconShare size={16} />}
-          onClick={open}
-        >
+        <Button size="xs" rightSection={<IconShare size={16} />} onClick={open}>
           اشتراک گذاری
         </Button>
       )}
@@ -42,6 +38,7 @@ function ShareModal(filters) {
         title="اشتراک گذاری محصولات شما"
         onClose={close}
         opened={opened}
+        removeScrollProps={{ removeScrollBar: false }}
         lockScroll={false}
         removeScrollBar={false}
       >

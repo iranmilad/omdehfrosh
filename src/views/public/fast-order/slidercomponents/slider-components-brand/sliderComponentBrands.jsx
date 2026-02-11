@@ -37,7 +37,6 @@ const SliderComponentBrands = ({
   const nextRef = useRef(null);
   const [swiperState, setSwiperState] = useState({ isBeginning: true, isEnd: true });
 
-  // console.log("SliderComponentBrands rendered with items:", items);
 
   const handleSelectAll = () => {
     if (clickType === "brands") {
@@ -136,19 +135,9 @@ export function SingleCategory1({
   const isActive = filterBrandStorage.includes(item.idBrand);
 
   const onClick = (e) => {
-    console.log('🖱️ [SliderBrands] onClick FIRED', {
-      eventType: e?.type,
-      isDisabled,
-      clickType,
-      isActive,
-      brandId: item.idBrand,
-      brandName: item.name,
-      currentFilterBrandStorage: filterBrandStorage,
-      timestamp: Date.now()
-    });
+
     
     if (isDisabled) {
-      console.log('🖱️ [SliderBrands] onClick BLOCKED - isDisabled=true');
       return;
     }
     if (clickType === "brands") {
@@ -156,14 +145,12 @@ export function SingleCategory1({
       sessionStorage.setItem('manualFilterUpdate', 'true');
       
       if (isActive) {
-        console.log('🖱️ [SliderBrands] DESELECTING brand - calling setFilterBrandStorage([])');
         // Deselecting current brand - clear all filters and go back to base
         setFilterBrandStorage([]);
         setFilterBrandsCategoryStorage([]);
         setFilterBrandsCategorySubCategoryStorage([]);
         navigate('/fastorder/brand');
       } else {
-        console.log('🖱️ [SliderBrands] SELECTING brand - calling setFilterBrandStorage([' + item.idBrand + '])');
         // Selecting new brand - set only this brand, clear category filters, and update URL
         setFilterBrandStorage([item.idBrand]);
         setFilterBrandsCategoryStorage([]);
@@ -218,20 +205,20 @@ export function SingleCategory1({
             <div
               className='rounded-full overflow-hidden flex-shrink-0'
               style={{
-                width: '24px',
-                height: '24px',
+                width: '28px',
+                height: '28px',
                 lineHeight: 0,
                 marginRight: 0
               }}
             >
               <img
                 className="w-full inline-block"
-                style={{ objectFit: 'cover', width: '24px', height: '24px', marginRight: 0 }}
+                style={{ objectFit: 'cover', width: '28px', height: '28px', marginRight: 0 }}
                 src={getBrandImageSrc(item.image)}
                 alt={item.title}
                 onError={handleImageError}
-                width="24"
-                height="24"
+                width="28"
+                height="28"
               />
             </div>
             <span className="leading-none">

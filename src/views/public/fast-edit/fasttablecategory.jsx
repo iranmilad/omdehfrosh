@@ -255,7 +255,6 @@ const handleInputBlur = (e, record, key, defaultValue = 0) => {
 
   const renderCellContent = (column, record) => {
 
-      console.log("attributes", record.attributes)
 
     const displayItem = record;
     

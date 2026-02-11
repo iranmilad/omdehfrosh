@@ -223,20 +223,9 @@ export const createQueryClient = (options = {}) => {
         const cacheAge = query.state.dataUpdatedAt ? Date.now() - query.state.dataUpdatedAt : null;
         const cacheAgeSeconds = cacheAge ? Math.floor(cacheAge / 1000) : null;
         
-        console.log(`[QueryClient] 📦 Cache Event (${event.type}):`, {
-          queryKey: query.queryKey,
-          status: query.state.status,
-          fetchStatus: query.state.fetchStatus,
-          hasData: !!query.state.data,
-          isStale: query.isStale(),
-          cacheAge: cacheAgeSeconds ? `${cacheAgeSeconds}s` : 'N/A',
-          staleTime: query.options.staleTime ? `${query.options.staleTime / 1000}s` : 'N/A',
-        });
+
       } else if (event?.type === 'added') {
-        console.log(`[QueryClient] ➕ Query Added to Cache:`, {
-          queryKey: event.query.queryKey,
-          staleTime: event.query.options.staleTime ? `${event.query.options.staleTime / 1000}s` : 'N/A',
-        });
+
       }
     });
   }
@@ -255,7 +244,6 @@ export const createQueryClient = (options = {}) => {
         window.dispatchEvent(new CustomEvent('auth:401'));
       }
       if (process.env.NODE_ENV === 'development') {
-        console.log('[QueryClient] 🔒 401 detected on', query.queryKey, '- auth:401 dispatched (no invalidation to avoid request flood)');
       }
     }
 
@@ -327,11 +315,7 @@ const setupQueryClientPersistence = (queryClient) => {
     });
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `[QueryClient] 💾 Persistence enabled (localStorage, maxAge=${Math.floor(
-          PERSISTENCE_MAX_AGE_MS / 1000
-        )}s)`
-      );
+
     }
   } catch (err) {
     // localStorage can throw (quota exceeded, blocked, etc.)

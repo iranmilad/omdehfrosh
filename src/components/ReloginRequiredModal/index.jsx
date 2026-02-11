@@ -22,6 +22,7 @@ const ReloginRequiredModal = ({ opened, onClose }) => {
     <Modal
       opened={opened}
       onClose={onClose}
+      removeScrollProps={{ removeScrollBar: false }}
       title={
         <Text fw={600} size="lg">
           نیاز به ورود مجدد
@@ -34,18 +35,22 @@ const ReloginRequiredModal = ({ opened, onClose }) => {
       closeOnClickOutside={false}
       closeOnEscape={false}
       lockScroll={false}
-      removeScrollBar={false}
       zIndex={MODAL_Z}
       styles={{
         root: { zIndex: MODAL_Z },
         inner: { zIndex: MODAL_Z },
         overlay: { zIndex: MODAL_Z - 1 },
-        content: { maxHeight: "85vh", display: "flex", flexDirection: "column" },
+        content: {
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+        },
         body: { overflowY: "auto", flex: "1 1 auto", minHeight: 0 },
       }}
     >
       <Text size="md" c="dimmed">
-        زمان حضور به پایان رسیده است. لطفا دوباره وارد سایت شوید. (پس از {AUTO_REDIRECT_SECONDS} ثانیه به صفحه ورود منتقل می‌شوید)
+        زمان حضور به پایان رسیده است. لطفا دوباره وارد سایت شوید. (پس از{" "}
+        {AUTO_REDIRECT_SECONDS} ثانیه به صفحه ورود منتقل می‌شوید)
       </Text>
     </Modal>
   );

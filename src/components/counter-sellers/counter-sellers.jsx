@@ -607,6 +607,7 @@ const CounterSellers = (props) => {
         onClose={() => setShowAuthModal(false)}
         title="ورود به حساب کاربری"
         zIndex={2000}
+        removeScrollProps={{ removeScrollBar: false }}
         centered
       >
         <Text>لطفا وارد حساب کاربری شوید</Text>

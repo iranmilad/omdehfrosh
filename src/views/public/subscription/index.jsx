@@ -172,6 +172,8 @@ const purchaseSubscription = async (plan, transactionId) => {
         onClose={() => {}}
         title="ورود به حساب کاربری"
         centered
+                removeScrollProps={{ removeScrollBar: false }}
+
         withCloseButton={false}
         closeOnClickOutside={false}
         zIndex={20}
@@ -241,52 +243,68 @@ const purchaseSubscription = async (plan, transactionId) => {
         onClose={() => dispatch(setShowSubscriptionModal(false))}
         title="تایید خرید اشتراک"
         centered
+        removeScrollProps={{ removeScrollBar: false }}
         size="sm"
       >
         <Stack align="center" gap="md">
           <ThemeIcon size={60} color="blue" variant="light">
             <IconCircleCheckFilled size={30} />
           </ThemeIcon>
-          
+
           <Text ta="center" size="lg" fw={500}>
             آیا از خرید این اشتراک اطمینان دارید؟
           </Text>
 
           {loadingSubscriptionInfo && (
-            <Text c="dimmed" size="sm">در حال بارگذاری...</Text>
+            <Text c="dimmed" size="sm">
+              در حال بارگذاری...
+            </Text>
           )}
 
           {subscriptionInfo?.plan && (
             <Box w="100%">
               <Group justify="space-between" mb="xs">
-                <Text size="sm" c="dimmed">پلن انتخابی:</Text>
-                <Text size="sm" fw={500}>{subscriptionInfo.plan.title}</Text>
+                <Text size="sm" c="dimmed">
+                  پلن انتخابی:
+                </Text>
+                <Text size="sm" fw={500}>
+                  {subscriptionInfo.plan.title}
+                </Text>
               </Group>
 
               <Group justify="space-between" mb="xs">
-                <Text size="sm" c="dimmed">مدت زمان:</Text>
-                <Text size="sm" fw={500}>{subscriptionInfo.plan.duration}</Text>
+                <Text size="sm" c="dimmed">
+                  مدت زمان:
+                </Text>
+                <Text size="sm" fw={500}>
+                  {subscriptionInfo.plan.duration}
+                </Text>
               </Group>
 
               <Group justify="space-between" mb="md">
-                <Text size="sm" c="dimmed">قیمت:</Text>
+                <Text size="sm" c="dimmed">
+                  قیمت:
+                </Text>
                 <Text size="sm" fw={500} c="green">
-                  {formatPrice(subscriptionInfo.plan.price?.discountedPrice || 0)} تومان
+                  {formatPrice(
+                    subscriptionInfo.plan.price?.discountedPrice || 0
+                  )}{" "}
+                  تومان
                 </Text>
               </Group>
             </Box>
           )}
           <Group gap="xs" mt="md">
-            <Button 
-              variant="filled" 
+            <Button
+              variant="filled"
               color="blue"
               onClick={handleConfirmPurchase}
               disabled={!subscriptionInfo?.plan}
             >
               تایید خرید
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => dispatch(setShowSubscriptionModal(false))}
             >
               انصراف
@@ -295,12 +313,12 @@ const purchaseSubscription = async (plan, transactionId) => {
         </Stack>
       </Modal>
 
-
       {/* Insufficient Balance Modal */}
       <Modal
         opened={balanceModal.opened}
-        onClose={() => setBalanceModal(prev => ({ ...prev, opened: false }))}
+        onClose={() => setBalanceModal((prev) => ({ ...prev, opened: false }))}
         title="موجودی ناکافی"
+        removeScrollProps={{ removeScrollBar: false }}
         centered
         size="sm"
       >
@@ -308,53 +326,72 @@ const purchaseSubscription = async (plan, transactionId) => {
           <ThemeIcon size={60} color="red" variant="light">
             <IconAlertTriangle size={30} />
           </ThemeIcon>
-          
+
           <Text ta="center" size="lg" fw={500}>
             موجودی حساب شما برای خرید این پلن کافی نیست
           </Text>
-          
+
           <Box w="100%">
             <Group justify="space-between" mb="xs">
-              <Text size="sm" c="dimmed">پلن انتخابی:</Text>
-              <Text size="sm" fw={500}>{balanceModal.planTitle}</Text>
+              <Text size="sm" c="dimmed">
+                پلن انتخابی:
+              </Text>
+              <Text size="sm" fw={500}>
+                {balanceModal.planTitle}
+              </Text>
             </Group>
-            
+
             <Group justify="space-between" mb="xs">
-              <Text size="sm" c="dimmed">قیمت پلن:</Text>
+              <Text size="sm" c="dimmed">
+                قیمت پلن:
+              </Text>
               <Text size="sm" fw={500} c="red">
                 {formatPrice(balanceModal.planPrice)} تومان
               </Text>
             </Group>
-            
+
             <Group justify="space-between" mb="md">
-              <Text size="sm" c="dimmed">موجودی حساب:</Text>
+              <Text size="sm" c="dimmed">
+                موجودی حساب:
+              </Text>
               <Text size="sm" fw={500} c="blue">
                 {formatPrice(balanceModal.accountBalance)} تومان
               </Text>
             </Group>
-            
-            <Group justify="space-between" pt="xs" style={{ borderTop: '1px solid #e9ecef' }}>
-              <Text size="sm" c="dimmed">مبلغ مورد نیاز:</Text>
+
+            <Group
+              justify="space-between"
+              pt="xs"
+              style={{ borderTop: "1px solid #e9ecef" }}
+            >
+              <Text size="sm" c="dimmed">
+                مبلغ مورد نیاز:
+              </Text>
               <Text size="sm" fw={500} c="orange">
-                {formatPrice(balanceModal.planPrice - balanceModal.accountBalance)} تومان
+                {formatPrice(
+                  balanceModal.planPrice - balanceModal.accountBalance
+                )}{" "}
+                تومان
               </Text>
             </Group>
           </Box>
 
           <Group gap="xs" mt="md">
-            <Button 
-              variant="filled" 
+            <Button
+              variant="filled"
               color="blue"
               onClick={() => {
-                setBalanceModal(prev => ({ ...prev, opened: false }));
-                window.location.href = '/account/wallet';
+                setBalanceModal((prev) => ({ ...prev, opened: false }));
+                window.location.href = "/account/wallet";
               }}
             >
               شارژ کیف پول
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setBalanceModal(prev => ({ ...prev, opened: false }))}
+            <Button
+              variant="outline"
+              onClick={() =>
+                setBalanceModal((prev) => ({ ...prev, opened: false }))
+              }
             >
               انصراف
             </Button>
@@ -368,12 +405,16 @@ const purchaseSubscription = async (plan, transactionId) => {
         </Center>
         <Grid mt="xl">
           {subscriptionPlansGet.map((plan) => {
-            const itemInCart = cartItems.find((item) => item.productId === plan.modelId);
-            const isPurchased = subscriptionByUserId?.subscriptions?.find((sub) => sub.modelId === plan.modelId)?.purchased;
+            const itemInCart = cartItems.find(
+              (item) => item.productId === plan.modelId
+            );
+            const isPurchased = subscriptionByUserId?.subscriptions?.find(
+              (sub) => sub.modelId === plan.modelId
+            )?.purchased;
             const accountBalance = subscriptionByUserId?.account_balance || 0;
             const planPrice = plan.price.discountedPrice;
             const hasInsufficientBalance = accountBalance < planPrice;
-          
+
             return (
               <GridCol key={plan._id} span={{ lg: "auto" }}>
                 <Paper
@@ -396,7 +437,11 @@ const purchaseSubscription = async (plan, transactionId) => {
                           {plan.duration}
                         </Title>
                         <Text
-                          style={{ display: "flex", alignItems: "end", gap: "5px" }}
+                          style={{
+                            display: "flex",
+                            alignItems: "end",
+                            gap: "5px",
+                          }}
                           c={theme.primaryColor}
                           size="14px"
                           fw="600"
@@ -413,7 +458,11 @@ const purchaseSubscription = async (plan, transactionId) => {
                     <Stack mt="xl">
                       {plan.features.map((feature, index) => (
                         <Group key={index} align="center">
-                          <ThemeIcon size="sm" variant="transparent" color="orange">
+                          <ThemeIcon
+                            size="sm"
+                            variant="transparent"
+                            color="orange"
+                          >
                             <IconCircleCheckFilled />
                           </ThemeIcon>
                           <Text component="span" size="sm" fw="700" c="dark">
@@ -428,13 +477,15 @@ const purchaseSubscription = async (plan, transactionId) => {
                           h={30}
                           disabled={!!itemInCart || isPurchased}
                           onClick={() => handlePurchaseClick(plan)}
-                          variant={isPurchased || itemInCart ? "outline" : "filled"}
+                          variant={
+                            isPurchased || itemInCart ? "outline" : "filled"
+                          }
                           color={
-                            isPurchased || itemInCart 
-                              ? "gray" 
-                              : hasInsufficientBalance 
-                                ? "orange" 
-                                : "blue"
+                            isPurchased || itemInCart
+                              ? "gray"
+                              : hasInsufficientBalance
+                              ? "orange"
+                              : "blue"
                           }
                         >
                           {isPurchased

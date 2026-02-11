@@ -272,9 +272,7 @@ const Header = () => {
       window.dispatchEvent(new CustomEvent('auth:401'));
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Header] 🔒 401 detected - cleared token and userInitialData cache');
-    }
+
   }, [userInitialError, dispatch, queryClient]);
 
   const handleScroll = useCallback(() => {
@@ -318,51 +316,28 @@ const Header = () => {
 
   // Prevent body scroll when dropdown is open (MOBILE ONLY)
   useEffect(() => {
-    console.log('=== BODY SCROLL LOCK EFFECT ===');
-    console.log('categoryMenuOpened:', categoryMenuOpened);
-    console.log('isSmallScreen:', isSmallScreen);
-    
+  
     if (categoryMenuOpened && isSmallScreen) {
       const scrollY = window.scrollY;
-      console.log('Locking body scroll. Current scrollY:', scrollY);
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
-      console.log('Body styles applied:', {
-        position: document.body.style.position,
-        top: document.body.style.top,
-        overflow: document.body.style.overflow
-      });
+
     } else {
-      console.log('Unlocking body scroll');
       const scrollY = document.body.style.top;
-      console.log('Saved scrollY from top:', scrollY);
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
       document.body.style.overflow = '';
       if (scrollY) {
         const scrollPosition = parseInt(scrollY || '0') * -1;
-        console.log('Restoring scroll to:', scrollPosition);
         window.scrollTo(0, scrollPosition);
       }
     }
   }, [categoryMenuOpened, isSmallScreen]);
 
-  // Debug ref assignment
-  useEffect(() => {
-    console.log('=== DROPDOWN REF CHECK ===');
-    console.log('dropdownScrollRef.current:', dropdownScrollRef.current);
-    if (dropdownScrollRef.current) {
-      console.log('Ref element details:', {
-        scrollHeight: dropdownScrollRef.current.scrollHeight,
-        clientHeight: dropdownScrollRef.current.clientHeight,
-        offsetHeight: dropdownScrollRef.current.offsetHeight,
-        overflowY: window.getComputedStyle(dropdownScrollRef.current).overflowY
-      });
-    }
-  }, [categoryMenuOpened]);
+
 
   // Close profile dropdown when route changes (e.g. after clicking "ورود به حساب کاربری" / account link)
   useEffect(() => {
@@ -446,16 +421,7 @@ const Header = () => {
   // 3. We don't have user data yet
   const shouldShowLoading = !!token && (isLoadingUserData || isFetchingUserData) && !user;
 
-  console.log("Header render:", { 
-    isVerified, 
-    user, 
-    cartData, 
-    token: !!token,
-    isLoadingUserData,
-    isFetchingUserData,
-    shouldShowLoading,
-    authLoading 
-  });
+
 
   const renderNotificationBadge = useCallback(() => {
     if (errorNotificationNumber || !notificationNumber) return null;
@@ -589,8 +555,7 @@ const Header = () => {
                         closeOnItemClick={false}
                         clickOutsideEvents={['mousedown', 'touchstart']}
                         onChange={(opened) => {
-                          console.log('=== MENU onChange ===');
-                          console.log('Menu opened state changed to:', opened);
+
                           setCategoryMenuOpened(opened);
                         }}
                         styles={{ 
@@ -620,22 +585,14 @@ const Header = () => {
                             <div
                               ref={dropdownScrollRef}
                               onTouchStart={(e) => {
-                                console.log('=== BOX TOUCH START ===');
-                                console.log('Touch started on dropdown box');
-                                console.log('dropdownScrollRef.current:', dropdownScrollRef.current);
                               }}
                               onTouchMove={(e) => {
-                                console.log('=== BOX TOUCH MOVE ===');
                                 if (dropdownScrollRef.current) {
-                                  console.log('Scroll position:', dropdownScrollRef.current.scrollTop);
-                                  console.log('Scroll height:', dropdownScrollRef.current.scrollHeight);
-                                  console.log('Client height:', dropdownScrollRef.current.clientHeight);
-                                  console.log('IS SCROLLABLE:', dropdownScrollRef.current.scrollHeight > dropdownScrollRef.current.clientHeight);
+
                                 }
                               }}
                               onScroll={(e) => {
-                                console.log('=== BOX SCROLL EVENT ===');
-                                console.log('Scrolling dropdown, scrollTop:', e.target.scrollTop);
+
                               }}
                               style={{
                                 maxHeight: '200px',

@@ -101,12 +101,12 @@ const SliderComponentSubCategoriesFastEdit = ({
 // Enhanced SVG Icon Component for subcategory fallback
 const SubCategoryIcon = () => (
   <svg 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
+    width="28" 
+    height="28" 
+    viewBox="0 0 28 28" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    className="w-[24px] h-[24px] rounded-full"
+    className="w-[28px] h-[28px] rounded-full"
   >
     <circle cx="12" cy="12" r="11" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
     <circle cx="8" cy="8" r="2" fill="#9CA3AF"/>
@@ -294,8 +294,8 @@ export function SingleCategoryWithSubcategories({
                             <div
                               className='rounded-full overflow-hidden flex-shrink-0 image-container relative'
                               style={{
-                                width: '24px',
-                                height: '24px',
+                                width: '28px',
+                                height: '28px',
                                 lineHeight: 0,
                                 marginRight: 0
                               }}
@@ -304,12 +304,12 @@ export function SingleCategoryWithSubcategories({
                                 <>
                                   <img
                                     className="w-full inline-block"
-                                    style={{ objectFit: 'cover', display: 'block', width: '24px', height: '24px', marginRight: 0 }}
+                                    style={{ objectFit: 'cover', display: 'block', width: '28px', height: '28px', marginRight: 0 }}
                                     src={subCategory.image}
                                     alt={subCategory.name}
                                     onError={(e) => handleImageError(e, subCategory.name)}
-                                    width="24"
-                                    height="24"
+                                    width="28"
+                                    height="28"
                                   />
                                   <div className="fallback-icon absolute inset-0 items-center justify-center" style={{ display: 'none' }}>
                                     <SubCategoryIcon />

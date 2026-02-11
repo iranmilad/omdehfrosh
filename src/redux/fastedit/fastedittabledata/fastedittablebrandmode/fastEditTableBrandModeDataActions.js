@@ -6,7 +6,6 @@ export const fetchFastEditBrandModeTableData = createAsyncThunk(
   "fastEditBrandModeTableData/fetch",
   async (payload, { rejectWithValue, getState }) => {
     
-    console.log('🔥 Fast Edit Redux Action - Received payload:', payload);
 
     const token = localStorage.getItem("user");
 
@@ -63,7 +62,6 @@ export const fetchFastEditBrandModeTableData = createAsyncThunk(
         body: JSON.stringify(requestBody) // Send the processed array without filters
       });
 
-      console.log('🔥 Fast Edit Redux Action - Sending to API (without filters):', requestBody);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

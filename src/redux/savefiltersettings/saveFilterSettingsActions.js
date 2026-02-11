@@ -39,13 +39,7 @@ export const saveFilterSettings = createAsyncThunk(
     let payload = { ...filters, filterName };
     if (slug === "category-fast-order" && Array.isArray(filters?.uniqueIDClickedSubCategoriesBrands)) {
       const normalized = normalizeCategorySubCategoriesBrands(filters.uniqueIDClickedSubCategoriesBrands);
-      if (process.env.NODE_ENV === "development") {
-        console.log("[saveFilterSettings] category-fast-order: normalizing uniqueIDClickedSubCategoriesBrands", {
-          inputLength: filters.uniqueIDClickedSubCategoriesBrands.length,
-          outputLength: normalized.length,
-          sample: normalized[0],
-        });
-      }
+
       payload = {
         ...filters,
         uniqueIDClickedSubCategoriesBrands: normalized,
@@ -54,9 +48,7 @@ export const saveFilterSettings = createAsyncThunk(
     }
 
     try {
-      if (process.env.NODE_ENV === "development") {
-        console.log("[saveFilterSettings] request", { slug, filterName: payload.filterName, hasPayload: !!payload });
-      }
+
       const response = await fetch(getApiUrl(`/save-filters/${slug}/create`), {
         method: "POST",
         headers: new Headers({
@@ -79,12 +71,9 @@ export const saveFilterSettings = createAsyncThunk(
       }
 
       const data = await response.json();
-      if (process.env.NODE_ENV === "development") {
-        console.log("[saveFilterSettings] success", { slug, hasData: !!data, searchesLength: data?.data?.searches?.length });
-      }
+
       return data;
     } catch (error) {
-      console.error("Save filter error:", error);
       return rejectWithValue("Network error or server not responding");
     }
   }

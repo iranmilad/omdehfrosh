@@ -351,15 +351,15 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
       {/* Digikala-style Address Display */}
       <div className="bg-white mb-4">
         <div className="hidden"></div>
-        
+
         {/* Sticky Header */}
-        <div 
+        <div
           className="flex px-4 py-5 pt-4 pb-5"
           style={{
-            position: 'sticky',
+            position: "sticky",
             top: 0,
             zIndex: 100,
-            backgroundColor: 'white',
+            backgroundColor: "white",
           }}
         >
           <div
@@ -369,27 +369,28 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
             آدرس تحویل سفارش
           </div>
 
-          <span 
+          <span
             className="inline-flex items-center cursor-pointer text-[14px] font-bold shrink-0 focus:outline-none mr-auto"
-            style={{ color: '#19A4ED' }}
+            style={{ color: "#19A4ED" }}
             onClick={() => setIsAddressListOpen(true)}
           >
-            <span>{addresses.length > 0 ? 'تغییر یا ویرایش' : 'افزودن آدرس'}</span>
+            <span>
+              {addresses.length > 0 ? "تغییر یا ویرایش" : "افزودن آدرس"}
+            </span>
             <div className="flex">
-            <svg
-              style={{
-                width: '18px',
-                height: '18px',
-                fill: '#5e87c8',
-                transform: 'rotate(180deg)',
-                fontWeight: '700',
-                fontSize: '14px'
-              }}
-              viewBox="0 0 24 24"
-            >
-              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-            </svg>
-
+              <svg
+                style={{
+                  width: "18px",
+                  height: "18px",
+                  fill: "#5e87c8",
+                  transform: "rotate(180deg)",
+                  fontWeight: "700",
+                  fontSize: "14px",
+                }}
+                viewBox="0 0 24 24"
+              >
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+              </svg>
             </div>
           </span>
         </div>
@@ -401,21 +402,35 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
               <div className="text-xs md:text-sm font-bold text-[#111827] flex gap-1 items-center">
                 {selectedAddress.address}
               </div>
-              
+
               <div className="flex items-center justify-between md:flex-row flex-col mt-2">
                 <div className="flex flex-col md:flex-row w-full md:gap-8 gap-1 text-xs font-normal text-[#818588]">
                   <span className="flex gap-1 items-center">
                     <div className="flex">
-                      <svg style={{ width: '16px', height: '16px', fill: '#9ca3af' }} viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      <svg
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          fill: "#9ca3af",
+                        }}
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                       </svg>
                     </div>
                     گیرنده : {selectedAddress.name} {selectedAddress.family}
                   </span>
                   <span className="flex gap-1 items-center">
                     <div className="flex">
-                      <svg style={{ width: '16px', height: '16px', fill: '#9ca3af' }} viewBox="0 0 24 24">
-                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                      <svg
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          fill: "#9ca3af",
+                        }}
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                       </svg>
                     </div>
                     موبایل : {selectedAddress.mobile}
@@ -436,65 +451,66 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
         opened={isAddressListOpen}
         onClose={() => setIsAddressListOpen(false)}
         title="انتخاب آدرس"
-        zIndex={2000} 
+        zIndex={2000}
         size="md"
+        removeScrollProps={{ removeScrollBar: false }}
         centered={false}
         marginBottom={30}
         lockScroll={false}
         removeScrollBar={false}
         styles={{
           root: {
-            marginTop: '0 !important',
-            paddingTop: '0 !important',
-            paddingRight: '0 !important',
-            marginBottom: '30px',
+            marginTop: "0 !important",
+            paddingTop: "0 !important",
+            paddingRight: "0 !important",
+            marginBottom: "30px",
           },
           inner: {
-            marginTop: '0 !important',
-            paddingTop: '0 !important',
+            marginTop: "0 !important",
+            paddingTop: "0 !important",
             paddingBottom: 0,
-            top: '0 !important',
-            alignItems: 'flex-start',
+            top: "0 !important",
+            alignItems: "flex-start",
           },
           content: {
-            marginTop: '0 !important',
-            paddingTop: '0 !important',
-            top: '0 !important',
+            marginTop: "0 !important",
+            paddingTop: "0 !important",
+            top: "0 !important",
             marginBottom: 30,
-            maxHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
+            maxHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
             borderTopLeftRadius: 0,
             borderTopRightRadius: 0,
           },
-          title: { 
-            fontSize: 18, 
+          title: {
+            fontSize: 18,
             fontWeight: 600,
-            marginTop: '0 !important',
-            marginBottom: '0 !important',
-            paddingTop: '0 !important',
-            paddingBottom: '0 !important',
-            margin: '0 !important',
-            padding: '0 !important',
+            marginTop: "0 !important",
+            marginBottom: "0 !important",
+            paddingTop: "0 !important",
+            paddingBottom: "0 !important",
+            margin: "0 !important",
+            padding: "0 !important",
           },
           header: {
-            position: 'sticky',
+            position: "sticky",
             top: 0,
-            marginTop: '0 !important',
+            marginTop: "0 !important",
             marginBottom: 0,
-            paddingTop: '0 !important',
-            paddingBottom: '1rem',
-            paddingLeft: 'var(--mantine-spacing-md)',
-            paddingRight: 'var(--mantine-spacing-md)',
-            margin: '0 !important',
+            paddingTop: "0 !important",
+            paddingBottom: "1rem",
+            paddingLeft: "var(--mantine-spacing-md)",
+            paddingRight: "var(--mantine-spacing-md)",
+            margin: "0 !important",
             zIndex: 101,
-            backgroundColor: 'white',
-            borderBottom: '1px solid #dee2e6',
+            backgroundColor: "white",
+            borderBottom: "1px solid #dee2e6",
           },
           body: {
             marginTop: 0,
             paddingTop: 0,
-            overflowY: 'auto',
+            overflowY: "auto",
             flex: 1,
           },
           close: {
@@ -507,18 +523,22 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
           <Paper
             p="md"
             style={{
-              border: '2px dashed #dee2e6',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
+              border: "2px dashed #dee2e6",
+              cursor: "pointer",
+              transition: "all 0.2s",
             }}
             onClick={handleAddAddress}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = '#5e87c8'}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = '#dee2e6'}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.borderColor = "#5e87c8")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.borderColor = "#dee2e6")
+            }
           >
             <Flex align="center" gap="md">
               <IconPlus size={24} />
               <Text fw={500}>افزودن آدرس جدید</Text>
-              <IconChevronLeft size={20} style={{ marginRight: 'auto' }} />
+              <IconChevronLeft size={20} style={{ marginRight: "auto" }} />
             </Flex>
           </Paper>
 
@@ -532,25 +552,37 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                     value={address.addressId}
                     label={
                       <Box>
-                        <Text fw={500} mb="xs">{address.title}</Text>
-                        <Text size="sm" c="dimmed" mb="sm">{address.address}</Text>
-                        
+                        <Text fw={500} mb="xs">
+                          {address.title}
+                        </Text>
+                        <Text size="sm" c="dimmed" mb="sm">
+                          {address.address}
+                        </Text>
+
                         <Stack gap={8}>
                           <Flex align="center" gap={8}>
                             <IconUser size={16} color="#868e96" />
-                            <Text size="xs" c="dimmed">{address.name} {address.family}</Text>
+                            <Text size="xs" c="dimmed">
+                              {address.name} {address.family}
+                            </Text>
                           </Flex>
                           <Flex align="center" gap={8}>
                             <IconPhone size={16} color="#868e96" />
-                            <Text size="xs" c="dimmed">{address.mobile}</Text>
+                            <Text size="xs" c="dimmed">
+                              {address.mobile}
+                            </Text>
                           </Flex>
                           <Flex align="center" gap={8}>
                             <IconMapPin size={16} color="#868e96" />
-                            <Text size="xs" c="dimmed">{address.postalCode}</Text>
+                            <Text size="xs" c="dimmed">
+                              {address.postalCode}
+                            </Text>
                           </Flex>
                           <Flex align="center" gap={8}>
                             <IconHome size={16} color="#868e96" />
-                            <Text size="xs" c="dimmed">{address.city}، {address.province}</Text>
+                            <Text size="xs" c="dimmed">
+                              {address.city}، {address.province}
+                            </Text>
                           </Flex>
                         </Stack>
 
@@ -561,7 +593,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                             leftSection={<IconEdit size={14} />}
                             onClick={(e) => {
                               e.stopPropagation();
-                                    setIsAddressListOpen(false); 
+                              setIsAddressListOpen(false);
 
                               handleEditAddress(address);
                             }}
@@ -595,22 +627,24 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
       <Modal
         opened={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingAddress ? 'ویرایش آدرس' : 'افزودن آدرس جدید'}
+        title={editingAddress ? "ویرایش آدرس" : "افزودن آدرس جدید"}
         size="lg"
+                removeScrollProps={{ removeScrollBar: false }}
+
         zIndex={2100}
         lockScroll={false}
         removeScrollBar={false}
         styles={{
           root: {
-            paddingRight: '0 !important',
+            paddingRight: "0 !important",
           },
           header: {
-            position: 'sticky',
+            position: "sticky",
             top: 0,
             zIndex: 10,
-            backgroundColor: 'var(--mantine-color-body)',
-            borderBottom: '1px solid #e9ecef',
-            paddingBottom: 'var(--mantine-spacing-md)',
+            backgroundColor: "var(--mantine-color-body)",
+            borderBottom: "1px solid #e9ecef",
+            paddingBottom: "var(--mantine-spacing-md)",
             margin: 0,
             marginTop: 0,
             paddingTop: 0,
@@ -621,22 +655,22 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
             paddingTop: 0,
           },
           body: {
-            paddingTop: 'var(--mantine-spacing-md)',
-            paddingBottom: 'var(--mantine-spacing-lg)',
-            maxHeight: 'calc(100vh - 140px)',
-            overflowY: 'auto',
-            overflowX: 'hidden',
+            paddingTop: "var(--mantine-spacing-md)",
+            paddingBottom: "var(--mantine-spacing-lg)",
+            maxHeight: "calc(100vh - 140px)",
+            overflowY: "auto",
+            overflowX: "hidden",
             marginBottom: 0,
           },
           content: {
-            overflow: 'visible',
-            display: 'flex',
-            flexDirection: 'column',
-            maxHeight: '90vh',
+            overflow: "visible",
+            display: "flex",
+            flexDirection: "column",
+            maxHeight: "90vh",
           },
           inner: {
             padding: 0,
-          }
+          },
         }}
       >
         <Stack gap="md">
@@ -644,7 +678,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
             label="عنوان آدرس"
             placeholder="مثال: منزل، محل کار"
             withAsterisk
-            {...form.getInputProps('title')}
+            {...form.getInputProps("title")}
           />
 
           <Grid>
@@ -652,14 +686,14 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
               <TextInput
                 label="نام"
                 withAsterisk
-                {...form.getInputProps('name')}
+                {...form.getInputProps("name")}
               />
             </GridCol>
             <GridCol span={6}>
               <TextInput
                 label="نام خانوادگی"
                 withAsterisk
-                {...form.getInputProps('family')}
+                {...form.getInputProps("family")}
               />
             </GridCol>
           </Grid>
@@ -671,9 +705,9 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                 component={IMaskInput}
                 mask="0000 000 0000"
                 dir="ltr"
-                styles={{ input: { textAlign: 'left' } }}
+                styles={{ input: { textAlign: "left" } }}
                 withAsterisk
-                {...form.getInputProps('mobile')}
+                {...form.getInputProps("mobile")}
               />
             </GridCol>
             <GridCol span={6}>
@@ -682,8 +716,8 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                 component={IMaskInput}
                 mask="0000000000"
                 dir="ltr"
-                styles={{ input: { textAlign: 'left' } }}
-                {...form.getInputProps('nationalCode')}
+                styles={{ input: { textAlign: "left" } }}
+                {...form.getInputProps("nationalCode")}
               />
             </GridCol>
           </Grid>
@@ -700,7 +734,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                 zIndex={2200}
                 value={form.values.province}
                 onChange={(value) => {
-                  form.setFieldValue('province', value);
+                  form.setFieldValue("province", value);
                 }}
                 error={form.errors.province}
                 comboboxProps={{ withinPortal: true, zIndex: 2200 }}
@@ -717,8 +751,8 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                 label="شهر"
                 placeholder={
                   form.values.province
-                    ? 'انتخاب شهر'
-                    : 'ابتدا استان را انتخاب کنید'
+                    ? "انتخاب شهر"
+                    : "ابتدا استان را انتخاب کنید"
                 }
                 searchable
                 disabled={!form.values.province}
@@ -726,7 +760,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                 withinPortal
                 zIndex={2200}
                 value={form.values.city}
-                onChange={(value) => form.setFieldValue('city', value)}
+                onChange={(value) => form.setFieldValue("city", value)}
                 error={form.errors.city}
                 comboboxProps={{ withinPortal: true, zIndex: 2200 }}
                 styles={{
@@ -743,7 +777,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
             placeholder="آدرس دقیق محل تحویل"
             rows={4}
             withAsterisk
-            {...form.getInputProps('address')}
+            {...form.getInputProps("address")}
           />
 
           <TextInput
@@ -753,7 +787,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
             mask="0000000000"
             dir="ltr"
             withAsterisk
-            {...form.getInputProps('postalCode')}
+            {...form.getInputProps("postalCode")}
           />
 
           <Group justify="flex-end" mt="md">
@@ -761,7 +795,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
               انصراف
             </Button>
             <Button onClick={handleSubmitAddress}>
-              {editingAddress ? 'ذخیره تغییرات' : 'افزودن آدرس'}
+              {editingAddress ? "ذخیره تغییرات" : "افزودن آدرس"}
             </Button>
           </Group>
         </Stack>

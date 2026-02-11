@@ -106,6 +106,7 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
     <Modal
       opened={opened}
       onClose={handleClose}
+      removeScrollProps={{ removeScrollBar: false }}
       zIndex={1006}
       title="ثبت قیمت ارز"
       size="md"
@@ -120,57 +121,57 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
       withCloseButton={true}
       styles={{
         root: {
-          marginTop: '0 !important',
-          paddingTop: '0 !important',
-          paddingRight: '0 !important',
+          marginTop: "0 !important",
+          paddingTop: "0 !important",
+          paddingRight: "0 !important",
         },
         inner: {
-          marginTop: '0 !important',
-          paddingTop: '0 !important',
+          marginTop: "0 !important",
+          paddingTop: "0 !important",
           paddingBottom: 0,
-          top: '0 !important',
-          alignItems: 'flex-start',
+          top: "0 !important",
+          alignItems: "flex-start",
         },
         content: {
-          marginTop: '0 !important',
-          paddingTop: '0 !important',
-          top: '0 !important',
-          maxHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
+          marginTop: "0 !important",
+          paddingTop: "0 !important",
+          top: "0 !important",
+          maxHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: "12px",
         },
         title: {
           fontSize: 18,
           fontWeight: 600,
-          marginTop: '0 !important',
-          marginBottom: '0 !important',
-          paddingTop: '0 !important',
-          paddingBottom: '0 !important',
-          margin: '0 !important',
-          padding: '0 !important',
+          marginTop: "0 !important",
+          marginBottom: "0 !important",
+          paddingTop: "0 !important",
+          paddingBottom: "0 !important",
+          margin: "0 !important",
+          padding: "0 !important",
         },
         header: {
-          position: 'sticky',
+          position: "sticky",
           top: 0,
-          marginTop: '0 !important',
+          marginTop: "0 !important",
           marginBottom: 0,
-          paddingTop: '0 !important',
-          paddingBottom: '1rem',
-          paddingLeft: 'var(--mantine-spacing-md)',
-          paddingRight: 'var(--mantine-spacing-md)',
-          margin: '0 !important',
+          paddingTop: "0 !important",
+          paddingBottom: "1rem",
+          paddingLeft: "var(--mantine-spacing-md)",
+          paddingRight: "var(--mantine-spacing-md)",
+          margin: "0 !important",
           zIndex: 101,
-          backgroundColor: 'white',
-          borderBottom: '1px solid #dee2e6',
+          backgroundColor: "white",
+          borderBottom: "1px solid #dee2e6",
         },
         body: {
           marginTop: 0,
           paddingTop: 0,
-          paddingLeft: 'var(--mantine-spacing-md)',
-          paddingRight: 'var(--mantine-spacing-md)',
-          paddingBottom: 'var(--mantine-spacing-lg)',
-          overflowY: 'auto',
+          paddingLeft: "var(--mantine-spacing-md)",
+          paddingRight: "var(--mantine-spacing-md)",
+          paddingBottom: "var(--mantine-spacing-lg)",
+          overflowY: "auto",
           flex: 1,
         },
         close: {
@@ -188,8 +189,12 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
           <Select
             label={
               <Flex align="center" gap={4} mb={8}>
-                <Text component="span" c="red" size="sm" fw={500}>*</Text>
-                <Text size="sm" fw={500} c="#374151">نوع ارز</Text>
+                <Text component="span" c="red" size="sm" fw={500}>
+                  *
+                </Text>
+                <Text size="sm" fw={500} c="#374151">
+                  نوع ارز
+                </Text>
               </Flex>
             }
             placeholder="انتخاب ارز"
@@ -202,30 +207,30 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
             withAsterisk={false}
             styles={{
               input: {
-                borderColor: '#d1d5db',
-                backgroundColor: '#ffffff',
-                color: '#1f2937',
+                borderColor: "#d1d5db",
+                backgroundColor: "#ffffff",
+                color: "#1f2937",
                 fontWeight: 500,
-                '&:focus': {
-                  borderColor: '#3b82f6',
+                "&:focus": {
+                  borderColor: "#3b82f6",
                 },
-                '&:disabled': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#9ca3af',
+                "&:disabled": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#9ca3af",
                   opacity: 0.7,
                 },
               },
               dropdown: {
-                borderColor: '#d1d5db',
+                borderColor: "#d1d5db",
               },
               item: {
-                color: '#1f2937',
-                '&[data-selected]': {
-                  backgroundColor: '#3b82f6',
-                  color: '#ffffff',
+                color: "#1f2937",
+                "&[data-selected]": {
+                  backgroundColor: "#3b82f6",
+                  color: "#ffffff",
                 },
-                '&:hover': {
-                  backgroundColor: '#eff6ff',
+                "&:hover": {
+                  backgroundColor: "#eff6ff",
                 },
               },
             }}
@@ -234,8 +239,12 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
           <NumberInput
             label={
               <Flex align="center" gap={4} mb={8}>
-                <Text component="span" c="red" size="sm" fw={500}>*</Text>
-                <Text size="sm" fw={500} c="#374151">قیمت ارز (به تومان)</Text>
+                <Text component="span" c="red" size="sm" fw={500}>
+                  *
+                </Text>
+                <Text size="sm" fw={500} c="#374151">
+                  قیمت ارز (به تومان)
+                </Text>
               </Flex>
             }
             placeholder="مثلا: 55000"
@@ -251,41 +260,41 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
             withAsterisk={false}
             styles={{
               input: {
-                textAlign: 'right',
-                borderColor: '#d1d5db',
-                backgroundColor: '#ffffff',
-                color: '#1f2937',
+                textAlign: "right",
+                borderColor: "#d1d5db",
+                backgroundColor: "#ffffff",
+                color: "#1f2937",
                 fontWeight: 500,
-                fontSize: '16px',
-                '&:focus': {
-                  borderColor: '#3b82f6',
+                fontSize: "16px",
+                "&:focus": {
+                  borderColor: "#3b82f6",
                 },
-                '&:disabled': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#9ca3af',
+                "&:disabled": {
+                  backgroundColor: "#f3f4f6",
+                  color: "#9ca3af",
                   opacity: 0.7,
                 },
-                '&::placeholder': {
-                  color: '#9ca3af',
+                "&::placeholder": {
+                  color: "#9ca3af",
                 },
               },
             }}
           />
-          
-          <Text 
-            size="sm" 
-            c={displayPrice ? '#059669' : '#6b7280'}
+
+          <Text
+            size="sm"
+            c={displayPrice ? "#059669" : "#6b7280"}
             style={{
-              backgroundColor: displayPrice ? '#d1fae5' : '#f3f4f6',
-              padding: '12px 16px',
-              borderRadius: '8px',
-              border: `1px solid ${displayPrice ? '#a7f3d0' : '#e5e7eb'}`,
+              backgroundColor: displayPrice ? "#d1fae5" : "#f3f4f6",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              border: `1px solid ${displayPrice ? "#a7f3d0" : "#e5e7eb"}`,
               lineHeight: 1.6,
             }}
           >
-            {displayPrice 
-              ? '✓ قیمت فعلی نمایش داده شده است. می‌توانید آن را به‌روزرسانی کنید.'
-              : 'ℹ این قیمت برای محاسبات ارزی در سیستم استفاده خواهد شد'}
+            {displayPrice
+              ? "✓ قیمت فعلی نمایش داده شده است. می‌توانید آن را به‌روزرسانی کنید."
+              : "ℹ این قیمت برای محاسبات ارزی در سیستم استفاده خواهد شد"}
           </Text>
 
           <Group position="right" mt="md" spacing="sm">
@@ -297,15 +306,15 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
               size="md"
               styles={{
                 root: {
-                  backgroundColor: '#f3f4f6',
-                  color: '#4b5563',
+                  backgroundColor: "#f3f4f6",
+                  color: "#4b5563",
                   fontWeight: 500,
-                  '&:hover': {
-                    backgroundColor: '#e5e7eb',
+                  "&:hover": {
+                    backgroundColor: "#e5e7eb",
                   },
-                  '&:disabled': {
-                    backgroundColor: '#f9fafb',
-                    color: '#d1d5db',
+                  "&:disabled": {
+                    backgroundColor: "#f9fafb",
+                    color: "#d1d5db",
                   },
                 },
               }}
@@ -319,21 +328,21 @@ const CurrencyPriceModal = ({ opened, onClose, currencyPriceFromCache, currencyP
               size="md"
               styles={{
                 root: {
-                  backgroundColor: '#f59e0b',
-                  color: '#ffffff',
+                  backgroundColor: "#f59e0b",
+                  color: "#ffffff",
                   fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: '#d97706',
+                  "&:hover": {
+                    backgroundColor: "#d97706",
                   },
-                  '&:disabled': {
-                    backgroundColor: '#fde68a',
-                    color: '#d1d5db',
+                  "&:disabled": {
+                    backgroundColor: "#fde68a",
+                    color: "#d1d5db",
                     opacity: 0.6,
                   },
                 },
               }}
             >
-              {loading ? 'در حال ثبت...' : 'ثبت قیمت'}
+              {loading ? "در حال ثبت..." : "ثبت قیمت"}
             </Button>
           </Group>
         </Stack>

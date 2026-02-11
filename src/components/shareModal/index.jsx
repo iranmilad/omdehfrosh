@@ -8,6 +8,7 @@ function ShareModal({close,opened,link,children}) {
   return (
     <Modal
       centered
+      removeScrollProps={{ removeScrollBar: false }}
       title="اشتراک گذاری"
       onClose={close}
       opened={opened}
@@ -15,9 +16,7 @@ function ShareModal({close,opened,link,children}) {
       removeScrollBar={false}
     >
       <Stack>
-        <Text size="sm">
-          {children}
-        </Text>
+        <Text size="sm">{children}</Text>
         <Button
           size="sm"
           variant="light"

@@ -1073,6 +1073,7 @@ function FastEdit() {
         onClose={() => {}}
         title="ورود به حساب کاربری"
         centered
+        removeScrollProps={{ removeScrollBar: false }}
         withCloseButton={false}
         closeOnClickOutside={false}
         zIndex={authModalZIndex}
@@ -1110,6 +1111,7 @@ function FastEdit() {
         centered
         withCloseButton={false}
         closeOnClickOutside={false}
+        removeScrollProps={{ removeScrollBar: false }}
         zIndex={authModalZIndex}
         styles={authModalStyles}
         overlayProps={authModalOverlayProps}

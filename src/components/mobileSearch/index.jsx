@@ -39,13 +39,7 @@ function MobileSearch({ opened, close }) {
   // Get search results from Redux
   const { results, loading, error } = useSelector((state) => state.search);
 
-  // Debug: Log results when they change
-  useEffect(() => {
-    console.log('📦 MobileSearch results from Redux:', results);
-    console.log('📦 Products:', results?.products);
-    console.log('📦 Brands:', results?.brands);
-    console.log('📦 Categories:', results?.categories);
-  }, [results]);
+
 
   // Results is already an object with products, brands, categories from the Redux slice
   // No transformation needed since the slice already parses it
@@ -54,7 +48,6 @@ function MobileSearch({ opened, close }) {
   // Trigger search when debounced value changes
   useEffect(() => {
     if (debounced && debounced.length > 2) {
-      console.log('🔎 MobileSearch: Dispatching search for:', debounced);
       dispatch(getSearchResults({ query: debounced }));
     } else if (debounced.length === 0) {
       dispatch(clearSearchResults());
@@ -79,17 +72,7 @@ function MobileSearch({ opened, close }) {
   const hasBrands = transformedResults?.brands?.length > 0;
   const hasResults = hasProducts || hasCategories || hasBrands;
 
-  // Debug render conditions
-  console.log('🎨 Render conditions:', {
-    debounced,
-    debouncedLength: debounced.length,
-    loading,
-    error,
-    hasResults,
-    hasProducts,
-    hasBrands,
-    hasCategories
-  });
+
 
   // Skeleton Loading Component
   const SkeletonLoading = () => (

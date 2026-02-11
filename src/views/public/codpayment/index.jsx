@@ -28,10 +28,7 @@ const CODPaymentPage = () => {
 
   // Reset state when component mounts or location changes
   useEffect(() => {
-    // console.log('=== CODPaymentPage mounted/updated ===');
-    // console.log('OrderId:', orderId);
-    // console.log('Amount:', amount);
-    
+
     // Reset all state
     setLoading(false);
     setOrderDetails(null);
@@ -64,7 +61,6 @@ const CODPaymentPage = () => {
       return;
     }
 
-    // console.log('=== Checking order status ===');
 
     try {
       const ordersResponse = await fetch(getApiUrl('/orders/allordersbyuserid'), {
@@ -76,12 +72,10 @@ const CODPaymentPage = () => {
       });
 
       if (!ordersResponse.ok) {
-        // console.log('Failed to fetch orders:', ordersResponse.status);
         throw new Error('Failed to fetch orders');
       }
 
       const ordersData = await ordersResponse.json();
-      // console.log('Orders response:', ordersData);
       
       let currentOrder = null;
 
@@ -91,7 +85,6 @@ const CODPaymentPage = () => {
         );
       }
       
-      // console.log('Current order found:', currentOrder);
       
       if (currentOrder) {
         setOrderDetails(currentOrder);
@@ -100,15 +93,9 @@ const CODPaymentPage = () => {
         const isConfirmed = 
           currentOrder.status === 'processing' || 
           currentOrder.status === 'complete';
-        
-        // console.log('COD confirmation check:', {
-        //   status: currentOrder.status,
-        //   isPaid: currentOrder.isPaid,
-        //   result: isConfirmed
-        // });
+
         
         if (isConfirmed) {
-          // console.log('Order is already confirmed!');
           setIsAlreadyConfirmed(true);
           setLoadingDetails(false);
           
@@ -128,13 +115,11 @@ const CODPaymentPage = () => {
           return;
         }
       } else {
-        // console.log('Order not found in orders list - proceeding with COD confirmation');
       }
 
       setLoadingDetails(false);
 
     } catch (error) {
-      // console.error('Error checking order status:', error);
       setLoadingDetails(false);
     }
   };

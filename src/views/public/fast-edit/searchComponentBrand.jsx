@@ -303,7 +303,6 @@ const SearchComponentBrandFastEdit = ({
     dispatch(clearSaveFilterState());
   }, [saveError, dispatch]);
 
-  console.log("render SearchComponentBrand Fast Edit", storedFilters);
 
   return (
     <>

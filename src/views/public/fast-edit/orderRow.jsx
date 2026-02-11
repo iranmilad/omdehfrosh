@@ -131,7 +131,6 @@ function Attribute (props){
   let { type, attribute_name, value, label } = props;
   const [opened, setOpened] = useState(false);
 
-  console.log('Attribute Props:', props);
 
   const getIconForType = () => {
     switch (type?.toLowerCase()) {

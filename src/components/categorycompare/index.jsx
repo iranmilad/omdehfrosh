@@ -89,24 +89,9 @@ function CategoryCompare({ enabled, url = "/seller/123/products", slug: propSlug
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, slug, queryKey, enabled]);
 
-  // Log for debugging
-  useEffect(() => {
-    if (enabled && slug) {
-      console.log('CategoryCompare: Fetching data for slug:', slug);
-    }
-  }, [enabled, slug]);
 
-  useEffect(() => {
-    if (errorCategoryData) {
-      console.error('CategoryCompare: Error fetching category data:', errorCategoryData);
-    }
-    if (categoryData) {
-      console.log('CategoryCompare: Received data:', {
-        productsCount: categoryData?.products?.length || 0,
-        hasProducts: !!(categoryData?.products && categoryData.products.length > 0)
-      });
-    }
-  }, [errorCategoryData, categoryData]);
+
+
 
   useEffect(() => {
     if (categoryData) {

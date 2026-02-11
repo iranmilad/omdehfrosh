@@ -628,22 +628,7 @@ const Basket = () => {
   // Extract addresses from the response
   const userAddresses = addressesData?.addresses ?? addressesData?.data?.addresses ?? [];
 
-  // Log cart data for debugging
-  useEffect(() => {
-    if (directCartData) {
-      console.log("[Basket] Direct cart (React Query) result:", {
-        hasCart: !!directCartData.cart,
-        cartLength: directCartData.cart?.length,
-        total: directCartData.total,
-        firstItem: directCartData.cart?.[0] ? {
-          productId: directCartData.cart[0].productId,
-          name: directCartData.cart[0].name,
-          price: directCartData.cart[0].price,
-          image: directCartData.cart[0].image,
-        } : null,
-      });
-    }
-  }, [directCartData]);
+
 
   const [initialCartLoaded, setInitialCartLoaded] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -727,43 +712,13 @@ const Basket = () => {
 
   useEffect(() => {
     if (!userInitialData) {
-      console.log("[Basket] sync effect: userInitialData is null/undefined, skipping");
       return;
     }
     const rawCart = getCartFromUserInitialData(userInitialData);
     const normalizedCart = getValidCartItems(rawCart);
     const total = userInitialData.total ?? userInitialData.data?.total ?? 0;
-    if (process.env.NODE_ENV === "development" && rawCart.length > 0 && normalizedCart.length === 0) {
-      console.log("[Basket] sync effect: raw cart item shape (first)", {
-        firstRawItemKeys: Object.keys(rawCart[0]),
-        firstRawItem: rawCart[0],
-      });
-    }
-    console.log("[Basket] sync effect ran", {
-      userInitialDataKeys: Object.keys(userInitialData),
-      hasData: !!userInitialData.data,
-      rawCartLength: rawCart.length,
-      normalizedCartLength: normalizedCart.length,
-      total,
-      // Debug: show first raw item to see price/image structure
-      firstRawItem: rawCart[0] ? {
-        id: rawCart[0].id,
-        productId: rawCart[0].productId,
-        title: rawCart[0].title,
-        name: rawCart[0].name,
-        count: rawCart[0].count,
-        price: rawCart[0].price,
-        unit_price: rawCart[0].unit_price,
-        image: rawCart[0].image,
-        images: rawCart[0].images,
-      } : null,
-      // Debug: show first normalized item
-      firstNormalizedItem: normalizedCart[0] ? {
-        productId: normalizedCart[0].productId,
-        count: normalizedCart[0].count,
-        price: normalizedCart[0].price,
-      } : null,
-    });
+
+
     setCartData({ cart: normalizedCart, total });
     dispatch(setInitial([...normalizedCart]));
     setInitialCartLoaded(true);
@@ -777,15 +732,7 @@ const Basket = () => {
     
     const normalizedDirectCart = getValidCartItems(directCartData.cart);
     if (normalizedDirectCart.length > 0) {
-      console.log("[Basket] Syncing directCartData to Redux:", {
-        itemCount: normalizedDirectCart.length,
-        total: directCartData.total,
-        firstItem: normalizedDirectCart[0] ? {
-          productId: normalizedDirectCart[0].productId,
-          name: normalizedDirectCart[0].name,
-          price: normalizedDirectCart[0].price,
-        } : null,
-      });
+
       dispatch(setInitial([...normalizedDirectCart]));
       setCartData({ cart: normalizedDirectCart, total: directCartData.total });
     }
@@ -853,24 +800,6 @@ const Basket = () => {
   const isOverallLoading = isAuthLoading || isCartLoading;
   const isPageLoading = isOverallLoading || isRemoving || isFetchingUserData;
 
-  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-    console.log("[Basket] loading state", {
-      token: !!token,
-      isLoadingUserData,
-      userInitialDataDefined: userInitialData != null,
-      directCartLoading,
-      directCartDataDefined: directCartData != null,
-      directCartLength: directCartData?.cart?.length,
-      directCartTotal: directCartData?.total,
-      addressesLoading,
-      addressesCount: userAddresses.length,
-      initialCartLoaded,
-      isAuthLoading,
-      isCartLoading,
-      isOverallLoading,
-      showingLoadingComponent: isOverallLoading,
-    });
-  }
 
   // Derive display items - prefer directCartData (from /cart endpoint) which has proper prices
   // Fallback to userInitialData.cart, then cartData state, then Redux
@@ -889,39 +818,7 @@ const Basket = () => {
         : validReduxItems;
   const hasItems = displayItems.length > 0;
 
-  // ---- Basket page debug: find why items/calc empty after refresh ----
-  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-    console.log("[Basket] render debug", {
-      userInitialDataDefined: userInitialData != null,
-      userInitialDataType: userInitialData == null ? "null" : typeof userInitialData,
-      userInitialDataKeys: userInitialData ? Object.keys(userInitialData) : [],
-      userInitialDataCart: userInitialData?.cart,
-      userInitialDataDataCart: userInitialData?.data?.cart,
-      rawCartFromApiLength: rawCartFromApi.length,
-      rawCartFromApiFirstItemKeys: rawCartFromApi[0] ? Object.keys(rawCartFromApi[0]) : [],
-      normalizedFromApiLength: normalizedFromApi.length,
-      cartDataState: cartData,
-      fromCartDataLength: fromCartData.length,
-      reduxItemsLength: reduxItems.length,
-      reduxItemsFirstItemKeys: reduxItems[0] ? Object.keys(reduxItems[0]) : [],
-      validReduxItemsLength: validReduxItems.length,
-      displayItemsLength: displayItems.length,
-      hasItems,
-      source: directCartItems.length > 0 ? "directCart (/cart endpoint)" 
-        : normalizedFromApi.length > 0 ? "normalizedFromApi (userInitialData)" 
-        : fromCartData.length > 0 ? "fromCartData (state)" 
-        : "validReduxItems",
-      // Debug: first displayItem to verify price/image normalization
-      firstDisplayItem: displayItems[0] ? {
-        productId: displayItems[0].productId,
-        name: displayItems[0].name,
-        count: displayItems[0].count,
-        price: displayItems[0].price,
-        image: displayItems[0].image,
-        images: displayItems[0].images,
-      } : null,
-    });
-  }
+
 
   if (!token) {
     return (
