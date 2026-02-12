@@ -164,7 +164,7 @@ import { getOrderByReceiptID } from "../../redux/orders/orders/getorderbyreceipt
                             <Text size="sm" fw="600">
                               {item.item.name}
                             </Text>
-                            {!item.item.productId?.includes("subscription") && (
+                            {!String(item.item.productId ?? '').includes("subscription") && (
                               // ✅ FIXED: Use dynamic attribute rendering
                               renderAttributesStructured(item)
                             )}

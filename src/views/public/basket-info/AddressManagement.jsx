@@ -4,7 +4,6 @@ import {
   Button,
   TextInput,
   Select,
-  Autocomplete,
   Textarea,
   Paper,
   Text,
@@ -728,7 +727,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                 data={Provinces}
                 label="استان"
                 placeholder="انتخاب استان"
-                searchable
+                searchable={false}
                 withAsterisk
                 withinPortal
                 zIndex={2200}
@@ -746,7 +745,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
               />
             </GridCol>
             <GridCol span={6}>
-              <Autocomplete
+              <Select
                 data={cities}
                 label="شهر"
                 placeholder={
@@ -754,7 +753,7 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
                     ? "انتخاب شهر"
                     : "ابتدا استان را انتخاب کنید"
                 }
-                searchable
+                searchable={false}
                 disabled={!form.values.province}
                 withAsterisk
                 withinPortal

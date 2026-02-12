@@ -519,7 +519,7 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
                             {item.item.name}
                           </Text>
                           
-                          {!item.item.productId?.includes("subscription") && (
+                          {!String(item.item.productId ?? '').includes("subscription") && (
                             renderAttributesStructured(item)
                           )}
 
