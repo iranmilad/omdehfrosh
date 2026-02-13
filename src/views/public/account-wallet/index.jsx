@@ -158,8 +158,12 @@ function Account_Wallet() {
     enabled: true,
     queryOptions: { refetchOnMount: false },
   });
-  const fetchedGateways = Array.isArray(gatewaysData) ? gatewaysData : (gatewaysData?.gateways ?? []);
+  const allGateways = Array.isArray(gatewaysData) ? gatewaysData : (gatewaysData?.gateways ?? []);
+  // In wallet, only show "online" payment methods (e.g. bank gateway), not cod or wallet
+  const fetchedGateways = allGateways.filter((g) => g?.info?.paymentMethod === "online");
   const loading = gatewaysLoading;
+
+  console.log("fetchedGateways:", fetchedGateways);
 
   const { updateuser, errorUpdateUser } = useSelector((state) => state.updateUserInfo);
   const { withdrawResult, loadingWithdraw, errorWithdraw } = useSelector((state) => state.walletWithDrawal);

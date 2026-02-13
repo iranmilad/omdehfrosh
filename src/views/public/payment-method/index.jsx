@@ -220,6 +220,8 @@ const PaymentMethod = () => {
     meta: { showErrorNotification: false },
   });
 
+  
+
   // Final receipt (GET) - cached with React Query; display prefers cache, Redux fallback
   const {
     data: finalReceiptData,
@@ -290,6 +292,8 @@ const PaymentMethod = () => {
     : null) ?? gatewaysFromRedux ?? [];
   const loading = gatewaysLoading;
 
+  console.log("gatewaysData:", fetchedGateways);
+
   const [cookies, setCookie] = useCookies(["user"]);
   const [pageActive, setPageActive] = useState(false);
   const { isVerified: isVerifiedRedux } = useSelector((state) => state.auth);
@@ -343,18 +347,18 @@ const PaymentMethod = () => {
     }
   }, [authError, dispatch, clearAuthAndShowReloginModal]);
 
-  // Updated cards mapping with improved icon handling
+  // Selection by gateway name (unique per gateway); backend still receives gateway.name; isWallet/isCOD use paymentMethod
   const cards = fetchedGateways?.map((item) => (
     <Radio.Card
       p="lg"
       radius="md"
-      value={item?.info.name} 
-      key={item?.info.name}
+      value={item?.info?.name}
+      key={item?._id ?? item?.info?.name}
       defaultChecked
       styles={{
         card: {
           borderColor:
-            form.getValues().gateway.name === item?.info.name
+            form.getValues().gateway?.name === item?.info?.name
               ? "var(--mantine-primary-color-5)"
               : "transparent",
         },
@@ -365,7 +369,7 @@ const PaymentMethod = () => {
         <div
           style={{
             color:
-              form.getValues().gateway.name === item.info.name
+              form.getValues().gateway?.name === item?.info?.name
                 ? "var(--mantine-primary-color-5)"
                 : "var(--mantine-color-gray-6)",
           }}
@@ -452,8 +456,8 @@ const PaymentMethod = () => {
           </div>
         </div>
 
-        <Grid gutter="xl">
-        <Grid.Col span={{ base: 12, lg: 8 }}>
+        <Grid columns={20} gutter="sm">
+        <Grid.Col span={{ base: 20, lg: 14 }}>
           {/* روش پرداخت Section */}
           <div className="w-full lg:rounded-medium bg-white border p-4 mb-4">
             <div className="text-[16px] md:text-[20px] font-bold mb-1 text-gray-700">
@@ -462,21 +466,21 @@ const PaymentMethod = () => {
 
             <div className="mt-3 flex flex-col gap-2">
               {fetchedGateways.map((gateway) => {
-                const isSelected = form.values.gateway?.name === gateway.info.name;
-                const isWallet = gateway.info.name === 'wallet';
+                const isSelected = form.values.gateway?.name === gateway.info?.name;
+                const isWallet = gateway.info?.paymentMethod === 'wallet';
 
                 return (
                   <label
-                    key={gateway.info.name}
+                    key={gateway._id ?? gateway.info?.name}
                     className={`rounded-lg px-3 py-2 border-2 border-solid cursor-pointer ${isSelected ? 'border-[#29b6f6]' : 'border-gray-200'
                       }`}
                   >
                     <div className="flex items-center rounded-sm">
                       <input
-                        id={gateway.info.name}
+                        id={gateway.info?.name}
                         className="hidden"
                         type="radio"
-                        value={gateway.info.name}
+                        value={gateway.info?.name}
                         checked={isSelected}
                         onChange={() => form.setValues({ gateway: gateway.info })}
                         name="payment-gateway"
@@ -550,7 +554,7 @@ const PaymentMethod = () => {
           </div>
 
           {/* PaymentCalcReceipt */}
-          {form.getValues().gateway?.name && (
+          {form.getValues().gateway?.paymentMethod != null && (
             <div className="w-full">
               <PaymentCalcReceipt
                 prev={{ to: "/basket-info", component: NavLink }}
@@ -563,7 +567,11 @@ const PaymentMethod = () => {
           )}
         </Grid.Col>
             
-        <Grid.Col span={{ base: 12, lg: 4 }} px={0}>
+        <Grid.Col
+          span={{ base: 20, lg: 6 }}
+          // pl={{ base: 0, lg: 'md' }}
+          style={{ position: 'sticky', top: 20, alignSelf: 'flex-start', marginTop: 0 }}
+        >
           <PaymentSummary orderfinalreceipt={orderfinalreceipt} />
         </Grid.Col>
         </Grid>
@@ -647,55 +655,53 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
 
   const applyDiscount = async (values) => {
     try {
-      const response = await dispatch(updateFinalReceiptWithDiscount({ 
-        discountCode: values.code, 
-        paymentMethod: gateway 
+      const result = await dispatch(updateFinalReceiptWithDiscount({
+        discountCode: values.code,
+        paymentMethod: gateway,
       }));
 
-      if (response?.payload?.status === "OK") {
+      if (updateFinalReceiptWithDiscount.fulfilled.match(result)) {
         setIsDiscountApplied(true);
         notifications.show({
           title: "پیام سیستم",
           message: "کد تخفیف و روش پرداخت اعمال شد!",
           color: "green",
         });
-        // Single refetch instead of invalidate to avoid repeated API request loop
         if (queryClient) {
           queryClient.refetchQueries({ queryKey: ["finalReceipt"] });
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
+          queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         }
       }
-      // No error toast on this page for apply discount (401 → relogin modal only)
     } catch (error) {
       if (error?.status === 401 || error?.response?.status === 401) {
         clearAuthAndShowReloginModal();
       }
-      // No error toast on this page
     }
   };
 
   const removeDiscount = async () => {
     try {
-      const response = await dispatch(updateFinalReceiptDeleteDiscountCode({ 
-        discountCode: orderfinalreceipt.cartDiscounts.discountCode.code, 
+      const result = await dispatch(updateFinalReceiptDeleteDiscountCode({
+        discountCode: orderfinalreceipt.cartDiscounts.discountCode.code,
       }));
 
-      if (response?.payload?.status === "OK") {
+      if (updateFinalReceiptDeleteDiscountCode.fulfilled.match(result)) {
         notifications.show({
           title: "پیام سیستم",
           message: "کد تخفیف حذف شد!",
           color: "green",
         });
-        // Single refetch instead of invalidate to avoid repeated API request loop
         if (queryClient) {
           queryClient.refetchQueries({ queryKey: ["finalReceipt"] });
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
+          queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         }
       }
-      // No error toast on this page for remove discount (401 → relogin modal only)
     } catch (error) {
       if (error?.status === 401 || error?.response?.status === 401) {
         clearAuthAndShowReloginModal();
       }
-      // No error toast on this page
     }
   };
 
@@ -707,50 +713,40 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
     }
   };
 
-  const DiscountIcon = ({ size = 18, color = "#000" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Ticket shape */}
-    <path
-      d="M3 6.5C3 5.12 4.12 4 5.5 4H18.5C19.88 4 21 5.12 21 6.5V9
-         C19.9 9 19 9.9 19 11C19 12.1 19.9 13 21 13V15.5
-         C21 16.88 19.88 18 18.5 18H5.5C4.12 18 3 16.88 3 15.5V13
-         C4.1 13 5 12.1 5 11C5 9.9 4.1 9 3 9V6.5Z"
-      fill={color}
-    />
-
-    {/* Percent slash */}
-    <line
-      x1="9"
-      y1="14.5"
-      x2="15"
-      y2="8.5"
-      stroke="white"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-
-    {/* Percent dots */}
-    <circle cx="9" cy="8.5" r="1.2" fill="white" />
-    <circle cx="15" cy="14.5" r="1.2" fill="white" />
-  </svg>
-);
-
+  const DiscountIcon = ({ size = 20, fill = "var(--color-icon-high-emphasis)" }) => (
+    <svg style={{ width: size, height: size, fill }} aria-hidden>
+      <use href="#coupon" />
+    </svg>
+  );
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: `
+.payment-method-coupon-input { font-size: 15px !important; font-weight: 400 !important; }
+.payment-method-coupon-input::-webkit-input-placeholder { font-size: 15px !important; font-weight: 400 !important; }
+.payment-method-coupon-input::-moz-placeholder { font-size: 15px !important; font-weight: 400 !important; }
+.payment-method-coupon-input:-ms-input-placeholder { font-size: 15px !important; font-weight: 400 !important; }
+.payment-method-coupon-input::placeholder { font-size: 15px !important; font-weight: 400 !important; }
+` }} />
+      <svg aria-hidden style={{ position: "absolute", width: 0, height: 0 }} xmlns="http://www.w3.org/2000/svg">
+        <symbol id="coupon" viewBox="0 0 22 16">
+          <path d="M19.2072 5.20711L12.2072 12.2071L10.793 10.7929L17.793 3.79289L19.2072 5.20711Z" />
+          <path d="M14 5.5C14 6.32843 13.3284 7 12.5 7C11.6716 7 11 6.32843 11 5.5C11 4.67157 11.6716 4 12.5 4C13.3284 4 14 4.67157 14 5.5Z" />
+          <path d="M19 10.5C19 11.3284 18.3284 12 17.5 12C16.6716 12 16 11.3284 16 10.5C16 9.67157 16.6716 9 17.5 9C18.3284 9 19 9.67157 19 10.5Z" />
+          <path fillRule="evenodd" clipRule="evenodd" d="M6 5C4.34315 5 3 6.34315 3 8C3 9.65685 4.34315 11 6 11C7.65685 11 9 9.65685 9 8C9 6.34315 7.65685 5 6 5ZM5 8C5 7.44772 5.44772 7 6 7C6.55228 7 7 7.44772 7 8C7 8.55228 6.55228 9 6 9C5.44772 9 5 8.55228 5 8Z" />
+          <path fillRule="evenodd" clipRule="evenodd" d="M19.5 0H5.8C5.15806 0 4.54072 0.246937 4.07586 0.689655L0.775864 3.83251C0.280413 4.30437 0 4.95867 0 5.64286V10.3571C0 11.0413 0.280413 11.6956 0.775864 12.1675L4.07586 15.3103C4.54072 15.7531 5.15806 16 5.8 16H19.5C20.8807 16 22 14.8807 22 13.5V2.5C22 1.11929 20.8807 0 19.5 0ZM19.5 2C19.7761 2 20 2.22386 20 2.5V13.5C20 13.7761 19.7761 14 19.5 14H5.8C5.67161 14 5.54814 13.9506 5.45517 13.8621L2.15517 10.7192C2.05608 10.6248 2 10.494 2 10.3571V5.64286C2 5.50602 2.05608 5.37516 2.15517 5.28079L5.45517 2.13793C5.54814 2.04939 5.67161 2 5.8 2H19.5Z" />
+        </symbol>
+        <symbol id="plus" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M13 4H11V11H4V13H11V20H13V13H20V11H13V4Z" />
+        </symbol>
+      </svg>
       <ErrorMessageModal
         opened={modalOpen}
         onClose={() => setModalOpen(false)}
         message={errorUpdateDiscount?.message || errorUpdateDiscountDelete?.message}
       />
       
-      <div className="lg:rounded-medium bg-white">
+      <div className="lg:rounded-medium bg-white p-[20px]">
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <DiscountIcon />
@@ -777,7 +773,7 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
                   <div
                     className="
                   h-[48px]
-                    px-2 flex w-[329px] items-center relative text-gray-800
+                    px-2 flex w-[255px] items-center relative text-gray-800
                     rounded-lg transition-colors
 
                     /* mobile */
@@ -794,9 +790,9 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
                   "
                   >
 
-                  <div className="grow w-[329px] flex flex-row items-center px-[8px] py-[0px]">
+                  <div className="grow w-[255px] flex flex-row items-center px-[8px] py-[0px]">
                     <input 
-                      className="px-2 w-[329px] py-3 lg:py-2 bg-transparent outline-none text-sm"
+                      className="payment-method-coupon-input px-2 w-[255px] py-3 lg:py-2 bg-transparent outline-none text-sm"
                       placeholder="افزودن کد تخفیف" 
                       autoComplete="off" 
                       type="text" 
@@ -805,20 +801,20 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
                       disabled={isDiscountApplied || loadingUpdateDiscount}
                     />
                   <div 
-                    className="flex cursor-pointer p-1"
+                    className="flex cursor-pointer p-2"
                     onClick={handleSubmit}
                   >
                     {loadingUpdateDiscount ? (
                       <svg 
                         className="animate-spin"
-                        style={{ width: '24px', height: '24px', fill: '#1f2937' }} 
+                        style={{ width: 22, height: 22, color: '#343538', fill: 'currentColor' }} 
                         viewBox="0 0 24 24"
                       >
-                        <path d="M12 4V2A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8Z"/>
+                        <path fill="currentColor" d="M12 4V2A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8Z"/>
                       </svg>
                     ) : (
-                      <svg style={{ width: '24px', height: '24px', fill: '#1f2937' }} viewBox="0 0 24 24">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                      <svg style={{ width: 22, height: 22, color: '#343538', fill: 'currentColor' }} aria-hidden>
+                        <use href="#plus" />
                       </svg>
                     )}
                   </div>

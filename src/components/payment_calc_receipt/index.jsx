@@ -96,14 +96,8 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
       amount = orderfinalreceipt?.totalPriceToPay || 0;
     }
 
-    // Check if gateway is COD (Cash on Delivery) - will use same flow as gateway payments
-    // COD can be identified as: "cod", "COD", "نقدی", or "cash"
-    const isCODPayment = gateway?.name === "cod" || 
-                         gateway?.name === "COD" || 
-                         gateway?.name === "نقدی" || 
-                         gateway?.name === "cash" ||
-                         gateway?.paymentMethod === "cod" ||
-                         gateway?.paymentMethod === "COD";
+    // Determine COD by paymentMethod (type), not name; backend still receives info.name
+    const isCODPayment = gateway?.paymentMethod === "cod";
     
     // For COD and regular gateways: Use processPayment which redirects through listener
 
@@ -161,13 +155,13 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
       amount = orderfinalreceipt?.totalPriceToPay || 0;
     }
 
-    // Use processPayment for wallet payment (redirects to listener, then verify)
-    console.log('[PAYMENT][BASKET] پرداخت از کیف پول (order)', { order_id: orderId, amount, gateway: 'wallet' });
+    // Use processPayment for wallet; backend receives info.name (e.g. "کیف پول")
+    console.log('[PAYMENT][BASKET] پرداخت از کیف پول (order)', { order_id: orderId, amount, gateway: gateway?.name });
     try {
       const success = await processPayment({
         order_id: orderId,
         amount: amount,
-        gateway: 'wallet'
+        gateway: gateway?.name
       });
       console.log('[PAYMENT][BASKET] processPayment (wallet) returned', success);
       // MODIFIED 2026-02-09 - Removed payment_type field, using gateway: 'wallet' instead
@@ -349,15 +343,9 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
     return null;
   }
 
-  // Check if gateway is wallet or COD
-  const isWalletPayment = gateway?.name === "wallet" || gateway?.paymentMethod === "wallet";
-  // COD can be identified as: "cod", "COD", "نقدی", or "cash"
-  const isCODPayment = gateway?.name === "cod" || 
-                       gateway?.name === "COD" || 
-                       gateway?.name === "نقدی" || 
-                       gateway?.name === "cash" ||
-                       gateway?.paymentMethod === "cod" ||
-                       gateway?.paymentMethod === "COD";
+  // Determine COD and wallet by paymentMethod (type); backend always receives info.name
+  const isWalletPayment = gateway?.paymentMethod === "wallet";
+  const isCODPayment = gateway?.paymentMethod === "cod";
 
   return (
     <div style={{ maxWidth: '', margin: '', padding: '' }}>
@@ -561,7 +549,7 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
                         fontWeight: 'bold'
                       }}
                     >
-                      حذف فاکتور
+                      حذف فاکتور رسمی
                     </Button>
                   ) : (
                     <Button
@@ -572,7 +560,7 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
                         fontWeight: 'bold'
                       }}
                     >
-                      درخواست فاکتور
+                      درخواست فاکتور رسمی
                     </Button>
                   )}
                 </Flex>

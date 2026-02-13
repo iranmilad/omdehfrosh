@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { useQueryClient } from '../../../Libs/reactQuery';
+import { useQueryClient, INVALIDATION_PATTERNS } from '../../../Libs/reactQuery';
 import { clearCommentsState } from '../../../redux/products/productcomments/getproductcomments/getProductCommentsSlice';
 
 const PaymentListener = () => {
@@ -51,11 +51,12 @@ const PaymentListener = () => {
         console.log('[PAYMENT][LISTENER] data', { link, message });
         if (link !== undefined || message !== undefined) {
           setResult({ message: message ?? '', link: link ?? '/' });
-          queryClient.invalidateQueries({ queryKey: ['userInitialData'] });
-          queryClient.invalidateQueries({ queryKey: ['cart'] });
-          queryClient.invalidateQueries({ queryKey: ['ordersByUserId'] });
-          queryClient.invalidateQueries({ queryKey: ['userMyAccount'] });
+          // پس از پرداخت: کل دیتاهای یوزر مجدد دریافت شوند (داشبورد، سبد، سفارش، کیف پول)
+          INVALIDATION_PATTERNS.AFTER_PAYMENT.forEach((key) => {
+            queryClient.invalidateQueries({ queryKey: [key] });
+          });
           queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'orderById' });
+          queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'userTicketById' });
           dispatch(clearCommentsState());
           console.log('[PAYMENT][LISTENER] success, redirect to', link || '/', 'in 3s');
           setTimeout(() => navigate(link || '/'), 3000);

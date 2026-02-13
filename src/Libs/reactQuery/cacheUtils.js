@@ -468,6 +468,26 @@ export const INVALIDATION_PATTERNS = {
 
   /** Invalidate bootstrap/config data */
   BOOTSTRAP: ['bootstrap'],
+
+  /**
+   * After payment: invalidate all user data so dashboard, cart, orders, wallet, notifications, tickets refetch.
+   * Maps to APIs: user-initial-data, getuserinfo, cart, getfinalreceipt, allordersbyuserid, user-myaccounts,
+   * wallet/balance, notifications/number, notification-component, user-tickets. Also invalidate orderById via predicate.
+   * Excludes: bootstrap, homepage (not user-specific).
+   */
+  AFTER_PAYMENT: [
+    'userInitialData',      // /auth/user-initial-data
+    'userInfo',             // /users/getuserinfo
+    'cart',                 // /cart
+    'finalReceipt',         // /cart/getfinalreceipt
+    'ordersByUserId',       // /orders/allordersbyuserid
+    'userMyAccount',        // /user-myaccounts (includes favorites)
+    'walletBalance',        // /payment/wallet/balance
+    'notificationNumber',   // /user-myaccounts/notifications/number
+    'userNotificationsComponent', // /user-myaccounts/user-messages/notification-component
+    'userTickets',          // /user-myaccounts/user-tickets
+    'verifyUser',           // /auth/verify-user
+  ],
 };
 
 /**

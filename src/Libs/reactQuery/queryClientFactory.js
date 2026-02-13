@@ -367,8 +367,8 @@ export const resetQueryClient = () => {
 
 /**
  * Clear all React Query cache and persisted cache (for logout).
- * Call this with the current queryClient (e.g. from useQueryClient()) so that
- * no user-specific data remains in memory or localStorage.
+ * وقتی کاربر از حساب خارج میشه کش ها پاک بشن – no user-specific data remains in memory or localStorage.
+ * Call from logout flow (header, basket, payment-method, miniCart, Auth401Modal, counter-basket, logout view).
  * @param {QueryClient} queryClient - The active QueryClient instance
  */
 export const clearCacheOnLogout = (queryClient) => {

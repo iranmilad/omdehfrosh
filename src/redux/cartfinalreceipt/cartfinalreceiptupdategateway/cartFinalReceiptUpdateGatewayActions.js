@@ -17,7 +17,7 @@ export const updateFinalReceiptPaymentMethod = createAsyncThunk(
           'Authorization': `Bearer ${token}`, 
           "Content-Type": "application/json"      
         }),
-        body: JSON.stringify({ paymentMethod }), // Sending only payment method
+        body: JSON.stringify({ gateway: paymentMethod?.name }), // Backend expects { gateway: name }
       });
 
       if (!response.ok) {
