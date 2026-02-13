@@ -129,6 +129,18 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
     fetchAddresses();
   }, [initialAddresses]);
 
+  // Set city value when cities list is populated during edit
+  useEffect(() => {
+    if (editingAddress && cities.length > 0 && form.values.province === editingAddress.province) {
+      // Check if city needs to be set (avoid infinite loop by checking current value)
+      const currentCity = form.values.city;
+      if (currentCity !== editingAddress.city) {
+        form.setFieldValue('city', editingAddress.city);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cities, editingAddress]);
+
   // Prevent body padding shift when modals open
   useEffect(() => {
     if (isModalOpen || isAddressListOpen) {
@@ -213,18 +225,8 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
 
   const handleEditAddress = (address) => {
     setEditingAddress(address);
-    form.setValues({
-      title: address.title,
-      name: address.name,
-      family: address.family,
-      mobile: address.mobile,
-      nationalCode: address.nationalCode,
-      province: address.province,
-      city: address.city,
-      address: address.address,
-      postalCode: address.postalCode,
-    });
     
+    // First, populate cities list based on province
     const provinceData = iranCity.find((item) => item.name === address.province);
     if (provinceData && provinceData.cities) {
       const formattedCities = provinceData.cities.map((item) => ({
@@ -232,7 +234,23 @@ const AddressManagement = ({ onAddressSelect, userInfo, onSubmit, initialAddress
         value: item.name,
       }));
       setCities(formattedCities);
+    } else {
+      setCities([]);
     }
+    
+    // Set form values (city will be set by useEffect when cities list is populated)
+    form.setValues({
+      title: address.title,
+      name: address.name,
+      family: address.family,
+      mobile: address.mobile,
+      nationalCode: address.nationalCode,
+      province: address.province,
+      city: '', // Will be set by useEffect when cities are populated
+      address: address.address,
+      postalCode: address.postalCode,
+    });
+    
     setIsModalOpen(true);
   };
 
