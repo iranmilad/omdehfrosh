@@ -1462,11 +1462,12 @@ export const updateFinalReceipt = async (req, res) => {
         message: "خطایی رخ داده است",
         state: "error",
         errors: {
-          code: "کد نامعتبر است"
+          code: "کد نامعتبییییر است"
         }
       });
     }
 
+  
     // Check if discount code is active/valid
     if (discount.isActive === false) {
       return res.status(400).json({ 

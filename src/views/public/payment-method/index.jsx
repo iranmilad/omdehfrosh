@@ -32,11 +32,9 @@ import PaymentCalcReceipt from "../../../components/payment_calc_receipt";
 import { updateFinalReceiptWithDiscount } from "../../../redux/cartfinalreceipt/cartfinalreceiptupdate/cartFinalReceiptUpdateDiscountActions";
 import { getAllGateWaysData } from "../../../redux/gatewaysdata/gatewaysdata/gateWaysDataActions";
 import { clearCartFinalReceiptUpdate } from "../../../redux/cartfinalreceipt/cartfinalreceiptupdate/cartFinalReceiptUpdateDiscountSlice";
-import ErrorMessageModal from '../../../components/errormessagemodal';
 import { logout } from "../../../redux/auth/authusers/auth";
 import { logout as logoutMaster } from "../../../redux/auth/authmaster/authMasterSlice";
 import { clearCart } from "../../../redux/cart";
-import { handleForbiddenError, handleKnownErrors } from "../../../Libs/errorstatushandle/httpErrorStatus";
 import { updateFinalReceiptDeleteDiscountCode } from "../../../redux/cartfinalreceipt/cartfinalreceiptdeletediscount/cartFinalReceiptDeleteDiscountActions";
 import { Steps } from "antd";
 import {
@@ -599,7 +597,6 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
   } = useSelector((state) => state.cartFinalReceiptUpdateDiscountDelete);
 
   const [showAlert, setShowAlert] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const [errors, setErrors] = useState({});
 
   const form = useForm({
@@ -626,16 +623,14 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
   }, [cartfinalreceiptDiscount, errorUpdateDiscount]);
 
   useEffect(() => {
-    if (errorUpdateDiscount?.status) {
-      if (errorUpdateDiscount.status === 401) clearAuthAndShowReloginModal();
-      else handleKnownErrors(errorUpdateDiscount.status, setModalOpen, navigate);
+    if (errorUpdateDiscount?.status === 401) {
+      clearAuthAndShowReloginModal();
     }
   }, [errorUpdateDiscount, clearAuthAndShowReloginModal]);
 
   useEffect(() => {
-    if (errorUpdateDiscountDelete?.status) {
-      if (errorUpdateDiscountDelete.status === 401) clearAuthAndShowReloginModal();
-      else handleKnownErrors(errorUpdateDiscountDelete.status, setModalOpen, navigate);
+    if (errorUpdateDiscountDelete?.status === 401) {
+      clearAuthAndShowReloginModal();
     }
   }, [errorUpdateDiscountDelete, clearAuthAndShowReloginModal]);
 
@@ -774,12 +769,6 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
           <path fill="currentColor" d="M13 4H11V11H4V13H11V20H13V13H20V11H13V4Z" />
         </symbol>
       </svg>
-      <ErrorMessageModal
-        opened={modalOpen}
-        onClose={() => setModalOpen(false)}
-        message={errorUpdateDiscount?.message || errorUpdateDiscountDelete?.message}
-      />
-      
       <div className="lg:rounded-medium bg-white p-[20px]">
         <div className="flex flex-col">
           <div className="flex items-center gap-2">

@@ -222,7 +222,6 @@ const Footer = () => {
     
     const links = bootstrap?.data.menu?.social?.[0]?.links;
 
-
     // if (links) {
     //   links.forEach((item, index) => {
     //     console.log(`Link ${index}:`, {
