@@ -3,7 +3,7 @@ const appConfig = {
     authenticatedEntryPath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
     tourPath: '/',
-    enableMock: true,
+    enableMock: false, // Mirage mock server disabled; app uses real API only
 }
 
 export default appConfig;

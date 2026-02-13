@@ -44,6 +44,10 @@ function mockRunner({ environment }) {
     },
     routes() {
       // IMPORTANT: Passthroughs must come BEFORE route handlers
+      // OPTIONS requests are CORS preflight (browser sends them for cross-origin API calls).
+      // They happen because app and API are different origins (e.g. Vite :5173 vs backend :5000),
+      // not because of Mirage. Explicitly pass OPTIONS through so they reach the real server.
+      this.passthrough((request) => request.method === 'OPTIONS');
       // Specific passthroughs for endpoints that need to work with axios
       this.passthrough('http://localhost:5000/api/homepage/homepagedata');
       this.passthrough('http://localhost:5000/api/homepage/**');

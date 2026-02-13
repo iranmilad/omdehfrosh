@@ -238,7 +238,7 @@ function BrandSlider({ items }) {
           )}
           {items.children.map((item, index) => (
             <SwiperSlide
-              key={item.url || index}
+              key={`brand-${index}-${item.url ?? item.name ?? item.id ?? ''}`}
               style={{
                 padding: "25px",
                 paddingRight: 0,

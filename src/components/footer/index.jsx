@@ -221,19 +221,21 @@ const Footer = () => {
   {(() => {
     
     const links = bootstrap?.data.menu?.social?.[0]?.links;
-    if (links) {
-      links.forEach((item, index) => {
-        console.log(`Link ${index}:`, {
-          id: item.id,
-          label: item.label,
-          icon: item.icon,
-          iconType: item.icon?.startsWith("bi ") ? 'bootstrap' : 
-                    item.icon?.startsWith("/") ? 'image' : 
-                    item.icon ? 'other-class' : 'none',
-          url: item.url
-        });
-      });
-    }
+
+
+    // if (links) {
+    //   links.forEach((item, index) => {
+    //     console.log(`Link ${index}:`, {
+    //       id: item.id,
+    //       label: item.label,
+    //       icon: item.icon,
+    //       iconType: item.icon?.startsWith("bi ") ? 'bootstrap' : 
+    //                 item.icon?.startsWith("/") ? 'image' : 
+    //                 item.icon ? 'other-class' : 'none',
+    //       url: item.url
+    //     });
+    //   });
+    // }
     return null;
   })()}
   

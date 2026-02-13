@@ -30,9 +30,10 @@ const PaymentListener = () => {
       setTimeout(() => navigate('/'), 3000);
       return;
     }
-    const verifyUrl = `/api/universal-payment/verify-payment?transactionId=${encodeURIComponent(transactionId)}&success=${encodeURIComponent(success)}`;
-    console.log('[PAYMENT][LISTENER] GET verify-payment (URL only, no body)', verifyUrl);
-    fetch(verifyUrl, { method: 'GET', credentials: 'same-origin' })
+    const verifyUrl = `https://panel.j2b.market/api/universal-payment/verify-payment?transactionId=${encodeURIComponent(transactionId)}&success=${encodeURIComponent(success)}`;
+    
+    
+    fetch(verifyUrl, { method: 'GET', credentials: 'include' })
       .then(async (res) => {
         const contentType = res.headers.get('content-type') || '';
         const isJson = contentType.includes('application/json');

@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Badge,
   Box,
@@ -22,7 +23,6 @@ import {
   IconPackage,
 } from "@tabler/icons-react";
 import PriceText from "../../components/priceText";
-import { useEffect, useState } from "react";
 import { useDisclosure, useElementSize } from "@mantine/hooks";
 import { useSend } from "../../Libs/api";
 import { notifications } from "@mantine/notifications";
@@ -178,11 +178,11 @@ function ProductBox({
         }}
       >
         {displayAttributes.map((attr, index) => (
-          <>
+          <React.Fragment key={attr.nameEng ?? attr.value ?? index}>
             <Flex
-              key={index}
               align="center"
               gap={4}
+              component="span"
               style={{
                 whiteSpace: '',
                 overflow: 'visible',
@@ -215,6 +215,7 @@ function ProductBox({
             </Flex>
             {index < displayAttributes.length - 1 && (
               <Box
+                component="span"
                 style={{
                   width: '1px',
                   height: '12px',
@@ -224,7 +225,7 @@ function ProductBox({
                 }}
               />
             )}
-          </>
+          </React.Fragment>
         ))}
       </Box>
     );
