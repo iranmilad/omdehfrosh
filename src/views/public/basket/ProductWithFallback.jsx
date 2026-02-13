@@ -387,7 +387,7 @@ const EmptyCartComponent = () => (
           
           {/* Action Button */}
           <a 
-            href="/products"
+            href="/"
             className="inline-flex items-center justify-center px-6 py-3 text-sm md:text-base font-bold text-white rounded transition-colors duration-200"
             style={{ 
               textDecoration: 'none',

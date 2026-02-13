@@ -12,11 +12,10 @@ export const updateFinalReceiptPaymentMethod = createAsyncThunk(
 
       const response = await fetch(getApiUrl("/cart/updatefinalreceiptgateway"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        headers: new Headers({
-          'Authorization': `Bearer ${token}`, 
-          "Content-Type": "application/json"      
-        }),
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ gateway: paymentMethod?.name }), // Backend expects { gateway: name }
       });
 
