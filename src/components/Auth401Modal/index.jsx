@@ -9,7 +9,7 @@ import ReloginRequiredModal from "../ReloginRequiredModal";
 import Cookies from "js-cookie";
 
 /** Paths where the user can browse without login; do not show relogin modal on 401 here */
-const PUBLIC_BROWSE_PATHS = ["/", "/home", "/login", "/sign-in", "/sign-up", "/product", "/brands", "/category", "/search", "/incredible-offers"];
+const PUBLIC_BROWSE_PATHS = ["/", "/home", "/login", "/sign-in", "/sign-up", "/product", "/brands", "/category", "/search", "/incredible-offers", "/payment-listener"];
 
 function isPublicBrowsePath(pathname) {
   if (!pathname) return true;

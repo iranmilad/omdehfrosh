@@ -89,6 +89,7 @@ const handleCookieUpdate = useCallback(() => {
   const [visibleColumns, setVisibleColumns] = useState([]);
   const [nodes, setNodes] = useState(null);
   const [nodesSubCategoriesData, setNodesSubCategoriesData] = useState(null);
+  const [categoryTableLoading, setCategoryTableLoading] = useState(false);
 
   const [availableLocations, setAvailableLocations] = useState(null);
 
@@ -499,7 +500,7 @@ const stableBrandQueryKey = useMemo(() => {
   }));
   return JSON.stringify(canonical);
 }, [brandFilterArray]);
-const { data: brandTableData } = useApiQuery({
+const { data: brandTableData, isLoading: isBrandTableLoading } = useApiQuery({
   endpoint: "/fast-order-brand-mode",
   queryKey:
     stableBrandQueryKey != null
@@ -765,21 +766,21 @@ return (
 
                 {loadingStates.tableLoading ? (
                   <>
-                    {nodes !== null && nodes?.length > 0 && (
-                      <>
-                        <FastTableBrand
-                          type="head"
-                          isPortrait={isPortrait}
-                          isLandscape={isLandscape}
-                          filters_brand_mode={filters_brand_mode}
-                          filterValues={filterValues}
-                          availableLocations={availableLocations}
-                          COLUMNS={updatedColumns}
-                          nodes={nodes[0]?.items?.slice(0, 1) || []}
-                          setVisibleColumns={setVisibleColumns}
-                          visibleColumns={visibleColumns}
-                        />
-                        {nodes.map((item, index) => (
+                    <FastTableBrand
+                      type="head"
+                      isPortrait={isPortrait}
+                      isLandscape={isLandscape}
+                      filters_brand_mode={filters_brand_mode}
+                      filterValues={filterValues}
+                      availableLocations={availableLocations}
+                      COLUMNS={updatedColumns}
+                      nodes={nodes?.[0]?.items?.slice(0, 1) || []}
+                      setVisibleColumns={setVisibleColumns}
+                      visibleColumns={visibleColumns}
+                      loading={isBrandTableLoading}
+                    />
+                    {nodes != null && nodes?.length > 0
+                      ? nodes.map((item, index) => (
                           <React.Fragment key={index}>
                             <Flex
                               h={40}
@@ -804,11 +805,11 @@ return (
                               nodes={item.items || []}
                               setVisibleColumns={setVisibleColumns}
                               visibleColumns={visibleColumns}
+                              loading={isBrandTableLoading}
                             />
                           </React.Fragment>
-                        ))}
-                      </>
-                    )}
+                        ))
+                      : null}
                   </>
                 ) : (
                   <LoadingPlaceholder height="300px" />
@@ -907,6 +908,7 @@ return (
                         setSearchType={setSearchType}
                         cookieUpdateTrigger={cookieUpdateTrigger}
                         onCookieUpdate={handleCookieUpdate}
+                        setCategoryTableLoading={setCategoryTableLoading}
                         filterCategoryStorage={filterCategoryStorage}
                         setFilterCategoryStorage={setFilterCategoryStorage}
                         filterCategorySubCategoryStorage={
@@ -974,61 +976,60 @@ return (
                 )}
 
                 {loadingStates.tableLoading ? (
-                  <>
-                    {nodesSubCategoriesData !== null &&
-                      nodesSubCategoriesData?.length > 0 && (
-                        <Paper
-                          p={0}
-                          className="overflow-hidden"
-                          bg="white"
-                          id="tables"
-                        >
-                          <FastTableCategory
-                            type="head"
-                            isPortrait={isPortrait}
-                            isLandscape={isLandscape}
-                            filters_category_mode={filters_category_mode}
-                            filterValues={filterValues}
-                            availableLocations={availableLocations}
-                            COLUMNS={updatedColumns}
-                            nodes={
-                              nodesSubCategoriesData[0]?.items?.slice(0, 1) ||
-                              []
-                            }
-                            setVisibleColumns={setVisibleColumns}
-                            visibleColumns={visibleColumns}
-                          />
-                          {nodesSubCategoriesData?.map((item, index) => (
-                            <React.Fragment key={index}>
-                              <Flex
-                                h={40}
-                                align="center"
-                                justify="center"
-                                bg="#e5e7eb"
-                              >
-                                <Text size="16px" fw={600} c="dark">
-                                  {item.label}
-                                </Text>
-                              </Flex>
-                              <FastTableCategory
-                                isPortrait={isPortrait}
-                                isLandscape={isLandscape}
-                                filters_category_mode={filters_category_mode}
-                                filterValues={filterValues}
-                                keyIndex={index}
-                                availableLocations={availableLocations}
-                                setNodes={setNodesSubCategoriesData}
-                                type="data"
-                                COLUMNS={updatedColumns}
-                                nodes={item.items || []}
-                                setVisibleColumns={setVisibleColumns}
-                                visibleColumns={visibleColumns}
-                              />
-                            </React.Fragment>
-                          ))}
-                        </Paper>
-                      )}
-                  </>
+                  <Paper
+                    p={0}
+                    className="overflow-hidden"
+                    bg="white"
+                    id="tables"
+                  >
+                    <FastTableCategory
+                      type="head"
+                      isPortrait={isPortrait}
+                      isLandscape={isLandscape}
+                      filters_category_mode={filters_category_mode}
+                      filterValues={filterValues}
+                      availableLocations={availableLocations}
+                      COLUMNS={updatedColumns}
+                      nodes={
+                        nodesSubCategoriesData?.[0]?.items?.slice(0, 1) || []
+                      }
+                      setVisibleColumns={setVisibleColumns}
+                      visibleColumns={visibleColumns}
+                      loading={categoryTableLoading}
+                    />
+                    {nodesSubCategoriesData != null &&
+                    nodesSubCategoriesData?.length > 0
+                      ? nodesSubCategoriesData.map((item, index) => (
+                          <React.Fragment key={index}>
+                            <Flex
+                              h={40}
+                              align="center"
+                              justify="center"
+                              bg="#e5e7eb"
+                            >
+                              <Text size="16px" fw={600} c="dark">
+                                {item.label}
+                              </Text>
+                            </Flex>
+                            <FastTableCategory
+                              isPortrait={isPortrait}
+                              isLandscape={isLandscape}
+                              filters_category_mode={filters_category_mode}
+                              filterValues={filterValues}
+                              keyIndex={index}
+                              availableLocations={availableLocations}
+                              setNodes={setNodesSubCategoriesData}
+                              type="data"
+                              COLUMNS={updatedColumns}
+                              nodes={item.items || []}
+                              setVisibleColumns={setVisibleColumns}
+                              visibleColumns={visibleColumns}
+                              loading={categoryTableLoading}
+                            />
+                          </React.Fragment>
+                        ))
+                      : null}
+                  </Paper>
                 ) : (
                   <LoadingPlaceholder height="300px" />
                 )}

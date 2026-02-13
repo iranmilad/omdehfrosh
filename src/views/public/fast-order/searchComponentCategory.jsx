@@ -69,6 +69,7 @@ const SearchComponentCategory = ({
   setNodes, 
   cookieUpdateTrigger ,
   onCookieUpdate,  // ✅ ADD THIS
+  setCategoryTableLoading,
   setNodesSubCategories,
   filterCategoryStorage,  // ✅ ADD THIS
   setFilterCategoryStorage,  // ✅ ADD THIS
@@ -361,6 +362,13 @@ const { setFilterValues } = useFastOrder();
   const tableDataWhenChecked = reduxTableData && typeof reduxTableData === 'object' && !Array.isArray(reduxTableData) ? reduxTableData : null;
   const tableData = checkedRows.size === 0 ? (tableDataFromQuery ?? null) : tableDataWhenChecked;
   const loading = checkedRows.size === 0 ? loadingFromQuery : (reduxTableLoading ?? false);
+
+  // Sync category table loading to parent for FastTableCategory loading spinner
+  useEffect(() => {
+    if (typeof setCategoryTableLoading === "function") {
+      setCategoryTableLoading(loading);
+    }
+  }, [loading, setCategoryTableLoading]);
 
   const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
     return Array.from(checkedRowIds)

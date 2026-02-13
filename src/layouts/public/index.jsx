@@ -21,8 +21,10 @@ const Public = (props) => {
   const curr = useLocation();
   const routes = PublicRoutes;
   const loading = useSelector((state) => state.global.loading);
+  const isPaymentListener = curr.pathname.startsWith('/payment-listener');
 
   // Fetch bootstrap data via React Query with static caching + persistence
+  // Skip bootstrap for payment-listener so it works without auth (user returns from gateway)
   const {
     data: bootstrapData,
     loading: loadingBootstrap,
@@ -30,7 +32,7 @@ const Public = (props) => {
   } = useStaticQuery({
     endpoint: '/bootstrap',
     queryKey: ['bootstrap'],
-    // Keep same shape as previous Redux data: { message, data: {...} }
+    enabled: !isPaymentListener,
     transformer: (response) => response?.data ?? null,
   });
 
@@ -52,6 +54,32 @@ const Public = (props) => {
       document.title = currentRouteTitle;
     }
   }, [curr, routes]);
+
+  // Payment-listener: no auth, no bootstrap – render outlet only
+  if (isPaymentListener) {
+    return (
+      <>
+        <Header />
+        <InstallPWA />
+        <Box
+          style={{
+            width: '100%',
+            backgroundColor: '#F0F1F2',
+            minHeight: '100vh',
+            paddingTop: 'calc(68px + 25px)',
+            paddingBottom: '1rem'
+          }}
+        >
+          <Box style={{ maxWidth: '1336px', width: '100%', margin: '0 auto' }}>
+            <Box className="px-3 md:px-5" style={{ marginTop: 0, paddingTop: 0 }}>
+              <Outlet />
+            </Box>
+          </Box>
+        </Box>
+        <Footer />
+      </>
+    );
+  }
 
   // Show error state if bootstrap fetch fails
   if (errorBootstrap) {

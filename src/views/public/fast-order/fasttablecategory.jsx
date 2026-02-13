@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Table, Image, Typography, Space, Tag, Avatar } from "antd";
+import { Table, Typography, Space, Tag, Avatar } from "antd";
 import { DownOutlined, RightOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
 import { NavLink } from "react-router";
 import usePrint from "../../../hooks/usePrint";
@@ -20,7 +20,8 @@ const FastTableCategory = ({
   filters_category_mode,
   icPriceKeys,
   isPortrait,
-  isLandscape
+  isLandscape,
+  loading = false,
 }) => {
   if (!nodes || nodes.length === 0) return null;
 
@@ -185,12 +186,12 @@ const FastTableCategory = ({
             }}
           >
             {hasValidImage ? (
-              <Image 
-                src={displayItem.images[0]} 
-                width={40} 
+              <img
+                src={displayItem.images[0]}
+                alt=""
+                width={40}
                 height={40}
-                preview={false}
-                fallback="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='40' height='40' fill='%23f8f9fa'/%3E%3C/svg%3E"
+                loading="lazy"
                 onError={() => {
                   setImageErrors(prev => ({ ...prev, [record.psid]: true }));
                 }}
@@ -396,6 +397,7 @@ case "name":
     <div style={{ width: '100%', overflowX: 'auto', backdropFilter: 'none', boxShadow: 'none' }}>
       {type === "head" ? null : (
         <Table
+          loading={loading}
           columns={columns}
           dataSource={dataSource}
           pagination={false}
