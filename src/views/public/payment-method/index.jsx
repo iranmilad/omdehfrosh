@@ -672,10 +672,27 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
           queryClient.invalidateQueries({ queryKey: ["cart"] });
           queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         }
+      } else if (updateFinalReceiptWithDiscount.rejected.match(result)) {
+        // Show error notification from server response
+        const errorMessage = result.payload?.message || result.payload || "خطایی رخ داده است";
+        const errorDetails = result.payload?.errors;
+        const errorText = errorDetails?.code || errorMessage;
+        
+        notifications.show({
+          title: "خطا",
+          message: errorText,
+          color: "red",
+        });
       }
     } catch (error) {
       if (error?.status === 401 || error?.response?.status === 401) {
         clearAuthAndShowReloginModal();
+      } else {
+        notifications.show({
+          title: "خطا",
+          message: error?.message || "خطایی رخ داده است",
+          color: "red",
+        });
       }
     }
   };
@@ -697,10 +714,27 @@ const SubmitCoupon = ({ isDiscountApplied, setIsDiscountApplied, gateway, queryC
           queryClient.invalidateQueries({ queryKey: ["cart"] });
           queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
         }
+      } else if (updateFinalReceiptDeleteDiscountCode.rejected.match(result)) {
+        // Show error notification from server response
+        const errorMessage = result.payload?.message || result.payload || "خطایی رخ داده است";
+        const errorDetails = result.payload?.errors;
+        const errorText = errorDetails?.code || errorMessage;
+        
+        notifications.show({
+          title: "خطا",
+          message: errorText,
+          color: "red",
+        });
       }
     } catch (error) {
       if (error?.status === 401 || error?.response?.status === 401) {
         clearAuthAndShowReloginModal();
+      } else {
+        notifications.show({
+          title: "خطا",
+          message: error?.message || "خطایی رخ داده است",
+          color: "red",
+        });
       }
     }
   };

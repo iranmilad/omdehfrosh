@@ -30,6 +30,8 @@ export const updateFinalReceiptDeleteDiscountCode = createAsyncThunk(
         const error = {
           status: response.status,
           message: errorData?.message || getHttpCodeMessage(response.status),
+          errors: errorData?.errors, // Preserve errors object (e.g. errors.code)
+          state: errorData?.state, // Preserve state if present
         };
         return rejectWithValue(error);
       }

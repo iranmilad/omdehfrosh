@@ -1431,8 +1431,11 @@ export const updateFinalReceipt = async (req, res) => {
     // Validate required fields
     if (!discountCode) {
       return res.status(400).json({ 
-        error: 'Discount code is required',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "کد تخفیف الزامی است"
+        }
       });
     }
 
@@ -1444,8 +1447,11 @@ export const updateFinalReceipt = async (req, res) => {
     
     if (!order) {
       return res.status(404).json({ 
-        error: 'No basket order found for user',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "سبد خرید یافت نشد"
+        }
       });
     }
 
@@ -1453,24 +1459,33 @@ export const updateFinalReceipt = async (req, res) => {
     const discount = await DiscountCode.findOne({ code: discountCode });
     if (!discount) {
       return res.status(400).json({ 
-        error: 'Invalid discount code',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "کد نامعتبر است"
+        }
       });
     }
 
     // Check if discount code is active/valid
     if (discount.isActive === false) {
       return res.status(400).json({ 
-        error: 'Discount code is not active',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "کد تخفیف فعال نیست"
+        }
       });
     }
 
     // Check expiration date if exists
     if (discount.expiryDate && new Date(discount.expiryDate) < new Date()) {
       return res.status(400).json({ 
-        error: 'Discount code has expired',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "کد تخفیف منقضی شده است"
+        }
       });
     }
 
@@ -1521,9 +1536,11 @@ export const updateFinalReceipt = async (req, res) => {
   } catch (error) {
     console.error('Error in updateFinalReceipt:', error);
     res.status(500).json({ 
-      error: 'Internal server error',
-      status: 'error',
-      message: error.message 
+      message: "خطایی رخ داده است",
+      state: "error",
+      errors: {
+        code: error.message || "خطای سرور"
+      }
     });
   }
 };
@@ -1543,8 +1560,11 @@ export const removeDiscountFinalReceipt = async (req, res) => {
     // Validate required fields
     if (!discountCode) {
       return res.status(400).json({ 
-        error: 'Discount code is required',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "کد تخفیف الزامی است"
+        }
       });
     }
 
@@ -1556,8 +1576,11 @@ export const removeDiscountFinalReceipt = async (req, res) => {
     
     if (!order) {
       return res.status(404).json({ 
-        error: 'No basket order found for user',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "سبد خرید یافت نشد"
+        }
       });
     }
 
@@ -1566,14 +1589,20 @@ export const removeDiscountFinalReceipt = async (req, res) => {
       const currentDiscount = await DiscountCode.findById(order.discount_code_id);
       if (!currentDiscount || currentDiscount.code !== discountCode) {
         return res.status(400).json({ 
-          error: 'Discount code does not match the applied discount',
-          status: 'error'
+          message: "خطایی رخ داده است",
+          state: "error",
+          errors: {
+            code: "کد تخفیف با کد اعمال شده مطابقت ندارد"
+          }
         });
       }
     } else {
       return res.status(400).json({ 
-        error: 'No discount code is currently applied to this order',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "کد تخفیفی برای این سفارش اعمال نشده است"
+        }
       });
     }
 
@@ -1589,8 +1618,11 @@ export const removeDiscountFinalReceipt = async (req, res) => {
 
     if (!updatedOrder) {
       return res.status(500).json({ 
-        error: 'Failed to update order',
-        status: 'error'
+        message: "خطایی رخ داده است",
+        state: "error",
+        errors: {
+          code: "خطا در به‌روزرسانی سفارش"
+        }
       });
     }
 
@@ -1611,9 +1643,11 @@ export const removeDiscountFinalReceipt = async (req, res) => {
   } catch (error) {
     console.error('Error in removeDiscountFinalReceipt:', error);
     res.status(500).json({ 
-      error: 'Internal server error',
-      status: 'error',
-      message: error.message 
+      message: "خطایی رخ داده است",
+      state: "error",
+      errors: {
+        code: error.message || "خطای سرور"
+      }
     });
   }
 };

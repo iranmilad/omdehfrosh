@@ -198,26 +198,37 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
       return;
     }
 
-    const response = await dispatch(requestFinalReceipt({ 
-      vatRequested: true, 
-      orderId: orderId
-    }));
-    
-    if (response?.payload?.status === "OK") {
-      notifications.show({
-        title: "پیام سیستم",
-        message: "درخواست فاکتور با موفقیت ثبت شد",
-        color: "green",
-      });
-    } else {
+    try {
+      const result = await dispatch(requestFinalReceipt({ 
+        vatRequested: true, 
+        orderId: orderId
+      }));
+      
+      if (requestFinalReceipt.fulfilled.match(result)) {
+        notifications.show({
+          title: "پیام سیستم",
+          message: "درخواست فاکتور با موفقیت ثبت شد",
+          color: "green",
+        });
+        if (queryClient) {
+          queryClient.refetchQueries({ queryKey: ["finalReceipt"] });
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
+          queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        }
+      } else if (requestFinalReceipt.rejected.match(result)) {
+        notifications.show({
+          title: "خطا",
+          message: result.payload?.message || "مشکلی در ثبت درخواست فاکتور پیش آمد!",
+          color: "red",
+        });
+      }
+    } catch (error) {
       notifications.show({
         title: "خطا",
-        message: "مشکلی در ثبت درخواست فاکتور پیش آمد!",
+        message: error?.message || "مشکلی در ثبت درخواست فاکتور پیش آمد!",
         color: "red",
       });
     }
-    
-    dispatch(fetchFinalReceipt());
   };
 
   const removeReceipt = async (sellerId) => {
@@ -232,26 +243,37 @@ const PaymentCalcReceipt = ({ children = "پرداخت", prev, gateway, queryCli
       return;
     }
 
-    const response = await dispatch(requestFinalReceipt({ 
-      vatRequested: false, 
-      orderId: orderId
-    }));
-    
-    if (response?.payload?.status === "OK") {
-      notifications.show({
-        title: "پیام سیستم",
-        message: "درخواست حذف فاکتور با موفقیت ثبت شد",
-        color: "green",
-      });
-    } else {
+    try {
+      const result = await dispatch(requestFinalReceipt({ 
+        vatRequested: false, 
+        orderId: orderId
+      }));
+      
+      if (requestFinalReceipt.fulfilled.match(result)) {
+        notifications.show({
+          title: "پیام سیستم",
+          message: "درخواست حذف فاکتور با موفقیت ثبت شد",
+          color: "green",
+        });
+        if (queryClient) {
+          queryClient.refetchQueries({ queryKey: ["finalReceipt"] });
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
+          queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
+        }
+      } else if (requestFinalReceipt.rejected.match(result)) {
+        notifications.show({
+          title: "خطا",
+          message: result.payload?.message || "مشکلی در ثبت درخواست حذف فاکتور پیش آمد!",
+          color: "red",
+        });
+      }
+    } catch (error) {
       notifications.show({
         title: "خطا",
-        message: "مشکلی در ثبت درخواست حذف فاکتور پیش آمد!",
+        message: error?.message || "مشکلی در ثبت درخواست حذف فاکتور پیش آمد!",
         color: "red",
       });
     }
-    
-    dispatch(fetchFinalReceipt());
   };
 
   const renderAttributesStructured = (item) => {
