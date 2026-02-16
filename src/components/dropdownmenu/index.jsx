@@ -82,7 +82,7 @@ const DropDownMenu = ({ menuItems }) => {
                         backgroundColor: link.url ? "#f8f9fa" : "transparent"
                       }
                     },
-                    label: { fontSize: "14px", fontWeight: 400 }
+                    label: { fontSize: "14px", fontWeight: 400, color: "#093672" }
                   }}
                 />
               );
@@ -95,10 +95,10 @@ const DropDownMenu = ({ menuItems }) => {
                   <Text
                     size="xs"
                     fw={600}
-                    c="dimmed"
                     tt="uppercase"
                     px="6px"
                     py="3px"
+                    style={{ color: "#093672" }}
                   >
                     {link.label}
                   </Text>
@@ -133,7 +133,7 @@ const DropDownMenu = ({ menuItems }) => {
                             zIndex: 1001,
                             "&:hover": { backgroundColor: "#f8f9fa" }
                           },
-                          label: { fontSize: "14px" }
+                          label: { fontSize: "14px", color: "#093672" }
                         }}
                       />
                     ))}
@@ -176,7 +176,7 @@ const DropDownMenu = ({ menuItems }) => {
                       zIndex: 1001,
                       "&:hover": { backgroundColor: "#f8f9fa" }
                     },
-                    label: { fontSize: "14px", fontWeight: 400 }
+                    label: { fontSize: "14px", fontWeight: 400, color: "#093672" }
                   }}
                 />
               );
