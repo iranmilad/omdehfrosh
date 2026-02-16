@@ -171,6 +171,7 @@ function ProductCarousel(props) {
             <SwiperSlide key={index} style={{ width: "250px", height: "auto" }}>
                 <ProductBox 
                 {...item}
+                compact
                 defaultSellerId={item.sellerId || item.seller?.id}
                 defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
                 attributes={item.attributes}

@@ -93,6 +93,7 @@ function BadgedSlider({ items = [], checkalllink = "/incredible-offers" }) {
           <SwiperSlide key={index} style={{ width: "250px", height: "auto" }}>
             <ProductBox 
               {...item}
+              compact
               defaultSellerId={item.sellerId || item.seller?.id}
               defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
               stock={item.stock}

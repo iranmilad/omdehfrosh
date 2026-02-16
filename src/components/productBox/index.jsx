@@ -46,7 +46,8 @@ function ProductBox({
   attributes,
   stock,
   minOrder,
-  maxOrder
+  maxOrder,
+  compact = false,
 }) {
   const { colors } = useMantineTheme();
   const { ref, width } = useElementSize();
@@ -66,6 +67,25 @@ function ProductBox({
   }, [image]);
 
   const createProductPlaceholder = () => {
+    if (compact) {
+      return (
+        <Box
+          w="100%"
+          h="120px"
+          style={{
+            background: "#ffffff",
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "8px",
+          }}
+          className="hover:scale-105 transition-transform duration-300"
+        >
+          <IconPackage size={40} color="#999" />
+        </Box>
+      );
+    }
     // Array of green-based gradient backgrounds
     const gradients = [
       "linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)", // Classic Green
@@ -144,7 +164,7 @@ function ProductBox({
       <Image
         className="hover:scale-105 transition-transform duration-300"
         w="100%"
-        h="150px"
+        h={compact ? "120px" : "150px"}
         fit="contain"
         src={image}
         alt={title || 'محصول'}
@@ -152,7 +172,8 @@ function ProductBox({
         fallbackSrc="" // This will trigger onError if image fails
         style={{
           borderRadius: "8px",
-          backgroundColor: "#f8f9fa", // Light background for transparent images
+          backgroundColor: compact ? "#ffffff" : "#f8f9fa",
+          padding: compact ? "8px" : undefined,
         }}
       />
     );
@@ -237,7 +258,7 @@ function ProductBox({
       shadow="sm"
       px="25"
       pb="lg"
-      pt="40"
+      pt={compact ? "sm" : "40"}
       pos="relative"
       display="flex"
       style={{ 
