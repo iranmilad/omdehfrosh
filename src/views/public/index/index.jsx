@@ -108,7 +108,15 @@ function Home() {
             switch (section.type) {
               case "wideslider":
                 return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <Box
+                    key={index}
+                    style={{
+                      width: '100vw',
+                      maxWidth: '100vw',
+                      marginLeft: 'calc(50% - 50vw)',
+                      marginRight: 'calc(50% - 50vw)',
+                    }}
+                  >
                     <WideSlider items={section.data} />
                   </Box>
                 );

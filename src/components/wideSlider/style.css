@@ -14,6 +14,6 @@
     z-index: 50;
 }
 
-.wide-slide-image{
-    contain-intrinsic-size: 3000px 1500px;
+.wide-slide-image {
+  contain-intrinsic-size: 1200px 250px;
 }

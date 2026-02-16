@@ -1,4 +1,4 @@
-import { ActionIcon, Anchor, Box, Container, Image } from "@mantine/core";
+import { ActionIcon, Anchor, Box } from "@mantine/core";
 import React, { useRef, useState } from "react";
 import { NavLink } from "react-router";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -12,14 +12,14 @@ const DefaultSlideImage = ({ index }) => (
   <div
     style={{
       width: "100%",
-      height: "200px",
+      height: "250px",
+      minHeight: "250px",
       backgroundColor: "#f8f9fa",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       border: "2px dashed #dee2e6",
-      borderRadius: "8px",
-      transform: "scale(0.9)",
+      borderRadius: "0",
       transition: "transform 0.3s ease"
     }}
   >
@@ -116,9 +116,9 @@ const SlideImage = ({ item, index }) => {
           className="wide-slide-image"
           style={{
             width: "100%",
-            height: "200px",
+            height: "250px",
+            minHeight: "250px",
             objectFit: "cover",
-            transform: "scale(0.9)",
             transition: "transform 0.3s ease"
           }}
           onError={() => handleImageError('fallback')}
@@ -149,18 +149,15 @@ function WideSlider({ items }) {
 
   if (validItems.length === 0) {
     return (
-      <Container fluid>
-        <Box w="100%" style={{ textAlign: "center", padding: "40px", color: "#868e96" }}>
-          <IconPhoto size={64} style={{ marginBottom: "16px" }} />
-          <div>هیچ اسلایدی برای نمایش وجود ندارد</div>
-        </Box>
-      </Container>
+      <Box w="100%" style={{ textAlign: "center", padding: "40px", color: "#868e96", height: "250px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <IconPhoto size={64} style={{ marginBottom: "16px" }} />
+        <div>هیچ اسلایدی برای نمایش وجود ندارد</div>
+      </Box>
     );
   }
 
   return (
-    <Container fluid>
-      <Box w="100%" pos="relative">
+    <Box w="100%" pos="relative">
         <ActionIcon
           variant="white"
           radius={999}
@@ -202,7 +199,6 @@ function WideSlider({ items }) {
           ))}
         </Swiper>
       </Box>
-    </Container>
   );
 }
 
