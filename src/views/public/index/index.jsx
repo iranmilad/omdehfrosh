@@ -130,26 +130,28 @@ function Home() {
                 return ( section.data && section.data.length > 0 ) ? (
                   
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <BadgedSlider items={section.data} checkalllink={section.checkalllink} />
+                    <BadgedSlider items={section.data} checkalllink={section.checkalllink} backgroundColor={section.backgroundColor} />
                   </Box>
                 ) : null;
 
-              case "banners":
+              // case "banners":
+              //   return (
+              //     <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+              //       <GridBanner items={section.data} />
+              //     </Box>
+              //   );
+              // case "prices":
+              //   return (
+              //     <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+              //       <PriceList items={section.data} />
+              //     </Box>
+              //   );
+              case "trendProducts1":
+              case "trendProducts2":
+              case "trendProducts3":
                 return (
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <GridBanner items={section.data} />
-                  </Box>
-                );
-              case "prices":
-                return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <PriceList items={section.data} />
-                  </Box>
-                );
-              case "trendProducts":
-                return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <ProductHighlightCard items={section.data} />
+                    <ProductHighlightCard items={section.data} title={section.title} />
                   </Box>
                 );
               case "brands":

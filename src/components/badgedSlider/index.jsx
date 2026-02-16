@@ -9,7 +9,7 @@ import { useRef, useState } from 'react';
 import "./style.css";
 import { NavLink } from 'react-router';
 
-function BadgedSlider({ items = [], checkalllink = "/incredible-offers" }) {
+function BadgedSlider({ items = [], checkalllink = "/incredible-offers", backgroundColor = "linear-gradient(to bottom left, #1e3a5f, #0a1628)" }) {
 
 
   
@@ -45,7 +45,7 @@ function BadgedSlider({ items = [], checkalllink = "/incredible-offers" }) {
       p="sm" 
       style={{ 
         borderRadius: "15px",
-        background: "linear-gradient(to bottom left, #57C1FF, #0064CF)"
+        background: backgroundColor
       }} 
       pos="relative"
     >

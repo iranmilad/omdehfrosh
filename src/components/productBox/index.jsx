@@ -48,6 +48,7 @@ function ProductBox({
   minOrder,
   maxOrder,
   compact = false,
+  hideCounter = false,
 }) {
   const { colors } = useMantineTheme();
   const { ref, width } = useElementSize();
@@ -321,16 +322,18 @@ function ProductBox({
               />
             </Box>
             
-            <Box style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-              <CounterHomePage 
-                productId={id} 
-                defaultSellerId={defaultSellerId}
-                defaultCombinationId={defaultCombinationId}
-                stock={stock}
-                minOrder={minOrder}
-                maxOrder={maxOrder}
-              />
-            </Box>
+            {!hideCounter && (
+              <Box style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <CounterHomePage 
+                  productId={id} 
+                  defaultSellerId={defaultSellerId}
+                  defaultCombinationId={defaultCombinationId}
+                  stock={stock}
+                  minOrder={minOrder}
+                  maxOrder={maxOrder}
+                />
+              </Box>
+            )}
           </Flex>
         </>
       ) : (

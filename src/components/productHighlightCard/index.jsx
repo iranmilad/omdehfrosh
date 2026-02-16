@@ -1,15 +1,94 @@
-import { Grid, GridCol, Image, Box, Flex, Text, Paper, Title, Anchor, Group } from "@mantine/core";
-import React, { useState, useEffect } from "react";
+import { ActionIcon, Grid, GridCol, Image, Box, Flex, Text, Paper, Title, Anchor, Group } from "@mantine/core";
+import React, { useState, useRef } from "react";
 import { NavLink } from "react-router";
 import { EditorContainer } from "../editor/container";
 import ToolbarItem from "../editor/toolbar/toolbarItem";
-import { 
-  IconChevronLeft,
-  IconPackage
-} from "@tabler/icons-react";
+import ProductBox from "../productBox";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode, Navigation } from "swiper/modules";
+import { IconChevronLeft, IconChevronRight, IconPackage } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
+import "swiper/css";
+import "./style.css";
 
-function ProductHighlightCard({ items = [] }) {
+function TrendProductsSlider({ items = [], title }) {
+  const sliderRef = useRef(null);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
+
+  const handleSlideChange = (swiper) => {
+    setIsBeginning(swiper.isBeginning);
+    setIsEnd(swiper.isEnd);
+  };
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <Box>
+      <Text
+        size="md"
+        fw="600"
+        style={{ color: "rgb(9, 54, 114)", marginBottom: "var(--mantine-spacing-md)" }}
+      >
+        {title}
+      </Text>
+      <Box pos="relative">
+        {!isBeginning && (
+          <ActionIcon
+            variant="white"
+            radius={999}
+            size="lg"
+            onClick={() => sliderRef.current?.swiper?.slidePrev()}
+            className="trend-slider-prev"
+            styles={{ root: { transform: "none" } }}
+          >
+            <IconChevronRight size={18} />
+          </ActionIcon>
+        )}
+        {!isEnd && (
+          <ActionIcon
+            variant="white"
+            radius={999}
+            size="lg"
+            onClick={() => sliderRef.current?.swiper?.slideNext()}
+            className="trend-slider-next"
+            styles={{ root: { transform: "none" } }}
+          >
+            <IconChevronLeft size={18} />
+          </ActionIcon>
+        )}
+        <Swiper
+        ref={sliderRef}
+        slidesPerView="auto"
+        spaceBetween={10}
+        loop={false}
+        modules={[FreeMode, Navigation]}
+        freeMode={true}
+        onSlideChange={handleSlideChange}
+        onInit={handleSlideChange}
+      >
+        {items.map((item, index) => (
+          <SwiperSlide key={item.url || index} style={{ width: "250px", height: "auto" }}>
+            <ProductBox
+              id={item.url || item.id}
+              title={item.title}
+              image={item.image}
+              slug={item.url}
+              regularPrice={item.regularPrice}
+              discountedPrice={item.discountedPrice}
+              discountPercent={item.discountPercent}
+              compact
+              hideCounter
+            />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+      </Box>
+    </Box>
+  );
+}
+
+function ProductHighlightCard({ items = [], title }) {
   
   // Track which images have failed to load
   const [failedImages, setFailedImages] = useState(new Set());
@@ -20,6 +99,9 @@ function ProductHighlightCard({ items = [] }) {
 
   // Check if items is the category structure from your JSON
   const isCategories = items.length > 0 && items[0].title && items[0].children;
+
+  // Check if this is trend products layout: has title prop and flat array of products
+  const isTrendProducts = title && items.length > 0 && !Array.isArray(items[0]) && !items[0].children;
 
   // Early return if no items
   if (!items || items.length === 0) {
@@ -200,6 +282,11 @@ function ProductHighlightCard({ items = [] }) {
     );
   };
 
+  // Handle trend products: slider with ProductBox (same style as BadgedSlider)
+  if (isTrendProducts) {
+    return <TrendProductsSlider items={items} title={title} />;
+  }
+
   // Handle both data structures: categories with children OR rows of items
   if (isCategories) {
     // Handle category structure from your JSON
@@ -283,6 +370,7 @@ function ProductHighlightCard({ items = [] }) {
 
 ProductHighlightCard.craft = {
   props: {
+    title: "محصولات پرفروش",
     items: [
       [
         {

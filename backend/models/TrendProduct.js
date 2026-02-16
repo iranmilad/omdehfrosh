@@ -14,10 +14,17 @@ const TrendProductSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  regularPrice: { type: Number },
+  discountedPrice: { type: Number },
+  discountPercent: { type: String },
 });
 
 // Define a schema for the trending product groups
 const TrendProductGroupSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    default: "محصولات پرفروش",
+  },
   products: {
     type: [[TrendProductSchema]], // Array of arrays containing trending products
     required: true,

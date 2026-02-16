@@ -111,7 +111,7 @@ export const getHomePageData = async (req, res) => {
       FP.find(),
       Banner.find(),
       ProductGrid.find(),
-      TrendProductGroup.find(),
+      TrendProductGroup.find().sort({ createdAt: 1 }),
       Brand.findOne().lean()
     ]);
 
@@ -176,13 +176,17 @@ export const getHomePageData = async (req, res) => {
       });
     }
 
-    // Process trending products (merge all products arrays)
-    const allTrendingProducts = tp.reduce((acc, item) => {
-      if (Array.isArray(item.products)) {
-        acc.push(...item.products.map(p => toPlainObject(p)));
-      }
-      return acc;
-    }, []);
+    // Process trending products - 3 separate sections from first 3 TrendProductGroup docs
+    const trendProductsDefaultTitles = ["جاروبرقی", "گوشی موبایل", "لپ تاپ"];
+    const trendProductsSections = tp.slice(0, 3).map((item, index) => {
+      const flatProducts = Array.isArray(item.products)
+        ? item.products.flat().map((p) => toPlainObject(p))
+        : [];
+      return {
+        title: item.title || trendProductsDefaultTitles[index] || "محصولات پرفروش",
+        data: flatProducts,
+      };
+    });
 
     // Process brands (clean up unwanted fields)
     let processedBrands = null;
@@ -207,16 +211,25 @@ export const getHomePageData = async (req, res) => {
     const plainPg = pg.map(p => toPlainObject(p));
 
     const checkalllink = process.env.HOMEPAGE_CHECKALL_LINK || "/shop/samsung";
+    const featuredPromoBg = process.env.FEATURED_PROMO_BG || "linear-gradient(to bottom left, #1e3a5f, #0a1628)";
 
     // Structure the data as expected by the client (checkalllink inside featured_promo)
     const data = [
       { type: "wideslider", data: plainSliders },
       { type: "categories", data: filteredCategories },
-      { type: "featured_promo", checkalllink, data: shuffledFeaturedPromo },
+      { type: "featured_promo", checkalllink, data: shuffledFeaturedPromo, backgroundColor: featuredPromoBg },
       { type: "banners", data: plainBanners },
       { type: "prices", data: plainPriceLists },  
       { type: "productGrid", data: plainPg },
-      { type: "trendProducts", data: allTrendingProducts },
+      ...(trendProductsSections[0]?.data?.length
+        ? [{ type: "trendProducts1", title: trendProductsSections[0].title, data: trendProductsSections[0].data }]
+        : []),
+      ...(trendProductsSections[1]?.data?.length
+        ? [{ type: "trendProducts2", title: trendProductsSections[1].title, data: trendProductsSections[1].data }]
+        : []),
+      ...(trendProductsSections[2]?.data?.length
+        ? [{ type: "trendProducts3", title: trendProductsSections[2].title, data: trendProductsSections[2].data }]
+        : []),
       { type: "brands", data: processedBrands },
       { type: "featured_products", data: shuffledFeaturedProducts }
     ];
