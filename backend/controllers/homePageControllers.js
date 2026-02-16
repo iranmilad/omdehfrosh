@@ -211,8 +211,8 @@ export const getHomePageData = async (req, res) => {
     // Structure the data as expected by the client (checkalllink inside featured_promo)
     const data = [
       { type: "wideslider", data: plainSliders },
-      { type: "featured_promo", checkalllink, data: shuffledFeaturedPromo },
       { type: "categories", data: filteredCategories },
+      { type: "featured_promo", checkalllink, data: shuffledFeaturedPromo },
       { type: "banners", data: plainBanners },
       { type: "prices", data: plainPriceLists },  
       { type: "productGrid", data: plainPg },

@@ -1,13 +1,24 @@
-import { Box, Flex, Image, SimpleGrid, Text } from "@mantine/core";
+import { Box, Flex, Image, Text } from "@mantine/core";
 import { NavLink } from "react-router";
 import { EditorContainer } from "../editor/container";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import ToolbarItem from "../editor/toolbar/toolbarItem";
 import { shallowEqual } from "@mantine/hooks";
 import { IconAlignCenter, IconAlignLeft, IconAlignRight, IconCategory } from "@tabler/icons-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode, Navigation } from "swiper/modules";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import "swiper/css";
 
 function Categories({ items, title, title_align }) {
+  const sliderRef = useRef(null);
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
 
+  const handleSlideChange = (swiper) => {
+    setIsBeginning(swiper.isBeginning);
+    setIsEnd(swiper.isEnd);
+  };
 
   // Early return if no items
   if (!items || items.length === 0) {
@@ -167,58 +178,125 @@ function Categories({ items, title, title_align }) {
         </Box>
       </Flex>
       
-      <SimpleGrid
-        cols={{ base: 4, xs: 6, sm: 8, md: 10, lg: 12 }}
-        spacing="md"
-        verticalSpacing="lg"
-      >
-        {items?.map((item, index) => (
-          <Flex
-            key={index}
-            direction="column"
-            align="center"
-            gap="xs"
-            component={item.display ? NavLink : 'div'}
-            to={item.display ? `/fastorder/category/${item.url}` : undefined}
-            opacity={item.display ? 1 : 0.4}
-            style={{
-              pointerEvents: item.display ? "auto" : "none",
-              textDecoration: 'none',
-              cursor: item.display ? 'pointer' : 'default',
-              transition: 'opacity 0.2s ease',
-            }}
-          >
-            {/* Circular image container */}
-            {renderCategoryImage(item)}
+      <Box pos="relative" style={{ overflow: "hidden" }}>
+        <Swiper
+          ref={sliderRef}
+          modules={[FreeMode, Navigation]}
+          spaceBetween={16}
+          slidesPerView={4}
+          freeMode={true}
+          onSlideChange={handleSlideChange}
+          onInit={handleSlideChange}
+          breakpoints={{
+            480: { slidesPerView: 6 },
+            768: { slidesPerView: 8 },
+            1024: { slidesPerView: 10 },
+            1280: { slidesPerView: 12 },
+          }}
+          className="categories-swiper"
+        >
+          {items?.map((item, index) => (
+            <SwiperSlide key={index}>
+              <Flex
+                direction="column"
+                align="center"
+                gap="xs"
+                component={item.display ? NavLink : 'div'}
+                to={item.display ? `/fastorder/category/${item.url}` : undefined}
+                opacity={item.display ? 1 : 0.4}
+                py="lg"
+                style={{
+                  pointerEvents: item.display ? "auto" : "none",
+                  textDecoration: 'none',
+                  cursor: item.display ? 'pointer' : 'default',
+                  transition: 'opacity 0.2s ease',
+                }}
+              >
+                {/* Circular image container */}
+                {renderCategoryImage(item)}
 
-            {/* Title */}
-            <Text
-              size="xs"
-              fw="400"
-              ta="center"
-              c={item.display ? 'dimmed' : 'gray.5'}
+                {/* Title */}
+                <Text
+                  size="xs"
+                  fw="400"
+                  ta="center"
+                  c={item.display ? 'dimmed' : 'gray.5'}
+                  style={{
+                    lineHeight: "1.75",
+                    maxWidth: "80px",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {item.title}
+                </Text>
+
+                {/* Subscription message */}
+                {!item.display && item.subscriptionModel && (
+                  <Text size="10px" c="red" ta="center" style={{ maxWidth: "80px" }}>
+                    {item.subscriptionModel.modelId === "pro" 
+                      ? "نیاز به اشتراک ویژه"
+                      : item.subscriptionModel.modelId === "gold"
+                      ? "نیاز به اشتراک حرفه ای"
+                      : null}
+                  </Text>
+                )}
+              </Flex>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+        {!isBeginning && (
+          <Box
+            component="button"
+            type="button"
+            onClick={() => sliderRef.current?.swiper?.slidePrev()}
               style={{
-                lineHeight: "1.75",
-                maxWidth: "80px",
-                wordBreak: "break-word",
+                position: "absolute",
+                top: "50%",
+                right: 0,
+                transform: "translateY(-50%)",
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                border: "1px solid #e9ecef",
+                backgroundColor: "white",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 10,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               }}
             >
-              {item.title}
-            </Text>
-
-            {/* Subscription message */}
-            {!item.display && item.subscriptionModel && (
-              <Text size="10px" c="red" ta="center" style={{ maxWidth: "80px" }}>
-                {item.subscriptionModel.modelId === "pro" 
-                  ? "نیاز به اشتراک ویژه"
-                  : item.subscriptionModel.modelId === "gold"
-                  ? "نیاز به اشتراک حرفه ای"
-                  : null}
-              </Text>
-            )}
-          </Flex>
-        ))}
-      </SimpleGrid>
+            <IconChevronRight size={18} />
+          </Box>
+        )}
+        {!isEnd && (
+          <Box
+            component="button"
+            type="button"
+            onClick={() => sliderRef.current?.swiper?.slideNext()}
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: 0,
+                transform: "translateY(-50%)",
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                border: "1px solid #e9ecef",
+                backgroundColor: "white",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 10,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              }}
+            >
+            <IconChevronLeft size={18} />
+          </Box>
+        )}
+      </Box>
     </EditorContainer>
   );
 }

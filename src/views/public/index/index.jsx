@@ -120,6 +120,12 @@ function Home() {
                     <WideSlider items={section.data} />
                   </Box>
                 );
+              case "categories":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <Categories items={section?.data} />
+                  </Box>
+                );
               case "featured_promo":
                 return ( section.data && section.data.length > 0 ) ? (
                   
@@ -127,12 +133,7 @@ function Home() {
                     <BadgedSlider items={section.data} checkalllink={section.checkalllink} />
                   </Box>
                 ) : null;
-              case "categories":
-                return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <Categories items={section?.data} />
-                  </Box>
-                );
+
               case "banners":
                 return (
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
