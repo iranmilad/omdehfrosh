@@ -20,7 +20,7 @@ import {
   Group,
   Title,
 } from "@mantine/core";
-import { IconFilter, IconSortDescending, IconAlertCircle, IconRefresh, IconX } from "@tabler/icons-react";
+import { IconFilter, IconSortDescending, IconAlertCircle, IconRefresh, IconX, IconPackageOff } from "@tabler/icons-react";
 import { useDebouncedState, useDebouncedValue, useDisclosure } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { useParams, useLocation, useSearchParams } from "react-router-dom";
@@ -42,7 +42,7 @@ import Filters from "./Filters";
 import ProductList from "./ProductList";
 import SortingAndPagination from "./SortingAndPagination";
 import ProductBox from "../productBox";
-import getHttpCodeMessage from "../../Libs/httpcodes/httpcodes"; // Import your http codes function
+import getHttpCodeMessage from "../../Libs/httpcodes/httpcodes";
 
 const sortFilter = [
   { label: "جدیدترین", value: "newest" },
@@ -51,7 +51,7 @@ const sortFilter = [
   { label: "پرفروش‌ترین", value: "best_selling" },
 ];
 
-function Archive({ enabled = true }) {
+function Archive({ enabled = true, url: apiPath }) {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   
@@ -69,7 +69,7 @@ function Archive({ enabled = true }) {
     sortValue,
     searchTerm
   } = useSelector((state) => state.brandProducts);
-  
+
   // Extract brand slug from query parameter
   const brandSlug = searchParams.get('brand');
   
@@ -78,6 +78,7 @@ function Archive({ enabled = true }) {
   const [debouncedSearch] = useDebouncedValue(search, 600);
   const filterDisclosure = useDisclosure(false);
   const [errorModalOpened, errorModalHandlers] = useDisclosure(false);
+  const [initialized, setInitialized] = useState(false); // NEW
   
   const form = useForm({
     initialValues: {
@@ -85,6 +86,18 @@ function Archive({ enabled = true }) {
       dynamic: {}
     }
   });
+
+  // Reset initialized when enabled changes to true (e.g. tab switch)
+  useEffect(() => {
+    if (enabled) setInitialized(false);
+  }, [enabled]);
+
+  // Mark as initialized once the first fetch completes
+  useEffect(() => {
+    if (!loading && !initialized) {
+      setInitialized(true);
+    }
+  }, [loading]);
 
   // Update search term in Redux when debounced search changes
   useEffect(() => {
@@ -115,18 +128,14 @@ function Archive({ enabled = true }) {
         brand: brandSlug || currentFilters.brand,
       };
       
-      // Convert price object to price_min and price_max for API
       if (currentFilters.priceRange) {
         filtersToSend.price_min = currentFilters.priceRange.min;
         filtersToSend.price_max = currentFilters.priceRange.max;
-        // Remove the price object since API expects price_min/price_max
         delete filtersToSend.priceRange;
       }
       
-      // Remove brands array since we already have the single brand from slug
       delete filtersToSend.brands;
       
-      // Remove undefined/null values and empty arrays
       Object.keys(filtersToSend).forEach(key => {
         const value = filtersToSend[key];
         if (
@@ -139,9 +148,9 @@ function Archive({ enabled = true }) {
         }
       });
             
-      dispatch(fetchbrandProductsData(filtersToSend));
+      dispatch(fetchbrandProductsData(apiPath ? { filters: filtersToSend, apiPath } : filtersToSend));
     }
-  }, [currentFilters, brandSlug, enabled, dispatch]);
+  }, [currentFilters, brandSlug, enabled, dispatch, apiPath]);
 
   // Update form when price data is available
   useEffect(() => {
@@ -167,7 +176,6 @@ function Archive({ enabled = true }) {
     form.setFieldValue(`dynamic.${key}`, value);
   }, [dispatch, form]);
 
-  // Fixed price change handler - now dispatches to Redux
   const handlePriceChange = useCallback((priceRange) => {
     form.setFieldValue("price", priceRange);
     dispatch(updatePriceRange(priceRange));
@@ -177,7 +185,6 @@ function Archive({ enabled = true }) {
     setSearch(searchValue);
   }, []);
 
-  // Enhanced error handling helpers using getHttpCodeMessage
   const getErrorMessage = (error) => {
     if (typeof error === 'string') return error;
     if (error?.message) return error.message;
@@ -199,17 +206,14 @@ function Archive({ enabled = true }) {
   };
 
   const handleRetry = useCallback(() => {
-    // Clear errors first
     dispatch(clearError('error'));
     errorModalHandlers.close();
     
-    // Retry the last request
     const filtersToSend = {
       ...currentFilters,
       brand: brandSlug || currentFilters.brand,
     };
     
-    // Same filter processing as in useEffect
     if (currentFilters.priceRange) {
       filtersToSend.price_min = currentFilters.priceRange.min;
       filtersToSend.price_max = currentFilters.priceRange.max;
@@ -230,16 +234,16 @@ function Archive({ enabled = true }) {
       }
     });
     
-    dispatch(fetchbrandProductsData(filtersToSend));
-  }, [dispatch, currentFilters, brandSlug, errorModalHandlers]);
+    dispatch(fetchbrandProductsData(apiPath ? { filters: filtersToSend, apiPath } : filtersToSend));
+  }, [dispatch, currentFilters, brandSlug, errorModalHandlers, apiPath]);
 
   const handleCloseErrorModal = useCallback(() => {
     dispatch(clearError('error'));
     errorModalHandlers.close();
   }, [dispatch, errorModalHandlers]);
 
-  // Show loading state for initial load
-  if (loading && products.length === 0 && !error) {
+  // Show loading state for initial load (UPDATED)
+  if ((!initialized || loading) && products.length === 0 && !error) {
     return (
       <Center>
         <Loader />
@@ -247,7 +251,7 @@ function Archive({ enabled = true }) {
     );
   }
 
-  // Show error state for initial load failures (fallback, modal should handle most cases)
+  // Show error state for initial load failures
   if (error && products.length === 0 && !errorModalOpened) {
     return (
       <Center>
@@ -396,10 +400,18 @@ function Archive({ enabled = true }) {
                 />
               </Center>
             </>
-          ) : !loading && !error ? (
-            <Center py="xl">
-              <Text>هیچ محصولی یافت نشد</Text>
-            </Center>
+          ) : initialized && !loading && !error ? (
+            <Paper withBorder p="xl" mt="md">
+              <Stack align="center" gap="md" py="xl">
+                <IconPackageOff size={48} stroke={1.2} color="var(--mantine-color-gray-5)" />
+                <Text size="lg" fw={500} c="dimmed">
+                  هیچ محصولی یافت نشد
+                </Text>
+                <Text size="sm" c="dimmed" ta="center" maw={400}>
+                  با فیلترهای دیگر امتحان کنید یا عبارت جستجو را تغییر دهید.
+                </Text>
+              </Stack>
+            </Paper>
           ) : null}
         </GridCol>
       </Grid>

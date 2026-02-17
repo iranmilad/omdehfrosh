@@ -15,6 +15,10 @@ function Seller() {
   const [opened,{close,open,toggle}] = useDisclosure(false);
   const {id} = useParams();
   const {isLoading,data} = useData({url:`/seller/${id}`,queryKey:['seller-info',id]});
+
+  console.log("data", data)
+
+  
   if(isLoading) return <Center><Loader /></Center>
 
   return (
@@ -38,7 +42,7 @@ function Seller() {
           <TabsPanel value="products">
             <Products id={id} activeTab={activeTab} />
           </TabsPanel>
-          <TabsPanel value="comments"><Comments activeTab={activeTab} /></TabsPanel>
+          <TabsPanel value="comments"><Comments id={id} activeTab={activeTab} /></TabsPanel>
         </Tabs>
         <ShareModal close={close} opened={opened} link={window.location.href}  >این فروشنده را با دوستان خود به اشتراک بگذارید!</ShareModal>
       </>

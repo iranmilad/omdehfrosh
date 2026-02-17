@@ -74,6 +74,7 @@ import getUserMessagesModalComponentDataByUserIdReducer from './usermyaccounts/u
 import fastOrderPageDataBrandsReducer from './master-dash/fastorder/fastorderpagedata/fastorderpagedatabrandmode/fastorderpagedatabrands/fastOrderPageDataBrandsSlice.js'
 import fastOrderPageDataBrandModeFiltersReducer from './master-dash/fastorder/fastorderpagedata/fastorderpagedatabrandmodefilters/fastOrderPageDataBrandModeFiltersSlice.js'
 import getProductCommentsReducer from './products/productcomments/getproductcomments/getProductCommentsSlice.js'
+import getSellerCommentsReducer from './seller/sellerComments/getSellerCommentsSlice.js'
 import brandsDataBatchImportReducer from './master-dash/brandsdata/brandsdataSlice.js'
 
 import addedToFavoritesReducer from './users/addedtofavorites/addedToFavoritesSlice.js'
@@ -184,6 +185,7 @@ export default configureStore({
       userTicketsById: userTicketsByIdRedcuer,
       newUserTicket: newUserTicketReducer,
       getProductComments: getProductCommentsReducer,
+      sellerComments: getSellerCommentsReducer,
       addedToFavorites: addedToFavoritesReducer,
       addToFavorites: addToFavoritesReducer,
       removeFromFavorites: removeFromFavoritesReducer,

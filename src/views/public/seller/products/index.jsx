@@ -11,6 +11,7 @@ function Products({ children, id, activeTab }) {
 
   const url = `/seller/${id}/products`;
 
+
     useEffect(() => {
       if (activeTab === "products") setMounted((val) => val + 1);
     }, [activeTab]);

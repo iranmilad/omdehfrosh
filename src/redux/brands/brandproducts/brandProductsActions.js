@@ -2,12 +2,16 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getApiUrl } from "../../../Libs/utils/apiutils/apiutils";
 import getHttpCodeMessage from "../../../Libs/httpcodes/httpcodes";
 
-// Fetch brandProducts data with filters
+// Fetch brandProducts data with filters. Optional apiPath (e.g. /seller/:id/products) overrides default endpoint.
 export const fetchbrandProductsData = createAsyncThunk(
   "brandProducts/fetchbrandProductsData",
-  async (filters, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    const { filters, apiPath } = typeof arg?.filters !== "undefined"
+      ? { filters: arg.filters, apiPath: arg.apiPath ?? null }
+      : { filters: arg, apiPath: null };
+    const endpoint = apiPath || "/brands/brandproducts";
     try {
-      const response = await fetch(getApiUrl("/brands/brandproducts"), {
+      const response = await fetch(getApiUrl(endpoint), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
