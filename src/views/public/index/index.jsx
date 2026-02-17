@@ -146,14 +146,6 @@ function Home() {
               //       <PriceList items={section.data} />
               //     </Box>
               //   );
-              case "trendProducts1":
-              case "trendProducts2":
-              case "trendProducts3":
-                return (section.data && section.data.length > 0) ? (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <ProductHighlightCard items={section.data} title={section.title} />
-                  </Box>
-                ) : null;
               case "brands":
                 return (
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
@@ -171,6 +163,13 @@ function Home() {
                   </Box>
                 );
               default:
+                if (section.type?.startsWith("trendProducts")) {
+                  return (section.data && section.data.length > 0) ? (
+                    <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                      <ProductHighlightCard items={section.data} title={section.title} />
+                    </Box>
+                  ) : null;
+                }
                 return null;
             }
           })}

@@ -49,6 +49,7 @@ function ProductBox({
   maxOrder,
   compact = false,
   hideCounter = false,
+  noImageBg = false,
 }) {
   const { colors } = useMantineTheme();
   const { ref, width } = useElementSize();
@@ -173,7 +174,7 @@ function ProductBox({
         fallbackSrc="" // This will trigger onError if image fails
         style={{
           borderRadius: "8px",
-          backgroundColor: compact ? "#ffffff" : "#f8f9fa",
+          backgroundColor: noImageBg ? undefined : (compact ? "#ffffff" : "#f8f9fa"),
           padding: compact ? "8px" : undefined,
         }}
       />

@@ -176,13 +176,14 @@ export const getHomePageData = async (req, res) => {
       });
     }
 
-    // Process trending products - 3 separate sections from first 3 TrendProductGroup docs
+    // Process trending products - dynamic sections from all TrendProductGroup docs (1, 2, 3, 4, 5, ...)
     const trendProductsDefaultTitles = ["جاروبرقی", "گوشی موبایل", "لپ تاپ"];
-    const trendProductsSections = tp.slice(0, 3).map((item, index) => {
+    const trendProductsSections = tp.map((item, index) => {
       const flatProducts = Array.isArray(item.products)
         ? item.products.flat().map((p) => toPlainObject(p))
         : [];
       return {
+        type: `trendProducts${index + 1}`,
         title: item.title || trendProductsDefaultTitles[index] || "محصولات پرفروش",
         data: flatProducts,
       };
@@ -221,15 +222,7 @@ export const getHomePageData = async (req, res) => {
       { type: "banners", data: plainBanners },
       { type: "prices", data: plainPriceLists },  
       { type: "productGrid", data: plainPg },
-      ...(trendProductsSections[0]?.data?.length
-        ? [{ type: "trendProducts1", title: trendProductsSections[0].title, data: trendProductsSections[0].data }]
-        : []),
-      ...(trendProductsSections[1]?.data?.length
-        ? [{ type: "trendProducts2", title: trendProductsSections[1].title, data: trendProductsSections[1].data }]
-        : []),
-      ...(trendProductsSections[2]?.data?.length
-        ? [{ type: "trendProducts3", title: trendProductsSections[2].title, data: trendProductsSections[2].data }]
-        : []),
+      ...trendProductsSections.filter((s) => s.data?.length > 0),
       { type: "brands", data: processedBrands },
       { type: "featured_products", data: shuffledFeaturedProducts }
     ];

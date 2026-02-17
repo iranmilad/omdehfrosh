@@ -172,6 +172,7 @@ function ProductCarousel(props) {
                 <ProductBox 
                 {...item}
                 compact
+                noImageBg
                 defaultSellerId={item.sellerId || item.seller?.id}
                 defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
                 attributes={item.attributes}
