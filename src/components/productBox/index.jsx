@@ -321,7 +321,7 @@ function ProductBox({
               />
             </Box>
             
-            {!hideCounter && (
+            {/* {!hideCounter && (
               <Box style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
                 <CounterHomePage 
                   productId={id} 
@@ -332,7 +332,7 @@ function ProductBox({
                   maxOrder={maxOrder}
                 />
               </Box>
-            )}
+            )} */}
           </Flex>
         </>
       ) : (
