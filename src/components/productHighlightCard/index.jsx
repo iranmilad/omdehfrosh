@@ -250,7 +250,6 @@ function ProductHighlightCard({ items = [], title }) {
             justifyContent: "center",
             overflow: 'hidden',
             borderRadius: '8px',
-            backgroundColor: "#f8f9fa",
           }}
         >
           {renderProductImage(item, categoryIndex, itemIndex)}

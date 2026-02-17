@@ -134,18 +134,18 @@ function Home() {
                   </Box>
                 ) : null;
 
-              // case "banners":
-              //   return (
-              //     <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-              //       <GridBanner items={section.data} />
-              //     </Box>
-              //   );
-              // case "prices":
-              //   return (
-              //     <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-              //       <PriceList items={section.data} />
-              //     </Box>
-              //   );
+              case "banners":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <GridBanner items={section.data} />
+                  </Box>
+                );
+              case "prices":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <PriceList items={section.data} />
+                  </Box>
+                );
               case "brands":
                 return (
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
