@@ -229,7 +229,7 @@ const handleCookieUpdate = useCallback(() => {
   // Table columns
   const COLUMNS = [
     { key: "image", label: "تصویر", width: "160px" },
-    { key: "name", label: "نام کالا", width: "160px" },
+    { key: "shortName", label: "نام کالا", width: "160px" },
     { key: "attributes", label: "ویژگی ها", width: "60px" },
     { key: "price", label: "قیمت", width: "160px" },
     { key: "stock", label: "موجودی", width: "160px" },

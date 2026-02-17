@@ -214,10 +214,10 @@ const FastTableCategory = ({
           </div>
         );
 
-case "name":
+case "shortName":
   const hasChildren = record.children && record.children.length > 0;
   const isExpanded = expandedRowKeys.includes(record.key);
-  
+  const displayName = record.shortName ?? record.name;
   return (
     <div 
       style={{ 
@@ -248,9 +248,9 @@ case "name":
             whiteSpace: 'normal',
             wordBreak: 'break-word',
           }}
-          title={record.name}
+          title={displayName}
         >
-          {record.name}
+          {displayName}
         </Text>
       </NavLink>
       {hasChildren && !isPrinting && (
@@ -344,7 +344,7 @@ case "name":
     const widthMap = {
       image: isMobile ? 60 : 70,
       name: isMobile ? 150 : 200,
-      shortName: isMobile ? 120 : 150,
+      shortName: isMobile ? 150 : 200,
       psid: isMobile ? 100 : 120,
       attributes: isMobile ? 50 : 60,
       price: isMobile ? 100 : 120,
@@ -375,7 +375,7 @@ case "name":
     ),
     dataIndex: column.key,
     key: column.key,
-    align: column.key === 'name' ? 'right' : 'center',
+    align: column.key === 'shortName' ? 'right' : 'center',
     width: getColumnWidth(column.key),  // ← Changed from fixed width
     render: (_, record) => renderCellContent(column, record),
   }));

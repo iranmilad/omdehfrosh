@@ -305,31 +305,10 @@ case "image":
     </div>
   );
 
-case "name":
-  return (
-    <div style={{ paddingRight: '8px' }}>  {/* ← Add padding if needed */}
-      <NavLink
-        to={`/product/${record.id}`}
-        style={{ color: '#1890ff', textDecoration: 'none', textAlign: 'right' }}
-      >
-        <Text
-          style={{
-            fontSize: isMobile ? 11 : 12,
-            whiteSpace: 'normal',
-            wordBreak: 'break-word',
-            textAlign: 'right',  // ← Add this
-          }}
-          ellipsis={{ tooltip: record.name, rows: 2 }}
-        >
-          {record.name}
-        </Text>
-      </NavLink>
-    </div>
-  );
-        case "shortName":
+case "shortName":
         const hasChildren = record.children && record.children.length > 0;
         const isExpanded = expandedRowKeys.includes(record.key);
-        
+        const displayName = record.shortName ?? record.name;
         return (
           <div 
             style={{ 
@@ -352,9 +331,9 @@ case "name":
                 whiteSpace: 'normal',
                 wordBreak: 'break-word',
               }}
-              ellipsis={{ tooltip: record.shortName, rows: 2 }}
+              ellipsis={{ tooltip: displayName, rows: 2 }}
             >
-              {record.shortName}
+              {displayName}
             </Text>
             {hasChildren && !isPrinting && (
               <div style={{

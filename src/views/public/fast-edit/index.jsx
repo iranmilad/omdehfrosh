@@ -695,8 +695,7 @@ function FastEdit() {
 
   const COLUMNS = [
     { key: "image", label: "تصویر", width: "160px" },
-    { key: "shortName", label: "نام اختصاری کالا", width: "160px" },
-    { key: "name", label: "نام کالا", width: "160px" },
+    { key: "shortName", label: "نام کالا", width: "160px" },
     { key: "attributes", label: "ویژگی ها", width: "160px" },
     { key: "viewPrice", label: "قیمت قبلی", width: "160px" },
     { key: "price", label: "قیمت", width: "160px" },
