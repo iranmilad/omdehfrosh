@@ -3,11 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <link rel="manifest"  href="manifest.json"/>
+
+    <!-- ✅ Removed maximum-scale=1 — it harms accessibility and triggers Edge warning -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="manifest" href="manifest.json"/>
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
     <meta name="theme-color" content="#000000">
+
+    <!-- ✅ apple-touch-icon required for PWA/homescreen on iOS (Edge Tools warning fix) -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
     <title>سایت فروشگاهی</title>
+
+    <!-- Preload critical font weights so browser fetches BEFORE render -->
+    <link rel="preload" href="/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Regular.woff2"  as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Medium.woff2"   as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Bold.woff2"     as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-DemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Light.woff2"    as="font" type="font/woff2" crossorigin="anonymous">
   </head>
   <body>
     <div id="root"></div>

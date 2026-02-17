@@ -1,80 +1,105 @@
 @import "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css";
 
 :root {
-  --primary-font-family: "IRANYekanXFaNum", "IRANYekanX", sans-serif;
+  /*
+   * ⚠️ We use "IRANYekanXFaNum-Web" (not "IRANYekanXFaNum") as the @font-face
+   * family name. This prevents the browser from matching and loading the
+   * locally-installed system font instead of our woff2 files.
+   */
+  --primary-font-family: "IRANYekanXFaNum-Web", sans-serif;
+
+  /*
+   * ✅ Override Mantine's own font CSS variables at the root level.
+   * Mantine sets these on its components, which beats our * { font-family }
+   * rule because CSS variables resolve before !important cascade applies.
+   * Setting them here on :root ensures every Mantine component inherits
+   * our web font instead of whatever Mantine injected via its theme.
+   */
+  --mantine-font-family: "IRANYekanXFaNum-Web", sans-serif;
+  --mantine-font-family-headings: "IRANYekanXFaNum-Web", sans-serif;
+  --mantine-font-family-monospace: "IRANYekanXFaNum-Web", sans-serif;
 }
 
 /* IRANYekanX with Farsi Numerals Font Face Definitions */
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 100;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-Thin.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-Thin.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Thin.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-Thin.woff') format('woff');
 }
 
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 200;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-UltraLight.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-UltraLight.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-UltraLight.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-UltraLight.woff') format('woff');
 }
 
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 300;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-Light.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-Light.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Light.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-Light.woff') format('woff');
 }
 
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 400;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-Regular.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-Regular.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Regular.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-Regular.woff') format('woff');
 }
 
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 500;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-Medium.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-Medium.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Medium.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-Medium.woff') format('woff');
 }
 
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 600;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-DemiBold.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-DemiBold.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-DemiBold.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-DemiBold.woff') format('woff');
 }
 
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 700;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-Bold.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-Bold.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Bold.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-Bold.woff') format('woff');
 }
 
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 800;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-ExtraBold.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-ExtraBold.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-ExtraBold.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-ExtraBold.woff') format('woff');
 }
 
 @font-face {
-  font-family: IRANYekanXFaNum;
+  font-family: "IRANYekanXFaNum-Web";
   font-style: normal;
   font-weight: 900;
-  src: url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff2/IRANYekanXFaNum-Black.woff2') format('woff2'),
-       url('./assets/fonts/iranyekanx/Farsi numerals/Webfonts/Woff/IRANYekanXFaNum-Black.woff') format('woff');
+  font-display: block;
+  src: url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff2/IRANYekanXFaNum-Black.woff2') format('woff2'),
+       url('/fonts/iranyekanx/Farsinumerals/Webfonts/Woff/IRANYekanXFaNum-Black.woff') format('woff');
 }
 
 @layer tailwind {

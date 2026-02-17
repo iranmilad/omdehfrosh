@@ -7,7 +7,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import "./assets/fonts/iranyekan/font.css";
+// NOTE: assets/fonts/iranyekan/font.css removed — IranYekan replaced by IRANYekanXFaNum-Web in global.css
 import NoInternet from "./components/noInternet";
 import "./global.css";
 import { getQueryClient } from "./Libs/reactQuery";

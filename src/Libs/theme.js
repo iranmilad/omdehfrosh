@@ -12,9 +12,9 @@ export const CONTAINER_SIZES = {
 };
 
 const Theme = {
-  fontFamily: "IranYekan, sans-serif",
-  headings: { fontFamily: "IranYekan, sans-serif" },
-  fontFamilyMonospace: "IranYekan, sans-serif",
+  fontFamily: '"IRANYekanXFaNum-Web", sans-serif',
+  headings: { fontFamily: '"IRANYekanXFaNum-Web", sans-serif' },
+  fontFamilyMonospace: '"IRANYekanXFaNum-Web", sans-serif',
   primaryColor: "brand",
   defaultRadius: "8px",
   primaryShade: 9,
