@@ -111,10 +111,10 @@ function Home() {
                   <Box
                     key={index}
                     style={{
-                      width: '100vw',
-                      maxWidth: '100vw',
-                      marginLeft: 'calc(50% - 50vw)',
-                      marginRight: 'calc(50% - 50vw)',
+                      // width: '100vw',
+                      // maxWidth: '100vw',
+                      // marginLeft: 'calc(50% - 50vw)',
+                      // marginRight: 'calc(50% - 50vw)',
                     }}
                   >
                     <WideSlider items={section.data} />
