@@ -146,27 +146,27 @@ function Home() {
                     <PriceList items={section.data} />
                   </Box>
                 );
+              case "trendProducts":
+                return (
+                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                    <ProductHighlightCard items={section.data} />
+                  </Box>
+                );
               case "brands":
                 return (
                   <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
                     <BrandSlider items={section?.data} />
                   </Box>
                 );
-              case "featured_products":
-                return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <ProductCarousel
-                      style={{ marginTop: "30px" }}
-                      title="محصولات منتخب"
-                      items={section.data}
-                    />
-                  </Box>
-                );
               default:
-                if (section.type?.startsWith("trendProducts")) {
+                if (section.type?.startsWith("productloop")) {
                   return (section.data && section.data.length > 0) ? (
                     <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                      <ProductHighlightCard items={section.data} title={section.title} />
+                      <ProductCarousel
+                        style={{ marginTop: "30px" }}
+                        title={section.title}
+                        items={section.data}
+                      />
                     </Box>
                   ) : null;
                 }

@@ -54,6 +54,7 @@ function ProductBox({
   const { ref, width } = useElementSize();
   const [imageError, setImageError] = useState(false);
 
+  const productSlug = slug || id;
 
 
 
@@ -221,18 +222,21 @@ function ProductBox({
                   }}
                 />
               )}
-              <Text
-                size="12px"
-                fw={400}
-                c="dimmed"
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'visible',
-                  textOverflow: 'unset',
-                }}
-              >
-                {attr.value}
-              </Text>
+              {/* For color with colorCode: show only the circle; never show hex as text */}
+              {!(attr.nameEng === 'color' && attr.colorCode) && (
+                <Text
+                  size="12px"
+                  fw={400}
+                  c="dimmed"
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'visible',
+                    textOverflow: 'unset',
+                  }}
+                >
+                  {/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(String(attr.value ?? '').trim()) ? '' : (attr.value ?? '')}
+                </Text>
+              )}
             </Flex>
             {index < displayAttributes.length - 1 && (
               <Box
@@ -282,7 +286,10 @@ function ProductBox({
             </Box>
           )}
           
-          <Box component={id ? NavLink : 'div'} to={id ? `/product/${id}` : undefined}>
+          <Box
+            component={productSlug ? NavLink : 'div'}
+            to={productSlug ? `/product/${productSlug}` : undefined}
+          >
             {renderProductImage()}
           </Box>
           
@@ -290,8 +297,8 @@ function ProductBox({
           <Text
             fw="500"
             size="14px"
-            component={id ? NavLink : 'div'}
-            to={id ? `/product/${id}` : undefined}
+            component={productSlug ? NavLink : 'div'}
+            to={productSlug ? `/product/${productSlug}` : undefined}
             style={{
               display: "-webkit-box",
               WebkitBoxOrient: "vertical",
@@ -300,9 +307,9 @@ function ProductBox({
               textOverflow: "ellipsis",
               whiteSpace: "normal",
               lineHeight: "1.2",
-              color: slug ? 'inherit' : 'var(--mantine-color-dimmed)',
+              color: productSlug ? 'inherit' : 'var(--mantine-color-dimmed)',
               textDecoration: 'none',
-              cursor: slug ? 'pointer' : 'default',
+              cursor: productSlug ? 'pointer' : 'default',
             }}
           >
             {title || 'عنوان محصول'}
@@ -321,7 +328,7 @@ function ProductBox({
               />
             </Box>
             
-            {/* {!hideCounter && (
+            {!hideCounter && (
               <Box style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
                 <CounterHomePage 
                   productId={id} 
@@ -332,7 +339,7 @@ function ProductBox({
                   maxOrder={maxOrder}
                 />
               </Box>
-            )} */}
+            )}
           </Flex>
         </>
       ) : (

@@ -197,7 +197,7 @@ export default function Shop(server, apiPrefix) {
         { type: "productGrid", data: pg },
         { type: "trendProducts", data: tp },
         { type: "brands", data: br },
-        { type: "featured_products", data: shuffleArray(fps) }
+        { type: "productloop1", title: "محصولات منتخب", data: shuffleArray(fps) }
     ];
 
     return { message: "ok", data };

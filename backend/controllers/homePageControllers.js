@@ -7,6 +7,7 @@ import FP from '../models/FP.js';
 import Banner from '../models/Banner.js';
 import ProductGrid from '../models/ProductGrid.js';
 import TrendProductGroup from '../models/TrendProduct.js';
+import ProductLoopGroup from '../models/ProductLoop.js';
 import Brand from '../models/Brand.js';
 
 // Helper function to shuffle array (equivalent to your client-side shuffleArray)
@@ -103,6 +104,7 @@ export const getHomePageData = async (req, res) => {
       banners,
       pg,
       tp,
+      pl,
       brandDoc
     ] = await Promise.all([
       Category.find({}),
@@ -111,7 +113,8 @@ export const getHomePageData = async (req, res) => {
       FP.find(),
       Banner.find(),
       ProductGrid.find(),
-      TrendProductGroup.find().sort({ createdAt: 1 }),
+      TrendProductGroup.find(),
+      ProductLoopGroup.find().sort({ createdAt: 1 }),
       Brand.findOne().lean()
     ]);
 
@@ -176,18 +179,17 @@ export const getHomePageData = async (req, res) => {
       });
     }
 
-    // Process trending products - dynamic sections from all TrendProductGroup docs (1, 2, 3, 4, 5, ...)
-    const trendProductsDefaultTitles = ["جاروبرقی", "گوشی موبایل", "لپ تاپ"];
-    const trendProductsSections = tp.map((item, index) => {
-      const flatProducts = Array.isArray(item.products)
-        ? item.products.flat().map((p) => toPlainObject(p))
-        : [];
-      return {
-        type: `trendProducts${index + 1}`,
-        title: item.title || trendProductsDefaultTitles[index] || "محصولات پرفروش",
-        data: flatProducts,
-      };
-    });
+    // Process trending products (merge all products arrays) - single section like backup 3.2.1
+    // Data shape is array-of-rows (array of arrays), as ProductHighlightCard expects when no title is provided.
+    const allTrendingProducts = tp.reduce((acc, item) => {
+      if (Array.isArray(item.products)) {
+        const rows = item.products
+          .filter((row) => Array.isArray(row))
+          .map((row) => row.map((p) => toPlainObject(p)));
+        acc.push(...rows);
+      }
+      return acc;
+    }, []);
 
     // Process brands (clean up unwanted fields)
     let processedBrands = null;
@@ -203,7 +205,20 @@ export const getHomePageData = async (req, res) => {
     // Enrich featured products with mock inventory data and convert to plain objects
     const enrichedFps = enrichProductsWithInventory(fps);
     const shuffledFeaturedPromo = shuffleArray(enrichedFps);
-    const shuffledFeaturedProducts = shuffleArray(enrichedFps);
+
+    // Productloop should match featured_promo product item structure (id, seller, combinationId, attributes, ...)
+    // so CounterHomePage can work. No checkalllink/backgroundColor fields are included.
+    const productloopTitles = ["محصولات منتخب", "پیشنهاد ویژه", "پرفروش‌های هفته"];
+    const productloopSource = shuffleArray(enrichedFps);
+    const loopsCount = productloopTitles.length;
+    const chunkSize = Math.ceil(productloopSource.length / loopsCount) || 0;
+    const productloopSections = productloopTitles
+      .map((t, i) => ({
+        type: `productloop${i + 1}`,
+        title: t,
+        data: productloopSource.slice(i * chunkSize, (i + 1) * chunkSize),
+      }))
+      .filter((s) => s.data.length > 0);
 
     // Convert all remaining Mongoose documents to plain objects
     const plainSliders = sliders.map(s => toPlainObject(s));
@@ -222,9 +237,9 @@ export const getHomePageData = async (req, res) => {
       { type: "banners", data: plainBanners },
       { type: "prices", data: plainPriceLists },  
       { type: "productGrid", data: plainPg },
-      ...trendProductsSections.filter((s) => s.data?.length > 0),
+      { type: "trendProducts", data: allTrendingProducts },
       { type: "brands", data: processedBrands },
-      { type: "featured_products", data: shuffledFeaturedProducts }
+      ...productloopSections.filter((s) => s.data?.length > 0),
     ];
 
     // Remove all _id and __v fields from the entire response
