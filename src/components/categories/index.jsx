@@ -9,6 +9,9 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode, Navigation } from "swiper/modules";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import "swiper/css";
+import "./style.css";
+
+const CATEGORY_ICON_SIZE = 44;
 
 function Categories({ items, title, title_align }) {
   const sliderRef = useRef(null);
@@ -48,8 +51,8 @@ function Categories({ items, title, title_align }) {
     
     return (
       <Flex
-        w={64}
-        h={64}
+        w={CATEGORY_ICON_SIZE}
+        h={CATEGORY_ICON_SIZE}
         justify="center"
         align="center"
         style={{
@@ -74,7 +77,7 @@ function Categories({ items, title, title_align }) {
         />
         
         <IconCategory 
-          size={32} 
+          size={22} 
           color="rgba(255, 255, 255, 0.9)" 
           style={{ zIndex: 2 }} 
         />
@@ -97,8 +100,8 @@ function Categories({ items, title, title_align }) {
 
     return (
       <Flex
-        w={64}
-        h={64}
+        w={CATEGORY_ICON_SIZE}
+        h={CATEGORY_ICON_SIZE}
         justify="center"
         align="center"
         style={{
@@ -108,8 +111,8 @@ function Categories({ items, title, title_align }) {
         }}
       >
         <Image
-          w={64}
-          h={64}
+          w={CATEGORY_ICON_SIZE}
+          h={CATEGORY_ICON_SIZE}
           fit="contain"
           src={item.image}
           alt={item.title || 'دسته بندی'}
@@ -132,7 +135,7 @@ function Categories({ items, title, title_align }) {
         w="100%"
         px={{ base: "md", md: 0 }}
         py={{ base: "sm", md: 0 }}
-        mb="lg"
+        mb="sm"
       >
         <Text 
           size="md" 
@@ -200,11 +203,11 @@ function Categories({ items, title, title_align }) {
               <Flex
                 direction="column"
                 align="center"
-                gap="xs"
+                gap={2}
                 component={item.display ? NavLink : 'div'}
                 to={item.display ? `/fastorder/category/${item.url}` : undefined}
                 opacity={item.display ? 1 : 0.4}
-                py="lg"
+                py="xs"
                 style={{
                   pointerEvents: item.display ? "auto" : "none",
                   textDecoration: 'none',
@@ -222,8 +225,8 @@ function Categories({ items, title, title_align }) {
                   ta="center"
                   c={item.display ? 'dimmed' : 'gray.5'}
                   style={{
-                    lineHeight: "1.75",
-                    maxWidth: "80px",
+                    lineHeight: "1.3",
+                    maxWidth: "64px",
                     wordBreak: "break-word",
                   }}
                 >
@@ -249,25 +252,10 @@ function Categories({ items, title, title_align }) {
             component="button"
             type="button"
             onClick={() => sliderRef.current?.swiper?.slidePrev()}
-              style={{
-                position: "absolute",
-                top: "50%",
-                right: 0,
-                transform: "translateY(-50%)",
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                border: "1px solid #e9ecef",
-                backgroundColor: "white",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 10,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-            <IconChevronRight size={18} />
+            className="categories-carousel-prev"
+            aria-label="اسلاید قبلی"
+          >
+            <IconChevronRight size={16} />
           </Box>
         )}
         {!isEnd && (
@@ -275,25 +263,10 @@ function Categories({ items, title, title_align }) {
             component="button"
             type="button"
             onClick={() => sliderRef.current?.swiper?.slideNext()}
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: 0,
-                transform: "translateY(-50%)",
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                border: "1px solid #e9ecef",
-                backgroundColor: "white",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 10,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-            <IconChevronLeft size={18} />
+            className="categories-carousel-next"
+            aria-label="اسلاید بعدی"
+          >
+            <IconChevronLeft size={16} />
           </Box>
         )}
       </Box>

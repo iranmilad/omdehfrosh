@@ -1,0 +1,18 @@
+.brand-carousel-prev,
+.brand-carousel-next {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+  height: fit-content;
+  z-index: 10;
+}
+
+.brand-carousel-prev {
+  right: 10px;
+}
+
+.brand-carousel-next {
+  left: 10px;
+}

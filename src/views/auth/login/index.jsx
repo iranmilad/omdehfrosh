@@ -54,6 +54,27 @@ const codeValidationSchema = yup.object().shape({
 const AUTH_LOGIN_FORM_COOKIE = "authLoginForm";
 const AUTH_LOGIN_FORM_MAX_AGE_DAYS = 30;
 
+function getAuthFieldErrorMessage(error, fallback = "خطا در ورود به سیستم") {
+  if (!error) return fallback;
+  if (typeof error === "string") return error;
+
+  if (typeof error === "object") {
+    const nested = error.error ?? error.errors ?? error.code;
+
+    if (typeof nested === "string" && nested.trim()) return nested;
+
+    if (nested && typeof nested === "object") {
+      const nestedMessage = getAuthFieldErrorMessage(nested, "");
+      if (nestedMessage) return nestedMessage;
+    }
+
+    if (typeof error.message === "string" && error.message.trim()) return error.message;
+    if (typeof error.code === "string" && error.code.trim()) return error.code;
+  }
+
+  return fallback;
+}
+
 function getSavedMobileFromCookie() {
   try {
     if (typeof document === "undefined") return "";
@@ -246,10 +267,15 @@ const Login = () => {
       const data = text ? JSON.parse(text) : null;
 
       if (!response.ok) {
+        const errorMessage = getAuthFieldErrorMessage(
+          data?.error ?? data?.message,
+          data?.message || getHttpCodeMessage(response.status)
+        );
+
         const error = {
           status: response.status,
-          message: data?.message || getHttpCodeMessage(response.status),
-          error: data?.error || "کد وارد شده اشتباه است"
+          message: data?.message || errorMessage,
+          error: errorMessage,
         };
 
         setLoginData({
@@ -356,7 +382,10 @@ const Login = () => {
       if (result.state === "error") {
         setStateMessage("error");
         if (result.error) {
-          form.setErrors(result.error);
+          form.setFieldError(
+            "mobile",
+            getAuthFieldErrorMessage(result.error, "مشکلی در ارسال پیامک رخ داده است")
+          );
           setErrors(result.error);
         }
         return;
@@ -412,8 +441,18 @@ const Login = () => {
       }
 
       if (result.state === "error") {
-        formCode.setFieldError("code", result.error?.error || result.error?.message || "خطا در ورود به سیستم");
-        
+        const codeErrorMessage = getAuthFieldErrorMessage(
+          result.error,
+          "کد وارد شده اشتباه است"
+        );
+
+        formCode.setFieldError("code", codeErrorMessage);
+        notifications.show({
+          title: codeErrorMessage,
+          color: "red",
+          autoClose: true,
+        });
+
         if (result.error && ![401, 404, 500].includes(result.error?.status)) {
           setErrors(result.error);
         }
@@ -463,7 +502,10 @@ const Login = () => {
         setErrors(error);
       }
       
-      formCode.setFieldError("code", error?.message || "خطا در ورود به سیستم");
+      formCode.setFieldError(
+        "code",
+        getAuthFieldErrorMessage(error, "خطا در ورود به سیستم")
+      );
     }
   }
 
@@ -595,11 +637,18 @@ const Login = () => {
                         type="number"
                         key={formCode.key("code")}
                         {...formCode.getInputProps("code")}
+                        error={
+                          formCode.errors.code
+                            ? getAuthFieldErrorMessage(formCode.errors.code, "")
+                            : undefined
+                        }
                         size={buttonSize}
                       />
                     </Center>
                     <Text c="red" size="xs" mt="xs">
-                      {formCode.errors.code}
+                      {formCode.errors.code
+                        ? getAuthFieldErrorMessage(formCode.errors.code, "")
+                        : null}
                     </Text>
                     <Flex 
                       justify="space-between" 

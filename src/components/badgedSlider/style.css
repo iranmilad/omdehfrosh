@@ -1,17 +1,20 @@
-.badged-carousel-prev{
+.badged-carousel-prev,
+.badged-carousel-next {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 20px;
+    top: 0;
+    bottom: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+    height: fit-content;
     z-index: 50;
 }
 
-.badged-carousel-next{
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+.badged-carousel-prev {
+    right: 20px;
+}
+
+.badged-carousel-next {
     left: 20px;
-    z-index: 50;
 }
 
 @media only screen and (max-width: 420px){

@@ -5,6 +5,7 @@ import { NavLink } from "react-router";
 import { FreeMode, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ImageIcon from '../../resources/defaultImageIcon'; // Adjust path as needed
+import "./style.css";
 
 function BrandSlider({ items }) {
   const sliderRef = useRef(null);
@@ -102,7 +103,6 @@ function BrandSlider({ items }) {
           justifyContent: 'center',
           backgroundColor: '#f3f4f6',
           borderRadius: '8px',
-          border: '1px solid rgba(1, 1, 1, 0.5)'
         }}
       >
         <ImageIcon size={48} color="#9ca3af" />
@@ -121,7 +121,6 @@ function BrandSlider({ items }) {
         onError={() => handleImageError(index)}
         style={{
           borderRadius: "8px",
-          border: "1px solid rgba(1, 1, 1, 0.5)",
           backgroundColor: "#f8f9fa",
         }}
         fallback={
@@ -134,7 +133,6 @@ function BrandSlider({ items }) {
               justifyContent: 'center',
               backgroundColor: '#f3f4f6',
               borderRadius: '8px',
-              border: '1px solid rgba(1, 1, 1, 0.5)'
             }}
           >
             <ImageIcon size={48} color="#9ca3af" />
@@ -169,7 +167,29 @@ function BrandSlider({ items }) {
       </Text>
 
       {/* White Paper containing only the slider */}
-      <Paper px={0} py="lg">
+      <Paper px={0} py="lg" pos="relative">
+        {shouldShowNavigation && !isBeginning && (
+          <ActionIcon
+            variant="white"
+            radius={999}
+            size="lg"
+            onClick={handlePrev}
+            className="brand-carousel-prev border border-solid border-slate-300"
+          >
+            <IconChevronRight size={18} />
+          </ActionIcon>
+        )}
+        {shouldShowNavigation && !isEnd && (
+          <ActionIcon
+            variant="white"
+            radius={999}
+            size="lg"
+            onClick={handleNext}
+            className="brand-carousel-next border border-solid border-slate-300"
+          >
+            <IconChevronLeft size={18} />
+          </ActionIcon>
+        )}
         <Swiper
           ref={sliderRef}
           slidesPerView="auto"
@@ -198,44 +218,8 @@ function BrandSlider({ items }) {
               spaceBetween: 30,
             },
           }}
-          style={{ position: "relative", marginTop: "0px" }}
+          style={{ marginTop: "0px" }}
         >
-          {shouldShowNavigation && !isBeginning && (
-            <ActionIcon
-              variant="white"
-              radius={999}
-              size="lg"
-              onClick={handlePrev}
-              className="product-highlight-card-carousel-prev border border-solid border-slate-300"
-              style={{
-                position: "absolute",
-                right: "10px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 10,
-              }}
-            >
-              <IconChevronRight size={18} />
-            </ActionIcon>
-          )}
-          {shouldShowNavigation && !isEnd && (
-            <ActionIcon
-              variant="white"
-              radius={999}
-              size="lg"
-              onClick={handleNext}
-              className="product-highlight-card-carousel-next border border-solid border-slate-300"
-              style={{
-                position: "absolute",
-                left: "10px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 10,
-              }}
-            >
-              <IconChevronLeft size={18} />
-            </ActionIcon>
-          )}
           {items.children.map((item, index) => (
             <SwiperSlide
               key={`brand-${index}-${item.url ?? item.name ?? item.id ?? ''}`}
@@ -249,7 +233,6 @@ function BrandSlider({ items }) {
                 justifyContent: "center",
                 boxSizing: "border-box",
               }}
-              className="border-l"
             >
               {item.url ? (
                 <NavLink 

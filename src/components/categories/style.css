@@ -1,0 +1,24 @@
+.categories-carousel-prev,
+.categories-carousel-next {
+  position: absolute;
+  top: calc(var(--mantine-spacing-xs) + 6px);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid #e9ecef;
+  background-color: white;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.categories-carousel-prev {
+  right: 0;
+}
+
+.categories-carousel-next {
+  left: 0;
+}

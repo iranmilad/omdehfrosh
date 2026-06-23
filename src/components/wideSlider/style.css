@@ -1,19 +1,16 @@
-.wide-carousel-prev{
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 20px;
-    z-index: 50;
+.wide-slider {
+  position: relative;
+  width: 100%;
 }
 
-.wide-carousel-next{
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    left: 20px;
-    z-index: 50;
+.wide-slider .swiper {
+  position: relative;
+  z-index: 1;
 }
 
 .wide-slide-image {
-  contain-intrinsic-size: 1200px 250px;
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
 }

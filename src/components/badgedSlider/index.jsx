@@ -56,7 +56,6 @@ function BadgedSlider({ items = [], checkalllink = "/incredible-offers", backgro
           size="lg"
           onClick={handlePrev}
           className="badged-carousel-prev border border-solid border-slate-300"
-          styles={{root: {transform: 'none'}}}
         >
           <IconChevronRight size={18} />
         </ActionIcon>
@@ -68,7 +67,6 @@ function BadgedSlider({ items = [], checkalllink = "/incredible-offers", backgro
           size="lg"
           onClick={handleNext}
           className="badged-carousel-next border border-solid border-slate-300"
-          styles={{root: {transform: 'none'}}}
         >
           <IconChevronLeft size={18} />
         </ActionIcon>
