@@ -233,7 +233,7 @@ function ProductHighlightCard({ items = [], title }) {
         pt="md"
         pos="relative"
         style={{ 
-          border: "1px solid rgba(1, 1, 1, 0.5)",
+          border: "1px solid rgb(1 1 1 / 15%)",
           width: "100%",
           maxWidth: `${CARD_WIDTH}px`,
           margin: '0 auto',
