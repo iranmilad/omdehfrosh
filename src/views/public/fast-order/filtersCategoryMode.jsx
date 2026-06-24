@@ -590,10 +590,13 @@ function FiltersCategoryMode({
   return (
     <>
       <Paper
-        id="fastorder-search"
+        id="fastorder-filters"
         p={isMobile ? "sm" : "md"}
         style={{
-          overflow: 'hidden'
+          overflow: 'hidden',
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          marginTop: 0,
         }}
       >
 

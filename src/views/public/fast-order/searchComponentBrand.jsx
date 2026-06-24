@@ -858,6 +858,8 @@ const SearchComponentBrandFastOrder = ({
         p={isMobile ? "sm" : "md"}
         style={{
           overflow: "hidden",
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
         }}
       >
         {/* Loading Overlay */}

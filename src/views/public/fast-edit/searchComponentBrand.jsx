@@ -321,7 +321,9 @@ const SearchComponentBrandFastEdit = ({
         id="fastedit-search"
         p={isMobile ? "sm" : "md"}
         style={{ 
-          overflow: 'hidden'
+          overflow: 'hidden',
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
         }}
       >
         {/* Header */}

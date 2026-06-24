@@ -157,8 +157,12 @@ function FastEditBrandContent({
             p={isMobile ? "sm" : "md"}
             bg="white"
             style={{
-              borderRadius: '8px',
-              overflow: 'hidden'
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: '8px',
+              borderBottomRightRadius: '8px',
+              overflow: 'hidden',
+              marginTop: 0,
             }}
           >
             <Swiper
@@ -374,8 +378,12 @@ function FastEditCategoryContent({
             p={isMobile ? "sm" : "md"}
             bg="white"
             style={{
-              borderRadius: '8px',
-              overflow: 'hidden'
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+              borderBottomLeftRadius: '8px',
+              borderBottomRightRadius: '8px',
+              overflow: 'hidden',
+              marginTop: 0,
             }}
           >
             <Swiper

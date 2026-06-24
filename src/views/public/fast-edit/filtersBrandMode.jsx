@@ -484,11 +484,13 @@ function FiltersBrandModeFastEdit({ setFilters, nodes, filters, setNodes, setNod
 
   return (
     <Paper 
-      mt={{ base: "xs", md: "xs" }} 
-      id="fastorder-filters"
+      id="fastedit-filters"
       p={isMobile ? "sm" : "md"}
       style={{ 
-        overflow: 'hidden'
+        overflow: 'hidden',
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        marginTop: 0,
       }}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>

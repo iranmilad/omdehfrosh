@@ -719,7 +719,7 @@ return (
                       />
                     </div>
 
-                    <Group>
+                    <Group gap={0}>
                       <div
                         ref={componentRef}
                         style={{
@@ -928,7 +928,7 @@ return (
                       />
                     </div>
 
-                    <Group>
+                    <Group gap={0}>
                       <div
                         ref={componentRef}
                         style={{

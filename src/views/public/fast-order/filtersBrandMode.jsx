@@ -532,12 +532,15 @@ function FiltersBrandModeFastOrder({
   return (
     <>
       <Paper
-        id="fastorder-search"
+        id="fastorder-filters"
         p={isMobile ? "sm" : "md"}
         style={{
           overflow: 'hidden',
           width: '100%',
-          maxWidth: '100vw', // Prevent overflow
+          maxWidth: '100vw',
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          marginTop: 0,
         }}
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
