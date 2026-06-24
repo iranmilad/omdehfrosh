@@ -1,7 +1,7 @@
 // src\views\public\fast-edit\fasttablecategory.jsx
 import { useEffect, useRef, useState } from "react";
 import { Table, Image, Typography, Space, Tag, Avatar } from "antd";
-import { DownOutlined, RightOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
+import { DownOutlined, UpOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
 import { NavLink } from "react-router";
 import usePrint from "../../../hooks/usePrint";
 import { Attributes } from "../fast-edit/orderRow";
@@ -309,7 +309,7 @@ case "image":
                     color: isExpanded ? '#fff' : '#1890ff',
                     transition: 'all 0.3s ease',
                   }}>
-                    {isExpanded ? <DownOutlined /> : <RightOutlined />}
+                    {isExpanded ? <UpOutlined /> : <DownOutlined />}
                   </div> */}
               </div>
             ) : (
@@ -383,7 +383,7 @@ case "shortName":
           color: isExpanded ? '#fff' : '#1890ff',
           transition: 'all 0.3s ease',
         }}>
-          {isExpanded ? <DownOutlined /> : <RightOutlined />}
+          {isExpanded ? <UpOutlined /> : <DownOutlined />}
         </div>
       )}
     </div>

@@ -1,12 +1,16 @@
 import {
+  Alert,
   Box,
+  Button,
   Container,
   Flex,
   Loader,
   Overlay,
   Paper,
+  Stack,
   Text
 } from "@mantine/core";
+import { IconRefresh, IconWifiOff } from "@tabler/icons-react";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Outlet, useLocation } from "react-router";
@@ -15,6 +19,7 @@ import Header from "../../components/header";
 import { PublicRoutes } from "../../routes/public";
 import InstallPWA from "../../components/installPWA";
 import { useStaticQuery } from "../../Libs/reactQuery";
+import { getFriendlyErrorMessage } from "../../Libs/utils/getFriendlyErrorMessage";
 
 
 const Public = (props) => {
@@ -29,11 +34,14 @@ const Public = (props) => {
     data: bootstrapData,
     loading: loadingBootstrap,
     error: errorBootstrap,
+    refetch: refetchBootstrap,
+    fetching: fetchingBootstrap,
   } = useStaticQuery({
     endpoint: '/bootstrap',
     queryKey: ['bootstrap'],
     enabled: !isPaymentListener,
     transformer: (response) => response?.data ?? null,
+    meta: { showErrorNotification: false },
   });
 
   // Update page title based on current route
@@ -83,6 +91,11 @@ const Public = (props) => {
 
   // Show error state if bootstrap fetch fails
   if (errorBootstrap) {
+    const bootstrapErrorMessage = getFriendlyErrorMessage(
+      errorBootstrap,
+      'امکان برقراری ارتباط با سرور وجود ندارد.'
+    );
+
     return (
       <Flex
         h="100vh"
@@ -90,11 +103,31 @@ const Public = (props) => {
         justify="center"
         align="center"
         direction="column"
+        p="md"
       >
-        <Text color="red" size="lg" mb="md">
-          خطا در دریافت اطلاعات
-        </Text>
-        <Text color="dimmed">{errorBootstrap}</Text>
+        <Alert
+          color="red"
+          variant="light"
+          title="خطا در دریافت اطلاعات"
+          icon={<IconWifiOff size={20} />}
+          maw={420}
+          w="100%"
+        >
+          <Stack gap="md" align="center">
+            <Text size="sm" ta="center" c="dimmed">
+              {bootstrapErrorMessage}
+            </Text>
+            <Button
+              leftSection={<IconRefresh size={16} />}
+              variant="light"
+              color="red"
+              loading={fetchingBootstrap}
+              onClick={() => refetchBootstrap()}
+            >
+              تلاش مجدد
+            </Button>
+          </Stack>
+        </Alert>
       </Flex>
     );
   }

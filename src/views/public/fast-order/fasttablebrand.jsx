@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Table, Typography, Space, Button, Tag, Avatar } from "antd";
-import { DownOutlined, RightOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
+import { DownOutlined, UpOutlined, UserOutlined, ShoppingOutlined } from "@ant-design/icons";
 import { NavLink } from "react-router";
 import usePrint from "../../../hooks/usePrint";
 import { Attributes } from "../fast-edit/orderRow";
@@ -282,7 +282,7 @@ case "shortName":
           color: isExpanded ? '#fff' : '#1890ff',
           transition: 'all 0.3s ease',
         }}>
-          {isExpanded ? <DownOutlined /> : <RightOutlined />}
+          {isExpanded ? <UpOutlined /> : <DownOutlined />}
         </div>
       )}
     </div>
