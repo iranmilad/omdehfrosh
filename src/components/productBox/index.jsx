@@ -288,7 +288,9 @@ function ProductBox({
       className={dense ? "product-box-dense" : undefined}
       style={{ 
         flexDirection: "column",
-        border: "1px solid rgba(1, 1, 1, 0.5)",
+        border: compact
+          ? "1px solid rgb(1 1 1 / 15%)"
+          : "1px solid rgba(1, 1, 1, 0.5)",
         overflow: "hidden",
       }}
       h="100%"
