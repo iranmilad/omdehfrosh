@@ -35,13 +35,42 @@ const PaymentSummary = ({ orderfinalreceipt }) => {
           border: '0px solid #1a181c',
           borderRadius: '8px',
           marginBottom: '10px',
-          padding: '12px'
+          padding: '12px',
+          width: '100%',
         }}
       >
-        <IconInfoCircleFilled size={18} color="#2196f3" style={{ flexShrink: 0, marginTop: '2px' }} />
-        <Text style={{ color: '#196d94', fontSize: '14px', fontWeight: 400 }}>
-          فاکتور رسمی پس از پرداخت و ثبت سفارش، در صفحه جزئیات سفارش قابل دانلود است.
-        </Text>
+        <Box style={{ position: "relative", width: "100%" }}>
+          <IconInfoCircleFilled
+            size={18}
+            color="#2196f3"
+            style={{ position: "absolute", top: 0, right: 0, zIndex: 1 }}
+          />
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
+            <Text
+              style={{
+                color: "#196d94",
+                fontSize: "12px",
+                fontWeight: 400,
+                lineHeight: 1.5,
+                whiteSpace: "nowrap",
+                paddingRight: 22,
+              }}
+            >
+              سفارش شما از چندین فروشنده می باشد ،
+            </Text>
+            <Text
+              style={{
+                color: "#196d94",
+                fontSize: "12px",
+                fontWeight: 400,
+                lineHeight: 1.5,
+                whiteSpace: "nowrap",
+              }}
+            >
+              هر فاکتور جداگانه پرداخت و ارسال می گردد.
+            </Text>
+          </div>
+        </Box>
       </Flex>
 
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>

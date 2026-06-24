@@ -104,7 +104,8 @@ const CounterBasket = (props) => {
     poductName,
     price,
     max,
-    min
+    min,
+    stock,
   } = props;
 
   const productIdStr = typeof productId === 'string' ? productId : String(productId || '');
@@ -126,12 +127,25 @@ const CounterBasket = (props) => {
     setShowReloginModal(true);
   }, [queryClient, dispatch]);
 
-  // Calculate dynamic width based on number of digits
   const getInputWidth = (number) => {
     const digits = String(number).length;
-    // Base width + additional width per digit
-    return Math.max(35, 20 + (5 * 7));
+    return Math.max(35, 20 + digits * 7);
   };
+
+  const numMax = max != null && max !== "" ? Number(max) : NaN;
+  const numStock = stock != null && stock !== "" ? Number(stock) : NaN;
+  const numMin = min != null && min !== "" ? Number(min) : 1;
+
+  const realMax =
+    !Number.isNaN(numMax) && !Number.isNaN(numStock)
+      ? Math.min(numMax, numStock)
+      : !Number.isNaN(numMax)
+        ? numMax
+        : !Number.isNaN(numStock)
+          ? numStock
+          : 999;
+
+  const clampCount = (value) => Math.min(Math.max(value, numMin), realMax);
 
   const getProductCount = (items, productId, seller, combinationsID) => {
     const normalizeId = (id) => String(id).trim();
@@ -158,13 +172,16 @@ const CounterBasket = (props) => {
 
   const count = getProductCount(items, productId, seller, combinationsID);
   const [localCount, setLocalCount] = useState(count);
+  const [inputValue, setInputValue] = useState(String(count));
 
   useEffect(() => {
     const currentCount = getProductCount(items, productId, seller, combinationsID);
     setLocalCount(currentCount);
   }, [items, productId, seller, combinationsID]);
 
-  const realMax = Math.min(max || Infinity, props.stock || Infinity);
+  useEffect(() => {
+    setInputValue(String(localCount));
+  }, [localCount]);
 
   const increment = () => {
     if (localCount >= realMax || isPageLoading) return;
@@ -183,12 +200,73 @@ const CounterBasket = (props) => {
   const decrement = () => {
     if (isPageLoading) return;
     
-    if (localCount > min) {
+    if (localCount > numMin) {
       const newCount = localCount - 1;
       setLocalCount(newCount);
       handleChange({ value: newCount });
-    } else if (localCount === min || localCount === 1) {
+    } else {
       handleRemove();
+    }
+  };
+
+  const applyInputValue = () => {
+    if (isPageLoading) return;
+
+    const trimmed = inputValue.trim();
+    if (trimmed === "") {
+      setInputValue(String(localCount));
+      return;
+    }
+
+    const parsed = Number.parseInt(trimmed, 10);
+    if (Number.isNaN(parsed)) {
+      setInputValue(String(localCount));
+      return;
+    }
+
+    const nextCount = clampCount(parsed);
+    setInputValue(String(nextCount));
+
+    if (nextCount === localCount) {
+      return;
+    }
+
+    setLocalCount(nextCount);
+    handleChange({ value: nextCount });
+  };
+
+  const handleInputChange = (event) => {
+    const { value } = event.currentTarget;
+    if (value === "") {
+      setInputValue("");
+      return;
+    }
+
+    if (!/^\d+$/.test(value)) {
+      return;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      return;
+    }
+
+    if (parsed > realMax) {
+      setInputValue(String(realMax));
+      return;
+    }
+
+    setInputValue(value);
+  };
+
+  const handleInputBlur = () => {
+    applyInputValue();
+  };
+
+  const handleInputKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.currentTarget.blur();
     }
   };
 
@@ -306,23 +384,29 @@ const CounterBasket = (props) => {
           </ActionIcon>
 
           <Input
-            type="number"
-            w={getInputWidth(localCount)}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            w={getInputWidth(inputValue || localCount)}
             styles={{ 
               input: { 
                 textAlign: "center",
                 padding: "0 2px",
                 fontSize: "14px",
                 fontWeight: 500,
+                MozAppearance: "textfield",
               } 
             }}
             variant="unstyled"
-            value={localCount}
-            readOnly
+            value={inputValue}
+            onChange={handleInputChange}
+            onBlur={handleInputBlur}
+            onKeyDown={handleInputKeyDown}
+            disabled={isPageLoading}
             px={0}
           />
           
-          {localCount > min ? (
+          {localCount > numMin ? (
             <ActionIcon
               size="md"
               radius="999999"

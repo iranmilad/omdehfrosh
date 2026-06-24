@@ -344,6 +344,7 @@ function ProductBox({
           </Text>
 
 
+
             
             {renderAttributes()}
           </Box>

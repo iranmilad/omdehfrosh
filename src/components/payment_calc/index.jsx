@@ -68,20 +68,42 @@ const PaymentCalc = ({ children, submit, prev, cartItems: cartItemsProp }) => {
       >
         {/* Info Alert */}
         <Flex
-          align="flex-start"  // ← This aligns icon to the start
+          align="flex-start"
           gap={8}
           style={{
             backgroundColor: '#e3f2fd',
             border: '1px solid #90caf9',
             borderRadius: '8px',
             marginBottom: '10px',
-            padding: '12px'
+            padding: '12px',
+            width: '100%',
           }}
         >
-          <IconInfoCircleFilled size={18} color="#2196f3" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <Text size="sm" c="#1976d2" fw={400}>
-            فاکتور رسمی پس از پرداخت و ثبت سفارش، در صفحه جزئیات سفارش قابل دانلود است.
-          </Text>
+          <Box style={{ position: "relative", width: "100%" }}>
+            <IconInfoCircleFilled
+              size={18}
+              color="#2196f3"
+              style={{ position: "absolute", top: 0, right: 0, zIndex: 1 }}
+            />
+            <Stack gap={4} style={{ width: "100%" }}>
+              <Text
+                size="xs"
+                c="#1976d2"
+                fw={400}
+                style={{ whiteSpace: "nowrap", paddingRight: 22, lineHeight: 1.5 }}
+              >
+                سفارش شما از چندین فروشنده می باشد ،
+              </Text>
+              <Text
+                size="xs"
+                c="#1976d2"
+                fw={400}
+                style={{ whiteSpace: "nowrap", lineHeight: 1.5 }}
+              >
+                هر فاکتور جداگانه پرداخت و ارسال می گردد.
+              </Text>
+            </Stack>
+          </Box>
         </Flex>
 
         <Stack gap="md">

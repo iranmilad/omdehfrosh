@@ -1,6 +1,6 @@
 import { ActionIcon, Button, Flex, Input, Loader } from "@mantine/core";
 import { IconPlus, IconMinus, IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const CounterMiniCart = ({
   productId,
@@ -15,10 +15,11 @@ const CounterMiniCart = ({
   isLoading = false,
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [inputValue, setInputValue] = useState(String(count ?? ""));
 
   const getInputWidth = (number) => {
     const digits = String(number).length;
-    return Math.max(35, 20 + 5 * 7);
+    return Math.max(35, 20 + digits * 7);
   };
 
   // Same logic as counter/index.jsx and counter-basket: cap by both max and stock
@@ -26,6 +27,10 @@ const CounterMiniCart = ({
   const numStock = stock != null && stock !== '' ? Number(stock) : NaN;
   const numMin = min != null && min !== '' ? Number(min) : 1;
   const numCount = Number(count) || 0;
+
+  useEffect(() => {
+    setInputValue(String(numCount));
+  }, [numCount]);
 
   const realMax =
     !Number.isNaN(numMax) && !Number.isNaN(numStock)
@@ -35,6 +40,8 @@ const CounterMiniCart = ({
         : !Number.isNaN(numStock)
           ? numStock
           : 999;
+
+  const clampCount = (value) => Math.min(Math.max(value, numMin), realMax);
 
   const handleIncrement = async () => {
     if (isUpdating || isLoading) return;
@@ -84,6 +91,71 @@ const CounterMiniCart = ({
       await onRemove();
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const applyInputValue = async () => {
+    if (isUpdating || isLoading) return;
+
+    const trimmed = inputValue.trim();
+    if (trimmed === "") {
+      setInputValue(String(numCount));
+      return;
+    }
+
+    const parsed = Number.parseInt(trimmed, 10);
+    if (Number.isNaN(parsed)) {
+      setInputValue(String(numCount));
+      return;
+    }
+
+    const nextCount = clampCount(parsed);
+    setInputValue(String(nextCount));
+
+    if (nextCount === numCount) {
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await onUpdate(nextCount);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleInputChange = (event) => {
+    const { value } = event.currentTarget;
+    if (value === "") {
+      setInputValue("");
+      return;
+    }
+
+    if (!/^\d+$/.test(value)) {
+      return;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      return;
+    }
+
+    if (parsed > realMax) {
+      setInputValue(String(realMax));
+      return;
+    }
+
+    setInputValue(value);
+  };
+
+  const handleInputBlur = () => {
+    applyInputValue();
+  };
+
+  const handleInputKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.currentTarget.blur();
     }
   };
 
@@ -151,10 +223,12 @@ const CounterMiniCart = ({
           <IconPlus size={14} />
         </ActionIcon>
 
-        {/* Count display */}
+        {/* Count input */}
         <Input
-          type="number"
-          w={getInputWidth(count)}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          w={getInputWidth(inputValue || numCount)}
           styles={{ 
             input: { 
               textAlign: "center",
@@ -162,12 +236,16 @@ const CounterMiniCart = ({
               fontWeight: 500,
               color: '#23254e',
               border: 'none',
-              padding: '0 2px'
+              padding: '0 2px',
+              MozAppearance: 'textfield',
             } 
           }}
           variant="unstyled"
-          value={count}
-          readOnly
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyDown}
+          disabled={isActionDisabled}
           px={0}
           style={{ flexShrink: 0 }}
         />
