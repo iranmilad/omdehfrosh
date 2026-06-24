@@ -20,7 +20,7 @@ import authBg from "../../../assets/auth.jpg";
 import { IMaskInput } from "react-imask";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router";
+import { NavLink, useSearchParams } from "react-router";
 import { useCookies } from "react-cookie";
 import { IconArrowLeft, IconInfoCircle } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
@@ -92,6 +92,7 @@ const Register = () => {
   const bootstrap = useSelector((state) => state.global.bootstrap);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Responsive size hooks
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -372,6 +373,13 @@ const Register = () => {
     initialValues: { name: "", family: "", nationalCode: "", mobile: "" },
     validate: yupResolver(validationSchema)
   });
+
+  useEffect(() => {
+    const mobileFromQuery = searchParams.get("mobile")?.replace(/\s+/g, "");
+    if (mobileFromQuery && /^09[0-9]{9}$/.test(mobileFromQuery)) {
+      form.setFieldValue("mobile", mobileFromQuery);
+    }
+  }, [searchParams]);
 
   const formCode = useForm({
     mode: "uncontrolled",

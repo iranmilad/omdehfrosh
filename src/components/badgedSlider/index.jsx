@@ -6,13 +6,12 @@ import { FreeMode, Navigation } from "swiper/modules";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import ProductBox from '../productBox';
 import { useRef, useState } from 'react';
+import { useMediaQuery } from '@mantine/hooks';
 import "./style.css";
 import { NavLink } from 'react-router';
 
 function BadgedSlider({ items = [], checkalllink = "/incredible-offers", backgroundColor = "linear-gradient(to bottom left, #1e3a5f, #0a1628)" }) {
-
-
-  
+  const isMobile = useMediaQuery('(max-width: 576px)');
   const sliderRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
@@ -49,7 +48,7 @@ function BadgedSlider({ items = [], checkalllink = "/incredible-offers", backgro
       }} 
       pos="relative"
     >
-      {!isBeginning && (
+      {!isBeginning && !isMobile && (
         <ActionIcon
           variant="white"
           radius={999}
@@ -60,7 +59,7 @@ function BadgedSlider({ items = [], checkalllink = "/incredible-offers", backgro
           <IconChevronRight size={18} />
         </ActionIcon>
       )}
-      {!isEnd && (
+      {!isEnd && !isMobile && (
         <ActionIcon
           variant="white"
           radius={999}
@@ -73,25 +72,30 @@ function BadgedSlider({ items = [], checkalllink = "/incredible-offers", backgro
       )}
       <Swiper
         ref={sliderRef}
-        slidesPerView="auto"
-        spaceBetween={10}
+        slidesPerView={isMobile ? 2.5 : "auto"}
+        spaceBetween={isMobile ? 8 : 10}
         loop={false}
         modules={[FreeMode, Navigation]}
-        freeMode={true}
+        freeMode={!isMobile}
         onSliderMove={handleSlideChange}
         onSlideChange={handleSlideChange}
       >
-        <SwiperSlide className='badged-slider-left-right'>
-          <Flex justify="center" align="center" gap="xl" w="100%" h="100%" direction="column">
-            <Image w={70} src={FeaturedPromos} />
-            <Image w={70} src={BoxImage} />
+        <SwiperSlide className="badged-slider-left-right">
+          <Flex justify="center" align="center" gap={isMobile ? "sm" : "xl"} w="100%" h="100%" direction="column">
+            <Image w={isMobile ? 52 : 70} src={FeaturedPromos} />
+            <Image w={isMobile ? 52 : 70} src={BoxImage} />
           </Flex>
         </SwiperSlide>
         {items.map((item, index) => (
-          <SwiperSlide key={index} style={{ width: "250px", height: "auto" }}>
+          <SwiperSlide
+            key={index}
+            className="badged-slider-product-slide"
+            style={isMobile ? undefined : { width: "250px", height: "auto" }}
+          >
             <ProductBox 
               {...item}
               compact
+              dense={isMobile}
               defaultSellerId={item.sellerId || item.seller?.id}
               defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
               stock={item.stock}
@@ -100,7 +104,7 @@ function BadgedSlider({ items = [], checkalllink = "/incredible-offers", backgro
             />
           </SwiperSlide>
         ))}
-        <SwiperSlide className='badged-slider-left-right'>
+        <SwiperSlide className="badged-slider-left-right badged-slider-view-all">
           <Flex justify="center" align="center" gap="md" w="100%" h="100%" direction="column">
             <Group gap="xs" align="center">
               <Text c="white" component={NavLink} to={checkalllink}>مشاهده همه</Text>

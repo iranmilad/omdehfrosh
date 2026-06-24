@@ -48,6 +48,7 @@ function ProductBox({
   minOrder,
   maxOrder,
   compact = false,
+  dense = false,
   hideCounter = false,
 }) {
   const { colors } = useMantineTheme();
@@ -68,23 +69,25 @@ function ProductBox({
     setImageError(false);
   }, [image]);
 
+  const imageHeight = dense ? "64px" : compact ? "120px" : "150px";
+
   const createProductPlaceholder = () => {
     if (compact) {
       return (
         <Box
           w="100%"
-          h="120px"
+          h={imageHeight}
           style={{
             background: "#ffffff",
             borderRadius: "8px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "8px",
+            padding: dense ? "4px" : "8px",
           }}
           className="hover:scale-105 transition-transform duration-300"
         >
-          <IconPackage size={40} color="#999" />
+          <IconPackage size={dense ? 28 : 40} color="#999" />
         </Box>
       );
     }
@@ -166,7 +169,7 @@ function ProductBox({
       <Image
         className="hover:scale-105 transition-transform duration-300"
         w="100%"
-        h={compact ? "120px" : "150px"}
+        h={imageHeight}
         fit="contain"
         src={image}
         alt={title || 'محصول'}
@@ -174,47 +177,64 @@ function ProductBox({
         fallbackSrc="" // This will trigger onError if image fails
         style={{
           borderRadius: "8px",
-          padding: compact ? "8px" : undefined,
+          padding: dense ? "4px" : compact ? "8px" : undefined,
         }}
       />
     );
   };
 
   const renderAttributes = () => {
-    if (!attributes || attributes.length === 0) return null;
+    if (!attributes || attributes.length === 0) {
+      if (dense) {
+        return (
+          <Box
+            className="product-box-attributes product-box-attributes--empty"
+            w="100%"
+            mih={14}
+            mah={14}
+            style={{ flexShrink: 0 }}
+            aria-hidden
+          />
+        );
+      }
+      return null;
+    }
     
     // Show only first 2 attributes
     const displayAttributes = attributes.slice(0, 2);
     
     return (
       <Box 
-        mt="xs"
-        w="fit-content"
-        h="18px"
+        mt={dense ? 2 : "xs"}
+        w="100%"
+        mih={dense ? 14 : "18px"}
+        mah={dense ? 14 : undefined}
         bg="white"
+        className={dense ? "product-box-attributes" : undefined}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          overflow: 'visible',
+          gap: dense ? 4 : '8px',
+          overflow: 'hidden',
+          minWidth: 0,
         }}
       >
         {displayAttributes.map((attr, index) => (
           <React.Fragment key={attr.nameEng ?? attr.value ?? index}>
             <Flex
               align="center"
-              gap={4}
+              gap={dense ? 2 : 4}
               component="span"
               style={{
-                whiteSpace: '',
-                overflow: 'visible',
+                minWidth: 0,
+                overflow: 'hidden',
               }}
             >
               {attr.nameEng === 'color' && attr.colorCode && (
                 <Box
                   style={{
-                    width: '12px',
-                    height: '12px',
+                    width: dense ? '8px' : '12px',
+                    height: dense ? '8px' : '12px',
                     borderRadius: '3px',
                     backgroundColor: attr.colorCode,
                     border: '1px solid rgba(0, 0, 0, 0.1)',
@@ -225,13 +245,13 @@ function ProductBox({
               {/* For color with colorCode: show only the circle; never show hex as text */}
               {!(attr.nameEng === 'color' && attr.colorCode) && (
                 <Text
-                  size="12px"
+                  size={dense ? "9px" : "12px"}
                   fw={400}
                   c="dimmed"
                   style={{
                     whiteSpace: 'nowrap',
-                    overflow: 'visible',
-                    textOverflow: 'unset',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(String(attr.value ?? '').trim()) ? '' : (attr.value ?? '')}
@@ -243,7 +263,7 @@ function ProductBox({
                 component="span"
                 style={{
                   width: '1px',
-                  height: '12px',
+                  height: dense ? '8px' : '12px',
                   backgroundColor: 'gray',
                   opacity: 0.3,
                   flexShrink: 0,
@@ -260,15 +280,16 @@ function ProductBox({
     <Paper
       ref={ref}
       shadow="sm"
-      px="25"
-      pb="lg"
-      pt={compact ? "sm" : "40"}
+      px={dense ? 6 : compact ? "xs" : "25"}
+      pb={dense ? 6 : compact ? "sm" : "lg"}
+      pt={dense ? 6 : compact ? "xs" : "40"}
       pos="relative"
       display="flex"
+      className={dense ? "product-box-dense" : undefined}
       style={{ 
         flexDirection: "column",
         border: "1px solid rgba(1, 1, 1, 0.5)",
-        
+        overflow: "hidden",
       }}
       h="100%"
     >
@@ -293,20 +314,27 @@ function ProductBox({
             {renderProductImage()}
           </Box>
           
-          <Box my="lg" w="177px" minh="42px">
+          <Box
+            my={dense ? 4 : compact ? "sm" : "lg"}
+            w="100%"
+            mih={dense ? 26 : compact ? "32px" : "42px"}
+            mah={dense ? 26 : undefined}
+            className={compact ? "product-box-title" : undefined}
+            style={{ flexShrink: 0 }}
+          >
           <Text
             fw="500"
-            size="14px"
+            size={dense ? "9px" : compact ? "xs" : "14px"}
             component={productSlug ? NavLink : 'div'}
             to={productSlug ? `/product/${productSlug}` : undefined}
             style={{
               display: "-webkit-box",
               WebkitBoxOrient: "vertical",
-              WebkitLineClamp: 2,
+              WebkitLineClamp: dense ? 2 : 2,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "normal",
-              lineHeight: "1.2",
+              lineHeight: dense ? 1.35 : "1.2",
               color: productSlug ? 'inherit' : 'var(--mantine-color-dimmed)',
               textDecoration: 'none',
               cursor: productSlug ? 'pointer' : 'default',
@@ -319,18 +347,29 @@ function ProductBox({
             {renderAttributes()}
           </Box>
           
-          <Flex justify="space-between" align="center" mt="auto" gap="md">
-            <Box style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+          <Flex
+            justify={dense ? "center" : "space-between"}
+            align={dense ? "stretch" : "center"}
+            direction={dense ? "column" : "row"}
+            mt="auto"
+            gap={dense ? 4 : compact ? "xs" : "md"}
+            className={compact ? "product-box-footer" : undefined}
+            style={{ minWidth: 0, width: "100%" }}
+          >
+            <Box style={{ flex: dense ? undefined : 1, display: 'flex', justifyContent: dense ? 'flex-start' : 'flex-start', minWidth: 0, width: dense ? "100%" : undefined }}>
               <ProductPrice 
+                dense={dense}
                 regularPrice={regularPrice} 
                 discountPercent={discountPercent} 
                 discountedPrice={discountedPrice} 
               />
             </Box>
             
+            
             {!hideCounter && (
-              <Box style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box style={{ flex: dense ? undefined : 1, display: 'flex', justifyContent: dense ? 'center' : 'flex-end', minWidth: 0, width: dense ? "100%" : undefined }}>
                 <CounterHomePage 
+                  dense={dense}
                   productId={id} 
                   defaultSellerId={defaultSellerId}
                   defaultCombinationId={defaultCombinationId}

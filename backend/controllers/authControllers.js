@@ -148,48 +148,81 @@ export const login = async (req, res) => {
   try {
     const { mobile, code } = req.body;
 
-    // Verify SMS code using the imported function
-    const verificationResponse = await verifySMSCode(mobile, code);
-
-    // Check if verification failed
-    if (!verificationResponse.success) {
-      return res.status(400).json({ 
-        message: verificationResponse.message,
-        state: "error"
+    if (!mobile) {
+      return res.status(400).json({
+        message: "شماره موبایل الزامی است",
+        state: "error",
       });
     }
 
-    // After successful verification, find the user in the database
-    const user = await UserAccounts.findOne({ mobile });
+    const cleanMobile = String(mobile).replace(/\s+/g, "");
+
+    if (!/^09\d{9}$/.test(cleanMobile)) {
+      return res.status(400).json({
+        message: "شماره موبایل نامعتبر است",
+        state: "error",
+      });
+    }
+
+    const findUser = () => UserAccounts.findOne({ mobile: cleanMobile });
+
+    if (!code) {
+      const user = await findUser();
+
+      if (!user) {
+        return res.status(200).json({
+          message: "User not found",
+          state: "user_not_found",
+          exists: false,
+          user: null,
+        });
+      }
+
+      return res.status(200).json({
+        message: "User found",
+        state: "ok",
+        exists: true,
+        user: { id: user.userId, role: user.role, status: user.isActive },
+      });
+    }
+
+    const verificationResponse = await verifySMSCode(cleanMobile, code);
+
+    if (!verificationResponse.success) {
+      return res.status(400).json({
+        message: verificationResponse.message,
+        state: "error",
+      });
+    }
+
+    const user = await findUser();
 
     if (!user) {
-      return res.status(400).json({ 
-        message: "کاربر یافت نشد",
-        state: "error"
+      return res.status(200).json({
+        message: "User not found",
+        state: "user_not_found",
+        exists: false,
+        user: null,
       });
     }
 
-    // Activate user on first successful login
     if (!user.isActive) {
       user.isActive = true;
       await user.save();
     }
 
-    // Generate JWT token after successful verification and user validation
     const token = jwt.sign(
-      { id: user.userId, role: user.role, name: user.nameEng }, 
-      process.env.JWT_SECRET, 
-      { expiresIn: '10h' }
+      { id: user.userId, role: user.role, name: user.nameEng },
+      process.env.JWT_SECRET,
+      { expiresIn: "10h" }
     );
 
-    // Send the response with user data
     return res.json({
-      message: "ورود موفقیت‌آمیز بود",
+      message: "Login successful",
       state: "ok",
       user: { id: user.userId, role: user.role, status: user.isActive },
-      [user.role === "master" ? "token_master" : "token"]: token
+      [user.role === "master" ? "token_master" : "token"]: token,
     });
-
   } catch (error) {
     console.error("Error during login:", error);
     return res.status(500).json({ 

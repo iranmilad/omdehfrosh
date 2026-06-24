@@ -1,13 +1,15 @@
-import { ActionIcon, Center, Image, Paper, Title, Box, Text } from "@mantine/core";
+import { ActionIcon, Center, Image, Box, Text } from "@mantine/core";
 import { IconChevronLeft, IconChevronRight, IconPackage } from "@tabler/icons-react";
 import React, { useRef, useState, useEffect } from "react";
 import { NavLink } from "react-router";
-import { FreeMode, Navigation } from "swiper/modules";
+import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { useMediaQuery } from "@mantine/hooks";
 import ImageIcon from '../../resources/defaultImageIcon'; // Adjust path as needed
 import "./style.css";
 
 function BrandSlider({ items }) {
+  const isMobile = useMediaQuery('(max-width: 576px)');
   const sliderRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
@@ -15,8 +17,7 @@ function BrandSlider({ items }) {
 
   // Calculate if we need navigation based on actual content width vs container
   const itemCount = items?.children?.length || 0;
-  const shouldShowNavigation = itemCount > 1; // Show navigation if more than 1 item
-  const shouldLoop = itemCount > 4; // Only loop if we have more than 4 items
+  const shouldShowNavigation = itemCount > 1;
 
   useEffect(() => {
     // Reset states when items change
@@ -88,6 +89,9 @@ function BrandSlider({ items }) {
     return src;
   };
 
+  const brandWidth = "100%";
+  const placeholderIconSize = isMobile ? 28 : 48;
+
   const renderBrandImage = (item, index) => {
     const imageSrc = getValidImageSource(item.image);
     const hasValidImage = isValidImageSource(item.image) && !failedImages.has(index);
@@ -95,23 +99,22 @@ function BrandSlider({ items }) {
   if (!hasValidImage) {
     return (
       <Box 
-        w="120px"
-        h="80px"
+        w={brandWidth}
+        h="100%"
+        className="brand-slide-image"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f3f4f6',
-          borderRadius: '8px',
         }}
       >
-        <ImageIcon size={48} color="#9ca3af" />
+        <ImageIcon size={placeholderIconSize} color="#9ca3af" />
       </Box>
     );
   }
 
   return (
-    <Box w="120px" h="80px">
+    <Box w={brandWidth} h="100%" className="brand-slide-image">
       <Image
         w="100%"
         h="100%"
@@ -119,23 +122,18 @@ function BrandSlider({ items }) {
         src={imageSrc}
         alt={`برند ${index + 1}`}
         onError={() => handleImageError(index)}
-        style={{
-          borderRadius: "8px",
-          backgroundColor: "#f8f9fa",
-        }}
         fallback={
           <Box
-            w="120px"
-            h="80px"
+            w="100%"
+            h="100%"
+            className="brand-slide-image"
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#f3f4f6',
-              borderRadius: '8px',
             }}
           >
-            <ImageIcon size={48} color="#9ca3af" />
+            <ImageIcon size={placeholderIconSize} color="#9ca3af" />
           </Box>
         }
       />
@@ -156,7 +154,6 @@ function BrandSlider({ items }) {
 
   return (
     <Box px={{ base: "md", md: 0 }}>
-      {/* Header outside white background */}
       <Text 
         size="md" 
         fw="600"
@@ -166,9 +163,8 @@ function BrandSlider({ items }) {
         {items.title || 'برندها'}
       </Text>
 
-      {/* White Paper containing only the slider */}
-      <Paper px={0} py="lg" pos="relative">
-        {shouldShowNavigation && !isBeginning && (
+      <Box pos="relative">
+        {shouldShowNavigation && !isBeginning && !isMobile && (
           <ActionIcon
             variant="white"
             radius={999}
@@ -179,7 +175,7 @@ function BrandSlider({ items }) {
             <IconChevronRight size={18} />
           </ActionIcon>
         )}
-        {shouldShowNavigation && !isEnd && (
+        {shouldShowNavigation && !isEnd && !isMobile && (
           <ActionIcon
             variant="white"
             radius={999}
@@ -192,46 +188,32 @@ function BrandSlider({ items }) {
         )}
         <Swiper
           ref={sliderRef}
-          slidesPerView="auto"
-          spaceBetween={30}
-          loop={shouldLoop}
+          className="brand-slider-swiper"
+          slidesPerView={2.5}
+          spaceBetween={8}
+          loop={false}
           modules={[Navigation]}
           onSliderMove={handleSlideChange}
           onSlideChange={handleSlideChange}
           onSwiper={handleSwiper}
           breakpoints={{
-            // Responsive breakpoints
-            320: {
-              slidesPerView: 2,
-              spaceBetween: 20,
-            },
-            480: {
-              slidesPerView: 3,
+            577: {
+              slidesPerView: "auto",
               spaceBetween: 25,
             },
-            768: {
-              slidesPerView: 4,
-              spaceBetween: 30,
-            },
-            1024: {
-              slidesPerView: 5,
-              spaceBetween: 30,
-            },
           }}
-          style={{ marginTop: "0px" }}
+          style={{ marginTop: "0px", width: "100%" }}
         >
           {items.children.map((item, index) => (
             <SwiperSlide
               key={`brand-${index}-${item.url ?? item.name ?? item.id ?? ''}`}
+              className="brand-slide"
               style={{
-                padding: "25px",
-                paddingRight: 0,
-                width: "120px",
-                height: "100px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 boxSizing: "border-box",
+                height: "auto",
               }}
             >
               {item.url ? (
@@ -268,7 +250,7 @@ function BrandSlider({ items }) {
             </SwiperSlide>
           ))}
         </Swiper>
-      </Paper>
+      </Box>
     </Box>
   );
 }

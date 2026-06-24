@@ -1,16 +1,17 @@
 import { useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css'; // Import Swiper styles
-import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
-import XTitle from '../title';
+import { Navigation } from 'swiper/modules';
 import ProductBox from '../../components/productBox'
 import { ActionIcon, Group, Box, Text, Center } from '@mantine/core';
 import { IconChevronLeft, IconChevronRight, IconPackage } from '@tabler/icons-react';
+import { useMediaQuery } from '@mantine/hooks';
 import "./style.css"
 
 function ProductCarousel(props) {
 
     const { title, items = [], style } = props;
+    const isMobile = useMediaQuery('(max-width: 576px)', true);
     const sliderRef = useRef(null);
 
     const handlePrev = () => {
@@ -110,7 +111,7 @@ function ProductCarousel(props) {
                 >
                     {title || 'محصولات'}
                 </Text>
-                {showNavigation && (
+                {showNavigation && !isMobile && (
                     <Group>
                         <ActionIcon 
                             variant='light' 
@@ -153,25 +154,29 @@ function ProductCarousel(props) {
             </Group>
             <Swiper
                 className="swiper-products-related"
-                spaceBetween={10}
+                spaceBetween={8}
                 style={style}
                 ref={sliderRef}
-                modules={[Navigation]} // Include Navigation module if needed
-                loop={items.length > 3} // Only loop if we have more than 3 items
+                modules={[Navigation]}
+                loop={false}
+                slidesPerView={2.5}
                 breakpoints={{
-                    // Define breakpoints for different screen sizes
-                    320: { slidesPerView: 1, spaceBetween: 10 },  // Mobile portrait
-                    480: { slidesPerView: 2, spaceBetween: 10 }, // Mobile landscape
-                    768: { slidesPerView: 3, spaceBetween: 10 }, // Tablet
-                    1024: { slidesPerView: 4, spaceBetween: 10 }, // Small desktop
-                    1200: { slidesPerView: 5, spaceBetween: 10 }, // Larger screens
+                    577: {
+                        slidesPerView: "auto",
+                        spaceBetween: 10,
+                    },
                 }}
             >
             {items.map((item, index) => (
-            <SwiperSlide key={index} style={{ width: "250px", height: "auto" }}>
+            <SwiperSlide
+                key={index}
+                className="product-carousel-slide"
+                style={{ height: "auto", display: "flex" }}
+            >
                 <ProductBox 
                 {...item}
                 compact
+                dense
                 defaultSellerId={item.sellerId || item.seller?.id}
                 defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
                 attributes={item.attributes}

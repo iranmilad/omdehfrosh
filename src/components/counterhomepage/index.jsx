@@ -145,7 +145,8 @@ const CounterHomePage = ({
   defaultCombinationId,
   stock = 0,
   minOrder = 1,
-  maxOrder = 0
+  maxOrder = 0,
+  dense = false,
 }) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -304,18 +305,22 @@ const CounterHomePage = ({
     handleChange(effectiveMaxOrder);
   };
 
+  const addButtonSize = dense ? 26 : 36;
+  const addIconSize = dense ? 12 : 16;
+  const counterIconSize = dense ? 11 : 14;
+
   // Don't render unavailable message if stock is 0 - just show disabled button
   if (stock === 0) {
     return (
       <Box pos="relative">
         <ActionIcon
-          size="sm"
+          size={dense ? "xs" : "sm"}
           radius="md"
           variant="light"
           color="gray"
           disabled
         >
-          <IconPlus size={14} />
+          <IconPlus size={counterIconSize} />
         </ActionIcon>
       </Box>
     );
@@ -344,18 +349,19 @@ const CounterHomePage = ({
           />
           <Flex
             align="center"
-            gap="2px"
+            gap={dense ? "1px" : "2px"}
             style={{
               border: "1px solid var(--mantine-color-gray-4)",
-              borderRadius: "var(--mantine-radius-xl)",
-              padding: "2px 4px",
+              borderRadius: dense ? "var(--mantine-radius-md)" : "var(--mantine-radius-xl)",
+              padding: dense ? "1px 2px" : "2px 4px",
               minWidth: "fit-content",
+              maxWidth: "100%",
               backgroundColor: "var(--mantine-color-white)",
             }}
           >
             {/* Increment button */}
             <ActionIcon
-              size="xs"
+              size={dense ? 18 : "xs"}
               variant="transparent"
               color="gray"
               onClick={increment}
@@ -367,14 +373,14 @@ const CounterHomePage = ({
                 flexShrink: 0,
               }}
             >
-              <IconPlus size={14} />
+              <IconPlus size={counterIconSize} />
             </ActionIcon>
           
             {/* Divider */}
             <Box
               style={{
                 width: "0.5px",
-                height: "16px",
+                height: dense ? "12px" : "16px",
                 backgroundColor: "var(--mantine-color-gray-4)",
                 flexShrink: 0,
               }}
@@ -383,12 +389,13 @@ const CounterHomePage = ({
             {/* Count display */}
             <Text
               fw={500}
-              size="xs"
+              size={dense ? "10px" : "xs"}
               c="blue"
               style={{ 
                 minWidth: `${getTextWidth(count)}px`, 
                 textAlign: "center",
                 padding: "0 2px",
+                lineHeight: 1.1,
               }}
             >
               {count}
@@ -398,7 +405,7 @@ const CounterHomePage = ({
             <Box
               style={{
                 width: "0.5px",
-                height: "16px",
+                height: dense ? "12px" : "16px",
                 backgroundColor: "var(--mantine-color-gray-4)",
                 flexShrink: 0,
               }}
@@ -406,7 +413,7 @@ const CounterHomePage = ({
 
             {/* Minus/Trash button */}
             <ActionIcon
-              size="xs"
+              size={dense ? 18 : "xs"}
               variant="transparent"
               color="red"
               onClick={decrement}
@@ -417,7 +424,7 @@ const CounterHomePage = ({
                 flexShrink: 0,
               }}
             >
-              {count === minOrder ? <IconTrash size={14} /> : <IconMinus size={14} />}
+              {count === minOrder ? <IconTrash size={counterIconSize} /> : <IconMinus size={counterIconSize} />}
             </ActionIcon>
           </Flex>
         </Box>
@@ -430,8 +437,8 @@ const CounterHomePage = ({
             loaderProps={{ size: "sm" }}
           />
           <ActionIcon
-            size="36px"
-            radius="6px"
+            size={addButtonSize}
+            radius={dense ? "4px" : "6px"}
             variant="filled"
             onClick={handleAddToCart}
             disabled={!isAvailable}
@@ -440,6 +447,10 @@ const CounterHomePage = ({
                 backgroundColor: "white",
                 border: "1px solid #ccc",
                 color: "black",
+                width: addButtonSize,
+                height: addButtonSize,
+                minWidth: addButtonSize,
+                minHeight: addButtonSize,
                 "&:hover": {
                   backgroundColor: "#f8f8f8",
                 },
@@ -452,7 +463,7 @@ const CounterHomePage = ({
               },
             }}
           >
-            <IconPlus size={16} />
+            <IconPlus size={addIconSize} />
           </ActionIcon>
         </Box>
       )}

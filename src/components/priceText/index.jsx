@@ -10,13 +10,16 @@ const PriceText = (props) => {
     ...others
   } = props;
 
+  const iconSize = fontSize === "10px" ? 14 : Math.max(12, parseInt(fontSize, 10) + 4);
+
   return (
-    <Flex align="center" justify="end">
+    <Flex align="center" justify="end" style={{ minWidth: 0, maxWidth: "100%" }}>
       <span 
         style={{ 
           fontWeight, 
           fontSize,
-          display: 'inline-block'
+          display: 'inline-block',
+          lineHeight: 1.1,
         }}
       >
         <NumberFormatter 
@@ -26,7 +29,7 @@ const PriceText = (props) => {
           {...others} 
         />
       </span>
-      <svg style={{ fontSize: fontSize, fontWeight: fontWeight, width: "20px", height: "20px", marginRight: "4px", fill: "#6c757d" }}>
+      <svg style={{ fontSize: fontSize, fontWeight: fontWeight, width: `${iconSize}px`, height: `${iconSize}px`, marginRight: "2px", fill: "#6c757d", flexShrink: 0 }}>
         <symbol
           id="toman"
           xmlns="http://www.w3.org/2000/svg"

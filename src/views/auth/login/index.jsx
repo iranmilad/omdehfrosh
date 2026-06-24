@@ -75,6 +75,10 @@ function getAuthFieldErrorMessage(error, fallback = "خطا در ورود به �
   return fallback;
 }
 
+function isUserNotFoundResponse(data) {
+  return data?.state === "user_not_found" || data?.exists === false;
+}
+
 function getSavedMobileFromCookie() {
   try {
     if (typeof document === "undefined") return "";
@@ -197,6 +201,88 @@ const Login = () => {
     validate: yupResolver(codeValidationSchema)
   });
 
+  const redirectToRegister = (mobile) => {
+    const searchParams = new URLSearchParams({ mobile });
+    const redirect = redirectURL["?redirect"];
+    if (redirect) {
+      searchParams.set("redirect", redirect);
+    }
+    navigate(`/register?${searchParams.toString()}`);
+  };
+
+  const callLoginApi = async (mobile, code) => {
+    try {
+      const body = { mobile };
+      if (code) {
+        body.code = code;
+      }
+
+      const response = await fetch(getApiUrl("/auth/login"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
+
+      if (isUserNotFoundResponse(data)) {
+        return {
+          state: "user_not_found",
+          message: data?.message || "User not found",
+          data,
+        };
+      }
+
+      if (!response.ok) {
+        const errorMessage = getAuthFieldErrorMessage(
+          data?.error ?? data?.message,
+          data?.message || getHttpCodeMessage(response.status)
+        );
+
+        return {
+          state: "error",
+          message: data?.message || errorMessage,
+          error: {
+            status: response.status,
+            message: data?.message || errorMessage,
+            error: errorMessage,
+          },
+        };
+      }
+
+      if (code && "token" in data) {
+        if (data.token) {
+          localStorage.setItem("user", data.token);
+        } else {
+          localStorage.removeItem("user");
+        }
+      }
+
+      if (code && "token_master" in data) {
+        if (data.token_master) {
+          localStorage.setItem("user_master", data.token_master);
+        } else {
+          localStorage.removeItem("user_master");
+        }
+      }
+
+      return {
+        state: "ok",
+        message: data?.message || (code ? "ورود موفق" : "User found"),
+        data,
+      };
+    } catch (error) {
+      return {
+        state: "error",
+        message: "خطای داخلی سرور",
+        error: {
+          message: error.message || error,
+        },
+      };
+    }
+  };
+
   const sendSMSCode = async (mobile) => {
     setSmsLoading(true);
     setSmsData(null);
@@ -255,75 +341,34 @@ const Login = () => {
   const loginUser = async (mobile, code) => {
     setLoginLoading(true);
     setLoginData(null);
-    
+
     try {
-      const response = await fetch(getApiUrl("/auth/login"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, code }),
-      });
+      const result = await callLoginApi(mobile, code);
 
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : null;
+      if (result.state === "user_not_found") {
+        setLoginData({
+          state: "user_not_found",
+          message: result.message,
+          data: result.data,
+        });
+        return result;
+      }
 
-      if (!response.ok) {
-        const errorMessage = getAuthFieldErrorMessage(
-          data?.error ?? data?.message,
-          data?.message || getHttpCodeMessage(response.status)
-        );
-
-        const error = {
-          status: response.status,
-          message: data?.message || errorMessage,
-          error: errorMessage,
-        };
-
+      if (result.state === "error") {
         setLoginData({
           state: "error",
-          message: "ورود ناموفق",
-          error,
+          message: result.message || "ورود ناموفق",
+          error: result.error,
         });
-        return {
-          state: "error",
-          message: "ورود ناموفق",
-          error,
-        };
+        return result;
       }
 
-      if ("token" in data) {
-        if (data.token) {
-          localStorage.setItem("user", data.token);
-        } else {
-          localStorage.removeItem("user");
-        }
-      }
-
-      if ("token_master" in data) {
-        if (data.token_master) {
-          localStorage.setItem("user_master", data.token_master);
-        } else {
-          localStorage.removeItem("user_master");
-        }
-      }
-
-      const successData = {
+      setLoginData({
         state: "ok",
-        message: "ورود موفق",
-        data,
-      };
-      
-      setLoginData(successData);
-      return successData;
-
-    } catch (error) {
-      const errorData = {
-        state: "error",
-        message: "خطای داخلی سرور",
-        error: error.message || error,
-      };
-      
-      setLoginData(errorData);
-      return errorData;
+        message: result.message,
+        data: result.data,
+      });
+      return result;
     } finally {
       setLoginLoading(false);
     }
@@ -371,6 +416,25 @@ const Login = () => {
     const sanitizedValue = value.mobile.replace(/\s+/g, "");
 
     try {
+      const userCheck = await callLoginApi(sanitizedValue);
+
+      if (userCheck.state === "user_not_found") {
+        redirectToRegister(sanitizedValue);
+        return;
+      }
+
+      if (userCheck.state === "error") {
+        setStateMessage("error");
+        if (userCheck.error) {
+          form.setFieldError(
+            "mobile",
+            getAuthFieldErrorMessage(userCheck.error, "خطا در بررسی شماره موبایل")
+          );
+          setErrors(userCheck.error);
+        }
+        return;
+      }
+
       const result = await sendSMSCode(sanitizedValue);
       
       if (!result) {
@@ -437,6 +501,11 @@ const Login = () => {
       if (!result) {
         console.error('No response data received for login');
         formCode.setFieldError("code", "خطا در دریافت پاسخ سرور");
+        return;
+      }
+
+      if (result.state === "user_not_found") {
+        redirectToRegister(sanitizedMobile);
         return;
       }
 
@@ -560,7 +629,7 @@ const Login = () => {
             }}
           >
             <Flex justify="space-between" align="center">
-              <Text c="dark" size={headingSize} fw="bold">ورود</Text>
+              <Text c="dark" size={headingSize} fw="bold">ورود/ثبت نام</Text>
             </Flex>
             
             {type === "enter" && (
@@ -598,16 +667,6 @@ const Login = () => {
                     >
                       ادامه
                     </Button>
-                    <Button
-                      mt="md"
-                      variant="white"
-                      fullWidth
-                      component={NavLink}
-                      to="/register"
-                      size={buttonSize}
-                    >
-                      ثبت نام
-                    </Button>          
                   </form>
                 </div>
                 <div className="mt-8 mb-4 text-xs text-zinc-500">
