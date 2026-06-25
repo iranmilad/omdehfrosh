@@ -5,7 +5,6 @@ import {
   Center, 
   Group, 
   Loader, 
-  LoadingOverlay, 
   Paper, 
   Space, 
   Stack, 
@@ -49,6 +48,7 @@ const SearchComponentCategory = ({
   filterCategorySubCategoryBrandsStorage,
   setFilterCategorySubCategoryBrandsStorage,
   savedFilters: savedFiltersProp,
+  setTableDataLoading,
 }) => {
 
   const dispatch = useDispatch();
@@ -130,18 +130,27 @@ const SearchComponentCategory = ({
 
   const filterArray = useMemo(() => buildCurrentFilterArray(), [buildCurrentFilterArray]);
   const TABLE_STALE_MS = 5 * 60 * 1000; // 5 min - avoid refetch when switching tabs back
-  const { data: tableDataFromQuery, isLoading: loadingFromQuery } = useApiQuery({
+  const { data: tableDataFromQuery, isLoading: loadingFromQuery, isFetching: fetchingFromQuery } = useApiQuery({
     endpoint: "/fast-edit-category-mode",
     queryKey: ["fast-edit-category-mode", JSON.stringify(filterArray)],
     method: "post",
     body: filterArray,
     strategy: "CACHED",
+    keepPrevious: true,
     enabled: checkedRows.size === 0 && filterArray?.length > 0,
     staleTime: TABLE_STALE_MS,
     queryOptions: { refetchOnMount: false, refetchOnWindowFocus: false },
   });
   const tableData = checkedRows.size === 0 ? (tableDataFromQuery ?? null) : tableDataFromRedux ?? null;
-  const loading = checkedRows.size === 0 ? loadingFromQuery : loadingFromRedux;
+  const loading = checkedRows.size === 0
+    ? loadingFromQuery || fetchingFromQuery
+    : loadingFromRedux;
+
+  useEffect(() => {
+    if (typeof setTableDataLoading === "function") {
+      setTableDataLoading(loading);
+    }
+  }, [loading, setTableDataLoading]);
 
   const buildCheckedFiltersArray = useCallback((checkedRowIds = checkedRows) => {
     return Array.from(checkedRowIds)
@@ -326,13 +335,6 @@ const SearchComponentCategory = ({
           </Flex>
         </Flex>
 
-        <LoadingOverlay 
-          pos="fixed" 
-          visible={loading} 
-          zIndex={1000} 
-          h="100%" 
-        />
-
         {/* Tabs */}
         <Tabs 
           styles={{ 
@@ -402,7 +404,7 @@ const SearchComponentCategory = ({
           
           {/* Panel for Category Mode */}
           <Tabs.Panel value="category">
-            {!loading && searchType === "category" && tableData && (
+            {searchType === "category" && tableData && (
               <SlideCategory 
                 tab={category} 
                 items={tableData?.category} 

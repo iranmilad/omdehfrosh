@@ -89,6 +89,8 @@ function FastEditBrandContent({
   isEditMode,
   onEditModeChange,
   loadingStates,
+  tableDataLoading,
+  setTableDataLoading,
   cookieUpdateTrigger,
   onCookieUpdate,
   filterBrandStorage,
@@ -149,6 +151,7 @@ function FastEditBrandContent({
               filterBrandsCategorySubCategoryStorage={filterBrandsCategorySubCategoryStorage}
               setFilterBrandsCategorySubCategoryStorage={setFilterBrandsCategorySubCategoryStorage}
               savedFilters={savedFilters}
+              setTableDataLoading={setTableDataLoading}
             />
           </div>
 
@@ -236,8 +239,10 @@ function FastEditBrandContent({
 
       {loadingStates.tableLoading ? (
         <>
-          {nodes !== null && nodes?.length > 0 && (
-            <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+          {((nodes !== null && nodes?.length > 0) || tableDataLoading) && (
+            <Box pos="relative">
+              <LoadingOverlay visible={tableDataLoading} zIndex={10} />
+              <Paper p={0} className="overflow-hidden" bg="white" id="tables">
               <FastTableBrand
                 type="head"
                 isPortrait={isPortrait}
@@ -274,7 +279,8 @@ function FastEditBrandContent({
                   />
                 </React.Fragment>
               ))}
-            </Paper>
+              </Paper>
+            </Box>
           )}
         </>
       ) : (
@@ -310,6 +316,8 @@ function FastEditCategoryContent({
   isEditMode,
   onEditModeChange,
   loadingStates,
+  tableDataLoading,
+  setTableDataLoading,
   cookieUpdateTrigger,
   onCookieUpdate,
   filterCategoryStorage,
@@ -370,6 +378,7 @@ function FastEditCategoryContent({
               filterCategorySubCategoryBrandsStorage={filterCategorySubCategoryBrandsStorage}
               setFilterCategorySubCategoryBrandsStorage={setFilterCategorySubCategoryBrandsStorage}
               savedFilters={savedFilters}
+              setTableDataLoading={setTableDataLoading}
             />
           </div>
 
@@ -457,8 +466,10 @@ function FastEditCategoryContent({
 
       {loadingStates.tableLoading ? (
         <>
-          {nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0 && (
-            <Paper p={0} className="overflow-hidden" bg="white" id="tables">
+          {((nodesSubCategoriesData !== null && nodesSubCategoriesData?.length > 0) || tableDataLoading) && (
+            <Box pos="relative">
+              <LoadingOverlay visible={tableDataLoading} zIndex={10} />
+              <Paper p={0} className="overflow-hidden" bg="white" id="tables">
               <FastTableCategory
                 type="head"
                 isPortrait={isPortrait}
@@ -494,7 +505,8 @@ function FastEditCategoryContent({
                   />
                 </React.Fragment>
               ))}
-            </Paper>
+              </Paper>
+            </Box>
           )}
         </>
       ) : (
@@ -519,6 +531,7 @@ function FastEdit() {
     componentsLoading: false,  // For search and filters
     tableLoading: false,       // For table only
   });
+  const [tableDataLoading, setTableDataLoading] = useState(false);
 
   const FAST_EDIT_VISIBLE_COLUMNS_STORAGE_KEY = "fastEditVisibleColumns";
   // ✅ KEEP: visibleColumns state (managed by ColumnVisibilityManager)
@@ -1218,6 +1231,8 @@ function FastEdit() {
                     isEditMode={isEditModeBrand}
                     onEditModeChange={handleEditModeChangeBrand}
                     loadingStates={loadingStates}
+                    tableDataLoading={tableDataLoading}
+                    setTableDataLoading={setTableDataLoading}
                     cookieUpdateTrigger={cookieUpdateTrigger}
                     onCookieUpdate={handleCookieUpdate}
                     filterBrandStorage={filterBrandStorage}
@@ -1256,6 +1271,8 @@ function FastEdit() {
                     isEditMode={isEditModeCategory}
                     onEditModeChange={handleEditModeChangeCategory}
                     loadingStates={loadingStates}
+                    tableDataLoading={tableDataLoading}
+                    setTableDataLoading={setTableDataLoading}
                     cookieUpdateTrigger={cookieUpdateTrigger}
                     onCookieUpdate={handleCookieUpdate}
                     filterCategoryStorage={filterCategoryStorage}

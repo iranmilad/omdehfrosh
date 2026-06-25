@@ -5,7 +5,6 @@ import {
   Center, 
   Group, 
   Loader, 
-  LoadingOverlay, 
   Paper, 
   Space, 
   Stack, 
@@ -319,6 +318,7 @@ const SearchComponentBrandFastOrder = ({
       method: "post",
       body: filterArray,
       strategy: "CACHED",
+      keepPrevious: true,
       enabled:
         checkedRows.size === 0 &&
         filterArray?.length > 0 &&
@@ -334,8 +334,6 @@ const SearchComponentBrandFastOrder = ({
       : null;
   const tableData =
     checkedRows.size === 0 ? tableDataFromQuery ?? null : tableDataWhenChecked;
-  const tableLoading =
-    checkedRows.size === 0 ? loadingFromQuery : reduxTableLoading ?? false;
 
   // Update filters and store in cookies
   const updateFiltersAndStore = useCallback(() => {
@@ -862,14 +860,6 @@ const SearchComponentBrandFastOrder = ({
           borderBottomRightRadius: 0,
         }}
       >
-        {/* Loading Overlay */}
-        <LoadingOverlay
-          pos="fixed"
-          visible={tableLoading}
-          zIndex={1000}
-          h="100%"
-        />
-
         {/* Tabs */}
         <Tabs
           styles={{
@@ -949,7 +939,7 @@ const SearchComponentBrandFastOrder = ({
           </Tabs.List>
 
           <Tabs.Panel value="brand">
-            {!tableLoading && searchType === "brand" && tableData && (
+            {searchType === "brand" && tableData && (
               <SlideCategory
                 tab={brands}
                 items={tableData?.brands}

@@ -7,7 +7,6 @@ import {
   Center, 
   Group, 
   Loader, 
-  LoadingOverlay, 
   Paper, 
   Space, 
   Stack, 
@@ -350,18 +349,21 @@ const { setFilterValues } = useFastOrder();
     return JSON.stringify(canonical);
   }, [filterArray]);
 
-  const { data: tableDataFromQuery, isLoading: loadingFromQuery } = useApiQuery({
+  const { data: tableDataFromQuery, isLoading: loadingFromQuery, isFetching: fetchingFromQuery } = useApiQuery({
     endpoint: "/fast-order-category-mode",
     queryKey: stableCategoryQueryKey != null ? ["fast-order-category-mode", stableCategoryQueryKey] : ["fast-order-category-mode", "disabled"],
     method: "post",
     body: filterArray,
     strategy: "CACHED",
+    keepPrevious: true,
     enabled: checkedRows.size === 0 && filterArray?.length > 0 && stableCategoryQueryKey != null,
   });
   // When no filter applied: use React Query data. When filter applied: use Redux data so sliders stay visible (first disabled, second/third cleared)
   const tableDataWhenChecked = reduxTableData && typeof reduxTableData === 'object' && !Array.isArray(reduxTableData) ? reduxTableData : null;
   const tableData = checkedRows.size === 0 ? (tableDataFromQuery ?? null) : tableDataWhenChecked;
-  const loading = checkedRows.size === 0 ? loadingFromQuery : (reduxTableLoading ?? false);
+  const loading = checkedRows.size === 0
+    ? loadingFromQuery || fetchingFromQuery
+    : (reduxTableLoading ?? false);
 
   // Sync category table loading to parent for FastTableCategory loading spinner
   useEffect(() => {
@@ -938,14 +940,6 @@ useEffect(() => {
           borderBottomRightRadius: 0,
         }}
       >
-        {/* Loading Overlay */}
-        <LoadingOverlay
-          pos="fixed"
-          visible={loading}
-          zIndex={1000}
-          h="100%"
-        />
-
         {/* Action Buttons - Responsive */}
         {/* <Flex 
           direction={isMobile ? "column" : "row"}
@@ -1025,7 +1019,7 @@ useEffect(() => {
           
           <Tabs.Panel value="category">
 
-{!loading && searchType === "category" && tableData && (
+{searchType === "category" && tableData && (
   <>
     {/* ✅ ADD THIS DEBUG BLOCK */}
     {/* {console.log('🔍 [SearchComponent] About to render SlideCategory:', {

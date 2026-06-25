@@ -12,6 +12,7 @@ import {
   Checkbox,
   Text,
   Loader,
+  LoadingOverlay,
 } from "@mantine/core";
 import { IconEdit, IconSettings, IconFilter, IconBookmark } from "@tabler/icons-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -500,7 +501,7 @@ const stableBrandQueryKey = useMemo(() => {
   }));
   return JSON.stringify(canonical);
 }, [brandFilterArray]);
-const { data: brandTableData, isLoading: isBrandTableLoading } = useApiQuery({
+const { data: brandTableData, isLoading: isBrandTableLoading, isFetching: isBrandTableFetching } = useApiQuery({
   endpoint: "/fast-order-brand-mode",
   queryKey:
     stableBrandQueryKey != null
@@ -509,11 +510,13 @@ const { data: brandTableData, isLoading: isBrandTableLoading } = useApiQuery({
   method: "post",
   body: brandFilterArray,
   strategy: "CACHED",
+  keepPrevious: true,
   enabled:
     searchType === "brand" &&
     brandFilterArray?.length > 0 &&
     stableBrandQueryKey != null,
 });
+const brandTableBusy = isBrandTableLoading || isBrandTableFetching;
 useEffect(() => {
   if (searchType !== "brand") return;
   if (brandTableData?.products != null) {
@@ -765,7 +768,8 @@ return (
                 )}
 
                 {loadingStates.tableLoading ? (
-                  <>
+                  <Box pos="relative">
+                    <LoadingOverlay visible={brandTableBusy} zIndex={10} />
                     <FastTableBrand
                       type="head"
                       isPortrait={isPortrait}
@@ -777,7 +781,6 @@ return (
                       nodes={nodes?.[0]?.items?.slice(0, 1) || []}
                       setVisibleColumns={setVisibleColumns}
                       visibleColumns={visibleColumns}
-                      loading={isBrandTableLoading}
                     />
                     {nodes != null && nodes?.length > 0
                       ? nodes.map((item, index) => (
@@ -805,12 +808,11 @@ return (
                               nodes={item.items || []}
                               setVisibleColumns={setVisibleColumns}
                               visibleColumns={visibleColumns}
-                              loading={isBrandTableLoading}
                             />
                           </React.Fragment>
                         ))
                       : null}
-                  </>
+                  </Box>
                 ) : (
                   <LoadingPlaceholder height="300px" />
                 )}
@@ -981,7 +983,9 @@ return (
                     className="overflow-hidden"
                     bg="white"
                     id="tables"
+                    pos="relative"
                   >
+                    <LoadingOverlay visible={categoryTableLoading} zIndex={10} />
                     <FastTableCategory
                       type="head"
                       isPortrait={isPortrait}
@@ -995,7 +999,6 @@ return (
                       }
                       setVisibleColumns={setVisibleColumns}
                       visibleColumns={visibleColumns}
-                      loading={categoryTableLoading}
                     />
                     {nodesSubCategoriesData != null &&
                     nodesSubCategoriesData?.length > 0
@@ -1024,7 +1027,6 @@ return (
                               nodes={item.items || []}
                               setVisibleColumns={setVisibleColumns}
                               visibleColumns={visibleColumns}
-                              loading={categoryTableLoading}
                             />
                           </React.Fragment>
                         ))
