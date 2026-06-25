@@ -7,36 +7,64 @@ import {
   Image,
   Paper
 } from "@mantine/core";
-import React, { useEffect, useMemo } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { verifyToken } from "../../redux/auth/authusers/auth";
+import { IconCategory } from "@tabler/icons-react";
+import React, { useMemo, useState } from "react";
+import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+const MENU_ICON_SIZE = 24;
+
+const isValidIcon = (icon) => {
+  if (!icon) return false;
+  if (Array.isArray(icon)) {
+    return icon.length > 0 && icon[0] && icon[0].trim() !== "";
+  }
+  if (typeof icon === "string") {
+    return icon.trim() !== "";
+  }
+  return false;
+};
+
+const getIconSrc = (icon) => {
+  if (Array.isArray(icon) && icon.length > 0) return icon[0];
+  return icon;
+};
+
+function MenuIcon({ icon, label }) {
+  const [hasError, setHasError] = useState(false);
+  const showImage = isValidIcon(icon) && !hasError;
+
+  return (
+    <Box
+      w={MENU_ICON_SIZE}
+      h={MENU_ICON_SIZE}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        borderRadius: 4,
+        backgroundColor: showImage ? "transparent" : "#f3f4f6",
+      }}
+    >
+      {showImage ? (
+        <Image
+          src={getIconSrc(icon)}
+          w={MENU_ICON_SIZE}
+          h={MENU_ICON_SIZE}
+          fit="contain"
+          alt={label || ""}
+          onError={() => setHasError(true)}
+        />
+      ) : (
+        <IconCategory size={16} color="#9ca3af" stroke={1.5} />
+      )}
+    </Box>
+  );
+}
 
 const DropDownMenu = ({ menuItems }) => {
   const { user } = useSelector((state) => state.auth);
-
-
-  // Remove this - it's causing re-renders on every hover!
-  // const dispatch = useDispatch();
-  // useEffect(() => {
-  //   dispatch(verifyToken());
-  // }, [dispatch]);
-
-  const isValidIcon = (icon) => {
-    if (!icon) return false;
-    if (Array.isArray(icon)) {
-      return icon.length > 0 && icon[0] && icon[0].trim() !== "";
-    }
-    if (typeof icon === "string") {
-      return icon.trim() !== "";
-    }
-    return false;
-  };
-
-  const getIconSrc = (icon) => {
-    if (Array.isArray(icon) && icon.length > 0) return icon[0];
-    return icon;
-  };
 
   // Memoize the rendered content to prevent unnecessary re-renders
   const menuContent = useMemo(() => {
@@ -58,17 +86,7 @@ const DropDownMenu = ({ menuItems }) => {
                   to={link.url || undefined}
                   label={link.label}
                   active={false}
-                  leftSection={
-                    isValidIcon(link.icon) ? (
-                      <Image
-                        src={getIconSrc(link.icon)}
-                        style={{ width: '24px', height: '24px' }}
-                        fit="contain"
-                        alt={link.label}
-                        onError={(e) => (e.target.style.display = "none")}
-                      />
-                    ) : null
-                  }
+                  leftSection={<MenuIcon icon={link.icon} label={link.label} />}
                   styles={{
                     root: {
                       padding: "4px 6px",
@@ -111,17 +129,7 @@ const DropDownMenu = ({ menuItems }) => {
                         to={child.url}
                         label={child.label}
                         active={false}
-                        leftSection={
-                          isValidIcon(child.icon) ? (
-                      <Image
-                        src={getIconSrc(link.icon)}
-                        style={{ width: '24px', height: '24px' }}
-                        fit="contain"
-                        alt={link.label}
-                        onError={(e) => (e.target.style.display = "none")}
-                      />
-                          ) : null
-                        }
+                        leftSection={<MenuIcon icon={child.icon} label={child.label} />}
                         styles={{
                           root: {
                             padding: "4px 6px",
@@ -155,17 +163,7 @@ const DropDownMenu = ({ menuItems }) => {
                   to={link.url}
                   label={link.label}
                   active={false}
-                  leftSection={
-                    isValidIcon(link.icon) ? (
-                      <Image
-                        src={getIconSrc(link.icon)}
-                        style={{ width: '24px', height: '24px' }}
-                        fit="contain"
-                        alt={link.label}
-                        onError={(e) => (e.target.style.display = "none")}
-                      />
-                    ) : null
-                  }
+                  leftSection={<MenuIcon icon={link.icon} label={link.label} />}
                   styles={{
                     root: {
                       padding: "4px 6px",
