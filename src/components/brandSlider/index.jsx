@@ -153,7 +153,7 @@ function BrandSlider({ items }) {
   }
 
   return (
-    <Box px={{ base: "md", md: 0 }}>
+    <Box px={{ base: "md", md: 0 }} pos="relative">
       <Text 
         size="md" 
         fw="600"
@@ -163,30 +163,29 @@ function BrandSlider({ items }) {
         {items.title || 'برندها'}
       </Text>
 
-      <Box pos="relative">
-        {shouldShowNavigation && !isBeginning && !isMobile && (
-          <ActionIcon
-            variant="white"
-            radius={999}
-            size="lg"
-            onClick={handlePrev}
-            className="brand-carousel-prev border border-solid border-slate-300"
-          >
-            <IconChevronRight size={18} />
-          </ActionIcon>
-        )}
-        {shouldShowNavigation && !isEnd && !isMobile && (
-          <ActionIcon
-            variant="white"
-            radius={999}
-            size="lg"
-            onClick={handleNext}
-            className="brand-carousel-next border border-solid border-slate-300"
-          >
-            <IconChevronLeft size={18} />
-          </ActionIcon>
-        )}
-        <Swiper
+      {shouldShowNavigation && !isBeginning && !isMobile && (
+        <ActionIcon
+          variant="white"
+          radius={999}
+          size="lg"
+          onClick={handlePrev}
+          className="brand-carousel-prev border border-solid border-slate-300"
+        >
+          <IconChevronRight size={18} />
+        </ActionIcon>
+      )}
+      {shouldShowNavigation && !isEnd && !isMobile && (
+        <ActionIcon
+          variant="white"
+          radius={999}
+          size="lg"
+          onClick={handleNext}
+          className="brand-carousel-next border border-solid border-slate-300"
+        >
+          <IconChevronLeft size={18} />
+        </ActionIcon>
+      )}
+      <Swiper
           ref={sliderRef}
           className="brand-slider-swiper"
           slidesPerView={2.5}
@@ -250,7 +249,6 @@ function BrandSlider({ items }) {
             </SwiperSlide>
           ))}
         </Swiper>
-      </Box>
     </Box>
   );
 }

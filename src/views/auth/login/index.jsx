@@ -54,11 +54,30 @@ const codeValidationSchema = yup.object().shape({
 const AUTH_LOGIN_FORM_COOKIE = "authLoginForm";
 const AUTH_LOGIN_FORM_MAX_AGE_DAYS = 30;
 
+function getApiValidationErrors(data) {
+  if (!data?.errors || typeof data.errors !== "object") return null;
+
+  const messages = [];
+  for (const key of Object.keys(data.errors)) {
+    const val = data.errors[key];
+    if (Array.isArray(val)) {
+      val.filter(Boolean).forEach((item) => messages.push(String(item)));
+    } else if (val) {
+      messages.push(String(val));
+    }
+  }
+
+  return messages.length ? messages.join("، ") : null;
+}
+
 function getAuthFieldErrorMessage(error, fallback = "خطا در ورود به سیستم") {
   if (!error) return fallback;
   if (typeof error === "string") return error;
 
   if (typeof error === "object") {
+    const apiErrors = getApiValidationErrors(error);
+    if (apiErrors) return apiErrors;
+
     const nested = error.error ?? error.errors ?? error.code;
 
     if (typeof nested === "string" && nested.trim()) return nested;
@@ -77,6 +96,18 @@ function getAuthFieldErrorMessage(error, fallback = "خطا در ورود به �
 
 function isUserNotFoundResponse(data) {
   return data?.state === "user_not_found" || data?.exists === false;
+}
+
+function isLoginCodeRequiredResponse(data) {
+  return Boolean(
+    data?.error_code === "VALIDATION_ERROR" &&
+    data?.errors?.code
+  );
+}
+
+function isSmsUserNotFoundResponse(data, status) {
+  const message = data?.error?.code || data?.error?.message || data?.message || "";
+  return status === 404 || /یافت نشد|not found|user_not_found/i.test(String(message));
 }
 
 function getSavedMobileFromCookie() {
@@ -235,10 +266,20 @@ const Login = () => {
       }
 
       if (!response.ok) {
-        const errorMessage = getAuthFieldErrorMessage(
-          data?.error ?? data?.message,
-          data?.message || getHttpCodeMessage(response.status)
-        );
+        if (!code && isLoginCodeRequiredResponse(data)) {
+          return {
+            state: "code_required",
+            message: data?.message || "Code required for login",
+            data,
+          };
+        }
+
+        const errorMessage =
+          getApiValidationErrors(data) ||
+          getAuthFieldErrorMessage(
+            data?.error ?? data?.message,
+            data?.message || getHttpCodeMessage(response.status)
+          );
 
         return {
           state: "error",
@@ -298,9 +339,31 @@ const Login = () => {
       const data = text ? JSON.parse(text) : null;
 
       if (!response.ok) {
+        if (isSmsUserNotFoundResponse(data, response.status)) {
+          const notFoundMessage =
+            data?.error?.code ||
+            data?.error?.message ||
+            "کاربری با این شماره موبایل یافت نشد";
+
+          return {
+            state: "user_not_found",
+            message: notFoundMessage,
+            error: {
+              status: response.status,
+              message: notFoundMessage,
+            },
+          };
+        }
+
+        const errorMessage =
+          data?.error?.code ||
+          data?.error?.message ||
+          data?.message ||
+          getHttpCodeMessage(response.status);
+
         const error = {
           status: response.status,
-          message: data?.message || getHttpCodeMessage(response.status),
+          message: errorMessage,
         };
 
         setSmsData({
@@ -440,6 +503,11 @@ const Login = () => {
       if (!result) {
         console.error('No response data received');
         setStateMessage("error");
+        return;
+      }
+
+      if (result.state === "user_not_found") {
+        redirectToRegister(sanitizedValue);
         return;
       }
 
