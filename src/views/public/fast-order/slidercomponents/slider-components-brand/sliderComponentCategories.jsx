@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import SliderArrows from '../SliderArrows';
+import SliderPillImage from '../SliderPillImage';
+import { useSliderPillFontSize } from '../useSliderPillFontSize';
 
 const SliderComponentCategoriesFastOrder = ({ 
   items, 
@@ -91,24 +93,6 @@ const SliderComponentCategoriesFastOrder = ({
   );
 };
 
-// Enhanced SVG Icon Component for fallback
-const CategoryIcon = () => (
-  <svg 
-    width="28" 
-    height="28" 
-    viewBox="0 0 28 28" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-[28px] h-[28px]"
-  >
-    <rect x="3" y="3" width="18" height="18" rx="2" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
-    <rect x="6" y="6" width="5" height="5" rx="1" fill="#9CA3AF"/>
-    <rect x="13" y="6" width="5" height="5" rx="1" fill="#9CA3AF"/>
-    <rect x="6" y="13" width="5" height="5" rx="1" fill="#9CA3AF"/>
-    <rect x="13" y="13" width="5" height="5" rx="1" fill="#9CA3AF"/>
-  </svg>
-);
-
 export function SingleCategoryGroup({ 
   parentItem, 
   searchType,
@@ -120,6 +104,7 @@ export function SingleCategoryGroup({
   setFilterBrandsCategoryStorage,
   isDisabled = false // Add isDisabled prop
 }) {
+  const pillFontSize = useSliderPillFontSize();
 
   if (!parentItem || !Array.isArray(parentItem.categories)) return null;
 
@@ -167,36 +152,6 @@ export function SingleCategoryGroup({
     }
   };
 
-  // Comprehensive image validation function
-  const isValidImage = (imageValue) => {
-    if (imageValue == null) return false;
-    if (Array.isArray(imageValue)) {
-      if (imageValue.length === 0) return false;
-      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
-    }
-    if (typeof imageValue === 'string') {
-      const trimmed = imageValue.trim();
-      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  };
-
-  // Enhanced image error handler
-  const handleImageError = (e, categoryTitle) => {
-    console.warn(`Failed to load category image: ${e.target.src} for category: ${categoryTitle}`);
-    // Hide the broken image and let the icon show instead
-    e.target.style.display = 'none';
-    // Find the parent container and show the fallback icon
-    const parent = e.target.parentElement;
-    const fallbackIcon = parent.querySelector('.fallback-icon');
-    if (fallbackIcon) {
-      fallbackIcon.style.display = 'block';
-    }
-  };
-
   const isActive = filterBrandStorage.includes(parentItem.idBrand);
 
   return (
@@ -211,8 +166,6 @@ export function SingleCategoryGroup({
                   member.idBrand === parentItem.idBrand && 
                   member.idCategories.includes(category.idCategory)
               );
-
-              const showImage = isValidImage(category.image);
 
               return (
                 <div 
@@ -237,48 +190,14 @@ export function SingleCategoryGroup({
                       border: isActiveBorder 
                         ? '0.666667px solid rgb(9, 54, 114)' 
                         : '0.666667px solid rgb(250, 250, 250)',
-                      fontSize: '16px',
+                      fontSize: pillFontSize,
                       fontWeight: isActiveBorder ? 700 : 400,
                       color: 'rgb(77, 80, 83)',
                       gap: '8px',
                       flexDirection: 'row'
                     }}
                   >
-                    {showImage ? (
-                      <div
-                        className='rounded-full overflow-hidden flex-shrink-0 relative'
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          lineHeight: 0,
-                          marginRight: 0
-                        }}
-                      >
-                        <img
-                          className="w-full inline-block"
-                          style={{ objectFit: 'cover', display: 'block', width: '28px', height: '28px', marginRight: 0 }}
-                          src={category.image}
-                          alt={category.title}
-                          onError={(e) => handleImageError(e, category.title)}
-                          width="28"
-                          height="28"
-                        />
-                        <div className="fallback-icon" style={{ display: 'none' }}>
-                          <CategoryIcon />
-                        </div>
-                      </div>
-                    ) : (
-                      <div 
-                        className='rounded-full overflow-hidden flex-shrink-0'
-                        style={{ 
-                          width: '28px', 
-                          height: '28px',
-                          lineHeight: 0
-                        }}
-                      >
-                        <CategoryIcon />
-                      </div>
-                    )}
+                    <SliderPillImage image={category.image} alt={category.title} />
                     <span className="leading-none">
                       {category.title}
                     </span>

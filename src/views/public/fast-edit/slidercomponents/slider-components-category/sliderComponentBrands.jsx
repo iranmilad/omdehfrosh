@@ -2,18 +2,8 @@ import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import SliderArrows from '../SliderArrows';
-
-// Default SVG image for brands when image is null or empty
-const DEFAULT_BRAND_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle -->
-  <circle cx="20" cy="20" r="20" fill="#F8F9FA"/>
-  <!-- Brand/tag icon -->
-  <path d="M12 14 L22 14 C23.1 14 24 14.9 24 16 L24 24 C24 25.1 23.1 26 22 26 L12 26 C10.9 26 10 25.1 10 24 L10 16 C10 14.9 10.9 14 12 14 Z" fill="#E9ECEF" stroke="#ADB5BD" stroke-width="1"/>
-  <!-- Star/brand symbol -->
-  <path d="M17 18 L18 21 L21 21 L18.5 22.5 L19.5 25.5 L17 24 L14.5 25.5 L15.5 22.5 L13 21 L16 21 L17 18 Z" fill="#6C757D"/>
-</svg>
-`);
+import SliderPillImage from '../../../fast-order/slidercomponents/SliderPillImage';
+import { useSliderPillFontSize } from '../../../fast-order/slidercomponents/useSliderPillFontSize';
 
 const SliderComponentBrandsCMFastEdit = ({ 
   items, 
@@ -122,6 +112,7 @@ export function SingleCategory1({
   setFilterCategorySubCategoryBrandsStorage,
   tab,
 }) {
+  const pillFontSize = useSliderPillFontSize();
 
   const onClick = (subcategory, brand, parentItem) => {
     setFilterCategorySubCategoryBrandsStorage(prevSelected => {
@@ -264,37 +255,6 @@ export function SingleCategory1({
     );
   };
 
-  // Comprehensive image validation function
-  const isValidImage = (imageValue) => {
-    if (imageValue == null) return false;
-    if (Array.isArray(imageValue)) {
-      if (imageValue.length === 0) return false;
-      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
-    }
-    if (typeof imageValue === 'string') {
-      const trimmed = imageValue.trim();
-      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  };
-
-  // Helper function to get brand image source with fallback
-  const getBrandImageSrc = (image) => {
-    if (isValidImage(image)) {
-      return image;
-    }
-    return DEFAULT_BRAND_IMAGE;
-  };
-
-  // Handle image error by setting default placeholder
-  const handleImageError = (e, brandName) => {
-    console.warn(`Failed to load brand image: ${e.target.src} for brand: ${brandName}`);
-    e.target.src = DEFAULT_BRAND_IMAGE;
-  };
-
   return (
     <>
       {parentItem?.subCategories?.length > 0 && (
@@ -319,7 +279,7 @@ export function SingleCategory1({
                         border: isActiveBorder 
                           ? '0.666667px solid rgb(9, 54, 114)' 
                           : '0.666667px solid rgb(250, 250, 250)',
-                        fontSize: '16px',
+                        fontSize: pillFontSize,
                         fontWeight: isActiveBorder ? 700 : 400,
                         color: 'rgb(77, 80, 83)',
                         gap: '8px',
@@ -327,25 +287,7 @@ export function SingleCategory1({
                       }}
                       onClick={() => onClick(subcategory, brand, parentItem)}
                     >
-                      <div
-                        className='rounded-full overflow-hidden flex-shrink-0'
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          lineHeight: 0,
-                          marginRight: 0
-                        }}
-                      >
-                        <img
-                          className="w-full inline-block"
-                          style={{ objectFit: 'cover', width: '28px', height: '28px', marginRight: 0 }}
-                          src={getBrandImageSrc(brand.image)}
-                          alt={brand.name}
-                          onError={(e) => handleImageError(e, brand.name)}
-                          width="28"
-                          height="28"
-                        />
-                      </div>
+                      <SliderPillImage image={brand.image} alt={brand.name} />
                       <span className="leading-none">
                         {brand.name}
                       </span>

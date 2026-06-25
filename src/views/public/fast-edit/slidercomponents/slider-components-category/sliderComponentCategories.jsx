@@ -3,20 +3,8 @@ import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useCategoryRowSelection } from '../../CategoryRowSelectionContext';
 import SliderArrows from '../SliderArrows';
-
-// Default SVG image for categories when image is null or empty
-const DEFAULT_CATEGORY_IMAGE = 'data:image/svg+xml;base64,' + btoa(`
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle -->
-  <circle cx="20" cy="20" r="20" fill="#F8F9FA"/>
-  <!-- Category icon -->
-  <rect x="10" y="10" width="20" height="20" rx="2" fill="#E9ECEF" stroke="#ADB5BD" stroke-width="1"/>
-  <rect x="13" y="13" width="6" height="6" rx="1" fill="#9CA3AF"/>
-  <rect x="21" y="13" width="6" height="6" rx="1" fill="#9CA3AF"/>
-  <rect x="13" y="21" width="6" height="6" rx="1" fill="#9CA3AF"/>
-  <rect x="21" y="21" width="6" height="6" rx="1" fill="#9CA3AF"/>
-</svg>
-`);
+import SliderPillImage from '../../../fast-order/slidercomponents/SliderPillImage';
+import { useSliderPillFontSize } from '../../../fast-order/slidercomponents/useSliderPillFontSize';
 
 const SliderComponentCategoriesCMFastEdit = ({ 
   items, 
@@ -147,6 +135,7 @@ export function SingleCategoryGroupCM({
   setFilterCategorySubCategoryBrandsStorage,
   isDisabled
 }) {
+  const pillFontSize = useSliderPillFontSize();
 
   if (!parentItem) {
     return null;
@@ -172,19 +161,6 @@ export function SingleCategoryGroupCM({
     }
   }
 
-  // Helper function to get category image source with fallback
-  const getCategoryImageSrc = (image) => {
-    if (image && image.trim() !== '') {
-      return image;
-    }
-    return DEFAULT_CATEGORY_IMAGE;
-  };
-
-  // Handle image error by setting default placeholder
-  const handleImageError = (e) => {
-    e.target.src = DEFAULT_CATEGORY_IMAGE;
-  };
-
   const isActive = filterCategoryStorage.includes(parentItem.idCategory);
 
   return (
@@ -204,7 +180,7 @@ export function SingleCategoryGroupCM({
             border: !isDisabled && isActive 
               ? '0.666667px solid rgb(9, 54, 114)' 
               : '0.666667px solid rgb(250, 250, 250)',
-            fontSize: '16px',
+            fontSize: pillFontSize,
             fontWeight: !isDisabled && isActive ? 700 : 400,
             color: 'rgb(77, 80, 83)',
             gap: '8px',
@@ -212,25 +188,7 @@ export function SingleCategoryGroupCM({
           }}
           onClick={() => onClick(parentItem)}
         >
-          <div
-            className='rounded-full overflow-hidden flex-shrink-0'
-            style={{
-              width: '28px',
-              height: '28px',
-              lineHeight: 0,
-              marginRight: 0
-            }}
-          >
-            <img
-              className="w-full inline-block"
-              style={{ objectFit: 'cover', width: '28px', height: '28px', marginRight: 0 }}
-              src={getCategoryImageSrc(parentItem.image)}
-              alt={parentItem.title}
-              onError={handleImageError}
-              width="28"
-              height="28"
-            />
-          </div>
+          <SliderPillImage image={parentItem.image} alt={parentItem.title} />
           <span className="leading-none">
             {parentItem.title}
           </span>

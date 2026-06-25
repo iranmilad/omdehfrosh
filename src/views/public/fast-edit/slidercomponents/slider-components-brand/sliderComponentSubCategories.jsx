@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import SliderArrows from '../SliderArrows';
+import SliderPillImage from '../../../fast-order/slidercomponents/SliderPillImage';
+import { useSliderPillFontSize } from '../../../fast-order/slidercomponents/useSliderPillFontSize';
 
 const SliderComponentSubCategoriesFastEdit = ({ 
   items,
@@ -98,24 +100,6 @@ const SliderComponentSubCategoriesFastEdit = ({
   );
 };
 
-// Enhanced SVG Icon Component for subcategory fallback
-const SubCategoryIcon = () => (
-  <svg 
-    width="28" 
-    height="28" 
-    viewBox="0 0 28 28" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-[28px] h-[28px] rounded-full"
-  >
-    <circle cx="12" cy="12" r="11" fill="#F8F9FA" stroke="#E9ECEF" strokeWidth="1"/>
-    <circle cx="8" cy="8" r="2" fill="#9CA3AF"/>
-    <circle cx="16" cy="8" r="2" fill="#9CA3AF"/>
-    <circle cx="8" cy="16" r="2" fill="#9CA3AF"/>
-    <circle cx="16" cy="16" r="2" fill="#9CA3AF"/>
-  </svg>
-);
-
 export function SingleCategoryWithSubcategories({ 
   parentItem, 
   clickType,
@@ -128,6 +112,8 @@ export function SingleCategoryWithSubcategories({
   filterBrandsCategorySubCategoryStorage,
   setFilterBrandsCategorySubCategoryStorage
 }) {
+  const pillFontSize = useSliderPillFontSize();
+
   if (!parentItem || !Array.isArray(parentItem.categories)) return null;
 
   const isActiveBrands = filterBrandStorage.includes(parentItem.idBrand);
@@ -203,38 +189,6 @@ export function SingleCategoryWithSubcategories({
     }
   };
 
-  // Comprehensive image validation function
-  const isValidImage = (imageValue) => {
-    if (imageValue == null) return false;
-    if (Array.isArray(imageValue)) {
-      if (imageValue.length === 0) return false;
-      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
-    }
-    if (typeof imageValue === 'string') {
-      const trimmed = imageValue.trim();
-      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  };
-
-  // Enhanced image error handler
-  const handleImageError = (e, subCategoryName) => {
-    console.warn(`Failed to load subcategory image: ${e.target.src} for subcategory: ${subCategoryName}`);
-    // Hide the broken image and let the icon show instead
-    e.target.style.display = 'none';
-    // Find the parent container and show the fallback icon
-    const parent = e.target.closest('.image-container');
-    if (parent) {
-      const fallbackIcon = parent.querySelector('.fallback-icon');
-      if (fallbackIcon) {
-        fallbackIcon.style.display = 'flex';
-      }
-    }
-  };
-
   return (
     <>
       {shouldShow && (
@@ -263,8 +217,6 @@ export function SingleCategoryWithSubcategories({
                           )
                       );
 
-                      const showImage = isValidImage(subCategory.image);
-
                       return (
                         <div
                           key={subIndex}
@@ -284,41 +236,14 @@ export function SingleCategoryWithSubcategories({
                               border: isActiveBorder 
                                 ? '0.666667px solid rgb(9, 54, 114)' 
                                 : '0.666667px solid rgb(250, 250, 250)',
-                              fontSize: '16px',
+                              fontSize: pillFontSize,
                               fontWeight: isActiveBorder ? 700 : 400,
                               color: 'rgb(77, 80, 83)',
                               gap: '8px',
                               flexDirection: 'row'
                             }}
                           >
-                            <div
-                              className='rounded-full overflow-hidden flex-shrink-0 image-container relative'
-                              style={{
-                                width: '28px',
-                                height: '28px',
-                                lineHeight: 0,
-                                marginRight: 0
-                              }}
-                            >
-                              {showImage ? (
-                                <>
-                                  <img
-                                    className="w-full inline-block"
-                                    style={{ objectFit: 'cover', display: 'block', width: '28px', height: '28px', marginRight: 0 }}
-                                    src={subCategory.image}
-                                    alt={subCategory.name}
-                                    onError={(e) => handleImageError(e, subCategory.name)}
-                                    width="28"
-                                    height="28"
-                                  />
-                                  <div className="fallback-icon absolute inset-0 items-center justify-center" style={{ display: 'none' }}>
-                                    <SubCategoryIcon />
-                                  </div>
-                                </>
-                              ) : (
-                                <SubCategoryIcon />
-                              )}
-                            </div>
+                            <SliderPillImage image={subCategory.image} alt={subCategory.name} />
                             <span className="leading-none">
                               {subCategory.name}
                             </span>

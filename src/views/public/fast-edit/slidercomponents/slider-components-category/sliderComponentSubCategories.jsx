@@ -2,18 +2,8 @@ import { useRef, useState } from 'react';
 import { FreeMode, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import SliderArrows from '../SliderArrows';
-
-// SVG icon created using data URL - Subcategory placeholder with folder icon
-const DEFAULT_SUBCATEGORY_PLACEHOLDER = 'data:image/svg+xml;base64,' + btoa(`
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="20" cy="20" r="20" fill="#F3F4F6"/>
-  <path d="M11 14h6l2 2h10v12H11V14z" fill="#D1D5DB" stroke="#9CA3AF" stroke-width="1" stroke-linejoin="round"/>
-  <path d="M11 18h18v10H11V18z" fill="#E5E7EB"/>
-  <circle cx="16" cy="22" r="1" fill="#9CA3AF"/>
-  <circle cx="20" cy="22" r="1" fill="#9CA3AF"/>
-  <circle cx="24" cy="22" r="1" fill="#9CA3AF"/>
-</svg>
-`);
+import SliderPillImage from '../../../fast-order/slidercomponents/SliderPillImage';
+import { useSliderPillFontSize } from '../../../fast-order/slidercomponents/useSliderPillFontSize';
 
 const SliderComponentSubCategoriesCMFastEdit = ({ 
   items,
@@ -111,6 +101,7 @@ export function SingleCategoryWithSubcategories({
   filterCategorySubCategoryBrandsStorage,
   setFilterCategorySubCategoryBrandsStorage,
 }) {
+  const pillFontSize = useSliderPillFontSize();
 
   if (!parentItem || !Array.isArray(parentItem.subCategories)) return null;
 
@@ -151,36 +142,6 @@ export function SingleCategoryWithSubcategories({
   }
 
   // Comprehensive image validation function
-  const isValidImage = (imageValue) => {
-    if (imageValue == null) return false;
-    if (Array.isArray(imageValue)) {
-      if (imageValue.length === 0) return false;
-      return imageValue.some(img => img && typeof img === 'string' && img.trim() !== '');
-    }
-    if (typeof imageValue === 'string') {
-      const trimmed = imageValue.trim();
-      if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]') {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  };
-
-  // Helper function to get image source with fallback for subcategories
-  const getSubcategoryImageSrc = (image) => {
-    if (isValidImage(image)) {
-      return image;
-    }
-    return DEFAULT_SUBCATEGORY_PLACEHOLDER;
-  };
-
-  // Handle image error by setting default placeholder
-  const handleImageError = (e, subcategoryName) => {
-    console.warn(`Failed to load subcategory image: ${e.target.src} for subcategory: ${subcategoryName}`);
-    e.target.src = DEFAULT_SUBCATEGORY_PLACEHOLDER;
-  };
-
   const isActive = filterCategoryStorage.includes(parentItem.idCategory);
 
   return (
@@ -214,32 +175,14 @@ export function SingleCategoryWithSubcategories({
                       border: isActiveBorder 
                         ? '0.666667px solid rgb(9, 54, 114)' 
                         : '0.666667px solid rgb(250, 250, 250)',
-                      fontSize: '16px',
+                      fontSize: pillFontSize,
                       fontWeight: isActiveBorder ? 700 : 400,
                       color: 'rgb(77, 80, 83)',
                       gap: '8px',
                       flexDirection: 'row'
                     }}
                   >
-                    <div
-                      className='rounded-full overflow-hidden flex-shrink-0'
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        lineHeight: 0,
-                        marginRight: 0
-                      }}
-                    >
-                      <img
-                        className="w-full inline-block"
-                        style={{ objectFit: 'cover', width: '28px', height: '28px', marginRight: 0 }}
-                        src={getSubcategoryImageSrc(subcategory.image)}
-                        alt={subcategory.name}
-                        onError={(e) => handleImageError(e, subcategory.name)}
-                        width="28"
-                        height="28"
-                      />
-                    </div>
+                    <SliderPillImage image={subcategory.image} alt={subcategory.name} />
                     <span className="leading-none">
                       {subcategory.name}
                     </span>
