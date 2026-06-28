@@ -280,7 +280,7 @@ export const createQueryClient = (options = {}) => {
 // PERSISTENCE (localStorage)
 // ============================================================================
 
-const PERSISTENCE_STORAGE_KEY = 'j2b.reactQuery.cache.v1';
+const PERSISTENCE_STORAGE_KEY = 'j2b.reactQuery.cache.v2';
 const PERSISTENCE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
 
 let persistenceSetupDone = false;

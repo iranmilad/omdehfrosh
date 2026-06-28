@@ -349,6 +349,16 @@ function ProductHighlightCard({ items = [], title }) {
   // Handle original row structure
   return (
     <EditorContainer>
+      {title && (
+        <Text
+          size="md"
+          fw="600"
+          mb="md"
+          style={{ color: "rgb(9, 54, 114)" }}
+        >
+          {title}
+        </Text>
+      )}
       {items.map((row, rowIndex) => (
         <Box key={rowIndex} mb="lg">
           <Grid gutter="sm">

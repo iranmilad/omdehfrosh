@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { Box, Center, Container, Loader, Stack, Alert } from "@mantine/core";
+import { Box, Center, Container, Loader, Stack, Alert, Text } from "@mantine/core";
 
 // Components
 import WideSlider from "../../../components/wideSlider";
@@ -14,54 +13,68 @@ import PriceList from "../../../components/pricelist";
 // React Query Cache System
 import { useApiQuery } from "../../../Libs/reactQuery";
 
+function SectionTitle({ title }) {
+  if (!title) return null;
+  return (
+    <Text
+      size="md"
+      fw={600}
+      mb="md"
+      style={{ color: "rgb(9, 54, 114)" }}
+    >
+      {title}
+    </Text>
+  );
+}
+
+function SectionBox({ title, children, fullBleed = false }) {
+  if (fullBleed) {
+    return (
+      <Box>
+        <SectionTitle title={title} />
+        {children}
+      </Box>
+    );
+  }
+
+  return (
+    <Box style={{ backgroundColor: "white", padding: "16px", borderRadius: "8px" }}>
+      <SectionTitle title={title} />
+      {children}
+    </Box>
+  );
+}
+
 function Home() {
-
-  // ============================================================================
-  // API CALLS WITH REACT QUERY CACHING
-  // ============================================================================
-
-  // Homepage data - CACHED strategy (5 min stale, 15 min gc)
-  // This is public data, same for all users - no need to include user ID
   const {
     data: homeData,
     isLoading: loadingHome,
     isFetching: fetchingHome,
     error: errorHome,
     isError,
-    status,
   } = useApiQuery({
-    endpoint: '/homepage/homepagedata',
-    queryKey: ['homepage', 'data'],
-    strategy: 'CACHED', // 5 min stale time
-    transformer: (response) => {
-      const raw = response?.data;
-      const list = raw?.data ?? (Array.isArray(raw) ? raw : null);
-      return Array.isArray(list) ? list : [];
+    endpoint: "/homepage/homepagedata",
+    queryKey: ["homepage", "sections-v2"],
+    strategy: "STANDARD",
+    queryOptions: {
+      refetchOnMount: "always",
     },
   });
 
-  // ============================================================================
-  // LOADING STATE
-  // ============================================================================
-
   if (loadingHome) {
     return (
-      <Center style={{ minHeight: '50vh' }}>
+      <Center style={{ minHeight: "50vh" }}>
         <Loader />
       </Center>
     );
   }
 
-  // ============================================================================
-  // ERROR STATE
-  // ============================================================================
-
   if (isError && !homeData) {
     return (
       <Container className="px-3 md:px-5 my-10">
         <Alert color="red" title="خطا در بارگذاری">
-          {errorHome?.message || errorHome?.response?.data?.message || 'خطا در دریافت اطلاعات'}
-          {process.env.NODE_ENV === 'development' && (
+          {errorHome?.message || errorHome?.response?.data?.message || "خطا در دریافت اطلاعات"}
+          {process.env.NODE_ENV === "development" && (
             <pre style={{ marginTop: 10, fontSize: 12 }}>
               {JSON.stringify(errorHome, null, 2)}
             </pre>
@@ -71,18 +84,9 @@ function Home() {
     );
   }
 
-  // ============================================================================
-  // EMPTY STATE
-  // ============================================================================
-
-  // Check if data is null, undefined, or empty array
   if (!homeData || (Array.isArray(homeData) && homeData.length === 0)) {
     return (
-      <Container
-        className="px-3 md:px-5 my-10"
-        size={1336}
-        style={{ width: '100%' }}
-      >
+      <Container className="px-3 md:px-5 my-10" size={1336} style={{ width: "100%" }}>
         <Center>
           <div>هیچ اطلاعاتی موجود نیست</div>
         </Center>
@@ -90,85 +94,84 @@ function Home() {
     );
   }
 
-  // ============================================================================
-  // RENDER SECTIONS
-  // ============================================================================
-
-  // Normalize to array (transformer should already return array; guard for cache/legacy)
   const sections = Array.isArray(homeData) ? homeData : [];
-  if (sections.length === 0 && homeData != null && !Array.isArray(homeData)) {
-    console.warn('Home data was not an array, using empty list:', typeof homeData, homeData);
-  }
+
+  const renderProductLoopSection = (section, index) => {
+    if (!section.data || section.data.length === 0) return null;
+    return (
+      <SectionBox key={`productloop-${section.title}-${index}`}>
+        <ProductCarousel title={section.title} items={section.data} style={{ marginTop: "30px" }} />
+      </SectionBox>
+    );
+  };
 
   return (
     <>
       <Container className="px-3 md:px-5">
         <Stack gap="1rem">
           {sections.map((section, index) => {
+            const sectionKey = `${section.type}-${section.title || index}-${index}`;
+
             switch (section.type) {
               case "wideslider":
                 return (
-                  <Box
-                    key={index}
-                    style={{
-                      // width: '100vw',
-                      // maxWidth: '100vw',
-                      // marginLeft: 'calc(50% - 50vw)',
-                      // marginRight: 'calc(50% - 50vw)',
-                    }}
-                  >
+                  <SectionBox key={sectionKey} title={section.title} fullBleed>
                     <WideSlider items={section.data} />
-                  </Box>
+                  </SectionBox>
                 );
+
               case "categories":
                 return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <Categories items={section?.data} />
-                  </Box>
+                  <SectionBox key={sectionKey}>
+                    <Categories items={section?.data} title={section.title} />
+                  </SectionBox>
                 );
+
               case "featured_promo":
-                return ( section.data && section.data.length > 0 ) ? (
-                  
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <BadgedSlider items={section.data} checkalllink={section.checkalllink} backgroundColor={section.backgroundColor} />
-                  </Box>
+                return section.data && section.data.length > 0 ? (
+                  <SectionBox key={sectionKey}>
+                    <BadgedSlider
+                      items={section.data}
+                      checkalllink={section.checkalllink}
+                      backgroundColor={section.backgroundColor}
+                    />
+                  </SectionBox>
                 ) : null;
 
               case "banners":
                 return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <SectionBox key={sectionKey} title={section.title}>
                     <GridBanner items={section.data} />
-                  </Box>
+                  </SectionBox>
                 );
+
               case "prices":
                 return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <SectionBox key={sectionKey} title={section.title}>
                     <PriceList items={section.data} />
-                  </Box>
+                  </SectionBox>
                 );
+
               case "trendProducts":
                 return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                    <ProductHighlightCard items={section.data} />
-                  </Box>
+                  <SectionBox key={sectionKey}>
+                    <ProductHighlightCard items={section.data} title={section.title} />
+                  </SectionBox>
                 );
+
               case "brands":
                 return (
-                  <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
+                  <SectionBox key={sectionKey}>
                     <BrandSlider items={section?.data} />
-                  </Box>
+                  </SectionBox>
                 );
+
+              case "productloop":
+                return renderProductLoopSection(section, index);
+
               default:
                 if (section.type?.startsWith("productloop")) {
-                  return (section.data && section.data.length > 0) ? (
-                    <Box key={index} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-                      <ProductCarousel
-                        style={{ marginTop: "30px" }}
-                        title={section.title}
-                        items={section.data}
-                      />
-                    </Box>
-                  ) : null;
+                  return renderProductLoopSection(section, index);
                 }
                 return null;
             }
@@ -176,9 +179,8 @@ function Home() {
         </Stack>
       </Container>
 
-      {/* Show loading indicator during background refresh */}
       {fetchingHome && homeData && (
-        <Box style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
+        <Box style={{ position: "fixed", bottom: 20, right: 20, zIndex: 1000 }}>
           <Loader size="sm" />
         </Box>
       )}
