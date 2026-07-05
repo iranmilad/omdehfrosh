@@ -1,6 +1,6 @@
-import { ActionIcon, Center, Image, Box, Text } from "@mantine/core";
-import { IconChevronLeft, IconChevronRight, IconPackage } from "@tabler/icons-react";
-import React, { useRef, useState, useEffect } from "react";
+import { Center, Image, Box, Text } from "@mantine/core";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import React, { useRef, useState } from "react";
 import { NavLink } from "react-router";
 import { Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -8,7 +8,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import ImageIcon from '../../resources/defaultImageIcon'; // Adjust path as needed
 import "./style.css";
 
-function BrandSlider({ items }) {
+function BrandSlider({ items, title }) {
   const isMobile = useMediaQuery('(max-width: 576px)');
   const sliderRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
@@ -18,38 +18,14 @@ function BrandSlider({ items }) {
   // Calculate if we need navigation based on actual content width vs container
   const itemCount = items?.children?.length || 0;
   const shouldShowNavigation = itemCount > 1;
+  const [isScrollable, setIsScrollable] = useState(false);
 
-  useEffect(() => {
-    // Reset states when items change
-    if (itemCount <= 1) {
-      setIsBeginning(true);
-      setIsEnd(true);
-    } else {
-      setIsBeginning(true);
-      setIsEnd(itemCount <= 4); // If 4 or fewer items, we might reach the end quickly
-    }
-  }, [itemCount]);
-
-  // Handler functions for custom navigation
-  const handlePrev = () => {
-    if (sliderRef.current && sliderRef.current.swiper) {
-      sliderRef.current.swiper.slidePrev();
-    }
-  };
-
-  const handleNext = () => {
-    if (sliderRef.current && sliderRef.current.swiper) {
-      sliderRef.current.swiper.slideNext();
-    }
-  };
-
-  const handleSlideChange = (swiper) => {
-    setIsBeginning(swiper.isBeginning);
-    setIsEnd(swiper.isEnd);
-  };
-
-  const handleSwiper = (swiper) => {
-    // Update states when swiper is initialized
+  const updateNavigation = (swiper) => {
+    if (!swiper) return;
+    const scrollable =
+      swiper.slides.length > 1 &&
+      (!swiper.isLocked || swiper.snapGrid.length > 1);
+    setIsScrollable(scrollable);
     setIsBeginning(swiper.isBeginning);
     setIsEnd(swiper.isEnd);
   };
@@ -144,64 +120,69 @@ function BrandSlider({ items }) {
   // Early return if no items or invalid structure
   if (!items || !items.children || items.children.length === 0) {
     return (
-      <Box px={{ base: "md", md: 0 }}>
-        <Center>
-          <Text c="dimmed" size="lg">هیچ برندی یافت نشد</Text>
-        </Center>
-      </Box>
+      <Center>
+        <Text c="dimmed" size="lg">هیچ برندی یافت نشد</Text>
+      </Center>
     );
   }
 
   return (
-    <Box px={{ base: "md", md: 0 }} pos="relative">
-      <Text 
-        size="md" 
-        fw="600"
-        mb="lg"
-        style={{ color: 'rgb(9, 54, 114)' }}
-      >
-        {items.title || 'برندها'}
-      </Text>
+    <>
+      {title?.trim() && (
+        <Text
+          size="md"
+          fw="600"
+          mb="md"
+          style={{ color: "rgb(9, 54, 114)" }}
+        >
+          {title}
+        </Text>
+      )}
 
-      {shouldShowNavigation && !isBeginning && !isMobile && (
-        <ActionIcon
-          variant="white"
-          radius={999}
-          size="lg"
-          onClick={handlePrev}
-          className="brand-carousel-prev border border-solid border-slate-300"
-        >
-          <IconChevronRight size={18} />
-        </ActionIcon>
-      )}
-      {shouldShowNavigation && !isEnd && !isMobile && (
-        <ActionIcon
-          variant="white"
-          radius={999}
-          size="lg"
-          onClick={handleNext}
-          className="brand-carousel-next border border-solid border-slate-300"
-        >
-          <IconChevronLeft size={18} />
-        </ActionIcon>
-      )}
-      <Swiper
+      <Box pos="relative" className="brand-slider-wrap">
+        {shouldShowNavigation && isScrollable && (
+          <Box
+            component="button"
+            type="button"
+            onClick={() => sliderRef.current?.swiper?.slidePrev()}
+            className="brand-carousel-prev"
+            aria-label="اسلاید قبلی"
+            disabled={isBeginning}
+            data-disabled={isBeginning || undefined}
+          >
+            <IconChevronRight size={16} />
+          </Box>
+        )}
+        {shouldShowNavigation && isScrollable && (
+          <Box
+            component="button"
+            type="button"
+            onClick={() => sliderRef.current?.swiper?.slideNext()}
+            className="brand-carousel-next"
+            aria-label="اسلاید بعدی"
+            disabled={isEnd}
+            data-disabled={isEnd || undefined}
+          >
+            <IconChevronLeft size={16} />
+          </Box>
+        )}
+        <Swiper
           ref={sliderRef}
           className="brand-slider-swiper"
-          slidesPerView={2.5}
-          spaceBetween={8}
+          slidesPerView="auto"
+          spaceBetween={4}
           loop={false}
           modules={[Navigation]}
-          onSliderMove={handleSlideChange}
-          onSlideChange={handleSlideChange}
-          onSwiper={handleSwiper}
-          breakpoints={{
-            577: {
-              slidesPerView: "auto",
-              spaceBetween: 25,
-            },
+          watchOverflow
+          observer
+          observeParents
+          onSlideChange={updateNavigation}
+          onInit={(swiper) => {
+            updateNavigation(swiper);
+            requestAnimationFrame(() => updateNavigation(swiper));
           }}
-          style={{ marginTop: "0px", width: "100%" }}
+          onResize={updateNavigation}
+          style={{ width: "100%" }}
         >
           {items.children.map((item, index) => (
             <SwiperSlide
@@ -249,7 +230,8 @@ function BrandSlider({ items }) {
             </SwiperSlide>
           ))}
         </Swiper>
-    </Box>
+      </Box>
+    </>
   );
 }
 

@@ -11,7 +11,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import "swiper/css";
 import "./style.css";
 
-function TrendProductsSlider({ items = [], title }) {
+function TrendProductsSlider({ items = [] }) {
   const sliderRef = useRef(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
@@ -25,13 +25,15 @@ function TrendProductsSlider({ items = [], title }) {
 
   return (
     <Box>
-      <Text
-        size="md"
-        fw="600"
-        style={{ color: "rgb(9, 54, 114)", marginBottom: "var(--mantine-spacing-md)" }}
-      >
-        {title}
-      </Text>
+      {title?.trim() && (
+        <Text
+          size="md"
+          fw="600"
+          style={{ color: "rgb(9, 54, 114)", marginBottom: "var(--mantine-spacing-md)" }}
+        >
+          {title}
+        </Text>
+      )}
       <Box pos="relative">
         {!isBeginning && (
           <ActionIcon
@@ -100,8 +102,12 @@ function ProductHighlightCard({ items = [], title }) {
   // Check if items is the category structure from your JSON
   const isCategories = items.length > 0 && items[0].title && items[0].children;
 
-  // Check if this is trend products layout: has title prop and flat array of products
-  const isTrendProducts = title && items.length > 0 && !Array.isArray(items[0]) && !items[0].children;
+  // Check if this is trend products layout: flat array of products
+  const isTrendProducts =
+    items.length > 0 &&
+    !isCategories &&
+    !Array.isArray(items[0]) &&
+    !items[0]?.children;
 
   // Early return if no items
   if (!items || items.length === 0) {
@@ -283,7 +289,7 @@ function ProductHighlightCard({ items = [], title }) {
 
   // Handle trend products: slider with ProductBox (same style as BadgedSlider)
   if (isTrendProducts) {
-    return <TrendProductsSlider items={items} title={title} />;
+    return <TrendProductsSlider items={items} />;
   }
 
   // Handle both data structures: categories with children OR rows of items
@@ -349,7 +355,7 @@ function ProductHighlightCard({ items = [], title }) {
   // Handle original row structure
   return (
     <EditorContainer>
-      {title && (
+      {title?.trim() && (
         <Text
           size="md"
           fw="600"

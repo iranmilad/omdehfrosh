@@ -14,12 +14,13 @@
   cursor: pointer;
   z-index: 10;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0;
 }
 
 .categories-carousel-prev {
-  right: 0;
+  right: 4px;
 }
 
 .categories-carousel-next {
-  left: 0;
+  left: 4px;
 }

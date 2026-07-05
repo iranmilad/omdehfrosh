@@ -30,15 +30,17 @@ function ProductCarousel(props) {
     if (!items || items.length === 0) {
         return (
             <Box>
+                {title?.trim() && (
                 <Group justify="space-between" mb="md">
                     <Text 
                         size="md" 
                         fw="600"
                         style={{ color: 'rgb(9, 54, 114)' }}
                     >
-                        {title || 'محصولات'}
+                        {title}
                     </Text>
                 </Group>
+                )}
                 <Box
                     p="xl"
                     style={{
@@ -100,17 +102,21 @@ function ProductCarousel(props) {
 
     // Determine if navigation should be shown (only if more than slidesPerView items)
     const showNavigation = items.length > 1;
+    const hasTitle = Boolean(title?.trim());
 
     return (
         <Box>
-            <Group justify="space-between" mb="md">
-                <Text 
-                    size="md" 
-                    fw="600"
-                    style={{ color: 'rgb(9, 54, 114)' }}
-                >
-                    {title || 'محصولات'}
-                </Text>
+            {(hasTitle || (showNavigation && !isMobile)) && (
+            <Group justify={hasTitle ? "space-between" : "flex-end"} mb="md">
+                {hasTitle && (
+                    <Text 
+                        size="md" 
+                        fw="600"
+                        style={{ color: 'rgb(9, 54, 114)' }}
+                    >
+                        {title}
+                    </Text>
+                )}
                 {showNavigation && !isMobile && (
                     <Group>
                         <ActionIcon 
@@ -152,6 +158,7 @@ function ProductCarousel(props) {
                     </Group>
                 )}
             </Group>
+            )}
             <Swiper
                 className="swiper-products-related"
                 spaceBetween={6}

@@ -13,7 +13,7 @@ import {
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { NavLink, useNavigate } from "react-router-dom";
 
-function PriceList({ items }) {
+function PriceList({ items, title }) {
   if (!items || items.length === 0) return null;
 
   const [expanded, setExpanded] = useState(false);
@@ -158,16 +158,20 @@ function PriceList({ items }) {
         justify="space-between"
         align="center"
         w="100%"
-        mb="lg"
+        mb={title?.trim() ? "md" : "sm"}
         wrap="nowrap"
       >
-        <Text
-          size="md"
-          fw="600"
-          style={{ color: 'rgb(9, 54, 114)' }}
-        >
-          آخرین قیمت‌ها
-        </Text>
+        {title?.trim() ? (
+          <Text
+            size="md"
+            fw="600"
+            style={{ color: 'rgb(9, 54, 114)' }}
+          >
+            {title}
+          </Text>
+        ) : (
+          <Box />
+        )}
 
         {/* نمایش همه button */}
         <Box

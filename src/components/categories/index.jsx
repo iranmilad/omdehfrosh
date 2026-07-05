@@ -129,22 +129,26 @@ function Categories({ items, title, title_align }) {
 
   return (
     <EditorContainer>
+      <Box pos="relative" px={{ base: "xs", md: 0 }} style={{ overflow: "hidden" }}>
       {/* Header with title and view all button */}
       <Flex
         justify="space-between"
         align="center"
         w="100%"
-        px={{ base: "xs", md: 0 }}
         py={0}
-        mb={8}
+        mb={title?.trim() ? 8 : 0}
       >
-        <Text 
-          size="md" 
-          fw="600"
-          style={{ color: 'rgb(9, 54, 114)' }}
-        >
-          دسته‌بندی‌ها
-        </Text>
+        {title?.trim() ? (
+          <Text 
+            size="md" 
+            fw="600"
+            style={{ color: 'rgb(9, 54, 114)' }}
+          >
+            {title}
+          </Text>
+        ) : (
+          <Box />
+        )}
         
         {/* View All Button */}
         <Box
@@ -182,7 +186,6 @@ function Categories({ items, title, title_align }) {
         </Box>
       </Flex>
       
-      <Box pos="relative" style={{ overflow: "hidden" }}>
         <Swiper
           ref={sliderRef}
           modules={[FreeMode, Navigation]}

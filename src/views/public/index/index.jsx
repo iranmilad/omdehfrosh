@@ -14,7 +14,7 @@ import PriceList from "../../../components/pricelist";
 import { useApiQuery } from "../../../Libs/reactQuery";
 
 function SectionTitle({ title }) {
-  if (!title) return null;
+  if (!title?.trim()) return null;
   return (
     <Text
       size="md"
@@ -99,8 +99,8 @@ function Home() {
   const renderProductLoopSection = (section, index) => {
     if (!section.data || section.data.length === 0) return null;
     return (
-      <SectionBox key={`productloop-${section.title}-${index}`}>
-        <ProductCarousel title={section.title} items={section.data} style={{ marginTop: "30px" }} />
+      <SectionBox key={`productloop-${section.title}-${index}`} title={section.title}>
+        <ProductCarousel items={section.data} />
       </SectionBox>
     );
   };
@@ -154,23 +154,33 @@ function Home() {
 
               case "prices":
                 return (
-                  <SectionBox key={sectionKey} title={section.title}>
-                    <PriceList items={section.data} />
-                  </SectionBox>
+                  <Box
+                    key={sectionKey}
+                    style={{ backgroundColor: "white", padding: "16px", borderRadius: "8px" }}
+                  >
+                    <PriceList items={section.data} title={section.title} />
+                  </Box>
                 );
 
               case "trendProducts":
                 return (
-                  <SectionBox key={sectionKey}>
-                    <ProductHighlightCard items={section.data} title={section.title} />
+                  <SectionBox key={sectionKey} title={section.title}>
+                    <ProductHighlightCard items={section.data} />
                   </SectionBox>
                 );
 
               case "brands":
                 return (
-                  <SectionBox key={sectionKey}>
-                    <BrandSlider items={section?.data} />
-                  </SectionBox>
+                  <Box
+                    key={sectionKey}
+                    style={{
+                      backgroundColor: "white",
+                      padding: "16px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <BrandSlider items={section?.data} title={section.title} />
+                  </Box>
                 );
 
               case "productloop":

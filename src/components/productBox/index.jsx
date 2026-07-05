@@ -344,10 +344,7 @@ function ProductBox({
           >
             {title || 'عنوان محصول'}
           </Text>
-
-
-
-            
+ 
             {renderAttributes()}
           </Box>
           

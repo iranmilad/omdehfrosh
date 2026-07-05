@@ -183,7 +183,6 @@ const mapHomePageSection = async (section, userData) => {
         ...base,
         type: "brands",
         data: {
-          title: section.title || section.data?.title || "برندها",
           children: section.data?.children || [],
         },
       };
@@ -313,7 +312,7 @@ export const buildLegacyHomePage = async (userData) => {
     if (group.products?.length > 0) {
       data.push({
         type: "trendProducts",
-        title: group.title || `محصولات پرفروش ${index + 1}`,
+        title: group.title || "",
         data: group.products,
       });
     }
@@ -325,8 +324,8 @@ export const buildLegacyHomePage = async (userData) => {
     if (cleanedChildren.length > 0) {
       data.push({
         type: "brands",
-        title: rest.title || brandDoc.title || `برندها ${index + 1}`,
-        data: { ...rest, title: rest.title || brandDoc.title, children: cleanedChildren },
+        title: rest.title || brandDoc.title || "",
+        data: { children: cleanedChildren },
       });
     }
   });
@@ -336,7 +335,7 @@ export const buildLegacyHomePage = async (userData) => {
     if (products.length > 0) {
       data.push({
         type: "productloop",
-        title: loop.title || "محصولات منتخب",
+        title: loop.title || "",
         data: enrichProductsWithInventory(products),
       });
     }
