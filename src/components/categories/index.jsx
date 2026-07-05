@@ -129,63 +129,68 @@ function Categories({ items, title, title_align }) {
 
   return (
     <EditorContainer>
-      <Box pos="relative" px={{ base: "xs", md: 0 }} style={{ overflow: "hidden" }}>
-      {/* Header with title and view all button */}
+      {/* Header — outside overflow:hidden so link/arrow aren't clipped */}
       <Flex
-        justify="space-between"
         align="center"
         w="100%"
         py={0}
         mb={title?.trim() ? 8 : 0}
+        gap="xs"
+        wrap="nowrap"
+        className="categories-header"
       >
-        {title?.trim() ? (
+        {title?.trim() && (
           <Text 
             size="md" 
             fw="600"
-            style={{ color: 'rgb(9, 54, 114)' }}
+            style={{
+              color: 'rgb(9, 54, 114)',
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
           >
             {title}
           </Text>
-        ) : (
-          <Box />
         )}
         
-        {/* View All Button */}
         <Box
           component={NavLink}
           to="/fastorder/category"
+          ms="auto"
+          className="categories-view-all"
           style={{
             textDecoration: 'none',
+            flexShrink: 0,
           }}
         >
           <Flex
             align="center"
-            gap={4}
-            px="xs"
+            gap={2}
             py={2}
             h={28}
+            wrap="nowrap"
             style={{
               borderRadius: "6px",
               cursor: "pointer",
               transition: "background-color 0.2s ease",
               backgroundColor: "transparent",
               color: "inherit",
+              whiteSpace: "nowrap",
             }}
             className="hover:bg-gray-100"
           >
-            <Text size="sm" fw="500">
+            <Text size="sm" fw="500" style={{ whiteSpace: "nowrap" }}>
               مشاهده همه
             </Text>
-            <svg 
-              style={{ width: '16px', height: '16px', fill: 'currentColor' }}
-              viewBox="0 0 24 24"
-            >
-              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-            </svg>
+            <IconChevronLeft size={16} stroke={2} style={{ flexShrink: 0 }} />
           </Flex>
         </Box>
       </Flex>
-      
+
+      <Box pos="relative" style={{ overflow: "hidden" }}>
         <Swiper
           ref={sliderRef}
           modules={[FreeMode, Navigation]}

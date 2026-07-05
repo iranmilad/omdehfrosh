@@ -158,7 +158,7 @@ function ProductCarousel(props) {
                     </Group>
                 )}
             </Group>
-            )}
+            )}image.pngimage.pngno
             <Swiper
                 className="swiper-products-related"
                 spaceBetween={6}

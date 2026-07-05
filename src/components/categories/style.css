@@ -24,3 +24,18 @@
 .categories-carousel-next {
   left: 4px;
 }
+
+@media only screen and (max-width: 576px) {
+  .categories-header {
+    margin-left: -6px;
+    margin-right: 0;
+  }
+
+  .categories-view-all {
+    margin-left: 0;
+  }
+
+  .categories-section {
+    padding-left: 8px !important;
+  }
+}

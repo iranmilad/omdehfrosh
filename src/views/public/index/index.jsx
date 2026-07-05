@@ -124,6 +124,7 @@ function Home() {
                 return (
                   <Box
                     key={sectionKey}
+                    className="categories-section"
                     style={{
                       backgroundColor: "white",
                       padding: "12px 14px",
