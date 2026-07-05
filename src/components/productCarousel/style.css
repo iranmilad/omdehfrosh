@@ -1,14 +1,24 @@
 .swiper-products-related .swiper-wrapper {
-    padding-bottom: 20px;
+    padding-bottom: 12px;
     align-items: stretch;
 }
 
 @media only screen and (min-width: 577px) {
     .swiper-products-related .swiper-slide.product-carousel-slide {
-        width: 250px !important;
+        width: 280px !important;
+        min-width: 280px !important;
+        max-width: 280px !important;
         flex-shrink: 0 !important;
         flex-grow: 0 !important;
         display: flex !important;
+        box-sizing: border-box;
+    }
+
+    .product-carousel-slide > .mantine-Paper-root {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
     }
 
     .product-carousel-slide .product-box-dense {
@@ -17,17 +27,60 @@
         display: flex;
         flex-direction: column;
     }
+
+    /* Desktop: compact cards (not dense) — larger readable layout */
+    .product-carousel-slide:not(:has(.product-box-dense)) .mantine-Paper-root {
+        padding-inline: 8px !important;
+        padding-top: 8px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .product-carousel-slide:not(:has(.product-box-dense)) .mantine-Image-root,
+    .product-carousel-slide:not(:has(.product-box-dense)) .mantine-Image-image,
+    .product-carousel-slide:not(:has(.product-box-dense)) > div > a .mantine-Box-root {
+        height: 140px !important;
+        min-height: 140px !important;
+        max-height: 140px !important;
+        width: 100% !important;
+    }
+
+    .product-carousel-slide:not(:has(.product-box-dense)) .product-box-title {
+        min-height: 36px !important;
+        max-height: none !important;
+        margin-block: 6px !important;
+    }
+
+    .product-carousel-slide:not(:has(.product-box-dense)) .product-box-title .mantine-Text-root {
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+    }
+
+    .product-carousel-slide:not(:has(.product-box-dense)) .product-box-attributes .mantine-Text-root {
+        font-size: 11px !important;
+    }
+
+    .product-carousel-slide:not(:has(.product-box-dense)) .price_text {
+        font-size: 13px !important;
+    }
 }
 
 @media only screen and (max-width: 576px) {
     .swiper-products-related .swiper-slide.product-carousel-slide {
-        width: calc((100% - 16px) / 2.5) !important;
-        max-width: calc((100% - 16px) / 2.5) !important;
+        width: calc((100% - 12px) / 2.5) !important;
+        min-width: calc((100% - 12px) / 2.5) !important;
+        max-width: calc((100% - 12px) / 2.5) !important;
         flex-shrink: 0 !important;
         flex-grow: 0 !important;
         display: flex !important;
         box-sizing: border-box;
         height: auto !important;
+    }
+
+    .product-carousel-slide > .mantine-Paper-root {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
     }
 
     .product-carousel-slide .product-box-dense {

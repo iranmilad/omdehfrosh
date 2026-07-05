@@ -154,7 +154,7 @@ function ProductCarousel(props) {
             </Group>
             <Swiper
                 className="swiper-products-related"
-                spaceBetween={8}
+                spaceBetween={6}
                 style={style}
                 ref={sliderRef}
                 modules={[Navigation]}
@@ -163,7 +163,7 @@ function ProductCarousel(props) {
                 breakpoints={{
                     577: {
                         slidesPerView: "auto",
-                        spaceBetween: 10,
+                        spaceBetween: 6,
                     },
                 }}
             >
@@ -176,7 +176,7 @@ function ProductCarousel(props) {
                 <ProductBox 
                 {...item}
                 compact
-                dense
+                dense={isMobile}
                 defaultSellerId={item.sellerId || item.seller?.id}
                 defaultCombinationId={item.combinationId || item.combinations?.[0]?.id}
                 attributes={item.attributes}

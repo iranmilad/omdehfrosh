@@ -12,6 +12,7 @@ import "swiper/css";
 import "./style.css";
 
 const CATEGORY_ICON_SIZE = 44;
+const CATEGORY_SLIDE_WIDTH = 62;
 
 function Categories({ items, title, title_align }) {
   const sliderRef = useRef(null);
@@ -77,7 +78,7 @@ function Categories({ items, title, title_align }) {
         />
         
         <IconCategory 
-          size={22} 
+          size={21} 
           color="rgba(255, 255, 255, 0.9)" 
           style={{ zIndex: 2 }} 
         />
@@ -133,9 +134,9 @@ function Categories({ items, title, title_align }) {
         justify="space-between"
         align="center"
         w="100%"
-        px={{ base: "md", md: 0 }}
-        py={{ base: "sm", md: 0 }}
-        mb="sm"
+        px={{ base: "xs", md: 0 }}
+        py={0}
+        mb={8}
       >
         <Text 
           size="md" 
@@ -155,10 +156,10 @@ function Categories({ items, title, title_align }) {
         >
           <Flex
             align="center"
-            gap="xs"
-            px="md"
-            py="xs"
-            h={36}
+            gap={4}
+            px="xs"
+            py={2}
+            h={28}
             style={{
               borderRadius: "6px",
               cursor: "pointer",
@@ -185,29 +186,23 @@ function Categories({ items, title, title_align }) {
         <Swiper
           ref={sliderRef}
           modules={[FreeMode, Navigation]}
-          spaceBetween={16}
-          slidesPerView={4}
+          spaceBetween={6}
+          slidesPerView="auto"
           freeMode={true}
           onSlideChange={handleSlideChange}
           onInit={handleSlideChange}
-          breakpoints={{
-            480: { slidesPerView: 6 },
-            768: { slidesPerView: 8 },
-            1024: { slidesPerView: 10 },
-            1280: { slidesPerView: 12 },
-          }}
           className="categories-swiper"
         >
           {items?.map((item, index) => (
-            <SwiperSlide key={index}>
+            <SwiperSlide key={index} style={{ width: CATEGORY_SLIDE_WIDTH }}>
               <Flex
                 direction="column"
                 align="center"
-                gap={2}
+                gap={0}
                 component={item.display ? NavLink : 'div'}
                 to={item.display ? `/fastorder/category/${item.url}` : undefined}
                 opacity={item.display ? 1 : 0.4}
-                py="xs"
+                py={4}
                 style={{
                   pointerEvents: item.display ? "auto" : "none",
                   textDecoration: 'none',
@@ -225,9 +220,11 @@ function Categories({ items, title, title_align }) {
                   ta="center"
                   c={item.display ? 'dimmed' : 'gray.5'}
                   style={{
-                    lineHeight: "1.3",
-                    maxWidth: "64px",
+                    lineHeight: "1.2",
+                    maxWidth: `${CATEGORY_SLIDE_WIDTH}px`,
                     wordBreak: "break-word",
+                    marginTop: 4,
+                    fontSize: 12,
                   }}
                 >
                   {item.title}

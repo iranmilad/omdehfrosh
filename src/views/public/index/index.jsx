@@ -122,9 +122,16 @@ function Home() {
 
               case "categories":
                 return (
-                  <SectionBox key={sectionKey}>
+                  <Box
+                    key={sectionKey}
+                    style={{
+                      backgroundColor: "white",
+                      padding: "12px 14px",
+                      borderRadius: "8px",
+                    }}
+                  >
                     <Categories items={section?.data} title={section.title} />
-                  </SectionBox>
+                  </Box>
                 );
 
               case "featured_promo":

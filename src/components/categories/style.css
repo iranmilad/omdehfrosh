@@ -1,9 +1,10 @@
 .categories-carousel-prev,
 .categories-carousel-next {
   position: absolute;
-  top: calc(var(--mantine-spacing-xs) + 6px);
-  width: 32px;
-  height: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
