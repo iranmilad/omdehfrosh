@@ -260,77 +260,57 @@ const handleInputBlur = (e, record, key, defaultValue = 0) => {
     
     switch (column.key) {
 
-case "image":
-  const hasValidImage = displayItem.images && 
-    displayItem.images.length > 0 && 
-    displayItem.images[0] && 
+case "image": {
+  const hasValidImage = displayItem.images &&
+    displayItem.images.length > 0 &&
+    displayItem.images[0] &&
     displayItem.images[0].trim() !== "" &&
     !imageErrors[record.psid];
 
+  if (!hasValidImage) {
+    if (isMobile) return null;
+    return (
+      <div style={{
+        width: 40,
+        height: 40,
+        backgroundColor: '#f8f9fa',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 4,
+        border: '1px solid #e9ecef',
+      }}>
+        <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
+      </div>
+    );
+  }
+
   return (
-    <div 
-      style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        width: '100%', 
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
         height: '100%',
-        position: 'relative'
+        position: 'relative',
       }}
     >
-            {hasValidImage ? (
-              <div style={{ position: 'relative' }}>
-                <Image 
-                  src={displayItem.images[0]} 
-                  width={40} 
-                  height={40}
-                  preview={false}
-                  fallback="data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='40' height='40' fill='%23f8f9fa'/%3E%3C/svg%3E"
-                  onError={() => {
-                    setImageErrors(prev => ({ ...prev, [record.psid]: true }));
-                  }}
-                  style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
-                />
-                {/* {!isPrinting && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    right: 0,
-                    transform: 'translateY(-50%)',
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    backgroundColor: isExpanded ? '#1890ff' : '#fff',
-                    border: '2px solid #1890ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 8,
-                    color: isExpanded ? '#fff' : '#1890ff',
-                    transition: 'all 0.3s ease',
-                  }}>
-                    {isExpanded ? <UpOutlined /> : <DownOutlined />}
-                  </div> */}
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <div style={{ 
-                  width: 40, 
-                  height: 40, 
-                  backgroundColor: '#f8f9fa', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  borderRadius: 4,
-                  border: '1px solid #e9ecef'
-                }}>
-                  <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
-                </div>
-                
-              </div>
-            )}
-          </div>
-        );
+      <div style={{ position: 'relative' }}>
+        <Image
+          src={displayItem.images[0]}
+          width={40}
+          height={40}
+          preview={false}
+          onError={() => {
+            setImageErrors(prev => ({ ...prev, [record.psid]: true }));
+          }}
+          style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
+        />
+      </div>
+    </div>
+  );
+}
 
 
 

@@ -168,51 +168,57 @@ const FastTableCategory = ({
     const displayItem = record;
     
     switch (column.key) {
-      case "image":
-        const hasValidImage = displayItem.images && 
-          displayItem.images.length > 0 && 
-          displayItem.images[0] && 
+      case "image": {
+        const hasValidImage = displayItem.images &&
+          displayItem.images.length > 0 &&
+          displayItem.images[0] &&
           displayItem.images[0].trim() !== "" &&
           !imageErrors[record.psid];
 
+        if (!hasValidImage) {
+          if (isMobile) return null;
+          return (
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                backgroundColor: '#f8f9fa',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 4,
+                border: '1px solid #e9ecef',
+              }}
+            >
+              <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
+            </div>
+          );
+        }
+
         return (
-          <div 
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              width: '100%', 
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
               height: '100%',
             }}
           >
-            {hasValidImage ? (
-              <img
-                src={displayItem.images[0]}
-                alt=""
-                width={40}
-                height={40}
-                loading="lazy"
-                onError={() => {
-                  setImageErrors(prev => ({ ...prev, [record.psid]: true }));
-                }}
-                style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
-              />
-            ) : (
-              <div style={{ 
-                width: 40, 
-                height: 40, 
-                backgroundColor: '#f8f9fa', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                borderRadius: 4,
-                border: '1px solid #e9ecef'
-              }}>
-                <ShoppingOutlined style={{ fontSize: 18, color: '#868e96' }} />
-              </div>
-            )}
+            <img
+              src={displayItem.images[0]}
+              alt=""
+              width={40}
+              height={40}
+              loading="lazy"
+              onError={() => {
+                setImageErrors(prev => ({ ...prev, [record.psid]: true }));
+              }}
+              style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
+            />
           </div>
         );
+      }
 
 case "shortName":
   const hasChildren = record.children && record.children.length > 0;
