@@ -31,7 +31,11 @@ function SectionBox({ title, children, fullBleed = false }) {
   if (fullBleed) {
     return (
       <Box>
-        <SectionTitle title={title} />
+        {title?.trim() && (
+          <Box px={14}>
+            <SectionTitle title={title} />
+          </Box>
+        )}
         {children}
       </Box>
     );

@@ -133,17 +133,21 @@ const ProfileIconFilled = ({ size = 24, color = "currentColor", ...props }) => (
   </svg>
 );
 
-function BottomNavigation({ category, search, basket, user, isCategoryOpen }) {
+function BottomNavigation({ category, search, basket, user, isCategoryOpen, cartItemCount }) {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get cart items from Redux
   const cartItems = useSelector((state) => state.cart.items);
   const { isVerified } = useSelector((state) => state.auth);
   
-  // Calculate cart count
   const shouldShowCart = user && isVerified;
-  const cartCount = shouldShowCart ? (cartItems?.length || 0) : 0;
+  const reduxItemTotal = (cartItems || []).reduce(
+    (sum, item) => sum + (Number(item.count) || 0),
+    0
+  );
+  const cartCount = shouldShowCart
+    ? (typeof cartItemCount === 'number' ? cartItemCount : reduxItemTotal)
+    : 0;
 
   // Check active routes
   const isHomeActive = location.pathname === '/';

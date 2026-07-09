@@ -39,7 +39,7 @@ const PaymentSummary = ({ orderfinalreceipt }) => {
           width: '100%',
         }}
       >
-        <Box style={{ position: "relative", width: "100%" }}>
+        <div style={{ position: "relative", width: "100%" }}>
           <IconInfoCircleFilled
             size={18}
             color="#2196f3"
@@ -70,7 +70,7 @@ const PaymentSummary = ({ orderfinalreceipt }) => {
               هر فاکتور جداگانه پرداخت و ارسال می گردد.
             </Text>
           </div>
-        </Box>
+        </div>
       </Flex>
 
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { 
-    getCart, 
+    getCart,
+    getCartItemCount,
     updateCartSubscription, 
     updateCart, 
     removeFromCart, 
@@ -14,7 +15,8 @@ import {
 
 const router = Router();
 
-router.get("/", getCart);            
+router.get("/", getCart);
+router.get("/number", getCartItemCount);            
 
 router.post("/update", updateCart);   
 

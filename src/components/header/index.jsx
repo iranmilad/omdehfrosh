@@ -130,7 +130,6 @@ const Header = () => {
     },
   });
   const notificationNumber = notificationNumberData?.data ?? notificationNumberData;
-  const cartItems = useSelector((state) => state.cart.items);
 
   // Bootstrap data via React Query (static strategy with persistence)
   // Keep same shape as old Redux: { message, data: {...} }
@@ -179,6 +178,21 @@ const Header = () => {
       return failureCount < 2;
     },
   });
+
+  const { data: cartNumberData } = useSessionQuery({
+    endpoint: '/cart/number',
+    queryKey: ['cart', 'number'],
+    enabled: !!token && !!user && !!isVerified,
+    meta: { showErrorNotification: false },
+    queryOptions: { staleTime: 2 * 60 * 1000, refetchOnMount: false },
+    retry: (failureCount, error) => {
+      const errorMessage = typeof error === 'string' ? error : error?.message || String(error);
+      if (errorMessage.includes('401')) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const cartItemCount = cartNumberData?.totalItemCount ?? cartApiData?.totalItemCount ?? 0;
 
   const hideMiniCart = useMemo(() => (
     ["/payment-statuscheck", "/payment-method", "/payment-info", "/payment-checkstatus"].includes(location.pathname)
@@ -810,7 +824,7 @@ const Header = () => {
                   </Button>
                 )}
                 
-                {!hideMiniCart && <Box><MiniCart externalOpened={opened} externalOpen={open} externalClose={close} cartItems={cartItems} /></Box>}
+                {!hideMiniCart && <Box><MiniCart externalOpened={opened} externalOpen={open} externalClose={close} cartItemCount={cartItemCount} /></Box>}
               </Flex>
             </Flex>
 
@@ -849,7 +863,7 @@ const Header = () => {
           pointerEvents: showBottomNav ? 'auto' : 'none'
         }}
       >
-        <BottomNavigation category={mobileMenuDrawer[1].toggle} basket={open} search={mobileSearchDrawer[1].toggle} user={user} isCategoryOpen={mobileMenuDrawer[0]} />
+        <BottomNavigation category={mobileMenuDrawer[1].toggle} basket={open} search={mobileSearchDrawer[1].toggle} user={user} isCategoryOpen={mobileMenuDrawer[0]} cartItemCount={cartItemCount} />
       </Box>
       
       <MobileSearch 

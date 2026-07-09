@@ -594,7 +594,7 @@ const discountPercentage = useMemo(() => {
   );
 };
 
-const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
+const MiniCart = ({ externalOpened, externalOpen, externalClose, cartItemCount }) => {
   const [internalOpened, internalHandlers] = useDisclosure(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -633,7 +633,10 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose }) => {
   }, [items]);
 
   const shouldShowCart = user && isVerified;
-  const cartCount = shouldShowCart ? items.length : 0;
+  const reduxItemTotal = items.reduce((sum, item) => sum + (Number(item.count) || 0), 0);
+  const cartCount = shouldShowCart
+    ? (typeof cartItemCount === 'number' ? cartItemCount : reduxItemTotal)
+    : 0;
 
   // When drawer opens with token: validate session (GET /cart). If 401, clear auth and show 401 modal so we don't show stale items.
   useEffect(() => {

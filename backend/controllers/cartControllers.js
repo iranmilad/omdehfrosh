@@ -381,7 +381,7 @@ export const getCart = async (req, res) => {
     });
 
     if (!basketOrders || basketOrders.length === 0) {
-      return res.json({ message: "Cart is empty", cart: [], total: 0 });
+      return res.json({ message: "Cart is empty", cart: [], total: 0, totalItemCount: 0 });
     }
 
     const cartItems = [];
@@ -456,10 +456,16 @@ export const getCart = async (req, res) => {
       }
     }
 
+    const totalItemCount = cartItems.reduce(
+      (sum, item) => sum + (Number(item.count) || 0),
+      0
+    );
+
     return res.json({
       message: "ok",
       cart: cartItems,
       total: totalAmount,
+      totalItemCount,
       orderIds: orderIds, // NEW: Return all order IDs
       orders: basketOrders.map(order => ({ // NEW: Return order details
         id: order.id,
@@ -473,7 +479,52 @@ export const getCart = async (req, res) => {
     return res.status(500).json({ 
       message: "Internal server error", 
       cart: [], 
-      total: 0 
+      total: 0,
+      totalItemCount: 0,
+    });
+  }
+};
+
+// Lightweight endpoint for header badge — sum of all item quantities in basket
+export const getCartItemCount = async (req, res) => {
+  try {
+    const user = getUserFromToken(req);
+
+    if (!user || !user.user_id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+
+    const basketOrders = await OrderJ2B.find({
+      user_id: user.user_id.toString(),
+      status: "basket",
+    });
+
+    if (!basketOrders || basketOrders.length === 0) {
+      return res.status(200).json({
+        success: true,
+        totalItemCount: 0,
+        message: "Cart item count retrieved successfully",
+      });
+    }
+
+    const orderIds = basketOrders.map((order) => order.id);
+    const orderItems = await OrderItemJ2B.find({ order_id: { $in: orderIds } });
+    const totalItemCount = orderItems.reduce(
+      (sum, item) => sum + (Number(item.quantity) || 0),
+      0
+    );
+
+    return res.status(200).json({
+      success: true,
+      totalItemCount,
+      message: "Cart item count retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching cart item count:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      totalItemCount: 0,
     });
   }
 };
