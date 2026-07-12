@@ -15,6 +15,7 @@ dist-ssr
 
 # Editor directories and files
 .vscode/*
+*.code-workspace
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -27,7 +28,7 @@ dist-ssr
 # ignore .env files
 .env
 .env.*.local
-
+*.env
 
 3.2.1/
 docs/
