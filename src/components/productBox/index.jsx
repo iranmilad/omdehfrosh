@@ -342,6 +342,7 @@ function ProductBox({
               cursor: productSlug ? 'pointer' : 'default',
             }}
           >
+          
             {title || 'عنوان محصول'}
           </Text>
             {renderAttributes()}
