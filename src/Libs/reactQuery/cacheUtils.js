@@ -478,7 +478,7 @@ export const INVALIDATION_PATTERNS = {
   AFTER_PAYMENT: [
     'userInitialData',      // /auth/user-initial-data
     'userInfo',             // /users/getuserinfo
-    'cart',                 // /cart, /cart/number
+    'cart',                 // /cart (includes totalItemCount for badge)
     'finalReceipt',         // /cart/getfinalreceipt
     'ordersByUserId',       // /orders/allordersbyuserid
     'userMyAccount',        // /user-myaccounts (includes favorites)

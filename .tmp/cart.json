@@ -1,0 +1,66 @@
+{
+  "message": "ok",
+  "cart": [
+    {
+      "price": {
+        "regularPrice": 52000000,
+        "discountPercent": 5,
+        "discountedPrice": 49400000
+      },
+      "seller": {
+        "id": "supplier-101",
+        "label": "فروشگاه موبایل آریا"
+      },
+      "productId": "iphone-14-128",
+      "combinationsID": "combo-abc-001",
+      "seller_id": "supplier-101",
+      "name": "iPhone 14 128 CH NOT ACTIVE",
+      "image": "https://example.com/images/iphone-14.jpg",
+      "count": 2,
+      "max": 10,
+      "min": 1,
+      "stock": 25,
+      "attributes": [
+        {
+          "color": "مشکی",
+          "material": "فلز"
+        }
+      ],
+      "orderId": "order-basket-001"
+    },
+    {
+      "price": {
+        "regularPrice": 850000,
+        "discountPercent": 0,
+        "discountedPrice": 850000
+      },
+      "seller": {
+        "id": "supplier-101",
+        "label": "فروشگاه موبایل آریا"
+      },
+      "productId": "case-iphone-14",
+      "combinationsID": "combo-def-002",
+      "seller_id": "supplier-101",
+      "name": "قاب سیلیکونی iPhone 14",
+      "image": null,
+      "count": 3,
+      "max": 20,
+      "min": 1,
+      "stock": 100,
+      "attributes": [],
+      "orderId": "order-basket-001"
+    }
+  ],
+  "total": 101050000,
+  "totalItemCount": 5,
+  "orderIds": [
+    "order-basket-001"
+  ],
+  "orders": [
+    {
+      "id": "order-basket-001",
+      "supplier_id": "supplier-101",
+      "total_price": 101050000
+    }
+  ]
+}

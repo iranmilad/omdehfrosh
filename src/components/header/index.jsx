@@ -179,20 +179,7 @@ const Header = () => {
     },
   });
 
-  const { data: cartNumberData } = useSessionQuery({
-    endpoint: '/cart/number',
-    queryKey: ['cart', 'number'],
-    enabled: !!token && !!user && !!isVerified,
-    meta: { showErrorNotification: false },
-    queryOptions: { staleTime: 2 * 60 * 1000, refetchOnMount: false },
-    retry: (failureCount, error) => {
-      const errorMessage = typeof error === 'string' ? error : error?.message || String(error);
-      if (errorMessage.includes('401')) return false;
-      return failureCount < 2;
-    },
-  });
-
-  const cartItemCount = cartNumberData?.totalItemCount ?? cartApiData?.totalItemCount ?? 0;
+  const cartItemCount = cartApiData?.totalItemCount ?? 0;
 
   const hideMiniCart = useMemo(() => (
     ["/payment-statuscheck", "/payment-method", "/payment-info", "/payment-checkstatus"].includes(location.pathname)

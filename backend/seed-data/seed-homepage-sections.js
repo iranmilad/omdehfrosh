@@ -38,7 +38,7 @@ const makeBanner = (id, label) => ({
 
 const makeBrand = (id, label) => ({
   image: BRAND_IMAGE,
-  url: `/brand/${id}`,
+  url: `/brands/${id}`,
   label,
 });
 

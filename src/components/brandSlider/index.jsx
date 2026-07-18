@@ -198,7 +198,7 @@ function BrandSlider({ items, title }) {
             >
               {item.url ? (
                 <NavLink 
-                  to={`/brands/${item.url}`} 
+                  to={item.url}
                   style={{ 
                     display: "flex", 
                     alignItems: "center", 
