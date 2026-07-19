@@ -1,39 +1,85 @@
+.product-highlight-slider-wrap {
+  overflow: hidden;
+  width: 100%;
+}
+
+.product-highlight-swiper {
+  width: 100%;
+}
+
+.product-highlight-swiper .swiper-wrapper {
+  align-items: stretch;
+}
+
+.product-highlight-slide {
+  flex-shrink: 0 !important;
+  box-sizing: border-box;
+}
+
+.product-highlight-slide > * {
+  width: 100%;
+  height: 100%;
+}
+
+.product-highlight-card-carousel-prev,
+.product-highlight-card-carousel-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid #e9ecef;
+  background-color: white;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+.product-highlight-card-carousel-prev[data-disabled],
+.product-highlight-card-carousel-next[data-disabled] {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+.product-highlight-card-carousel-prev {
+  right: 4px;
+}
+
+.product-highlight-card-carousel-next {
+  left: 4px;
+}
+
+@media only screen and (min-width: 577px) {
+  .product-highlight-card-carousel-prev,
+  .product-highlight-card-carousel-next {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+.product-highlight-card-slide-image {
+  contain-intrinsic-size: 3000px 1500px;
+}
+
+/* legacy class names kept for compatibility */
 .trend-slider-prev {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  right: 20px;
+  right: 4px;
   z-index: 50;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .trend-slider-next {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  left: 20px;
+  left: 4px;
   z-index: 50;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.product-highlight-card-carousel-prev{
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 20px;
-    z-index: 50;
-}
-
-.product-highlight-card-carousel-next{
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    left: 20px;
-    z-index: 50;
-}
-
-.product-highlight-card-slide-image{
-    contain-intrinsic-size: 3000px 1500px;
 }

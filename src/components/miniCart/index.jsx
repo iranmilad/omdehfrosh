@@ -642,6 +642,29 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose, cartItemCount }
   useEffect(() => {
     if (!opened) return;
 
+    console.log("[MiniCart] opened — Redux basket data:", {
+      cartCount,
+      itemCount: items.length,
+      totalQuantity: reduxItemTotal,
+      calculatedTotal,
+      items: items.map((item) => ({
+        name: item.name ?? item.title,
+        image: item.image ?? item.images?.[0] ?? null,
+        productId: item.productId ?? item.id,
+        combinationsID: item.combinationsID,
+        count: item.count,
+        price: item.price,
+        seller: item.seller,
+        attributes: item.attributes,
+        stock: item.stock,
+        min: item.min,
+        max: item.max,
+        orderId: item.orderId,
+        raw: item,
+      })),
+      fullCartState: cartState,
+    });
+
     const token = localStorage.getItem("user");
     if (!token) return;
 
@@ -661,6 +684,30 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose, cartItemCount }
           return;
         }
         if (res.ok) {
+          const cartApiData = await res.json();
+          console.log("[MiniCart] opened — GET /cart response:", {
+            message: cartApiData?.message,
+            total: cartApiData?.total,
+            totalItemCount: cartApiData?.totalItemCount,
+            orderIds: cartApiData?.orderIds,
+            orders: cartApiData?.orders,
+            items: (cartApiData?.cart || []).map((item) => ({
+              name: item.name ?? item.title,
+              image: item.image ?? item.images?.[0] ?? null,
+              productId: item.productId ?? item.id,
+              combinationsID: item.combinationsID,
+              count: item.count,
+              price: item.price,
+              seller: item.seller,
+              attributes: item.attributes,
+              stock: item.stock,
+              min: item.min,
+              max: item.max,
+              orderId: item.orderId,
+              raw: item,
+            })),
+            fullResponse: cartApiData,
+          });
           queryClient.invalidateQueries({ queryKey: ["userInitialData"] });
           queryClient.invalidateQueries({ queryKey: ["cart"] });
         }
@@ -671,6 +718,7 @@ const MiniCart = ({ externalOpened, externalOpen, externalClose, cartItemCount }
     };
     validateCart();
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- log snapshot only when drawer opens
   }, [opened, queryClient, clearAuthAndShow401Modal]);
 
   const handleNavigateToBasket = () => {

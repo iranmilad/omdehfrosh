@@ -1,4 +1,4 @@
-import { ActionIcon, Grid, GridCol, Image, Box, Flex, Text, Paper, Title, Anchor, Group } from "@mantine/core";
+import { Image, Box, Text, Paper, Title, Anchor, Group } from "@mantine/core";
 import React, { useState, useRef } from "react";
 import { NavLink } from "react-router";
 import { EditorContainer } from "../editor/container";
@@ -11,105 +11,135 @@ import { useMediaQuery } from "@mantine/hooks";
 import "swiper/css";
 import "./style.css";
 
-function TrendProductsSlider({ items = [] }) {
+const DESKTOP_SLIDE_WIDTH = 200;
+const MOBILE_SLIDE_WIDTH = 150;
+const SPACE_BETWEEN = 4;
+
+function ProductRowSlider({ children, slideWidth }) {
   const sliderRef = useRef(null);
+  const isMobile = useMediaQuery("(max-width: 576px)");
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
+  const [isScrollable, setIsScrollable] = useState(false);
 
-  const handleSlideChange = (swiper) => {
+  const updateNavigation = (swiper) => {
+    if (!swiper) return;
+    const scrollable =
+      swiper.slides.length > 1 &&
+      (!swiper.isLocked || swiper.snapGrid.length > 1);
+    setIsScrollable(scrollable);
     setIsBeginning(swiper.isBeginning);
     setIsEnd(swiper.isEnd);
   };
 
-  if (!items || items.length === 0) return null;
+  const slides = React.Children.toArray(children);
+  if (slides.length === 0) return null;
+
+  const showArrows = slides.length > 1 && isScrollable;
 
   return (
-    <Box>
-      {title?.trim() && (
-        <Text
-          size="md"
-          fw="600"
-          style={{ color: "rgb(9, 54, 114)", marginBottom: "var(--mantine-spacing-md)" }}
+    <Box pos="relative" className="product-highlight-slider-wrap">
+      {showArrows && (
+        <Box
+          component="button"
+          type="button"
+          onClick={() => sliderRef.current?.swiper?.slidePrev()}
+          className="product-highlight-card-carousel-prev"
+          aria-label="اسلاید قبلی"
+          disabled={isBeginning}
+          data-disabled={isBeginning || undefined}
         >
-          {title}
-        </Text>
+          <IconChevronRight size={16} />
+        </Box>
       )}
-      <Box pos="relative">
-        {!isBeginning && (
-          <ActionIcon
-            variant="white"
-            radius={999}
-            size="lg"
-            onClick={() => sliderRef.current?.swiper?.slidePrev()}
-            className="trend-slider-prev"
-            styles={{ root: { transform: "none" } }}
-          >
-            <IconChevronRight size={18} />
-          </ActionIcon>
-        )}
-        {!isEnd && (
-          <ActionIcon
-            variant="white"
-            radius={999}
-            size="lg"
-            onClick={() => sliderRef.current?.swiper?.slideNext()}
-            className="trend-slider-next"
-            styles={{ root: { transform: "none" } }}
-          >
-            <IconChevronLeft size={18} />
-          </ActionIcon>
-        )}
-        <Swiper
+      {showArrows && (
+        <Box
+          component="button"
+          type="button"
+          onClick={() => sliderRef.current?.swiper?.slideNext()}
+          className="product-highlight-card-carousel-next"
+          aria-label="اسلاید بعدی"
+          disabled={isEnd}
+          data-disabled={isEnd || undefined}
+        >
+          <IconChevronLeft size={16} />
+        </Box>
+      )}
+      <Swiper
         ref={sliderRef}
+        className="product-highlight-swiper"
         slidesPerView="auto"
-        spaceBetween={10}
+        spaceBetween={SPACE_BETWEEN}
         loop={false}
         modules={[FreeMode, Navigation]}
-        freeMode={true}
-        onSlideChange={handleSlideChange}
-        onInit={handleSlideChange}
+        freeMode={!isMobile}
+        watchOverflow
+        observer
+        observeParents
+        onSlideChange={updateNavigation}
+        onInit={(swiper) => {
+          updateNavigation(swiper);
+          requestAnimationFrame(() => updateNavigation(swiper));
+        }}
+        onResize={updateNavigation}
       >
-        {items.map((item, index) => (
-          <SwiperSlide key={item.url || index} style={{ width: "250px", height: "auto" }}>
-            <ProductBox
-              id={item.url || item.id}
-              title={item.title}
-              image={item.image}
-              slug={item.url}
-              regularPrice={item.regularPrice}
-              discountedPrice={item.discountedPrice}
-              discountPercent={item.discountPercent}
-              compact
-              hideCounter
-            />
+        {slides.map((slide, index) => (
+          <SwiperSlide
+            key={slide.key || index}
+            className="product-highlight-slide"
+            style={{
+              width: slideWidth,
+              height: "auto",
+              display: "flex",
+            }}
+          >
+            {slide}
           </SwiperSlide>
         ))}
       </Swiper>
-      </Box>
     </Box>
   );
 }
 
+function TrendProductsSlider({ items = [] }) {
+  const isMobile = useMediaQuery("(max-width: 576px)");
+  const slideWidth = isMobile ? MOBILE_SLIDE_WIDTH : DESKTOP_SLIDE_WIDTH;
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <ProductRowSlider slideWidth={slideWidth}>
+      {items.map((item, index) => (
+        <ProductBox
+          key={item.url || item.id || index}
+          id={item.url || item.id}
+          title={item.title}
+          image={item.image}
+          slug={item.url}
+          regularPrice={item.regularPrice}
+          discountedPrice={item.discountedPrice}
+          discountPercent={item.discountPercent}
+          compact
+          dense={isMobile}
+          hideCounter
+        />
+      ))}
+    </ProductRowSlider>
+  );
+}
+
 function ProductHighlightCard({ items = [], title }) {
-  
-  // Track which images have failed to load
   const [failedImages, setFailedImages] = useState(new Set());
-  
-  // Media queries for responsive sizing
-  const isMobile = useMediaQuery('(max-width: 576px)');
-  const isSmall = useMediaQuery('(min-width: 577px) and (max-width: 768px)');
+  const isMobile = useMediaQuery("(max-width: 576px)");
+  const isSmall = useMediaQuery("(min-width: 577px) and (max-width: 768px)");
 
-  // Check if items is the category structure from your JSON
   const isCategories = items.length > 0 && items[0].title && items[0].children;
-
-  // Check if this is trend products layout: flat array of products
   const isTrendProducts =
     items.length > 0 &&
     !isCategories &&
     !Array.isArray(items[0]) &&
     !items[0]?.children;
 
-  // Early return if no items
   if (!items || items.length === 0) {
     return (
       <EditorContainer>
@@ -122,74 +152,51 @@ function ProductHighlightCard({ items = [], title }) {
 
   const handleImageError = (categoryIndex, itemIndex) => {
     const key = `${categoryIndex}-${itemIndex}`;
-    setFailedImages(prev => new Set([...prev, key]));
+    setFailedImages((prev) => new Set([...prev, key]));
   };
 
-  // Responsive dimensions
-  const CARD_WIDTH = isMobile ? 240 : isSmall ? 230 : 190;
-  const IMAGE_HEIGHT = isMobile ? 240 : isSmall ? 230 : 190;
+  const CARD_WIDTH = isMobile ? MOBILE_SLIDE_WIDTH : isSmall ? 180 : DESKTOP_SLIDE_WIDTH;
+  const IMAGE_HEIGHT = isMobile ? 120 : isSmall ? 140 : 150;
 
-  const createProductPlaceholder = (title) => {
-    // Array of green-based gradient backgrounds matching ProductBox
+  const createProductPlaceholder = (itemTitle) => {
     const gradients = [
-      "linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)", // Classic Green
-      "linear-gradient(135deg, #66BB6A 0%, #388E3C 100%)", // Light Green
-      "linear-gradient(135deg, #43A047 0%, #1B5E20 100%)", // Medium Green
-      "linear-gradient(135deg, #81C784 0%, #4CAF50 100%)", // Soft Green
-      "linear-gradient(135deg, #A5D6A7 0%, #66BB6A 100%)", // Pastel Green
-      "linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%)", // Dark Green
-      "linear-gradient(135deg, #4CAF50 0%, #43A047 100%)", // Fresh Green
-      "linear-gradient(135deg, #8BC34A 0%, #689F38 100%)", // Lime Green
+      "linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)",
+      "linear-gradient(135deg, #66BB6A 0%, #388E3C 100%)",
+      "linear-gradient(135deg, #43A047 0%, #1B5E20 100%)",
+      "linear-gradient(135deg, #81C784 0%, #4CAF50 100%)",
+      "linear-gradient(135deg, #A5D6A7 0%, #66BB6A 100%)",
+      "linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%)",
+      "linear-gradient(135deg, #4CAF50 0%, #43A047 100%)",
+      "linear-gradient(135deg, #8BC34A 0%, #689F38 100%)",
     ];
-    
-    // Generate consistent gradient based on title hash
-    const titleHash = (title || '').toString().split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
+
+    const titleHash = (itemTitle || "").toString().split("").reduce((a, b) => {
+      a = (a << 5) - a + b.charCodeAt(0);
       return a & a;
     }, 0);
-    
+
     const selectedGradient = gradients[Math.abs(titleHash) % gradients.length];
-    
+
     return (
       <Box
         style={{
-          width: `${CARD_WIDTH}px`,
+          width: "100%",
           height: `${IMAGE_HEIGHT}px`,
-          minWidth: `${CARD_WIDTH}px`,
-          minHeight: `${IMAGE_HEIGHT}px`,
-          maxWidth: `${CARD_WIDTH}px`,
-          maxHeight: `${IMAGE_HEIGHT}px`,
           background: selectedGradient,
           borderRadius: "8px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          flexDirection: "column",
-          gap: "4px",
           position: "relative",
           overflow: "hidden",
           cursor: "pointer",
         }}
         className="hover:scale-105 transition-transform duration-300"
       >
-        {/* Subtle pattern overlay */}
-        <Box
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E")`,
-            opacity: 0.3
-          }}
-        />
-        
-        {/* Product icon */}
-        <IconPackage 
-          size={isMobile ? 56 : 48} 
-          color="rgba(255, 255, 255, 0.8)" 
-          style={{ zIndex: 2 }} 
+        <IconPackage
+          size={isMobile ? 40 : 48}
+          color="rgba(255, 255, 255, 0.8)"
+          style={{ zIndex: 2 }}
         />
       </Box>
     );
@@ -197,14 +204,14 @@ function ProductHighlightCard({ items = [], title }) {
 
   const renderProductImage = (item, categoryIndex, itemIndex) => {
     const key = `${categoryIndex}-${itemIndex}`;
-    const displayTitle = item.title || 'محصول';
-    
-    // Check if this image has failed to load or doesn't exist
-    const hasValidImage = item.image && 
-                         item.image !== null && 
-                         item.image !== "" && 
-                         item.image.trim() !== "" &&
-                         !failedImages.has(key);
+    const displayTitle = item.title || "محصول";
+
+    const hasValidImage =
+      item.image &&
+      item.image !== null &&
+      item.image !== "" &&
+      item.image.trim() !== "" &&
+      !failedImages.has(key);
 
     if (!hasValidImage) {
       return createProductPlaceholder(displayTitle);
@@ -229,24 +236,24 @@ function ProductHighlightCard({ items = [], title }) {
   };
 
   const renderProductCard = (item, categoryIndex, itemIndex) => {
-    const displayTitle = item.title || 'عنوان محصول';
-    
+    const displayTitle = item.title || "عنوان محصول";
+
     return (
       <Paper
         shadow="sm"
-        px="md"
-        pb="md"
-        pt="md"
+        px="sm"
+        pb="sm"
+        pt="sm"
         pos="relative"
-        style={{ 
+        w="100%"
+        style={{
           border: "1px solid rgb(1 1 1 / 15%)",
-          width: "100%",
-          maxWidth: `${CARD_WIDTH}px`,
-          margin: '0 auto',
+          height: "100%",
+          boxSizing: "border-box",
         }}
       >
         <Box
-          component={item.url ? NavLink : 'div'}
+          component={item.url ? NavLink : "div"}
           to={item.url ? `/product/${item.url}` : undefined}
           style={{
             width: "100%",
@@ -254,18 +261,18 @@ function ProductHighlightCard({ items = [], title }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            overflow: 'hidden',
-            borderRadius: '8px',
+            overflow: "hidden",
+            borderRadius: "8px",
           }}
         >
           {renderProductImage(item, categoryIndex, itemIndex)}
         </Box>
-        
-        <Box my="sm" w="100%" style={{ minHeight: 42 }}>
+
+        <Box my="xs" w="100%" style={{ minHeight: 36 }}>
           <Text
             fw="500"
-            size="14px"
-            component={item.url ? NavLink : 'div'}
+            size={isMobile ? "12px" : "13px"}
+            component={item.url ? NavLink : "div"}
             to={item.url ? `/product/${item.url}` : undefined}
             style={{
               display: "-webkit-box",
@@ -274,10 +281,10 @@ function ProductHighlightCard({ items = [], title }) {
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "normal",
-              lineHeight: "1.2",
-              color: item.url ? 'inherit' : 'var(--mantine-color-dimmed)',
-              textDecoration: 'none',
-              cursor: item.url ? 'pointer' : 'default',
+              lineHeight: "1.3",
+              color: item.url ? "inherit" : "var(--mantine-color-dimmed)",
+              textDecoration: "none",
+              cursor: item.url ? "pointer" : "default",
             }}
           >
             {displayTitle}
@@ -287,64 +294,48 @@ function ProductHighlightCard({ items = [], title }) {
     );
   };
 
-  // Handle trend products: slider with ProductBox (same style as BadgedSlider)
   if (isTrendProducts) {
     return <TrendProductsSlider items={items} />;
   }
 
-  // Handle both data structures: categories with children OR rows of items
   if (isCategories) {
-    // Handle category structure from your JSON
-    const validCategories = items.filter(category => 
-      category.children && category.children.length > 0
+    const validCategories = items.filter(
+      (category) => category.children && category.children.length > 0
     );
 
     return (
       <EditorContainer>
         <Box dir="rtl">
           {validCategories.map((category, categoryIndex) => (
-            <Box key={category.url || categoryIndex} mb="3xl">
-              <Group justify="space-between" align="center" mb="xl">
-                <Title order={2} size="1.5rem" fw={600} c="dark.8">
+            <Box key={category.url || categoryIndex} mb="xl">
+              <Group justify="space-between" align="center" mb="md">
+                <Title order={2} size="1.25rem" fw={600} c="dark.8">
                   {category.title}
                 </Title>
                 {category.url && (
-                  <Anchor 
+                  <Anchor
                     component={NavLink}
                     to={`/category/${category.url}`}
                     c="blue.6"
                     fw={500}
                     size="sm"
-                    style={{
-                      textDecoration: 'none',
-                      transition: 'color 0.2s ease',
-                    }}
-                    styles={{
-                      root: {
-                        '&:hover': {
-                          color: 'var(--mantine-color-blue-8)',
-                        }
-                      }
-                    }}
+                    style={{ textDecoration: "none" }}
                   >
                     <Group gap="xs" align="center">
                       <Text>مشاهده همه</Text>
-                      <IconChevronLeft size={16} style={{ transform: 'rotate(180deg)' }} />
+                      <IconChevronLeft size={16} />
                     </Group>
                   </Anchor>
                 )}
               </Group>
-              
-              <Grid gutter="sm">
+
+              <ProductRowSlider slideWidth={CARD_WIDTH}>
                 {category.children.map((item, itemIndex) => (
-                  <GridCol 
-                    key={item.url || `${categoryIndex}-${itemIndex}`} 
-                    span={{ base: 12, xs: 6, sm: 4, md: 3, lg: 2.4 }}
-                  >
+                  <React.Fragment key={item.url || `${categoryIndex}-${itemIndex}`}>
                     {renderProductCard(item, categoryIndex, itemIndex)}
-                  </GridCol>
+                  </React.Fragment>
                 ))}
-              </Grid>
+              </ProductRowSlider>
             </Box>
           ))}
         </Box>
@@ -352,7 +343,6 @@ function ProductHighlightCard({ items = [], title }) {
     );
   }
 
-  // Handle original row structure
   return (
     <EditorContainer>
       {title?.trim() && (
@@ -366,17 +356,14 @@ function ProductHighlightCard({ items = [], title }) {
         </Text>
       )}
       {items.map((row, rowIndex) => (
-        <Box key={rowIndex} mb="lg">
-          <Grid gutter="sm">
-            {row.map((item, itemIndex) => (
-              <GridCol 
-                key={item.url || `${rowIndex}-${itemIndex}`} 
-                span={{ base: 12, xs: 6, sm: 4, md: 3, lg: 2.4 }}
-              >
+        <Box key={rowIndex} mb={rowIndex < items.length - 1 ? "md" : 0}>
+          <ProductRowSlider slideWidth={CARD_WIDTH}>
+            {(Array.isArray(row) ? row : [row]).map((item, itemIndex) => (
+              <React.Fragment key={item.url || `${rowIndex}-${itemIndex}`}>
                 {renderProductCard(item, rowIndex, itemIndex)}
-              </GridCol>
+              </React.Fragment>
             ))}
-          </Grid>
+          </ProductRowSlider>
         </Box>
       ))}
     </EditorContainer>
@@ -391,9 +378,9 @@ ProductHighlightCard.craft = {
         {
           url: "",
           image: "",
-          title: ""
-        }
-      ]
+          title: "",
+        },
+      ],
     ],
   },
   related: {
@@ -421,17 +408,19 @@ ProductHighlightCard.craft = {
             type="repeater"
             propKey="items"
             label="ردیف محصولات"
-            fields={[{
-              name: "row",
-              type: "repeater",
-              label: "محصولات",
-              fields: fields
-            }]}
+            fields={[
+              {
+                name: "row",
+                type: "repeater",
+                label: "محصولات",
+                fields: fields,
+              },
+            ]}
           />
         </div>
       );
     },
   },
-}
+};
 
 export default ProductHighlightCard;
